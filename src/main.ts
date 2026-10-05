@@ -49,14 +49,7 @@ const bind = (id: string, fn: (on: boolean) => void) => {
   });
 };
 bind('opt-style', (on) => renderer.setStyle({ enabled: on }));
-bind('opt-voices', (on) => (speech.enabled = on));
 initCasting($('casting'));
-bind('opt-laughs', (on) => (audio.laughsEnabled = on));
-bind('opt-music', (on) => (audio.musicEnabled = on));
-bind('opt-captions', (on) => {
-  overlay.captionsEnabled = on;
-  if (!on) overlay.hideCaption();
-});
 const res = $<HTMLInputElement>('opt-res');
 res.addEventListener('input', () => {
   $('opt-res-v').textContent = `${res.value}p`;
