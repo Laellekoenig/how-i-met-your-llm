@@ -15,30 +15,31 @@ afterEach(() => {
   setGuests([]);
 });
 
-const nora = { name: 'Nora Vale', role: "Ted's date", gender: 'female', top: 'burgundy', top_style: 'dress', hair: 'brunette', hair_style: 'bob' };
+// Nora is now a recurring role; one-off guests use distinct names.
+const elodie = { name: 'Elodie Vale', role: "Ted's date", gender: 'female', top: 'burgundy', top_style: 'dress', hair: 'brunette', hair_style: 'bob' };
 
 describe('guest stars', () => {
   test('the planner’s guests fill slots in order with plain-word looks, and odd values fall back', () => {
     const guests = normalizeGuests([
-      nora,
+      elodie,
       { name: 'Dmitri', gender: 'male', height: 'tall', build: 'broad', skin: 'pale', top: '#ffffff', top_style: 'button-down', vest: 'black', extras: ['mustache', 'jetpack'], voice: { pitch: 'low', pace: 'warp' } },
-      { name: 'nora vale', gender: 'female' }, // duplicate name
+      { name: 'elodie vale', gender: 'female' }, // duplicate name
       { name: 'Gus', gender: 'm', top_style: 'cape', top: 'chartreuse' },
       { name: 'Fourth', gender: 'female' },
     ]);
-    expect(guests.map((g) => [g.id, g.name])).toEqual([['guest1', 'Nora Vale'], ['guest2', 'Dmitri'], ['guest3', 'Gus']]);
+    expect(guests.map((g) => [g.id, g.name])).toEqual([['guest1', 'Elodie Vale'], ['guest2', 'Dmitri'], ['guest3', 'Gus']]);
     expect(guests[0]).toMatchObject({ gender: 'female', hair: 'dark_brown', hairStyle: 'bob', topStyle: 'dress', top: 'burgundy' });
     expect(guests[1]).toMatchObject({ height: 'tall', build: 'broad', skin: 'fair', top: '#ffffff', topStyle: 'shirt', vest: 'black', extras: ['mustache'], voice: { pitch: 'low', pace: 'normal' } });
     expect(guests[2]).toMatchObject({ gender: 'male', topStyle: 'blazer', top: 'navy' });
   });
 
   test('scene beats address guests by slot or by name, and an uncast slot never speaks', () => {
-    const guests = normalizeGuests([nora]);
+    const guests = normalizeGuests([elodie]);
     const scene = normalizeScene({
-      cast: [{ character: 'Nora', mark: 'table_right' }, { character: 'ted', mark: 'table_left' }, { character: 'guest2', mark: 'center' }],
+      cast: [{ character: 'Elodie', mark: 'table_right' }, { character: 'ted', mark: 'table_left' }, { character: 'guest2', mark: 'center' }],
       beats: [
-        { type: 'say', character: 'Nora Vale', line: 'Hi.', to: 'Ted' },
-        { type: 'say', character: 'ted', line: 'Hi, Nora.', to: 'nora' },
+        { type: 'say', character: 'Elodie Vale', line: 'Hi.', to: 'Ted' },
+        { type: 'say', character: 'ted', line: 'Hi, Elodie.', to: 'elodie' },
         { type: 'say', character: 'guest2', line: 'I was never cast.' },
         { type: 'say', character: 'guest1', line: 'Still me.' },
       ],
@@ -53,16 +54,16 @@ describe('guest stars', () => {
 
   test('casting an episode renames and rebuilds the slots; the next episode resets the unused ones', () => {
     const stage = testStage();
-    const [g1, g2] = normalizeGuests([nora, { name: 'Dmitri', gender: 'male', height: 'tall', top_style: 'suit', top: 'black' }]);
+    const [g1, g2] = normalizeGuests([elodie, { name: 'Dmitri', gender: 'male', height: 'tall', top_style: 'suit', top: 'black' }]);
     const before = stage.actors.guest1;
     stage.castGuests([g1, g2]);
-    expect(charName('guest1')).toBe('Nora Vale');
+    expect(charName('guest1')).toBe('Elodie Vale');
     expect(CHARACTERS.guest2.voice.gender).toBe('male');
     expect(stage.actors.guest1).not.toBe(before);
     expect(stage.actors.guest2.height).toBeGreaterThan(stage.actors.guest1.height);
     const nextWeek = stage.actors.guest2;
     stage.castGuests([g1]);
-    expect(stage.actors.guest1.def.name).toBe('Nora Vale');
+    expect(stage.actors.guest1.def.name).toBe('Elodie Vale');
     expect(charName('guest2')).toBe('Guest');
     expect(stage.actors.guest2).not.toBe(nextWeek);
     // casting the same people again doesn't rebuild anyone

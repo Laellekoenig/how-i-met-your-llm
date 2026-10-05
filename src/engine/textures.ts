@@ -27,6 +27,35 @@ const shade = (hex: string, f: number) => {
   return `#${c.getHexString()}`;
 };
 
+/** Small original wardrobe prints; all are generated locally, without reference photographs. */
+export function wardrobePrint(base: string, kind: 'floral' | 'sparkle' | 'stripes', accent = '#d6c7ad') {
+  return canvas(64, 64, (g, w, h) => {
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+    if (kind === 'stripes') {
+      g.fillStyle = accent;
+      for (let y = 0; y < h; y += 32) g.fillRect(0, y, w, 16);
+    } else if (kind === 'sparkle') {
+      const rand = mulberry32(74);
+      for (let i = 0; i < 240; i++) {
+        g.fillStyle = i % 3 ? '#b9986f' : '#ece0bf';
+        g.fillRect(rand() * w, rand() * h, 1, 1.5);
+      }
+    } else {
+      for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
+        const x = 8 + col * 22 + (row % 2) * 5, y = 10 + row * 22;
+        g.strokeStyle = '#6a836e'; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x + 2, y - 2); g.stroke();
+        g.fillStyle = (row + col) % 2 ? '#d3a563' : '#b8817b';
+        for (let i = 0; i < 5; i++) {
+          const a = i * Math.PI * 2 / 5;
+          g.beginPath(); g.ellipse(x + Math.cos(a) * 2, y + Math.sin(a) * 2, 2, 1.5, a, 0, Math.PI * 2); g.fill();
+        }
+        g.fillStyle = '#f4dca1'; g.fillRect(x - 1, y - 1, 2, 2);
+      }
+    }
+  });
+}
+
 /** Small woven tie motifs, with UVs spanning the length of the tie. */
 export function tieWeave(base: string, accent: string, pattern: 'stripes' | 'diamonds') {
   return canvas(32, 128, (g, w, h) => {

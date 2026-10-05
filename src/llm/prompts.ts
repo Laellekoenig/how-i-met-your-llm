@@ -40,6 +40,16 @@ Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate 
 - judy — Judy Eriksen, Marshall's tall, formidable Minnesota mother and Marvin Sr.'s wife. Fiercely protective, competitive with Lily, expresses love through enormous meals and backhanded domestic advice. Auburn curls, yellow turtleneck and printed apron. Affection underneath the friction; never confuse her with Lily.
 - scooter — Scooter, Lily's earnest high-school ex, later a school cafeteria worker. Awkwardly hopeful, overreads tiny signs and volunteers for things nobody requested. Tousled brown hair, brown suit and red tie. His persistence is a comic flaw, not something Lily owes him a reward for.
 
+- loretta — Loretta Stinson, Barney and James's mother. Breezy, affectionate and unflappable; tells contradictory stories about Barney's childhood and his father. Can fluster Barney with one casual detail. Auburn updo, shimmering black-and-gold blouse. Natural sets: barneys, restaurant.
+- mickey — Mickey Aldrin, Lily's unreliable dad and a failed board-game inventor. Pitches hopeless games to Marshall with total confidence; Lily's anger hides a wish that he would show up for her. Balding with a graying beard, rumpled red plaid. Natural sets: apartment, store.
+- hammond — Hammond Druthers, Ted's pompous former architecture boss. Praises his own ugly buildings and treats Ted's successes as footnotes; a mirror of Ted's pretension. Brown sweater vest, checked shirt and blue tie. Natural sets: office, lecture_hall.
+- stella — Stella Zinman, dermatologist, Lucy's mother and Ted's former fiancée. Warm, brisk, practical; her busy life punctures Ted's romantic overthinking. Blonde waves, blue striped cardigan and coral blouse. Give her her own goals and jokes, not just regret about Ted. Natural sets: restaurant, maclarens.
+- zoey — Zoey Pierson, activist, the Captain's ex-wife and Ted's ex. Smart, stubborn and passionate about preservation; can turn choosing a table into a campaign. Burgundy knit hat, blonde waves, dark coat and scarf. Her convictions and friendships matter beyond Ted. Natural sets: restaurant, maclarens.
+- nora — Nora, Robin's British coworker and Barney's former girlfriend (NOT Robin's ex or Stella's sister Nora Zinman). Warm, self-possessed, dryly funny; expects honesty and follows her own priorities. Dark hair and ivory floral dress. Give her agency and comic victories, as with Victoria and Quinn. Natural sets: restaurant, maclarens.
+- virginia — Virginia Mosby, Ted's mother. Cheerfully overshares startling details of her dating life without noticing Ted's mortification. Chestnut bob, red blouse and earrings. Natural sets: restaurant, taxi.
+- punchy — Adam "Punchy" Punciarello, Ted's loud high-school friend from Ohio. Friendly arm punches, "Schmosby!", and instant teenage regression from Ted; loyal underneath the noise. Short dark hair, black wedding suit, ivory tie and boutonniere. Natural sets: maclarens, limo; establish a wedding-related occasion for his formal clothes.
+- robin_sparkles — Robin Sparkles is ROBIN'S Canadian teen-pop persona, not another friend. Big, earnest pop-star energy and dated mall promotions; faded denim jacket and skirt, blonde curls, red hair bow and belt, black beads, neon bangles. Use for a labeled Canadian flashback, imagined music-video cutaway, or an explicitly established adult reprise. Natural sets: store (a small retail promotion), metro_news_one. Never cast robin and robin_sparkles as separate people in the same real scene; return to robin after the cutaway. Only original dialogue or invented short lyrics, never reproduce the real songs.
+
 Use only a few supporting characters per episode, chosen for the story. Do not parade the whole roster through each scene. Establish romantic status in context; the loose timeline does not make every ex a current partner at once.
 
 # Guest stars
@@ -128,7 +138,7 @@ export const PLAN_TOOL: Tool = {
           items: {
             type: 'object',
             properties: {
-              name: { type: 'string', description: 'A new name, e.g. "Nora".' },
+              name: { type: 'string', description: 'A new name, e.g. "Elodie".' },
               role: { type: 'string', description: 'Who they are and their comic hook, e.g. "Ted\'s date, a sommelier who whispers everything".' },
               gender: { type: 'string', enum: ['female', 'male'] },
               height: { type: 'string', enum: ['short', 'average', 'tall'] },

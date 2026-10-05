@@ -426,8 +426,147 @@ const GUEST_LECTURE: SampleEpisode = {
   ],
 };
 
+/** Family stories are never quite the same twice. */
+const FAMILY_FINE_PRINT: SampleEpisode = {
+  meta: { code: 'S10E05', title: 'The Family Fine Print', logline: 'Mickey invents a game about family secrets. The parents turn out to be considerably better at it.' },
+  coldOpen: 'Kids, every family has a story it tells at dinner. Ours needed a fact checker and a later time slot.',
+  guests: [],
+  scenes: [
+    {
+      location: 'apartment', time: 'day', transition: 'exterior',
+      cast: [{ character: 'mickey', mark: 'center' }, { character: 'lily', mark: 'couch_left' }, { character: 'marshall', mark: 'couch_right' }],
+      beats: [
+        say('mickey', 'My new board game is called Family Fine Print. Every player gets a secret.', { e: 'excited', g: 'hands_up' }),
+        say('lily', 'Is yours that you borrowed our rent money to print it?', { to: 'mickey', e: 'angry', l: 'laugh' }),
+        say('mickey', 'You are already very good at this.', { to: 'lily', e: 'happy', l: 'laugh' }),
+        say('marshall', 'How do you win?', { to: 'mickey', g: 'think' }),
+        say('mickey', 'You convince everybody your version happened.', { to: 'marshall', e: 'smug' }),
+        narr('Barney had been playing that game with his mother for years.'),
+        cutaway('flashback', 'Earlier that afternoon', 'barneys', 'day', [{ character: 'loretta', mark: 'couch_left' }, { character: 'barney', mark: 'couch_right' }], [
+          say('barney', 'Mom, was Dad really the first man to water-ski across the Atlantic?', { to: 'loretta', e: 'nervous' }),
+          say('loretta', 'Of course, sweetheart. Unless I told you he was afraid of water.', { to: 'barney', e: 'happy' }),
+          say('barney', 'You said both.', { to: 'loretta', e: 'confused' }),
+          say('loretta', 'Then imagine how brave he was.', { to: 'barney', e: 'smug', l: 'big' }),
+        ]),
+        say('lily', 'Dad, I do not want another pitch. I want you to come to dinner.', { to: 'mickey', e: 'sad' }),
+        say('mickey', 'No investors?', { to: 'lily', e: 'confused' }),
+        say('lily', 'Just your daughter.', { to: 'mickey' }),
+        say('mickey', 'Best offer I have had all year.', { to: 'lily', e: 'happy', l: 'aww' }),
+      ],
+    },
+    {
+      location: 'restaurant', time: 'night', transition: 'exterior',
+      cast: [{ character: 'virginia', mark: 'booth_left' }, { character: 'ted', mark: 'booth_middle' }, { character: 'mickey', mark: 'booth_right' }, { character: 'lily', mark: 'booth_end_right' }],
+      beats: [
+        say('ted', 'Mom, we are having a nice, ordinary family dinner.', { to: 'virginia', e: 'happy' }),
+        say('virginia', 'Lovely. My new boyfriend owns a hot-air balloon.', { to: 'ted', e: 'happy' }),
+        say('ted', 'That sounds perfectly normal.', { to: 'virginia' }),
+        say('virginia', 'We have been banned from three counties.', { to: 'ted', e: 'smug', l: 'laugh' }),
+        act('ted', 'facepalm'),
+        say('mickey', 'I had that exact card printed.', { to: 'virginia', e: 'surprised', l: 'laugh' }),
+        say('lily', 'Dad. Dinner.', { to: 'mickey', e: 'angry' }),
+        say('mickey', 'Right. Lily, how was your day?', { to: 'lily', e: 'happy' }),
+        say('lily', 'You really want to know?', { to: 'mickey', e: 'surprised' }),
+        say('virginia', 'I want to know if this restaurant validates balloon parking.', { e: 'confused', l: 'big' }),
+        narr('For once, Lily had the least embarrassing parent at the table.'),
+      ],
+    },
+  ],
+};
+
+/** The women have a project; Ted mistakenly thinks he is the project. */
+const EXES_COMMITTEE: SampleEpisode = {
+  meta: { code: 'S10E06', title: 'The Committee', logline: 'Stella, Zoey and Nora organize a neighborhood benefit. Ted assumes their meeting requires an apology from him.' },
+  coldOpen: 'Kids, there is a mature way to run into your ex. I am told it involves letting her finish lunch.',
+  guests: [],
+  scenes: [
+    {
+      location: 'restaurant', time: 'day', transition: 'exterior',
+      cast: [{ character: 'stella', mark: 'booth_left' }, { character: 'zoey', mark: 'booth_middle' }, { character: 'nora', mark: 'booth_right' }],
+      beats: [
+        say('stella', 'Lucy has soccer at four. We have forty minutes to plan this benefit.', { to: 'zoey' }),
+        say('zoey', 'Thirty-nine. I am petitioning the restaurant to keep this booth.', { to: 'stella', e: 'smug', l: 'laugh' }),
+        say('nora', 'I booked the musicians. None of them described themselves as a visionary.', { to: 'zoey', e: 'happy', l: 'laugh' }),
+        enter('ted', 'center'),
+        say('ted', 'Stella. Zoey. Nora. I suppose I owe this table an explanation.', { e: 'nervous' }),
+        say('nora', 'For standing in front of the specials?', { to: 'ted', d: 'deadpan', l: 'laugh' }),
+        say('ted', 'I thought you might be discussing me.', { to: 'stella', e: 'nervous' }),
+        say('stella', 'Ted, our agenda has a time limit.', { to: 'ted', l: 'laugh' }),
+        say('zoey', 'We need chairs. Can you arrange chairs without an emotional journey?', { to: 'ted' }),
+        say('ted', 'Absolutely.', { to: 'zoey', e: 'smug' }),
+        cutaway('imagined', 'Ted plans the seating', 'lecture_hall', 'day', [{ character: 'ted', mark: 'lectern' }], [
+          say('ted', 'A chair is a promise that someone will stay.', { e: 'happy', g: 'hands_up' }),
+          say('ted', 'Unless it is a folding chair. I have been hurt by folding chairs.', { e: 'sad', l: 'laugh' }),
+          act('ted', 'think'),
+        ]),
+        say('stella', 'You just stared at a chair for thirty seconds.', { to: 'ted', l: 'big' }),
+      ],
+    },
+    {
+      location: 'maclarens', time: 'night', transition: 'exterior',
+      cast: [{ character: 'stella', mark: 'booth_left_back' }, { character: 'zoey', mark: 'booth_left_front' }, { character: 'nora', mark: 'booth_right_back' }, { character: 'ted', mark: 'booth_end' }, { character: 'barney', mark: 'booth_right_front' }],
+      beats: [
+        say('zoey', 'Benefit sold out. We saved the community garden.', { e: 'excited', l: 'applause' }),
+        say('stella', 'And I made soccer. Lucy scored twice. I only negotiated one goal.', { e: 'happy', l: 'laugh' }),
+        say('barney', 'Nora, I have matured. I donated anonymously.', { to: 'nora', e: 'smug' }),
+        say('nora', 'The receipt says Anonymous Stinson.', { to: 'barney', d: 'deadpan', l: 'laugh' }),
+        say('ted', 'And the chairs?', { to: 'zoey', e: 'nervous' }),
+        say('zoey', 'People sat in them, Ted.', { to: 'ted' }),
+        say('ted', 'Together?', { to: 'zoey', e: 'happy' }),
+        say('stella', 'Separately. They were chairs.', { to: 'ted', l: 'big' }),
+      ],
+    },
+  ],
+};
+
+/** Old footage brings out everyone's younger self. */
+const REUNION_TAPE: SampleEpisode = {
+  meta: { code: 'S10E07', title: 'The Reunion Tape', logline: 'Punchy interrupts Ted’s guest speaker, then produces a tape Robin thought had disappeared.' },
+  coldOpen: 'Kids, your old friends remember who you were. Unfortunately, some of them keep backups.',
+  guests: [],
+  scenes: [
+    {
+      location: 'lecture_hall', time: 'day', transition: 'exterior',
+      cast: [{ character: 'hammond', mark: 'lectern' }, { character: 'ted', mark: 'demonstration' }, { character: 'punchy', mark: 'student_1_3' }],
+      beats: [
+        say('hammond', 'My latest building makes a statement.', { e: 'smug', g: 'hands_up' }),
+        say('ted', 'The planning commission called it an apology waiting to happen.', { to: 'hammond', d: 'deadpan', l: 'laugh' }),
+        say('punchy', 'Schmosby! Same face you made when our science volcano clogged!', { to: 'ted', e: 'excited', d: 'shout', l: 'laugh' }),
+        say('ted', 'Punchy, why are you wearing your wedding suit?', { to: 'punchy', e: 'confused' }),
+        say('punchy', 'Anniversary photos. Kelly said do something classy first. So I came to school.', { to: 'ted', e: 'smug', l: 'laugh' }),
+        say('hammond', 'Mosby, control your student.', { to: 'ted', e: 'angry' }),
+        say('ted', 'He is thirty-two.', { to: 'hammond' }),
+        say('punchy', 'And our volcano ruled!', { to: 'ted', g: 'hands_up', d: 'shout' }),
+        say('ted', 'It totally ruled!', { to: 'punchy', g: 'thumbs_up', d: 'shout', l: 'laugh' }),
+        say('hammond', 'Finally. A design discussion at your level.', { to: 'ted', e: 'smug', l: 'big' }),
+      ],
+    },
+    {
+      location: 'maclarens', time: 'night', transition: 'exterior',
+      cast: [{ character: 'robin', mark: 'booth_left_back' }, { character: 'ted', mark: 'booth_end' }, { character: 'barney', mark: 'booth_right_front' }, { character: 'punchy', mark: 'booth_side' }],
+      beats: [
+        say('punchy', 'Found an old tape after the photo shoot. Canadian shopping-channel clearance bin.', { e: 'excited' }),
+        say('robin', 'I would like to buy the tape. And the bin. And your memory.', { to: 'punchy', e: 'nervous', d: 'fast', l: 'laugh' }),
+        say('barney', 'Sparkles?', { to: 'robin', e: 'excited' }),
+        narr('In 1993, a Canadian retailer hired Robin Sparkles for a very small promotion.'),
+        cutaway('flashback', 'Canada, 1993 — retail promotion', 'store', 'day', [{ character: 'robin_sparkles', mark: 'center' }], [
+          say('robin_sparkles', 'Hello, shoppers! Your receipt is also your backstage pass!', { e: 'excited', g: 'wave', d: 'shout' }),
+          act('robin_sparkles', 'dance'),
+          say('robin_sparkles', 'Buy two batteries, power up your dreams!', { e: 'happy', d: 'sing', l: 'laugh' }),
+          say('robin_sparkles', 'The dreams are not included. My manager was very clear.', { e: 'nervous', l: 'big' }),
+        ]),
+        say('robin', 'I was paid in batteries. They expired before my career did.', { e: 'bored', l: 'laugh' }),
+        say('punchy', 'I thought it was great.', { to: 'robin', e: 'happy' }),
+        say('ted', 'That is actually sweet, Punchy.', { to: 'punchy' }),
+        say('punchy', 'Recorded it over your volcano presentation.', { to: 'ted', e: 'smug', l: 'laugh' }),
+        say('ted', 'Dude!', { to: 'punchy', e: 'angry', d: 'shout', l: 'big' }),
+      ],
+    },
+  ],
+};
+
 /** The offline reruns, in airing order. */
-export const RERUNS: SampleEpisode[] = [UNDERSTUDY, SILENT_AUCTION, CORRECTION, GUEST_LECTURE];
+export const RERUNS: SampleEpisode[] = [UNDERSTUDY, SILENT_AUCTION, CORRECTION, GUEST_LECTURE, FAMILY_FINE_PRINT, EXES_COMMITTEE, REUNION_TAPE];
 
 let counter = 0;
 

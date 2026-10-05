@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { CharacterDef, Look } from './characters';
 import type { Emotion, Gesture } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
-import { plaid, tweed, denim, tieWeave, kitchenPrint } from '../engine/textures';
+import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint } from '../engine/textures';
 import { Profile, limb, ellipsoid, surface, smoothstep } from '../engine/shapes';
 import { buildHairGeometry } from './hair';
 import { clamp, damp, dampAngle, angleDiff, noise1, rand, lerp } from '../util';
@@ -137,7 +137,11 @@ export class Actor {
     };
     const skin = toon(L.skin);
     const outer = (side?: THREE.Side) =>
-      L.plaid ? fabric(plaid(L.top, L.plaid[0], L.plaid[1]), 0.075, side) : L.tweed ? fabric(tweed(L.top), 0.07, side) : toon(L.top, { side });
+      L.plaid ? fabric(plaid(L.top, L.plaid[0], L.plaid[1]), 0.075, side)
+      : L.stripes ? fabric(wardrobePrint(L.top, 'stripes', L.stripes), 0.22, side)
+      : L.print ? fabric(wardrobePrint(L.top, L.print), 0.28, side)
+      : L.topStyle === 'denim' ? fabric(denim(L.top), 0.09, side)
+      : L.tweed ? fabric(tweed(L.top), 0.07, side) : toon(L.top, { side });
     const topMat = outer();
     const topDS = outer(DS);
     const topDark = toon(shade(L.top, 0.72), { side: DS });
@@ -157,11 +161,11 @@ export class Actor {
     };
 
     const style = L.topStyle;
-    const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie';
+    const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie' || style === 'denim';
     const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee' || style === 'hoodie';
     const shortSleeves = style === 'tee' || style === 'polo';
     const sleeveless = style === 'dress';
-    const rolled = style === 'shirt';
+    const rolled = L.sleeves === 'rolled' || (style === 'shirt' && L.sleeves !== 'long');
 
     this.root.add(this.hips);
     this.hips.position.y = this.legLen;
@@ -191,6 +195,7 @@ export class Actor {
         rim.rotation.x = Math.PI / 2;
         add(knee, rim, false);
       }
+      if (L.socks) add(knee, mesh(new THREE.CylinderGeometry(0.048 * s, 0.044 * s, 0.09 * s, 12), toon(L.socks), 0, -shin + 0.09 * s, 0));
       const foot = new THREE.Group();
       foot.position.y = -shin;
       knee.add(foot);
@@ -318,6 +323,7 @@ export class Actor {
         } else buttons([0.3 * tl, 0.38 * tl], 0.02, toon('#2a1a12'), 0.3, drape);
         break;
       }
+      case 'denim':
       case 'leather': {
         const open = (y: number) => 0.32 + 0.35 * smoothstep(0.5 * tl, 0.97 * tl, y);
         shell(0.016, -0.06 * tl, 0.98 * tl, open, topDS);
@@ -326,6 +332,15 @@ export class Actor {
         add(this.spine, collar(0.7, 0.018, 0.02 * s, topDS, 0.03));
         // scoop neckline
         add(this.spine, placket(0.87 * tl, 0.99 * tl, (y) => 0.45 * Math.sqrt(ramp(0.87 * tl, 0.99 * tl, y)), 0.002, skin), false);
+        if (style === 'denim') {
+          const stitch = toon('#d3d8cf', { side: DS });
+          for (const sg of [-1, 1]) {
+            const pocket = mesh(surface(6, 6, (u, v, p) => torso.point((0.56 + 0.18 * v) * tl, sg * (0.8 + u * 0.45), p, 0.026, E)), topDark);
+            add(this.spine, pocket, false);
+            const button = mesh(ellipsoid(0.008, 0.008, 0.004, 6, 4), stitch);
+            button.position.copy(onTorso(0.71 * tl, sg * 1.01, 0.03)); add(this.spine, button, false);
+          }
+        }
         break;
       }
       case 'cardigan': {
@@ -378,7 +393,7 @@ export class Actor {
         // Victoria's scoop-neck plum dress, with folded ruffles along both shoulder straps.
         add(this.spine, placket(0.73 * tl, 0.99 * tl, y => 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y)), 0.003, skin), false);
         add(this.spine, mesh(torso.geometry({ seg: 26, rows: 3, e: E, y: [0.975 * tl, torso.yMax], inflate: 0.004 }), skin), false);
-        for (const sg of [-1, 1]) add(this.spine, mesh(surface(6, 24, (u, v, p) => {
+        if (L.dressRuffles !== false) for (const sg of [-1, 1]) add(this.spine, mesh(surface(6, 24, (u, v, p) => {
           const y = (0.74 + 0.25 * v) * tl;
           const edge = 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y));
           torso.point(y, sg * (edge + 0.03 + u * 0.34), p, 0.006 + Math.sin(u * Math.PI) * (0.014 + 0.013 * Math.sin(v * Math.PI * 8)), E);
@@ -426,6 +441,32 @@ export class Actor {
       }
     }
 
+    if (L.scarf) {
+      const mat = fabric(wardrobePrint(L.scarf, 'floral'), 0.2, DS);
+      add(this.spine, collar(0, 0.03, 0.035 * s, mat, 0.035));
+      add(this.spine, placket(0.5 * tl, 0.94 * tl, () => 0.28, 0.037, mat), false);
+    }
+    if (L.beads) {
+      const beads = toon(L.beads);
+      for (let i = 0; i < 19; i++) {
+        const a = Math.PI * i / 18, x = Math.cos(a) * 0.084 * s;
+        const y = (0.98 - 0.38 * Math.sin(a)) * tl;
+        add(this.spine, mesh(ellipsoid(0.011 * s, 0.012 * s, 0.011 * s, 6, 4), beads, x, y, torso.frontZ(x, y, E) + 0.03), false);
+      }
+    }
+    if (L.boutonniere) {
+      const flower = toon(L.boutonniere);
+      const pos = onTorso(0.77 * tl, 0.65, 0.038, drape);
+      for (let i = 0; i < 5; i++) {
+        const a = i * Math.PI * 2 / 5;
+        add(this.spine, mesh(ellipsoid(0.012, 0.013, 0.009, 6, 4), flower, pos.x + Math.cos(a) * 0.012, pos.y + Math.sin(a) * 0.012, pos.z), false);
+      }
+    }
+    if (L.belt) {
+      shell(0.027, -0.01 * tl, 0.07 * tl, () => 0, toon(L.belt, { side: DS }));
+      add(this.spine, mesh(new THREE.BoxGeometry(0.044 * s, 0.04 * s, 0.014 * s), toon('#d9bd69'), 0, 0.028 * tl, torso.frontZ(0, 0.028 * tl, E) + 0.036), false);
+    }
+
     // ---- skirt + apron hang from a pivot at hip-joint height that follows the thighs
     const apron = L.extras?.includes('apron');
     if (L.skirt || apron) {
@@ -435,7 +476,9 @@ export class Actor {
     }
     if (L.skirt) {
       const sk = new Profile([[-thigh * 0.86, 0.205 * bx, 0.17 * bz], [-thigh * 0.5, 0.188 * bx, 0.152 * bz], [0, hipR * 1.04, 0.114 * bz], [0.1 * s, hipR * 0.93, 0.1 * bz], [0.13 * s, hipR * 0.82, 0.088 * bz]]);
-      add(this.skirt!, mesh(sk.geometry({ seg: 24, rows: 12, e: 0.9 }), toon(L.skirt, { side: DS })));
+      const skirtMat = L.print ? fabric(wardrobePrint(L.skirt, L.print), 0.28, DS)
+        : style === 'denim' ? fabric(denim(L.skirt), 0.09, DS) : toon(L.skirt, { side: DS });
+      add(this.skirt!, mesh(sk.geometry({ seg: 24, rows: 12, e: 0.9, uv: [circ, thigh] }), skirtMat));
     }
     if (apron) {
       const r = Math.max(hipR, torso.at(hem).rx) + 0.014;
@@ -471,6 +514,10 @@ export class Actor {
       add(el, mesh(limb(er * 0.98, wr, fore - 0.04, { bulge: 0.005 * ba, bulgeAt: 0.25, uv: true }), bare ? skin : topMat));
       if (rolled) add(el, mesh(new Profile([[-0.06 * s, er + 0.008, er + 0.008], [0.0, er + 0.012, er + 0.012], [0.01, er + 0.009, er + 0.009]]).geometry({ seg: 12, rows: 3 }), topDS));
       if (style === 'hoodie') add(el, mesh(new THREE.CylinderGeometry(wr + 0.008, wr + 0.009, 0.04, 12, 1, true), topDark, 0, -fore + 0.06, 0), false);
+      if (L.bangles) for (let i = 0; i < 5; i++) {
+        const ring = mesh(new THREE.TorusGeometry(wr + 0.005, 0.006 * s, 5, 12), toon(L.bangles[i % 2]), 0, -fore + (0.045 + i * 0.014) * s, 0);
+        ring.rotation.x = Math.PI / 2; add(el, ring, false);
+      }
       if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under && !L.neckline)) {
         const cuff = mesh(new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true), underDS, 0, -fore + 0.05, 0);
         add(el, cuff, false);
@@ -628,6 +675,20 @@ export class Actor {
       const m = mesh(g, hairMat, 0, this.torsoLen + 0.02 * L.height, 0);
       this.spine.add(m);
       this.bodyMeshes.push(m);
+    }
+    if (L.beanie) {
+      const knit = toon(L.beanie);
+      const hat = new Profile([[fy(0.73), 0.4 * hh, 0.45 * hh, -0.015], [fy(0.96), 0.42 * hh, 0.46 * hh, -0.02], [fy(1.2), 0.3 * hh, 0.34 * hh, -0.04], [fy(1.28), 0, 0, -0.04]]);
+      add(mesh(hat.geometry({ seg: 24, rows: 12 }), knit), true);
+      add(mesh(hat.geometry({ seg: 24, rows: 3, y: [fy(0.73), fy(0.86)], inflate: 0.004 }), toon(new THREE.Color(L.beanie).multiplyScalar(0.8))), true);
+    }
+    if (L.bow) {
+      const mat = toon(L.bow);
+      for (const sg of [-1, 1]) {
+        const wing = add(mesh(ellipsoid(0.14 * hh, 0.1 * hh, 0.045 * hh, 8, 6), mat, (-0.24 + sg * 0.11) * hh, fy(1.05), 0.18 * hh), true);
+        wing.rotation.z = sg * -0.45;
+      }
+      add(mesh(ellipsoid(0.055 * hh, 0.055 * hh, 0.055 * hh, 8, 6), mat, -0.24 * hh, fy(1.05), 0.2 * hh), true);
     }
     if (L.extras?.includes('cap')) {
       const r = head.at(fy(0.85));

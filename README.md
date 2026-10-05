@@ -17,7 +17,7 @@ with no controls. Browsers may hold the sound back until you first click or pres
 Add `mute` (`/?mute`, `/?dev&mute`) to play everything silently. Automated browsers (`navigator.webdriver`) and
 the T3 Code preview browser are muted automatically, so agents testing the show stay quiet; `?sound` overrides that.
 
-With no API key it plays four hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
+With no API key it plays seven hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
 pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is
 remembered, regular mode starts the writers on its own when the page loads.
 
@@ -86,7 +86,7 @@ Everything here is written by the model through the same two tool calls, and is 
   caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
   mid-word and the next speaker jumps straight in.
 
-All four offline reruns use all of it: each casts its own guest stars and cuts away at least once.
+The original four offline reruns each cast one-off guests and cut away at least once. Three more feature the expanded recurring cast.
 
 | Rerun | Guest stars | Cutaways | Sets |
 | --- | --- | --- | --- |
@@ -94,10 +94,18 @@ All four offline reruns use all of it: each casts its own guest stars and cuts a
 | **The Silent Auction** | Delphine, the PTA president; Rusty, the auctioneer | How Marshall imagined it; St. Cloud, 1985 | store, restaurant, apartment |
 | **The Correction** | Margo, the producer; Hector, the silent camera operator | How Kevin pictured it (lecture hall) | Metro News One, Barney's limo (with a rewind) |
 | **The Guest Lecture** | Ingrid Solberg, Ted's hero; Wade, his keenest student | Wesleyan, 1997 | roof, lecture hall, limo |
+| **The Family Fine Print** | Mickey, Loretta and Virginia | Earlier that afternoon at Barney's | apartment, restaurant |
+| **The Committee** | Stella, Zoey and Nora | Ted imagines a seating lecture | restaurant, MacLaren's |
+| **The Reunion Tape** | Hammond, Punchy and Robin Sparkles | Canada, 1993 — a retail promotion | lecture hall, MacLaren's, store |
 
 In dev mode, skip episodes from the first rerun to reach the others.
 
 ## Recurring cast and wardrobe references
+
+Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
+Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voice auditions and writer guidance.
+They appear in three additional offline reruns. See [their inspected references and wardrobe notes](docs/cast-reference.md).
+
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
 episode planner, scene writer, director and voice-casting panel. Each has a distinct procedural model,
