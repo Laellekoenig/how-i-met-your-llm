@@ -42,7 +42,8 @@ export class Stage {
       { female: true, hair: '#1a1210', hairStyle: 'ponytail', top: '#9a3a4a', topStyle: 'tee', skin: '#e8b996', height: 1.68 },
       { female: false, hair: '#8a6a3a', hairStyle: 'messy', top: '#3a5a3a', topStyle: 'flannel', plaid: ['#1a2a1a', '#9a8a5a'], skin: '#f0c4a4', height: 1.85 },
     ];
-    const spots: [number, number, number][] = [[-5.05, -3.0, 0.9], [-4.35, -3.35, -0.6], [3.25, -3.65, Math.PI / 2 - 0.3]];
+    // corner booth under the mural, and a floor table by the window
+    const spots: [number, number, number, number][] = [[-6.42, -3.0, Math.PI / 2, 0.47], [-5.4, -3.92, 0, 0.47], [1.3, -3.78, 0, 0.48]];
     looks.forEach((l, i) => {
       const def: CharacterDef = {
         id: `extra${i}` as CharacterId,
@@ -53,14 +54,14 @@ export class Stage {
         look: { ...CHARACTERS.carl.look, extras: [], pants: '#2a2a30', build: 1, ...l } as CharacterDef['look'],
       };
       const a = new Actor(def);
-      a.place(new THREE.Vector3(spots[i][0], 0, spots[i][1]), spots[i][2], null);
+      a.place(new THREE.Vector3(spots[i][0], 0, spots[i][1]), spots[i][2], spots[i][3]);
       a.holdingGlass = true;
       this.sets.maclarens.group.add(a.root);
       this.extras.push({ actor: a, set: 'maclarens', talkT: rand(0, 3) });
     });
     // they chat with each other
-    this.extras[0].actor.lookAt = new THREE.Vector3(-4.35, 1.6, -3.35);
-    this.extras[1].actor.lookAt = new THREE.Vector3(-5.05, 1.6, -3.0);
+    this.extras[0].actor.lookAt = new THREE.Vector3(-5.4, 1.25, -3.92);
+    this.extras[1].actor.lookAt = new THREE.Vector3(-6.42, 1.25, -3.0);
   }
 
   setLocation(id: LocationId, time: TimeOfDay) {

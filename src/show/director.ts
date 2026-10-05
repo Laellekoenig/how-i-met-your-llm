@@ -86,7 +86,7 @@ export class Director {
       const t = this.stage.actors[toward].headWorld.sub(head).setY(0);
       if (t.lengthSq() > 0.01) look.copy(t.normalize());
     }
-    const candidates = [0.55, 0.8, 0.35, 1.0].map((blend) => {
+    const candidates = [0.3, 0.55, 0.8, 1.0].map((blend) => {
       const d = look.clone().lerp(new THREE.Vector3(0, 0, 1), blend).setY(0);
       if (d.z < 0.3) d.z = 0.3;
       return d.normalize();

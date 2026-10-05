@@ -227,11 +227,11 @@ $('tune-in').addEventListener('click', tuneIn);
 
 // Preview behind the tune-in screen: the gang in the booth.
 stage.setLocation('maclarens', 'night');
-stage.place('ted', 'booth_back_center');
-stage.place('marshall', 'booth_back_left');
-stage.place('lily', 'booth_left');
-stage.place('robin', 'booth_back_right');
-stage.place('barney', 'booth_right');
+stage.place('ted', 'booth_end');
+stage.place('marshall', 'booth_left_back');
+stage.place('lily', 'booth_left_front');
+stage.place('robin', 'booth_right_back');
+stage.place('barney', 'booth_right_front');
 stage.place('carl', 'behind_bar');
 stage.setBackground('carl', true);
 director.wide(1, 0.05);

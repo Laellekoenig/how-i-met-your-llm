@@ -25,8 +25,8 @@ const EPISODES: SampleEpisode[] = [
       {
         location: 'maclarens', time: 'night',
         cast: [
-          { character: 'ted', mark: 'booth_back_center' }, { character: 'marshall', mark: 'booth_back_left' },
-          { character: 'lily', mark: 'booth_left' }, { character: 'robin', mark: 'booth_back_right' }, { character: 'barney', mark: 'booth_right' },
+          { character: 'ted', mark: 'booth_end' }, { character: 'marshall', mark: 'booth_left_back' },
+          { character: 'lily', mark: 'booth_left_front' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' },
         ],
         beats: [
           say('ted', 'Guys. Eleven months ago, I called Le Petit Rien. Tonight at eight, I have a table for two.', { e: 'excited', g: 'hands_up' }),
@@ -83,8 +83,8 @@ const EPISODES: SampleEpisode[] = [
       {
         location: 'maclarens', time: 'night',
         cast: [
-          { character: 'ted', mark: 'bar_stool_2' }, { character: 'marshall', mark: 'booth_back_left' },
-          { character: 'lily', mark: 'booth_back_center' }, { character: 'robin', mark: 'booth_back_right' }, { character: 'barney', mark: 'booth_right' },
+          { character: 'ted', mark: 'bar_stool_2' }, { character: 'marshall', mark: 'booth_left_back' },
+          { character: 'lily', mark: 'booth_left_front' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' },
           { character: 'wendy', mark: 'bar_standing' },
         ],
         beats: [
@@ -162,10 +162,10 @@ const EPISODES: SampleEpisode[] = [
       },
       {
         location: 'maclarens', time: 'night',
-        cast: [{ character: 'ted', mark: 'booth_back_center' }, { character: 'robin', mark: 'booth_back_right' }, { character: 'barney', mark: 'booth_right' }],
+        cast: [{ character: 'ted', mark: 'booth_end' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' }],
         beats: [
-          enter('marshall', 'booth_back_left'),
-          enter('lily', 'booth_left'),
+          enter('marshall', 'booth_left_back'),
+          enter('lily', 'booth_left_front'),
           say('ted', "So. How's the peace treaty holding up?", { to: 'lily' }),
           say('lily', 'Great! Until he set it to sixty-eight point five.', { e: 'angry', to: 'ted' }),
           say('marshall', 'The point five is for my soul.', { e: 'smug', l: 'big' }),

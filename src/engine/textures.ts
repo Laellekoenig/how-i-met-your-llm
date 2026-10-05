@@ -240,3 +240,140 @@ export function tvScreen() {
     g.fillRect(4, 4, 6, 6);
   });
 }
+
+/** Sepia WPA-style mural under a shallow arch (MacLaren's back wall). Outside the arch is wall colour. */
+export function mural(wall: string, seed = 5) {
+  const r = mulberry32(seed);
+  return canvas(160, 56, (g, w, h) => {
+    g.fillStyle = wall;
+    g.fillRect(0, 0, w, h);
+    g.save();
+    g.beginPath();
+    g.moveTo(0, h);
+    g.lineTo(0, h * 0.5);
+    g.quadraticCurveTo(w / 2, -h * 0.42, w, h * 0.5);
+    g.lineTo(w, h);
+    g.closePath();
+    g.clip();
+    const sky = g.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#d2a860');
+    sky.addColorStop(0.6, '#b07a3c');
+    sky.addColorStop(1, '#6e4422');
+    g.fillStyle = sky;
+    g.fillRect(0, 0, w, h);
+    // smoke and clouds
+    g.fillStyle = '#e2c488';
+    for (let i = 0; i < 9; i++) {
+      g.beginPath();
+      g.arc(r() * w, 6 + r() * 16, 3 + r() * 6, 0, 7);
+      g.fill();
+    }
+    // far skyline, smokestacks
+    for (let x = 0; x < w; ) {
+      const bw = 5 + r() * 9;
+      const bh = 12 + r() * 20;
+      g.fillStyle = shade('#8a5a30', 0.8 + r() * 0.35);
+      g.fillRect(x, h - 14 - bh, bw, bh);
+      x += bw + r() * 5;
+    }
+    // girders and cranes
+    g.strokeStyle = '#3e2414';
+    g.lineWidth = 2;
+    for (let i = 0; i < 7; i++) {
+      const x = r() * w;
+      g.beginPath();
+      g.moveTo(x, h - 8);
+      g.lineTo(x + (r() - 0.5) * 50, 4 + r() * 14);
+      g.stroke();
+    }
+    // workers
+    for (let i = 0; i < 11; i++) {
+      const x = 8 + (i * (w - 16)) / 10 + (r() - 0.5) * 6;
+      const s = 0.8 + r() * 0.6;
+      const y = h - 6 - r() * 6;
+      g.fillStyle = ['#3a2214', '#5a3620', '#74502c'][Math.floor(r() * 3)];
+      g.fillRect(x - 3 * s, y - 16 * s, 6 * s, 16 * s);
+      g.fillRect(x - 3 * s + (r() < 0.5 ? -4 * s : 6 * s), y - 17 * s, 4 * s, 3 * s); // arm
+      g.fillStyle = '#c69460';
+      g.fillRect(x - 2 * s, y - 21 * s, 4 * s, 4 * s);
+    }
+    g.fillStyle = '#3e2414';
+    g.fillRect(0, h - 5, w, 5);
+    g.restore();
+    g.strokeStyle = '#1c120a';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(1, h);
+    g.lineTo(1, h * 0.5);
+    g.quadraticCurveTo(w / 2, -h * 0.42 + 1, w - 1, h * 0.5);
+    g.lineTo(w - 1, h);
+    g.stroke();
+  });
+}
+
+/** Frosted amber multi-pane window with the street glowing behind it. */
+export function paneGlass(night: boolean, cols = 6, rows = 3, seed = 9) {
+  const r = mulberry32(seed);
+  return canvas(96, 48, (g, w, h) => {
+    const pw = w / cols, ph = h / rows;
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++) {
+        g.fillStyle = night ? shade('#9a7a44', 0.55 + r() * 0.4) : shade('#e6dcb4', 0.85 + r() * 0.2);
+        g.fillRect(x * pw, y * ph, pw, ph);
+      }
+    if (night) {
+      // neon from across the street bleeding through
+      for (const [cx, cy, col] of [[w * 0.22, h * 0.45, '#ff6a7a'], [w * 0.8, h * 0.3, '#ffd9a0']] as const) {
+        const gl = g.createRadialGradient(cx, cy, 1, cx, cy, 16);
+        gl.addColorStop(0, col);
+        gl.addColorStop(1, 'rgba(0,0,0,0)');
+        g.globalAlpha = 0.55;
+        g.fillStyle = gl;
+        g.fillRect(0, 0, w, h);
+        g.globalAlpha = 1;
+      }
+    }
+    g.fillStyle = '#1c120a';
+    for (let x = 1; x < cols; x++) g.fillRect(x * pw - 1, 0, 2, h);
+    for (let y = 1; y < rows; y++) g.fillRect(0, y * ph - 1, w, 2);
+  });
+}
+
+/** Glass-block window. */
+export function glassBlock(night: boolean, cols = 6, rows = 5, seed = 13) {
+  const r = mulberry32(seed);
+  return canvas(cols * 8, rows * 8, (g, w, h) => {
+    g.fillStyle = '#2a2a2a';
+    g.fillRect(0, 0, w, h);
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++) {
+        const tint = night ? (y > 1 && x > 2 && r() < 0.7 ? (r() < 0.5 ? '#e8788a' : '#f0a070') : '#8ea6b4') : '#dbe8ee';
+        g.fillStyle = shade(tint, 0.8 + r() * 0.3);
+        g.fillRect(x * 8 + 1, y * 8 + 1, 7, 7);
+        g.fillStyle = 'rgba(255,255,255,0.35)';
+        g.fillRect(x * 8 + 2, y * 8 + 2, 3, 2);
+      }
+  });
+}
+
+/** Neon bar sign: two shamrocks over a beer-logo oval. Transparent background. */
+export function neonShamrock() {
+  return canvas(64, 40, (g, w) => {
+    g.fillStyle = '#5dff7a';
+    for (const cx of [w / 2 - 10, w / 2 + 10]) {
+      for (const [dx, dy] of [[-4, 0], [4, 0], [0, -5]]) {
+        g.beginPath();
+        g.arc(cx + dx, 10 + dy, 3.6, 0, 7);
+        g.fill();
+      }
+      g.fillRect(cx - 1, 11, 2, 7);
+    }
+    g.strokeStyle = '#ff4a3a';
+    g.lineWidth = 3;
+    g.beginPath();
+    g.ellipse(w / 2, 29, 26, 8, 0, 0, 7);
+    g.stroke();
+    g.fillStyle = '#4aa8ff';
+    g.fillRect(w / 2 - 16, 27, 32, 4);
+  });
+}
