@@ -5,7 +5,8 @@ import type { StageSet, Mark } from '../world/sets/common';
 import { buildMaclarens } from '../world/sets/maclarens';
 import { buildApartment } from '../world/sets/apartment';
 import { buildBarneys } from '../world/sets/barneys';
-import { CHARACTER_IDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
+import { buildFuture, KID_MARKS } from '../world/sets/future';
+import { CHARACTER_IDS, KIDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 
 /** Owns the sets and actors; knows how to place and move people around. */
@@ -17,9 +18,11 @@ export class Stage {
   private occupancy = new Map<string, CharacterId>(); // mark -> character
   private actorMark = new Map<CharacterId, string>();
   private backgroundIds = new Set<CharacterId>();
+  /** The scene we cut away from while we're on the 2030 couch. */
+  private paused: { set: StageSet; visible: CharacterId[] } | null = null;
 
   constructor(scene: THREE.Scene) {
-    this.sets = { maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys() };
+    this.sets = { maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), future: buildFuture() };
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;
       scene.add(s.group);
@@ -65,6 +68,7 @@ export class Stage {
   }
 
   setLocation(id: LocationId, time: TimeOfDay) {
+    this.paused = null;
     for (const s of Object.values(this.sets)) s.group.visible = false;
     this.current = this.sets[id] ?? this.sets.maclarens;
     this.current.group.visible = true;
@@ -151,9 +155,48 @@ export class Stage {
     const a = this.actors[id];
     const pos = this.markPosition(m, name, id);
     pos.y = this.current.floorAt?.(pos.x, pos.z) ?? 0;
-    a.place(pos, m.facing, m.seat);
+    a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop });
     a.root.visible = true;
     this.occupy(id, name);
+  }
+
+  /** Penny and Luke, in their spots on the couch. */
+  seatKids() {
+    for (const id of KIDS) {
+      const m = this.sets.future.marks[KID_MARKS[id]];
+      const a = this.actors[id];
+      a.place(m.pos.clone(), m.facing, m.seat, { pose: m.pose, prop: m.prop });
+      a.setEmotion('bored');
+      a.root.visible = true;
+    }
+  }
+
+  get inCutaway() {
+    return this.paused !== null;
+  }
+
+  /** Cut to the kids on the couch in 2030, freezing the scene in progress. */
+  cutToKids() {
+    if (this.paused) return;
+    const visible = this.onStageIds();
+    this.paused = { set: this.current, visible };
+    for (const id of visible) this.actors[id].root.visible = false;
+    this.current.group.visible = false;
+    this.current = this.sets.future;
+    this.current.group.visible = true;
+    this.current.setTime('night');
+    this.seatKids();
+  }
+
+  /** Back to the story, exactly where we left it. */
+  cutBack() {
+    if (!this.paused) return;
+    for (const id of KIDS) this.actors[id].root.visible = false;
+    this.current.group.visible = false;
+    this.current = this.paused.set;
+    this.current.group.visible = true;
+    for (const id of this.paused.visible) this.actors[id].root.visible = true;
+    this.paused = null;
   }
 
   /** A* is overkill: Dijkstra over a tiny hand-made graph. */

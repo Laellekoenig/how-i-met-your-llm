@@ -12,14 +12,20 @@ type V3 = [number, number, number];
 interface Pose {
   lSh: V3; rSh: V3; lEl: number; rEl: number;
   lHip: number; rHip: number; lKnee: number; rKnee: number;
+  /** Hip splay (z) and knee fold sideways (z), for sitting cross-legged. */
+  lHipZ: number; rHipZ: number; lKneeZ: number; rKneeZ: number;
   spine: V3; head: V3;
 }
 
 const zeroPose = (): Pose => ({
   lSh: [0, 0, 0], rSh: [0, 0, 0], lEl: 0, rEl: 0,
   lHip: 0, rHip: 0, lKnee: 0, rKnee: 0,
+  lHipZ: 0, rHipZ: 0, lKneeZ: 0, rKneeZ: 0,
   spine: [0, 0, 0], head: [0, 0, 0],
 });
+
+/** How someone sits: upright, cross-legged hugging whatever is in their lap, or slouched with an arm along the backrest. */
+export type SitPose = 'upright' | 'cross_legged' | 'sprawl';
 
 interface Face {
   browY: number; browTilt: number; browAsym: number;
@@ -37,6 +43,7 @@ const FACES: Record<Emotion, Face> = {
   excited:   { browY: 0.016, browTilt: -0.1, browAsym: 0,    smile: 1,    mouthBase: 0.55, headTilt: 0,     headDown: -0.1 },
   nervous:   { browY: 0.01,  browTilt: -0.35, browAsym: 0,   smile: -0.3, mouthBase: 0.1,  headTilt: 0.1,   headDown: 0.1 },
   flirty:    { browY: 0.004, browTilt: 0,    browAsym: 0.012, smile: 0.6, mouthBase: 0,    headTilt: 0.15,  headDown: 0.05 },
+  bored:     { browY: -0.005, browTilt: 0.06, browAsym: 0.005, smile: -0.25, mouthBase: 0,  headTilt: 0.14,  headDown: 0.04 },
 };
 
 const GESTURE_DUR: Record<Gesture, number> = {
@@ -74,6 +81,8 @@ export class Actor {
   targetFacing = 0;
   seatHeight: number | null = null;
   private sitBlend = 0;
+  private sitPose: SitPose = 'upright';
+  private lapProp: THREE.Object3D | null = null;
   private path: THREE.Vector3[] = [];
   private onArrive: (() => void) | null = null;
   private walkPhase = 0;
@@ -144,8 +153,8 @@ export class Actor {
     };
 
     const style = L.topStyle;
-    const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan';
-    const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee';
+    const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie';
+    const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee' || style === 'hoodie';
     const shortSleeves = style === 'tee' || style === 'polo';
     const rolled = style === 'shirt';
 
@@ -352,6 +361,39 @@ export class Actor {
       case 'tee':
         add(this.spine, collar(0, 0.004, 0.004 * s, topDark));
         break;
+      case 'hoodie': {
+        // a polo underneath (its collar can be a contrast color), then the open zip-up hoodie over it
+        const collarMat = toon(L.collar ?? L.under ?? L.top, { side: DS });
+        add(this.spine, collar(0.3, 0.005, 0.016 * s, collarMat));
+        add(this.spine, placket(0.8 * tl, 0.97 * tl, () => 0.05, 0.004, collarMat), false);
+        buttons([0.85 * tl, 0.91 * tl], 0.006, toon('#f4f2ea'));
+        const open = (y: number) => 0.3 + 0.32 * smoothstep(0.55 * tl, 0.97 * tl, y);
+        shell(0.018, -0.2 * tl, 0.97 * tl, open, topDS);
+        shell(0.022, -0.2 * tl, -0.12 * tl, open, topDark); // ribbed waistband
+        // zipper tape down both edges of the opening
+        const zip = toon(shade(L.top, 0.6), { side: DS });
+        for (const sg of [1, -1])
+          add(this.spine, mesh(surface(2, 12, (u, v, p) => {
+            const y = -0.19 * tl + 1.15 * tl * v;
+            torso.point(y, sg * (open(y) + u * 0.05), p, 0.021, E);
+          }), zip), false);
+        // the hood bunched up behind the neck, and its drawstrings
+        add(this.spine, collar(0.75, 0.024, 0.05 * s, topDS, 0.05));
+        const hood = mesh(ellipsoid(0.13 * s, 0.075 * s, 0.07 * s, 12, 8), topDS, 0, 0.99 * tl, torso.at(0.95 * tl).zc - torso.at(0.95 * tl).rz - 0.02 * s);
+        hood.rotation.x = 0.35;
+        add(this.spine, hood);
+        const cord = toon('#e8e6e0');
+        for (const sg of [1, -1]) {
+          const c = mesh(cyl(0.004, 0.004, 0.16 * s, 4), cord, 0, 0, 0);
+          c.position.copy(onTorso(0.86 * tl, sg * 0.42, 0.026));
+          c.rotation.z = sg * 0.06;
+          add(this.spine, c, false);
+          const tip = mesh(cyl(0.006, 0.006, 0.02, 4), cord, 0, 0, 0);
+          tip.position.copy(onTorso(0.785 * tl, sg * 0.43, 0.028));
+          add(this.spine, tip, false);
+        }
+        break;
+      }
     }
 
     // ---- skirt + apron hang from a pivot at hip-joint height that follows the thighs
@@ -392,6 +434,7 @@ export class Actor {
       const bare = shortSleeves || rolled;
       add(el, mesh(limb(er * 0.98, wr, fore - 0.04, { bulge: 0.005 * ba, bulgeAt: 0.25, uv: true }), bare ? skin : topMat));
       if (rolled) add(el, mesh(new Profile([[-0.06 * s, er + 0.008, er + 0.008], [0.0, er + 0.012, er + 0.012], [0.01, er + 0.009, er + 0.009]]).geometry({ seg: 12, rows: 3 }), topDS));
+      if (style === 'hoodie') add(el, mesh(new THREE.CylinderGeometry(wr + 0.008, wr + 0.009, 0.04, 12, 1, true), topDark, 0, -fore + 0.06, 0), false);
       if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under)) {
         const cuff = mesh(new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true), underDS, 0, -fore + 0.05, 0);
         add(el, cuff, false);
@@ -581,11 +624,13 @@ export class Actor {
     return this.seatHeight !== null;
   }
 
-  place(pos: THREE.Vector3, facing: number, seatHeight: number | null) {
+  place(pos: THREE.Vector3, facing: number, seatHeight: number | null, opts: { pose?: SitPose; prop?: THREE.Object3D } = {}) {
     this.root.position.copy(pos);
     this.facing = this.targetFacing = facing;
     this.seatHeight = seatHeight;
     this.sitBlend = seatHeight !== null ? 1 : 0;
+    this.sitPose = seatHeight !== null ? opts.pose ?? 'upright' : 'upright';
+    this.setLapProp(opts.prop ?? null);
     this.path = [];
     this.onArrive = null;
     this.gesture = null;
@@ -599,6 +644,8 @@ export class Actor {
       if (this.onArrive) this.onArrive();
       this.path = points.map((p) => p.clone());
       this.seatHeight = null; // stand up first
+      this.sitPose = 'upright';
+      this.setLapProp(null);
       this.onArrive = () => {
         this.onArrive = null;
         this.targetFacing = final.facing;
@@ -607,6 +654,14 @@ export class Actor {
       };
       if (!this.path.length) this.onArrive();
     });
+  }
+
+  /** Something held in the lap (a pillow to hug), carried by the hips. */
+  private setLapProp(o: THREE.Object3D | null) {
+    if (this.lapProp === o) return;
+    if (this.lapProp) this.hips.remove(this.lapProp);
+    this.lapProp = o;
+    if (o) this.hips.add(o);
   }
 
   setEmotion(e: Emotion | undefined) {
@@ -672,6 +727,7 @@ export class Actor {
     const ph = this.walkPhase;
     const w = this.walking;
     const sb = this.sitBlend;
+    const s = this.seed;
     target.lHip = lerp(-Math.sin(ph) * 0.55 * w, -Math.PI / 2, sb);
     target.rHip = lerp(Math.sin(ph) * 0.55 * w, -Math.PI / 2, sb);
     target.lKnee = lerp(Math.max(0, Math.cos(ph)) * 0.9 * w, Math.PI / 2, sb);
@@ -688,9 +744,46 @@ export class Actor {
     target.rEl = -0.15 - 0.25 * w - 0.75 * sb;
 
     // idle life
-    const s = this.seed;
     target.spine = [0.02 + noise1(t * 0.3 + s) * 0.02, noise1(t * 0.2 + s * 2) * 0.04, noise1(t * 0.25 + s) * 0.025];
     this.spine.scale.y = 1 + Math.sin(t * 1.6 + s) * 0.008;
+
+    if (this.sitPose === 'cross_legged') {
+      // knees splayed out over the cushion, shins folded in and crossed in front, arms wrapped around the lap prop
+      const k = sb;
+      target.lHip = lerp(target.lHip, -Math.PI / 2 + 0.12, k);
+      target.rHip = lerp(target.rHip, -Math.PI / 2 + 0.2, k);
+      target.lHipZ = 0.88 * k;
+      target.rHipZ = -0.88 * k;
+      target.lKnee = lerp(target.lKnee, 0, k);
+      target.rKnee = lerp(target.rKnee, 0, k);
+      target.lKneeZ = -2.6 * k;
+      target.rKneeZ = 2.6 * k;
+      this.hips.position.y += 0.02 * k;
+      target.lSh = [lerp(target.lSh[0], -0.62, k), 0, lerp(target.lSh[2], -0.3, k)];
+      target.rSh = [lerp(target.rSh[0], -0.62, k), 0, lerp(target.rSh[2], 0.3, k)];
+      target.lEl = lerp(target.lEl, -1.5, k);
+      target.rEl = lerp(target.rEl, -1.5, k);
+      // a little forward hunch over the pillow; fidgets
+      target.spine[0] += 0.1 * k;
+      target.spine[1] += noise1(t * 0.13 + s) * 0.06 * k;
+    } else if (this.sitPose === 'sprawl') {
+      // slid down and forward on the seat, leaning back, one knee up, one arm along the backrest
+      const k = sb;
+      this.hips.position.z += 0.12 * k;
+      target.lHip = lerp(target.lHip, -Math.PI / 2 - 0.5, k);
+      target.lHipZ = 0.55 * k;
+      target.lKnee = lerp(target.lKnee, Math.PI / 2 + 0.85, k);
+      target.rHip = lerp(target.rHip, -Math.PI / 2 + 0.1, k);
+      target.rHipZ = -0.22 * k;
+      target.rKnee = lerp(target.rKnee, Math.PI / 2 - 0.15, k);
+      target.lSh = [lerp(target.lSh[0], 0.3, k), 0, lerp(target.lSh[2], 1.45, k)];
+      target.lEl = lerp(target.lEl, -0.45, k);
+      target.rSh = [lerp(target.rSh[0], -0.45, k), 0, lerp(target.rSh[2], -0.12, k)];
+      target.rEl = lerp(target.rEl, -0.9, k);
+      // ...and listing toward the arm on the backrest
+      target.spine[0] -= 0.42 * k;
+      target.spine[2] -= 0.16 * k;
+    }
 
     // --- face & emotion
     const fTarget = FACES[this.emotion];
@@ -698,6 +791,11 @@ export class Actor {
     for (const key of Object.keys(fTarget) as (keyof Face)[]) this.face[key] += (fTarget[key] - this.face[key]) * k;
     const f = this.face;
     target.head = [f.headDown, 0, f.headTilt];
+    // a slouch tips the head back; chin comes forward again to keep looking ahead
+    if (this.sitPose === 'sprawl') {
+      target.head[0] += 0.34 * sb;
+      target.head[2] += 0.08 * sb;
+    }
     if (this.emotion === 'excited' && !moving) this.bounce = Math.max(0, Math.sin(t * 9)) * 0.025 * (1 - sb);
     else this.bounce *= 1 - damp(10, dt);
     if (this.emotion === 'nervous') target.spine[1] += Math.sin(t * 7) * 0.04;
@@ -738,7 +836,7 @@ export class Actor {
     // blink
     this.blinkT -= dt;
     if (this.blinkT < 0) this.blinkT = rand(2, 5.5);
-    this.eyes.scale.y = this.blinkT < 0.12 ? 0.1 : this.emotion === 'surprised' ? 1.25 : 1;
+    this.eyes.scale.y = this.blinkT < 0.12 ? 0.1 : this.emotion === 'surprised' ? 1.25 : this.emotion === 'bored' ? 0.62 : 1;
 
     // --- look at
     if (this.lookAt) {
@@ -788,15 +886,17 @@ export class Actor {
     const legLam = damp(18, dt);
     p.lHip += (target.lHip - p.lHip) * legLam; p.rHip += (target.rHip - p.rHip) * legLam;
     p.lKnee += (target.lKnee - p.lKnee) * legLam; p.rKnee += (target.rKnee - p.rKnee) * legLam;
+    p.lHipZ += (target.lHipZ - p.lHipZ) * legLam; p.rHipZ += (target.rHipZ - p.rHipZ) * legLam;
+    p.lKneeZ += (target.lKneeZ - p.lKneeZ) * legLam; p.rKneeZ += (target.rKneeZ - p.rKneeZ) * legLam;
 
     this.lSh.rotation.set(...p.lSh);
     this.rSh.rotation.set(...p.rSh);
     this.lEl.rotation.x = p.lEl;
     this.rEl.rotation.x = p.rEl;
-    this.lHip.rotation.x = p.lHip;
-    this.rHip.rotation.x = p.rHip;
-    this.lKnee.rotation.x = p.lKnee;
-    this.rKnee.rotation.x = p.rKnee;
+    this.lHip.rotation.set(p.lHip, 0, p.lHipZ);
+    this.rHip.rotation.set(p.rHip, 0, p.rHipZ);
+    this.lKnee.rotation.set(p.lKnee, 0, p.lKneeZ);
+    this.rKnee.rotation.set(p.rKnee, 0, p.rKneeZ);
     // the skirt follows both thighs, so it drapes over the lap when sitting
     if (this.skirt) this.skirt.rotation.x = ((p.lHip + p.rHip) / 2) * 0.92;
     this.spine.rotation.set(...p.spine);

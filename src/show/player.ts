@@ -5,7 +5,7 @@ import type { Overlay, Panel } from '../ui/overlay';
 import { audio } from '../audio/audio';
 import { speech } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
-import { CHARACTER_IDS, type Beat, type CharacterId, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
+import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
 import { sleep, clamp, pick } from '../util';
 
 export interface ContentSource {
@@ -21,6 +21,8 @@ const LOCATION_LABEL: Record<string, string> = {
 };
 
 const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_IDS as readonly string[]).includes(s);
+/** Lines and reactions from Penny or Luke: these happen on the couch in 2030. */
+const isKidBeat = (b: Beat) => (b.type === 'say' || b.type === 'act') && isKid(b.character);
 
 /** Plays show items: title cards, scenes beat by beat, end cards. */
 export class Player {
@@ -116,17 +118,26 @@ export class Player {
   private async play(item: ShowItem) {
     switch (item.kind) {
       case 'episode-start': {
+        // Kids, ... : every episode opens on Penny and Luke on the couch in 2030, then the titles
         this.currentEpisode = item.episode.id;
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
-        this.stage.setLocation(item.location, item.time);
-        for (const c of item.characters ?? []) this.stage.place(c, this.stage.resolveMark(undefined, c));
-        this.director.wide(0, 0.12);
+        this.stage.setLocation('future', 'night');
+        this.stage.seatKids();
+        this.director.wide(0, 0.02);
         audio.ambience('none');
-        const d = audio.sting('intro');
-        this.renderer.fade = 0.35;
-        await this.race(this.overlay.title(item.episode, Math.max(4.2, d)));
-        await this.fade(0.55, 0.4);
+        this.renderer.fade = 0;
+        await this.fade(1, 0.6);
+        this.overlay.location('the year 2030');
+        await this.wait(0.8);
         if (item.coldOpen) await this.narrate(item.coldOpen);
+        for (const b of item.couch ?? []) {
+          await this.untilUnpaused();
+          await this.beat(b);
+        }
+        await this.wait(0.4);
+        const d = audio.sting('intro');
+        await this.fade(0.35, 0.4);
+        await this.race(this.overlay.title(item.episode, Math.max(4.2, d)));
         await this.fade(0, 0.5);
         break;
       }
@@ -149,22 +160,25 @@ export class Player {
     await this.fade(0, 0.3);
     this.stage.setLocation(scene.location, scene.time);
     audio.ambience(this.stage.current.ambience);
+    const onCouch = scene.location === 'future';
+    if (onCouch) this.stage.seatKids();
 
     // Anyone who acts in the scene without entering is assumed to already be there.
+    // (Except the kids: they're in 2030, and get cut to.)
     const entering = new Set<CharacterId>();
     const present = new Set<CharacterId>();
     for (const c of scene.cast) {
-      if (!isChar(c.character) || present.has(c.character)) continue;
+      if (!isChar(c.character) || isKid(c.character) || present.has(c.character)) continue;
       present.add(c.character);
       this.stage.place(c.character, c.mark);
     }
     for (const b of scene.beats) {
       if (b.type === 'enter') {
-        if (!present.has(b.character)) entering.add(b.character);
+        if (!present.has(b.character) && !isKid(b.character)) entering.add(b.character);
         continue;
       }
       const who = 'character' in b ? b.character : undefined;
-      if (isChar(who) && !present.has(who) && !entering.has(who)) {
+      if (isChar(who) && !isKid(who) && !present.has(who) && !entering.has(who)) {
         present.add(who);
         this.stage.place(who, this.stage.resolveMark(undefined, who));
       }
@@ -177,22 +191,55 @@ export class Player {
     }
 
     this.director.coverage(this.stage.castIds());
-    this.overlay.location(`${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
+    this.overlay.location(onCouch ? 'the year 2030' : `${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
     if (index > 0) audio.sting('transition');
     await this.fade(1, 0.45);
     await this.wait(0.6);
 
-    for (const beat of scene.beats) {
+    const beats = scene.beats;
+    for (let i = 0; i < beats.length; i++) {
       await this.untilUnpaused();
-      await this.beat(beat);
+      if (onCouch || !isKidBeat(beats[i])) {
+        await this.beat(beats[i]);
+        continue;
+      }
+      // the kids chime in: stay on the couch through their lines and Dad's answers
+      let j = i + 1;
+      while (j < beats.length && (isKidBeat(beats[j]) || ['narrate', 'laugh', 'pause'].includes(beats[j].type))) j++;
+      await this.cutaway(beats.slice(i, j));
+      i = j - 1;
     }
     await this.wait(1.2);
+  }
+
+  /** Hard cut to Penny and Luke on the couch in 2030, play their beats, then cut straight back to the story. */
+  private async cutaway(beats: Beat[]) {
+    const st = this.stage;
+    const shot = this.director.current;
+    const ambience = st.current.ambience;
+    st.cutToKids();
+    audio.ambience('none');
+    this.director.wide(0, 0.02);
+    try {
+      await this.wait(0.35);
+      for (const b of beats) {
+        await this.untilUnpaused();
+        await this.beat(b);
+      }
+      await this.wait(0.3);
+    } finally {
+      st.cutBack();
+      audio.ambience(ambience);
+      this.director.resume(shot);
+    }
   }
 
   private async narrate(line: string, laugh?: LaughKind) {
     const text = clean(line);
     if (!text) return;
     this.panel.line('narr', text, 'Future Ted');
+    // the kids look back at their dad
+    for (const id of KIDS) if (this.stage.onStage(id)) this.stage.actors[id].lookAt = null;
     const h = speech.speak('future-ted', text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
     await this.race(h.done);
     this.overlay.hideCaption();
@@ -223,6 +270,7 @@ export class Player {
       case 'say': {
         if (!isChar(b.character)) return;
         const a = st.actors[b.character];
+        if (isKid(b.character) && !st.onStage(b.character)) return;
         st.setBackground(b.character, false);
         if (!st.onStage(b.character)) st.place(b.character, st.resolveMark(undefined, b.character));
         const text = clean(b.line);
@@ -233,13 +281,17 @@ export class Player {
           const th = st.actors[to].headWorld;
           a.lookAt = th;
           if (!a.isSitting && !a.isWalking) a.faceTowards(th);
+        } else if (isKid(b.character)) {
+          // talking to Dad, who is where the camera is
+          a.lookAt = null;
         } else {
           // addressing the room: look at whoever's closest-ish, or the audience
           const others = st.onStageIds().filter((i) => i !== b.character);
           a.lookAt = others.length ? st.actors[pick(others)].headWorld : null;
         }
         this.lookAtSpeaker(b.character);
-        this.director.onLine(b.character, to);
+        if (isKid(b.character)) this.director.onCouchLine(b.character);
+        else this.director.onLine(b.character, to);
         const def = CHARACTERS[b.character];
         this.panel.line('say', text, def.name, def.color);
         if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to);
@@ -261,7 +313,7 @@ export class Player {
         await this.narrate(b.line, b.laugh);
         break;
       case 'move': {
-        if (!isChar(b.character)) return;
+        if (!isChar(b.character) || isKid(b.character)) return;
         const target = b.to === b.character ? 'center' : b.to;
         this.panel.line('stage', `${charName(b.character)} moves to ${humanize(target)}.`);
         const p = st.moveTo(b.character, target);
@@ -270,7 +322,7 @@ export class Player {
         break;
       }
       case 'enter': {
-        if (!isChar(b.character)) return;
+        if (!isChar(b.character) || isKid(b.character)) return;
         if (st.onStage(b.character)) {
           if (b.to) await this.beat({ type: 'move', character: b.character, to: b.to });
           return;
@@ -284,7 +336,7 @@ export class Player {
         break;
       }
       case 'exit': {
-        if (!isChar(b.character) || !st.onStage(b.character)) return;
+        if (!isChar(b.character) || isKid(b.character) || !st.onStage(b.character)) return;
         this.panel.line('stage', `${charName(b.character)} leaves.`);
         const p = st.exit(b.character);
         this.director.wide(0);

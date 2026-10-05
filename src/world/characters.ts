@@ -1,7 +1,7 @@
 import type { CharacterId } from '../script/types';
 
-export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short';
-export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo';
+export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop';
+export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie';
 
 export interface Look {
   height: number;
@@ -13,6 +13,7 @@ export interface Look {
   top: string; // outermost layer
   topStyle: TopStyle;
   under?: string; // shirt / top under a jacket or cardigan; the dress for a skirt
+  collar?: string; // collar of the shirt under a hoodie (defaults to `under`)
   tie?: string;
   vest?: string;
   plaid?: [string, string];
@@ -221,6 +222,38 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 1.04, long: 1.02, nose: 1.1 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.1 },
+  },
+  penny: {
+    id: 'penny',
+    name: 'Penny',
+    color: '#ffa8bc',
+    main: false,
+    look: {
+      // Lyndsy Fonseca, 2030: Ted's teenage daughter. Long dark-brown waves over her shoulders, a pale pink
+      // cardigan over a periwinkle top, khakis; sits cross-legged on the couch in white socks, hugging a striped pillow
+      height: 1.62, build: 0.86, female: true,
+      skin: '#f2c9ab', hair: '#4a2a1a', hairStyle: 'waves', eyes: '#5a6a4a',
+      top: '#ecc4cc', topStyle: 'cardigan', under: '#8088c8',
+      pants: '#b89a70', shoes: '#efede6',
+      face: { jaw: 0.86, long: 0.97, nose: 0.82 },
+    },
+    voice: { gender: 'female', pitch: 1.16, rate: 1.06 },
+  },
+  luke: {
+    id: 'luke',
+    name: 'Luke',
+    color: '#78d48a',
+    main: false,
+    look: {
+      // David Henrie, 2030: Ted's younger son. Thick dark hair, open grey zip hoodie over a green polo with a
+      // white collar, jeans; slouched on the couch with an arm along the back
+      height: 1.68, build: 0.92, female: false,
+      skin: '#eebf9e', hair: '#21150e', hairStyle: 'mop', eyes: '#4a3424',
+      top: '#7f8288', topStyle: 'hoodie', under: '#2f8a42', collar: '#efeee8',
+      pants: '#3a4c70', jeans: true, shoes: '#2a2a30',
+      face: { jaw: 0.94, long: 0.96, nose: 0.92, brow: 1.1 },
+    },
+    voice: { gender: 'male', pitch: 1.18, rate: 1.06 },
   },
 };
 

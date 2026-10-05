@@ -586,3 +586,95 @@ export function glassCabinet(doors = 2) {
     }
   });
 }
+
+/** Button-tufted leather: rows of diamond puffs with a button at every crease. */
+export function tufted(base: string, repeat: [number, number]) {
+  return canvas(16, 16, (g, w, h) => {
+    g.fillStyle = shade(base, 0.7);
+    g.fillRect(0, 0, w, h);
+    const puff = (cx: number, cy: number) => {
+      for (const [r, f] of [[7, 1], [5, 1.25], [2, 1.6]] as const) {
+        g.fillStyle = shade(base, f);
+        g.beginPath();
+        g.moveTo(cx, cy - r);
+        g.lineTo(cx + r, cy);
+        g.lineTo(cx, cy + r);
+        g.lineTo(cx - r, cy);
+        g.fill();
+      }
+    };
+    for (const [x, y] of [[8, 8], [0, 0], [16, 0], [0, 16], [16, 16]]) puff(x, y);
+    g.fillStyle = shade(base, 0.35);
+    for (const [x, y] of [[0, 8], [16, 8], [8, 0], [8, 16]]) g.fillRect(x - 1, y - 1, 2, 2);
+  }, repeat);
+}
+
+/** Wide multi-color awning stripes, for a throw pillow. */
+export function pillowStripes(cols: string[], repeat = 2) {
+  return canvas(24, 8, (g, w, h) => {
+    const widths = [4, 1, 2, 1, 3, 1];
+    let x = 0, i = 0;
+    while (x < w) {
+      g.fillStyle = cols[i % cols.length];
+      g.fillRect(x, 0, widths[i % widths.length], h);
+      x += widths[i % widths.length];
+      i++;
+    }
+  }, [repeat, 1]);
+}
+
+/** A kid's drawing or school certificate behind glass: paper, a scribbled sun or house, a few lines of writing. */
+export function kidsArt(seed: number) {
+  const r = mulberry32(seed);
+  const crayons = ['#d8402a', '#2a6ad8', '#e8b82a', '#3aa04a', '#9a3ab0'];
+  return canvas(20, 26, (g, w, h) => {
+    g.fillStyle = '#f4efe0';
+    g.fillRect(0, 0, w, h);
+    if (r() < 0.5) {
+      g.fillStyle = crayons[2];
+      g.beginPath();
+      g.arc(5 + r() * 4, 6, 3, 0, 7);
+      g.fill();
+      g.fillStyle = crayons[0];
+      g.fillRect(8, 12, 8, 6);
+      g.fillStyle = crayons[1];
+      g.beginPath();
+      g.moveTo(7, 12);
+      g.lineTo(12, 8);
+      g.lineTo(17, 12);
+      g.fill();
+      g.fillStyle = crayons[3];
+      g.fillRect(0, h - 5, w, 5);
+    } else {
+      g.fillStyle = '#b8342a';
+      g.fillRect(3, 3, w - 6, 2);
+      g.fillStyle = '#5a5a5a';
+      for (let y = 8; y < h - 6; y += 3) g.fillRect(3, y, 6 + r() * (w - 10), 1);
+      g.fillStyle = crayons[Math.floor(r() * crayons.length)];
+      g.beginPath();
+      g.arc(w - 6, h - 6, 3, 0, 7);
+      g.fill();
+    }
+  });
+}
+
+/** Gold plaster plaque with a child's handprint pressed into it. */
+export function handprint() {
+  return canvas(24, 24, (g, w, h) => {
+    g.fillStyle = '#c9a85a';
+    g.beginPath();
+    g.arc(w / 2, h / 2, w / 2, 0, 7);
+    g.fill();
+    g.fillStyle = '#a8883e';
+    g.beginPath();
+    g.ellipse(12, 15, 4.5, 4, 0, 0, 7);
+    g.fill();
+    for (const [x, y, a] of [[7, 13, -0.9], [9, 8, -0.25], [12, 7, 0], [15, 8, 0.25], [17, 10, 0.5]] as const) {
+      g.save();
+      g.translate(x, y);
+      g.rotate(a);
+      g.fillRect(-1, -3, 2.2, 5);
+      g.restore();
+    }
+  });
+}

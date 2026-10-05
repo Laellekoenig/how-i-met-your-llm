@@ -2,7 +2,7 @@ import { chat, type ChatMessage } from './openrouter';
 import { showBible, PLAN_TOOL, SCENE_TOOL } from './prompts';
 import { normalizeScene, asChar, asLocation, asTime } from './normalize';
 import type { StageSet } from '../world/sets/common';
-import type { EpisodeMeta, Scene, ShowItem, LocationId, TimeOfDay, CharacterId } from '../script/types';
+import { EMOTIONS, isKid, type Beat, type EpisodeMeta, type Emotion, type Scene, type ShowItem, type LocationId, type TimeOfDay, type CharacterId } from '../script/types';
 import { charName } from '../world/characters';
 import { sampleEpisode } from '../script/samples';
 import { sleep, uid, pick } from '../util';
@@ -18,6 +18,7 @@ interface PlannedScene {
 interface Plan {
   meta: EpisodeMeta;
   coldOpen: string;
+  couch: Beat[]; // the kids' reaction to the cold open
   scenes: PlannedScene[];
 }
 
@@ -88,7 +89,7 @@ export class Showrunner {
         if (!this.running) break;
         const plan = await this.plan();
         if (!this.running) break;
-        this.queue.push({ kind: 'episode-start', episode: plan.meta, coldOpen: plan.coldOpen, location: plan.scenes[0].location, time: plan.scenes[0].time, characters: plan.scenes[0].characters });
+        this.queue.push({ kind: 'episode-start', episode: plan.meta, coldOpen: plan.coldOpen, couch: plan.couch });
         const written: Scene[] = [];
         for (let i = 0; i < plan.scenes.length; i++) {
           while (this.running && this.bufferedScenes() >= 2 && !this.abandoned.has(plan.meta.id)) {
@@ -196,7 +197,7 @@ export class Showrunner {
       location: asLocation(s.location),
       time: asTime(s.time),
       summary: String(s.summary ?? ''),
-      characters: (Array.isArray(s.characters) ? s.characters : []).map(asChar).filter((c): c is CharacterId => !!c),
+      characters: (Array.isArray(s.characters) ? s.characters : []).map(asChar).filter((c): c is CharacterId => !!c && !isKid(c)),
     }));
     if (!scenes.length) throw new Error('episode plan had no scenes');
     const meta: EpisodeMeta = {
@@ -207,7 +208,7 @@ export class Showrunner {
       source: 'llm',
     };
     this.ev.log(`☂ Pitched ${meta.code} “${meta.title}” — ${meta.logline}${pitch ? ' (viewer pitch)' : ''}`);
-    return { meta, coldOpen: String(args.cold_open ?? ''), scenes };
+    return { meta, coldOpen: String(args.cold_open ?? ''), couch: kidsReaction(args.kids_reaction), scenes };
   }
 
   private async writeScene(plan: Plan, index: number, previous: Scene[]): Promise<Scene> {
@@ -225,7 +226,7 @@ export class Showrunner {
       `Outline:\n${outline}`,
       recap ? `What has aired so far this episode:\n${recap}` : '',
       `Now write scene ${index + 1} at ${set.name} (${ps.location}), ${ps.time}. Characters: ${ps.characters.map(charName).join(', ') || 'your choice'}. Valid marks here: ${Object.keys(set.marks).join(', ')}.`,
-      `Aim for 16-30 beats. Lines short and punchy. ${last ? 'This is the final scene: pay off the episode and end with a Future Ted narration button, then a laugh or aww.' : 'End on a strong button joke.'}`,
+      `Aim for 16-30 beats. Lines short and punchy. ${last ? 'This is the final scene: pay off the episode and end with a Future Ted narration button (a reaction from the kids on the couch can top it), then a laugh or aww.' : 'End on a strong button joke.'}`,
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -236,6 +237,19 @@ export class Showrunner {
     this.ev.log(`✎ Scene ${index + 1}/${plan.scenes.length} at ${set.name}: ${scene.beats.length} beats, ${lines} lines`);
     return scene;
   }
+}
+
+/** The kids' lines after the cold open (and Future Ted's comebacks). */
+function kidsReaction(raw: unknown): Beat[] {
+  const out: Beat[] = [];
+  for (const r of (Array.isArray(raw) ? raw : []).slice(0, 3)) {
+    const line = String((r as Record<string, unknown>)?.line ?? '').trim();
+    if (!line) continue;
+    const who = asChar((r as Record<string, unknown>).speaker);
+    const emotion = (EMOTIONS as readonly string[]).includes(String((r as Record<string, unknown>).emotion)) ? ((r as Record<string, unknown>).emotion as Emotion) : 'bored';
+    out.push(who && isKid(who) ? { type: 'say', character: who, line, emotion } : { type: 'narrate', line });
+  }
+  return out;
 }
 
 function beatText(b: Scene['beats'][number]) {

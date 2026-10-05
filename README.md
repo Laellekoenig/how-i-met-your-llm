@@ -1,7 +1,8 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on three sets, with browser TTS voices,
+Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on three sets, framed by Future Ted telling
+the story to his bored kids on the couch in 2030, with browser TTS voices,
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
 ```sh
@@ -20,13 +21,16 @@ Keys: `space` pause · `→` skip scene · `f` fullscreen.
 - **The script language** (`src/script/types.ts`): a scene is a cast placement plus a list of beats:
   `say`, `narrate` (Future Ted), `move`, `enter`, `exit`, `act` (gestures like `high_five`, `slap`, `suit_up`),
   `laugh` (chuckle / laugh / big / ooh / aww / woo / applause / gasp) and `pause`.
+- **The kids** (`src/world/sets/future.ts`): every episode opens on Penny and Luke on the black Chesterfield in Ted's
+  2030 living room while Future Ted narrates the cold open. Penny and Luke never appear in the story: any `say`/`act`
+  beat of theirs hard-cuts to the couch (along with Future Ted's answer) and then straight back to the scene.
 - **The writers' room** (`src/llm/`): two tool calls. `plan_episode` pitches a title, logline, Future Ted cold open and
   3–4 scene outlines; `write_scene` stages one scene at a time with the episode so far as context. The system prompt
   (`prompts.ts`) is the show bible: characters, catchphrases, every set's marks, and the stagecraft vocabulary.
   LLM output is coerced into valid beats by `normalize.ts`. The writer stays ~2 scenes ahead of playback, so spend is
   bounded by how fast the show airs. Recent episode titles are kept in localStorage to avoid repeats.
 - **The stage** (`src/world/`, `src/show/`): procedural low-poly characters (no model files) with walk/sit/talk
-  animation, facial expressions and gestures; sets with named marks and a tiny nav graph; a director that cuts between
+  animation (including sitting cross-legged or slouched), facial expressions and gestures; sets with named marks and a tiny nav graph; a director that cuts between
   wides, close-ups, two-shots and over-the-shoulders while avoiding occluded angles.
 - **The look** (`src/engine/renderer.ts`): renders at ~270p, then applies depth-based ink outlines, posterize + Bayer
   dithering, chromatic aberration, scanlines, grain and vignette. Toggle/tune under *picture & sound*.

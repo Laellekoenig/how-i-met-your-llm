@@ -1,13 +1,20 @@
 // The script language shared by the LLM, the sample episodes and the player.
 
-export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james'] as const;
+export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'penny', 'luke'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
-export const LOCATION_IDS = ['maclarens', 'apartment', 'barneys'] as const;
+/** Ted's kids only exist in 2030, on the couch. Anything they say or do cuts away to them. */
+export const KIDS = ['penny', 'luke'] as const satisfies readonly CharacterId[];
+export const isKid = (id: string | undefined) => (KIDS as readonly string[]).includes(id ?? '');
+
+/** Where the story's scenes take place. */
+export const SCENE_LOCATION_IDS = ['maclarens', 'apartment', 'barneys'] as const;
+/** ...plus Ted's living room in 2030, where he's telling the kids the story. */
+export const LOCATION_IDS = [...SCENE_LOCATION_IDS, 'future'] as const;
 export type LocationId = (typeof LOCATION_IDS)[number];
 
 export const EMOTIONS = [
-  'neutral', 'happy', 'sad', 'angry', 'surprised', 'smug', 'confused', 'excited', 'nervous', 'flirty',
+  'neutral', 'happy', 'sad', 'angry', 'surprised', 'smug', 'confused', 'excited', 'nervous', 'flirty', 'bored',
 ] as const;
 export type Emotion = (typeof EMOTIONS)[number];
 
@@ -55,6 +62,7 @@ export interface EpisodeMeta {
 
 // Items the player consumes, in order.
 export type ShowItem =
-  | { kind: 'episode-start'; episode: EpisodeMeta; coldOpen: string; location: LocationId; time: TimeOfDay; characters?: CharacterId[] }
+  /** Future Ted's cold open over the kids on the couch, then any couch beats (the kids' reaction). */
+  | { kind: 'episode-start'; episode: EpisodeMeta; coldOpen: string; couch?: Beat[] }
   | { kind: 'scene'; episode: EpisodeMeta; index: number; scene: Scene }
   | { kind: 'episode-end'; episode: EpisodeMeta };

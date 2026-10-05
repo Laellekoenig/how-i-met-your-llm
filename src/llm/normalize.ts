@@ -1,5 +1,5 @@
 import {
-  CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, LOCATION_IDS,
+  CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, LOCATION_IDS, isKid,
   type Beat, type CastPlacement, type CharacterId, type Emotion, type Gesture, type LaughKind, type LocationId, type Scene, type TimeOfDay,
 } from '../script/types';
 
@@ -18,6 +18,9 @@ const CHAR_ALIASES: Record<string, CharacterId> = {
   'the captain': 'captain', 'george van smoot': 'captain', 'van smoot': 'captain', 'marvin eriksen': 'marvin', 'marvin sr': 'marvin',
   'marvin sr.': 'marvin', 'marvin eriksen sr.': 'marvin', 'mr. eriksen': 'marvin', "marshall's dad": 'marvin',
   'james stinson': 'james', "barney's brother": 'james',
+  'penny mosby': 'penny', "ted's daughter": 'penny', daughter: 'penny', 'luke mosby': 'luke', "ted's son": 'luke', son: 'luke',
+  // a line "the kids" say together goes to whoever's quicker
+  kids: 'penny', 'the kids': 'penny', 'both kids': 'penny',
 };
 
 export function asChar(v: unknown): CharacterId | undefined {
@@ -43,7 +46,7 @@ export function normalizeScene(raw: Record<string, unknown>, location: LocationI
   const seen = new Set<string>();
   for (const c of Array.isArray(raw.cast) ? raw.cast : []) {
     const ch = asChar((c as Record<string, unknown>)?.character);
-    if (!ch || seen.has(ch)) continue;
+    if (!ch || isKid(ch) || seen.has(ch)) continue;
     seen.add(ch);
     cast.push({ character: ch, mark: String((c as Record<string, unknown>).mark ?? '') });
   }
@@ -75,12 +78,13 @@ function normalizeBeat(r: Record<string, unknown>): Beat | null {
       return { type: 'say', character, line, emotion, to, gesture, laugh };
     case 'narrate':
       return line.trim() ? { type: 'narrate', line, laugh } : null;
+    // the kids never leave the couch
     case 'move':
-      return character && to ? { type: 'move', character, to } : null;
+      return character && !isKid(character) && to ? { type: 'move', character, to } : null;
     case 'enter':
-      return character ? { type: 'enter', character, to } : null;
+      return character && !isKid(character) ? { type: 'enter', character, to } : null;
     case 'exit':
-      return character ? { type: 'exit', character } : null;
+      return character && !isKid(character) ? { type: 'exit', character } : null;
     case 'act':
       return character && gesture ? { type: 'act', character, gesture, to, emotion } : null;
     case 'laugh':

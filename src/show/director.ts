@@ -157,8 +157,22 @@ export class Director {
     }
   }
 
+  /** The couch is nearly always the locked-off two-shot; now and then a single on whoever's talking. */
+  onCouchLine(speaker: CharacterId) {
+    const s = this.shot;
+    if (s?.kind === 'closeup' && s.subject === speaker) return;
+    if (Math.random() < 0.3) this.closeup(speaker);
+    else if (s?.kind !== 'wide') this.wide(0, 0.02);
+  }
+
   get current() {
     return this.shot;
+  }
+
+  /** Go back to a shot held earlier, e.g. after cutting away to the kids. */
+  resume(shot: ActiveShot | null) {
+    if (shot) this.cut(shot);
+    else this.wide(0);
   }
 
   update(dt: number) {

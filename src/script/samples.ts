@@ -14,6 +14,7 @@ const laugh = (l: LaughKind): Beat => ({ type: 'laugh', laugh: l });
 interface SampleEpisode {
   meta: Omit<EpisodeMeta, 'id' | 'source'>;
   coldOpen: string;
+  couch?: Beat[]; // the kids' reaction to the cold open
   scenes: Scene[];
 }
 
@@ -21,6 +22,7 @@ const EPISODES: SampleEpisode[] = [
   {
     meta: { code: 'S10E01', title: 'The Reservation', logline: "Ted lands a table at the city's most impossible restaurant, and the gang tears itself apart over who gets to be his plus-one." },
     coldOpen: "Kids, in the fall of 2008, I learned that the hardest thing to get in New York isn't a cab, or an apartment. It's a table at Le Petit Rien.",
+    couch: [say('luke', 'Is this the one where you finally meet Mom?', { e: 'bored' }), narr("We're getting there.", 'chuckle')],
     scenes: [
       {
         location: 'maclarens', time: 'night',
@@ -39,6 +41,8 @@ const EPISODES: SampleEpisode[] = [
           say('barney', "Not now, Marshall. I'm closing.", { to: 'marshall', l: 'chuckle' }),
           say('lily', 'Ted, I have been eating crackers out of my purse since Tuesday. I deserve this.', { e: 'nervous', to: 'ted', l: 'laugh' }),
           say('robin', "I don't even care about fancy food. But do they still have the duck that's aged inside a smaller duck?", { e: 'excited', l: 'big' }),
+          say('penny', 'Dad. That is not a real duck.', { e: 'confused' }),
+          narr('It was a real duck, sweetheart. It was inside a smaller duck.', 'laugh'),
           enter('wendy', 'booth_side'),
           say('wendy', 'Can I get you guys anything?', { e: 'happy' }),
           say('barney', "Wendy. Do you have anything that says 'I deserve fine dining'?", { to: 'wendy' }),
@@ -110,6 +114,7 @@ const EPISODES: SampleEpisode[] = [
   {
     meta: { code: 'S10E02', title: 'The Thermostat War', logline: 'Marshall and Lily go to war over three degrees, and Barney appoints himself peace negotiator.' },
     coldOpen: "Kids, every marriage has one great war. For Marshall and Lily, it wasn't money. It wasn't in-laws. It was three degrees.",
+    couch: [say('penny', 'This whole story is about a thermostat?', { e: 'bored' }), say('luke', 'Can we skip to the part where somebody gets slapped?', { e: 'bored', l: 'chuckle' })],
     scenes: [
       {
         location: 'apartment', time: 'night',
@@ -151,6 +156,7 @@ const EPISODES: SampleEpisode[] = [
           move('marshall', 'barney'),
           act('marshall', 'slap', 'barney'),
           laugh('big'),
+          act('luke', 'hands_up', undefined, 'excited'),
           say('barney', 'That is a violation of the Geneva Climate Convention!', { e: 'angry', l: 'laugh' }),
           say('robin', "In Canada we don't fight about the heat. We just put on a sweater and apologize to the sweater.", { e: 'happy', l: 'laugh' }),
           say('lily', 'Marshall, if I wear your lucky Fiero sweatshirt, can we do sixty-eight?', { to: 'marshall', e: 'flirty' }),
@@ -171,6 +177,7 @@ const EPISODES: SampleEpisode[] = [
           say('marshall', 'The point five is for my soul.', { e: 'smug', l: 'big' }),
           act('lily', 'facepalm'),
           narr('Kids, the thermostat war lasted another eleven years. Your Aunt Lily is still winning.', 'laugh'),
+          say('penny', "That's why Uncle Marshall wears shorts to Thanksgiving.", { e: 'smug', l: 'laugh' }),
         ],
       },
     ],
@@ -184,7 +191,7 @@ export function sampleEpisode(): ShowItem[] {
   const ep = EPISODES[counter++ % EPISODES.length];
   const meta: EpisodeMeta = { ...ep.meta, id: `sample-${counter}`, source: 'sample' };
   return [
-    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, location: ep.scenes[0].location, time: ep.scenes[0].time, characters: ep.scenes[0].cast.map((c) => c.character) },
+    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch },
     ...ep.scenes.map((scene, index) => ({ kind: 'scene' as const, episode: meta, index, scene })),
     { kind: 'episode-end', episode: meta },
   ];

@@ -222,6 +222,31 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       out.back.push(backSheet(c, c.neckBase + 0.06, 0.3 * (hh / 0.24), 0.012));
       break;
     }
+    case 'waves': {
+      // Penny: fuller, centre-parted waves that fall forward over the shoulders, past the collarbone
+      const line = sym([[0, 0.81], [0.6, 0.78], [1.0, 0.65], [1.5, 0.55], [Math.PI, 0.46]]);
+      out.head.push(shell(c, {
+        line,
+        thick: (f, a) => (0.07 + 0.03 * top(f) + 0.008 * Math.sin(a * 6 + f * 10)) * (1 - 0.55 * gauss(a, 0, 0.07) * smoothstep(0.86, 0.92, f)),
+        edge: (a) => 0.5 + 0.25 * front(a),
+      }));
+      out.head.push(drape(c, { top: 0.84, bottom: -0.85, open: (f) => 0.86 + 0.2 * smoothstep(0.55, -0.1, f) - 0.12 * smoothstep(-0.2, -0.8, f), thick: 0.075, flare: 0.24, wave: 0.055, back: 0.02, curl: 0.03 }));
+      out.back.push(backSheet(c, c.neckBase + 0.06, 0.4 * (hh / 0.24), 0.02));
+      break;
+    }
+    case 'mop':
+      // Luke: a thick teenage mop, full on top and pushed forward and to one side, over the tops of the ears
+      out.head.push(shell(c, {
+        line: sym([[0, 0.79], [0.5, 0.76], [0.95, 0.66], [1.2, 0.58], [1.5, 0.57], [1.85, 0.52], [2.3, 0.26], [Math.PI, 0.18]]),
+        thick: (f, a) => 0.07 + 0.04 * top(f) + 0.035 * front(a) * smoothstep(0.78, 0.9, f) + 0.012 * Math.sin(a * 8 + f * 12),
+        edge: (a) => 0.45 + 0.35 * front(a, 0.7),
+        warp: (f, a, v, p) => {
+          const k = front(a, 0.9) * smoothstep(0.76, 0.92, f);
+          p.x += 0.04 * hh * k;
+          p.y -= 0.02 * hh * k * (1 - v);
+        },
+      }));
+      break;
   }
   return out;
 }

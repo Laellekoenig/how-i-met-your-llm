@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { LocationId, TimeOfDay, CharacterId } from '../../script/types';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
 import { painting } from '../../engine/textures';
+import type { SitPose } from '../actor';
 
 export interface Mark {
   pos: THREE.Vector3;
@@ -10,6 +11,8 @@ export interface Mark {
   node: string; // nav node used to reach this mark
   approach?: THREE.Vector3; // last point before stepping onto the mark
   hint: string; // description for the LLM
+  pose?: SitPose; // how to sit here
+  prop?: THREE.Object3D; // held in the lap by whoever sits here
 }
 
 export interface Shot {
@@ -27,7 +30,7 @@ export interface StageSet {
   edges: [string, string][];
   door: string;
   wides: Shot[];
-  ambience: 'bar' | 'apartment' | 'penthouse';
+  ambience: 'bar' | 'apartment' | 'penthouse' | 'none';
   background: { character: CharacterId; mark: string }[];
   setTime(t: TimeOfDay): void;
   update?(dt: number, t: number): void;
@@ -37,7 +40,7 @@ export interface StageSet {
 
 export const v3 = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-export function mark(x: number, z: number, facing: number, node: string, hint: string, opts: { seat?: number; approach?: [number, number] } = {}): Mark {
+export function mark(x: number, z: number, facing: number, node: string, hint: string, opts: { seat?: number; approach?: [number, number]; pose?: SitPose; prop?: THREE.Object3D } = {}): Mark {
   return {
     pos: v3(x, 0, z),
     facing,
@@ -45,6 +48,8 @@ export function mark(x: number, z: number, facing: number, node: string, hint: s
     node,
     approach: opts.approach ? v3(opts.approach[0], 0, opts.approach[1]) : undefined,
     hint,
+    pose: opts.pose,
+    prop: opts.prop,
   };
 }
 
