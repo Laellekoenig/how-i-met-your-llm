@@ -22,7 +22,14 @@ const panel = new Panel();
 
 // Pre-written episodes air back to back. `?ep=S11E03` starts at a given episode.
 const startAt = Math.max(0, Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep')));
-const player = new Player(stage, director, renderer, overlay, panel, new Syndication(EPISODES, startAt));
+const syndication = new Syndication(EPISODES, startAt);
+const player = new Player(stage, director, renderer, overlay, panel, syndication);
+
+// Dev mode's episode picker airs any episode from its cold open; syndication carries on from there.
+panel.episodes(EPISODES, (index) => {
+  syndication.seek(index);
+  player.cue();
+});
 
 // ---------------------------------------------------------------- now playing
 

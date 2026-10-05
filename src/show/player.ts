@@ -76,6 +76,14 @@ export class Player {
     this.wake?.();
   }
 
+  /** Cut away from what's on screen and air whatever the source brings next (after it has been re-cued). */
+  cue() {
+    this.rewound = [];
+    this.fetching = null;
+    this.skip('scene');
+    this.wake?.();
+  }
+
   private async nextItem(): Promise<ShowItem> {
     for (;;) {
       if (this.rewound.length) return this.rewound.shift()!;

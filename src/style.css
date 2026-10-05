@@ -296,6 +296,16 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 #now-title { font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-size: 18px; margin: 4px 0 6px; }
 #now-logline { color: var(--dim); line-height: 1.45; }
 #now-meta { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+#episode-list { position: relative; list-style: none; margin: 0; padding: 0; max-height: 220px; overflow-y: auto; }
+#panel #episode-list button {
+  display: flex; gap: 10px; align-items: baseline; width: 100%; text-align: left;
+  background: none; border: 1px solid transparent; border-radius: 6px; padding: 5px 8px; white-space: normal;
+}
+#panel #episode-list button:hover { border-color: var(--line); }
+#episode-list .code { color: var(--dim); letter-spacing: 0.12em; font-size: 10px; flex: none; }
+#episode-list .title { font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; }
+#panel #episode-list button[aria-current='true'] { border-color: var(--umbrella); background: var(--bg2); }
+#episode-list button[aria-current='true'] .code { color: var(--umbrella); }
 .badge { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; color: var(--dim); }
 
 #panel label { display: block; color: var(--dim); font-size: 11px; margin-bottom: 8px; }

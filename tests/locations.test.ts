@@ -25,4 +25,16 @@ describe('public scene locations', () => {
     expect(Syndication.indexOf(EPISODES, 'S99E99')).toBe(-1);
     expect(Syndication.indexOf(EPISODES, null)).toBe(-1);
   });
+
+  test('seeking drops the rest of the current episode and airs the picked one from its cold open, then carries on', async () => {
+    const tv = new Syndication(EPISODES);
+    await tv.next();
+    await tv.next();
+    tv.seek(3);
+    const picked = await tv.next();
+    expect(picked.kind).toBe('episode-start');
+    expect(picked.episode.code).toBe(EPISODES[3].code);
+    for (let i = 0; i < EPISODES[3].scenes.length + 1; i++) await tv.next();
+    expect((await tv.next()).episode.code).toBe(EPISODES[4 % EPISODES.length].code);
+  });
 });
