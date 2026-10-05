@@ -6,7 +6,7 @@ import { routeNodes } from '../src/show/navigation';
 import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
-import { GUEST_EPISODE, GUEST_STAR_EPISODE } from '../src/script/samples';
+import { RERUNS } from '../src/script/samples';
 import type { CutawayBeat } from '../src/script/types';
 
 const stage = testStage();
@@ -134,14 +134,14 @@ describe('current set navigation', () => {
   });
 });
 
-const whisperer = GUEST_STAR_EPISODE.scenes.flatMap((scene) => [
-  { ...scene, label: `guest-star episode: ${scene.location}` },
-  ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, label: `guest-star episode: ${c.style} cutaway at ${c.location}` })),
-]);
+const rerunScenes = RERUNS.flatMap((ep) => ep.scenes.flatMap((scene, i) => [
+  { ...scene, guests: ep.guests, label: `${ep.meta.title} ${i + 1}: ${scene.location}` },
+  ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, label: `${ep.meta.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
+]));
 
 describe('camera coverage on the current sets', () => {
-  for (const scene of [...GUEST_EPISODE.scenes.map((s) => ({ ...s, label: `guest episode: ${s.location}` })), ...whisperer]) test(`${scene.label} covers the cast and both sides of each conversation`, () => {
-    stage.castGuests(GUEST_STAR_EPISODE.guests);
+  for (const scene of rerunScenes) test(`${scene.label} covers the cast and both sides of each conversation`, () => {
+    stage.castGuests(scene.guests);
     stage.setLocation(scene.location, scene.time);
     for (const c of scene.cast) {
       expect(stage.current.marks[c.mark], `${c.character}/${c.mark}`).toBeDefined();

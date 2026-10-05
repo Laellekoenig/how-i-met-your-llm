@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { normalizeScene } from '../src/llm/normalize';
-import { GUEST_EPISODE } from '../src/script/samples';
+import { RERUNS } from '../src/script/samples';
 import { roles } from '../src/ui/casting';
 
 describe('recurring guest dialogue', () => {
@@ -22,12 +22,12 @@ describe('recurring guest dialogue', () => {
     });
   });
 
-  test('offline guest episode preserves every speaking role through normalization', () => {
+  test('the offline reruns give every recurring character a line that survives normalization', () => {
     const speakers = new Set<string>();
-    for (const scene of GUEST_EPISODE.scenes) {
-      const normalized = normalizeScene({ ...scene }, scene.location, scene.time);
+    for (const { scenes, guests } of RERUNS) for (const scene of scenes) {
+      const normalized = normalizeScene({ ...scene }, scene.location, scene.time, undefined, { guests });
       expect(normalized.beats).toEqual(scene.beats);
-      for (const beat of normalized.beats) if (beat.type === 'say') speakers.add(beat.character);
+      for (const beat of normalized.beats.flatMap((b) => b.type === 'cutaway' ? b.beats : [b])) if (beat.type === 'say') speakers.add(beat.character);
     }
     for (const id of ['sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter']) expect(speakers.has(id)).toBe(true);
   });

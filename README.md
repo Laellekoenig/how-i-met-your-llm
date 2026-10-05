@@ -80,15 +80,24 @@ Everything here is written by the model through the same two tool calls, and is 
   caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
   mid-word and the next speaker jumps straight in.
 
-The fifth offline rerun, **The Whisperer**, uses all of it. In dev mode, skip four episodes from the first rerun to reach it.
+All four offline reruns use all of it: each casts its own guest stars and cuts away at least once.
+
+| Rerun | Guest stars | Cutaways | Sets |
+| --- | --- | --- | --- |
+| **The Understudy** | Gordon, the actor Barney hires to be Barney | How Barney imagined it (Barney's office) | MacLaren's, Barney's office |
+| **The Silent Auction** | Delphine, the PTA president; Rusty, the auctioneer | How Marshall imagined it; St. Cloud, 1985 | store, restaurant, apartment |
+| **The Correction** | Margo, the producer; Hector, the silent camera operator | How Kevin pictured it (lecture hall) | Metro News One, Barney's limo (with a rewind) |
+| **The Guest Lecture** | Ingrid Solberg, Ted's hero; Wade, his keenest student | Wesleyan, 1997 | roof, lecture hall, limo |
+
+In dev mode, skip episodes from the first rerun to reach the others.
 
 ## Recurring cast and wardrobe references
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
 episode planner, scene writer, director and voice-casting panel. Each has a distinct procedural model,
-voice profile, caption color and show-bible entry. The fourth offline rerun, **The Character Reference**,
-introduces all eight across Metro News One, the office, the restaurant and the apartment. In dev mode,
-skip three episodes from the first rerun to reach it.
+voice profile, caption color and show-bible entry. Between them, the offline reruns
+give all eight a scene: Arthur and Quinn in **The Understudy**, Judy, Scooter and Victoria in **The Silent Auction**,
+Sandy and Kevin in **The Correction**, and Brad in **The Guest Lecture**.
 
 Their default outfits are stylized interpretations of these inspected episode stills. Heights and facial
 proportions are artistic approximations; voices use browser TTS. No photographs are bundled or loaded at runtime.
@@ -108,7 +117,8 @@ proportions are artistic approximations; voices use browser TTS. No photographs 
 
 `metro_news_one`, `store`, `restaurant`, and `lecture_hall` are available to the episode planner and scene writer,
 with named marks, navigation, camera coverage, background occupants, day/night lighting, and their own exteriors.
-The third offline rerun, **The Expert**, visits all four. In dev mode, skip two episodes to reach it.
+The offline reruns visit all four: **The Silent Auction** the store and restaurant, **The Correction** Metro News One
+(and the lecture hall in a cutaway), and **The Guest Lecture** the lecture hall.
 
 The two show-specific interiors use these online visual references:
 
