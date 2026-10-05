@@ -18,6 +18,7 @@ import { buildLectureHall } from '../world/sets/lectureHall';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
+import { joinRoute, routeNodes } from './navigation';
 
 /** Owns the sets and actors; knows how to place and move people around. */
 export class Stage {
@@ -26,8 +27,11 @@ export class Stage {
   /** Background people. `chatty` ones talk among themselves; one with a `mark` gives it up to anyone the script puts there. */
   readonly extras: { actor: Actor; set: LocationId; talkT: number; chatty: boolean; mark?: string }[] = [];
   current: StageSet;
+  private sceneVersion = 0;
+  private scenery = new Map<StageSet, THREE.Mesh[]>();
   private occupancy = new Map<string, CharacterId>(); // mark -> character
   private actorMark = new Map<CharacterId, string>();
+  private actorNode = new Map<CharacterId, string>();
   private backgroundIds = new Set<CharacterId>();
   /** The scene we cut away from while we're on the 2030 couch. */
   private paused: { set: StageSet; visible: CharacterId[] } | null = null;
@@ -43,6 +47,9 @@ export class Stage {
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;
       scene.add(s.group);
+      const meshes: THREE.Mesh[] = [];
+      s.group.traverse(o => { if (o instanceof THREE.Mesh) meshes.push(o); });
+      this.scenery.set(s, meshes);
     }
     for (const id of CHARACTER_IDS) {
       const a = new Actor(CHARACTERS[id]);
@@ -115,6 +122,7 @@ export class Stage {
   }
 
   setLocation(id: LocationId, time: TimeOfDay) {
+    this.sceneVersion++;
     this.endEstablishing();
     this.paused = null;
     for (const s of Object.values(this.sets)) s.group.visible = false;
@@ -129,7 +137,9 @@ export class Stage {
     }
     this.occupancy.clear();
     this.actorMark.clear();
+    this.actorNode.clear();
     this.backgroundIds.clear();
+    this.syncExtras();
   }
 
   /** Temporarily replace the story with an actor-free view of New York. Built only when first needed. */
@@ -199,6 +209,7 @@ export class Stage {
   }
 
   private isFree(mark: string, forChar?: CharacterId) {
+    if (mark === this.current.door || Object.values(this.current.entrances ?? {}).includes(mark)) return true;
     const who = this.occupancy.get(mark);
     return !who || who === forChar;
   }
@@ -207,10 +218,17 @@ export class Stage {
     const prev = this.actorMark.get(id);
     if (prev && this.occupancy.get(prev) === id) this.occupancy.delete(prev);
     this.actorMark.delete(id);
+    this.actorNode.delete(id);
     if (mark) {
       this.occupancy.set(mark, id);
       this.actorMark.set(id, mark);
+      this.actorNode.set(id, this.current.marks[mark].node);
     }
+    this.syncExtras();
+  }
+
+  private syncExtras() {
+    for (const e of this.extras) if (e.set === this.current.id && e.mark) e.actor.root.visible = !this.occupancy.has(e.mark);
   }
 
   /** Standing spot near a mark, nudged if a standing mark is taken (people can share floor space). */
@@ -273,46 +291,6 @@ export class Stage {
     this.paused = null;
   }
 
-  /** A* is overkill: Dijkstra over a tiny hand-made graph. */
-  private route(from: THREE.Vector3, to: THREE.Vector3, fromNode: string, toNode: string) {
-    const N = this.current.nodes;
-    const adj = new Map<string, string[]>();
-    for (const [a, b] of this.current.edges) {
-      adj.set(a, [...(adj.get(a) ?? []), b]);
-      adj.set(b, [...(adj.get(b) ?? []), a]);
-    }
-    const dist = new Map<string, number>([[fromNode, 0]]);
-    const prev = new Map<string, string>();
-    const open = new Set(Object.keys(N));
-    while (open.size) {
-      let u: string | null = null;
-      for (const k of open) if (dist.has(k) && (u === null || dist.get(k)! < dist.get(u)!)) u = k;
-      if (u === null) break;
-      open.delete(u);
-      if (u === toNode) break;
-      for (const v of adj.get(u) ?? []) {
-        const d = dist.get(u)! + N[u].distanceTo(N[v]);
-        if (d < (dist.get(v) ?? Infinity)) {
-          dist.set(v, d);
-          prev.set(v, u);
-        }
-      }
-    }
-    const nodePath: string[] = [];
-    let cur: string | undefined = toNode;
-    while (cur) {
-      nodePath.unshift(cur);
-      if (cur === fromNode) break;
-      cur = prev.get(cur);
-    }
-    if (nodePath[0] !== fromNode) nodePath.unshift(fromNode);
-    const pts = nodePath.map((k) => N[k].clone());
-    // skip the first node if we're already past it towards the second
-    if (pts.length > 1 && from.distanceTo(pts[1]) < pts[0].distanceTo(pts[1])) pts.shift();
-    if (pts.length > 1 && to.distanceTo(pts[pts.length - 2]) < pts[pts.length - 1].distanceTo(pts[pts.length - 2])) pts.pop();
-    return pts;
-  }
-
   private nearestNode(p: THREE.Vector3) {
     let best = '';
     let bd = Infinity;
@@ -343,12 +321,16 @@ export class Stage {
     if (other && other !== id && this.onStage(other) && !this.current.seated) {
       const o = this.actors[other];
       const op = o.position.clone();
-      // stand in front of/next to them, on the audience side
-      const side = Math.sign(op.x - a.position.x) || 1;
-      dest = op.clone().add(new THREE.Vector3(-side * 0.75, 0, 0.55));
+      // Approach via their authored aisle, never an arbitrary offset inside a desk or wall.
+      const otherMark = this.current.marks[this.actorMark.get(other) ?? ''];
+      node = otherMark?.node ?? this.nearestNode(op);
+      dest = (otherMark?.approach ?? this.current.nodes[node]).clone();
+      if (dest.distanceTo(op) < 0.4) {
+        const adjacent = this.current.edges.flatMap(([x, y]) => x === node ? [y] : y === node ? [x] : []);
+        const nearby = adjacent.sort((x, y) => this.current.nodes[x].distanceTo(op) - this.current.nodes[y].distanceTo(op))[0];
+        if (nearby) dest.lerp(this.current.nodes[nearby], Math.min(1, 0.85 / dest.distanceTo(this.current.nodes[nearby])));
+      }
       facing = Math.atan2(op.x - dest.x, op.z - dest.z) * 0.6;
-      node = this.nearestNode(dest);
-      this.occupy(id, null);
       name = '';
     } else {
       name = this.resolveMark(target, id);
@@ -358,25 +340,31 @@ export class Stage {
       seat = m.seat;
       approach = m.approach;
       node = m.node;
-      this.occupy(id, name);
     }
-    const curMark = prevMarkName && prevMarkName !== name ? this.current.marks[prevMarkName] : undefined;
-    const pts: THREE.Vector3[] = [];
-    const start = a.position.clone();
-    const scoot = !!this.current.seated;
-    if (scoot) {
-      // straight along the seats (through the set's nodes on longer trips), never standing up
-      if (start.distanceTo(dest) > 2.0) pts.push(...this.route(start, dest, this.nearestNode(start), node));
-      pts.push(dest);
-      return a.walk(pts, { facing, seat: seat ?? a.seatHeight, scoot });
+    if (prevMarkName === name && !a.isWalking) return Promise.resolve();
+    const curMark = prevMarkName ? this.current.marks[prevMarkName] : undefined;
+    const pts = a.remainingPath;
+    const start = pts.at(-1) ?? a.position;
+    const fromNode = curMark?.node ?? this.actorNode.get(id) ?? this.nearestNode(start);
+    const route = routeNodes(this.current, fromNode, node);
+    if (!route) {
+      // Separate vehicle compartments are entered through their own doors.
+      if (this.current.seated && name) {
+        const version = this.sceneVersion;
+        return this.exit(id).then(() => {
+          if (version === this.sceneVersion) return this.enter(id, name);
+        });
+      }
+      return Promise.resolve();
     }
-    if (a.isSitting && curMark?.approach) pts.push(curMark.approach.clone());
-    const fromNode = this.nearestNode(pts[0] ?? start);
-    const direct = (pts[0] ?? start).distanceTo(approach ?? dest) < 2.0;
-    if (!direct) pts.push(...this.route(pts[0] ?? start, approach ?? dest, fromNode, node));
+    this.occupy(id, name || null);
+    this.actorNode.set(id, node);
+    if (curMark?.approach) pts.push(curMark.approach.clone());
+    pts.push(...route);
     if (approach) pts.push(approach.clone());
     pts.push(dest);
-    return a.walk(pts, { facing, seat });
+    const m = this.current.marks[name];
+    return a.walk(joinRoute(pts), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop });
   }
 
   /** The free seat closest to someone (for sliding over to them in a car). */
@@ -397,19 +385,29 @@ export class Stage {
     return best;
   }
 
+  private entrance(markName?: string) {
+    const node = this.current.marks[markName ?? '']?.node;
+    return this.current.entrances?.[node] ?? this.current.door;
+  }
+
   enter(id: CharacterId, target?: string): Promise<void> {
-    const door = this.current.marks[this.current.door];
+    const name = this.resolveMark(target && target !== this.current.door ? target : 'center', id);
+    const doorName = this.entrance(name), door = this.current.marks[doorName];
     const a = this.actors[id];
-    // climbing into a car: they appear sitting by the door and slide over
-    a.place(door.pos.clone(), door.facing, this.current.seated ? door.seat : null);
+    const pos = door.pos.clone();
+    pos.y = this.current.floorAt?.(pos.x, pos.z) ?? 0;
+    a.place(pos, door.facing, this.current.seated ? door.seat : null);
     a.root.visible = true;
-    this.occupy(id, null);
-    return this.moveTo(id, target && target !== this.current.door ? target : 'center');
+    this.occupy(id, doorName);
+    return this.moveTo(id, name);
   }
 
   async exit(id: CharacterId) {
     if (!this.onStage(id)) return;
-    await this.moveTo(id, this.current.door);
+    const version = this.sceneVersion, door = this.entrance(this.actorMark.get(id));
+    await this.moveTo(id, door);
+    // A skipped scene or a subsequent move must not let an old exit hide the new cast.
+    if (version !== this.sceneVersion || this.actorMark.get(id) !== door) return;
     this.actors[id].root.visible = false;
     this.occupy(id, null);
   }
@@ -419,11 +417,12 @@ export class Stage {
       this.establishing!.update(dt);
       return;
     }
-    for (const a of Object.values(this.actors)) a.update(dt, t);
+    for (const a of Object.values(this.actors)) if (a.root.visible) a.update(dt, t);
     // step actors up onto raised floors
     const floorAt = this.current.floorAt;
     if (floorAt)
       for (const a of Object.values(this.actors)) {
+        if (!a.root.visible) continue;
         const p = a.root.position;
         p.y += (floorAt(p.x, p.z) - p.y) * Math.min(1, dt * 14);
       }
@@ -446,11 +445,13 @@ export class Stage {
     this.current.update?.(dt, t);
   }
 
-  occluders(): THREE.Object3D[] {
-    const out: THREE.Object3D[] = [];
-    this.current.group.traverse((o) => {
-      if (o.userData.occluder) out.push(o);
+  occluders(): THREE.Mesh[] {
+    // Include walls, chair backs and new props automatically, even without a legacy tag.
+    this.current.group.updateWorldMatrix(true, true);
+    return (this.scenery.get(this.current) ?? []).filter(o => {
+      for (let parent: THREE.Object3D | null = o; parent; parent = parent.parent) if (!parent.visible) return false;
+      const materials = Array.isArray(o.material) ? o.material : [o.material];
+      return materials.some(m => m.visible && (!m.transparent || m.opacity >= 0.8));
     });
-    return out;
   }
 }

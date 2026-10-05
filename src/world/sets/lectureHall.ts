@@ -15,8 +15,12 @@ export function buildLectureHall(): StageSet {
   g.add(mesh(box(13, 1.05, 0.07), wood, 0, 0.525, -4.45, false));
   for (const x of [-6.46, 6.46]) g.add(mesh(box(0.06, 1.05, 10.5), wood, x, 0.525, 0.7, false));
   // This wall faces the professor and only appears in the reverse camera.
-  g.add(mesh(new THREE.PlaneGeometry(13, 4.3), wall, 0, 2.15, 5.4, false).rotateY(Math.PI));
-  g.add(mesh(new THREE.PlaneGeometry(13, 1.05), wood, 0, 0.525, 5.39, false).rotateY(Math.PI));
+  for (const [height, y, z, material] of [[4.3, 2.15, 5.4, wall], [1.05, 0.525, 5.39, wood]] as const) {
+    const backdrop = mesh(new THREE.PlaneGeometry(13, height), material, 0, y, z, false).rotateY(Math.PI);
+    // A one-sided fourth wall: reverse shots see it, the main camera shoots through its back.
+    backdrop.userData.cameraBackdrop = true;
+    g.add(backdrop);
+  }
   g.add(mesh(box(8.5, 2.1, 0.08), toon('#8e958f'), -0.4, 2.22, -4.38, false));
   g.add(mesh(new THREE.PlaneGeometry(8.25, 1.9), toon('#ffffff', { map: lectureChalkboard() }), -0.4, 2.22, -4.325, false));
   g.add(mesh(box(8.5, 0.06, 0.18), toon('#9b9b8e'), -0.4, 1.15, -4.27, false));

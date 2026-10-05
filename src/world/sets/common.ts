@@ -41,6 +41,8 @@ export interface StageSet {
   seated?: boolean;
   /** Marks nobody gets put on unless the script asks for them (the bartender's spot, the driver's seat). */
   reserved?: string[];
+  /** Separate vehicle compartments use their own door. No route crosses a solid partition. */
+  entrances?: Record<string, string>;
   setTime(t: TimeOfDay): void;
   update?(dt: number, t: number): void;
   /** Floor height at a point, for sets with raised areas (defaults to 0). */

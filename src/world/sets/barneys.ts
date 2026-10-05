@@ -512,7 +512,7 @@ export function buildBarneys(): StageSet {
   g.add(tvGlow);
 
   const N = nodes({
-    door: [-5.55, DOOR_Z], entry: [-4.85, 0.55], mid_l: [-3.3, 0.35], front_l: [-2.3, 0.6], couch_l: [-3.35, -1.25], couch_r: [-1.15, -1.25], left: [-5.1, -1.9],
+    door: [-5.55, DOOR_Z], entry: [-4.85, 0.55], mid_l: [-3.3, 0.35], front_l: [-2.3, 0.6], armchair_front: [-3.3, -0.15], lounge_front: [-4.2, 1.0], couch_turn: [-0.15, -1.25], couch_l: [-3.35, -1.25], couch_r: [-1.15, -1.25], left: [-5.1, -1.9],
     trooper: [-4.85, -3.1], window: [-3.6, -3.6], back: [-2.3, -3.45], side_r: [-0.15, -2.0], back_r: [-0.3, -3.2],
     center: [-0.2, -0.3], right_front: [1.8, 0.5], hall: [1.5, -3.1], stools: [1.2, -2.35], kit_door: [3.5, -0.6], kitchen: [4.1, -2.4], bar: [5.2, -0.3],
   });
@@ -523,9 +523,9 @@ export function buildBarneys(): StageSet {
     group: g,
     nodes: N,
     edges: [
-      ['door', 'entry'], ['door', 'left'], ['entry', 'mid_l'], ['mid_l', 'front_l'], ['mid_l', 'couch_l'], ['front_l', 'center'], ['couch_l', 'left'],
-      ['left', 'trooper'], ['left', 'window'], ['trooper', 'window'], ['window', 'back'], ['back', 'back_r'], ['back_r', 'side_r'], ['side_r', 'couch_r'],
-      ['couch_r', 'center'], ['side_r', 'center'], ['center', 'right_front'], ['center', 'stools'], ['side_r', 'stools'], ['back_r', 'hall'], ['stools', 'hall'],
+      ['door', 'entry'], ['door', 'left'], ['entry', 'mid_l'], ['mid_l', 'armchair_front'], ['mid_l', 'lounge_front'], ['mid_l', 'front_l'], ['mid_l', 'couch_l'], ['front_l', 'center'], ['couch_l', 'left'],
+      ['left', 'trooper'], ['left', 'window'], ['trooper', 'window'], ['window', 'back'], ['back', 'back_r'], ['back_r', 'side_r'], ['side_r', 'couch_turn'], ['couch_turn', 'couch_r'],
+      ['couch_r', 'center'], ['side_r', 'center'], ['center', 'right_front'], ['center', 'stools'], ['side_r', 'stools'], ['back_r', 'hall'],
       ['right_front', 'kit_door'], ['center', 'kit_door'], ['kit_door', 'kitchen'], ['kit_door', 'bar'], ['right_front', 'bar'], ['couch_l', 'couch_r'],
     ],
     door: 'door',
@@ -533,8 +533,8 @@ export function buildBarneys(): StageSet {
       couch_left: mark(CX - 0.65, CZ + 0.1, 0, 'couch_l', 'the dark leather couch, left cushion', { seat: 0.45, approach: [CX - 0.65, CZ + 0.75] }),
       couch_center: mark(CX, CZ + 0.1, 0, 'couch_l', 'the dark leather couch, middle', { seat: 0.45, approach: [CX, CZ + 0.75] }),
       couch_right: mark(CX + 0.65, CZ + 0.1, 0, 'couch_r', 'the dark leather couch, right cushion', { seat: 0.45, approach: [CX + 0.65, CZ + 0.75] }),
-      armchair: mark(-4.2, -0.75, 1.0, 'couch_l', 'the chrome-framed leather armchair beside the couch', { seat: 0.44, approach: [-3.7, -0.43] }),
-      lounge_chair: mark(-5.45, 1.55, 0.8, 'entry', "Barney's black leather lounge chair in the downstage corner", { seat: 0.42, approach: [-5.0, 1.95] }),
+      armchair: mark(-4.2, -0.75, 1.0, 'armchair_front', 'the chrome-framed leather armchair beside the couch', { seat: 0.44, approach: [-3.3, -0.15] }),
+      lounge_chair: mark(-5.45, 1.55, 0.8, 'lounge_front', "Barney's black leather lounge chair in the downstage corner", { seat: 0.42, approach: [-4.55, 1.1] }),
       katana: mark(CX, KZ - 0.55, 0, 'back', 'behind the couch at the glass console, by the katana on its stand'),
       window: mark(-3.7, -3.75, Math.PI - 0.35, 'window', 'at the glass terrace doors, looking out at the Manhattan skyline'),
       stormtrooper: mark(-5.0, -3.05, 0.35, 'trooper', 'next to the life-size Stormtrooper in the corner'),

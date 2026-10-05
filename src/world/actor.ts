@@ -617,6 +617,10 @@ export class Actor {
     return v;
   }
 
+  get remainingPath() {
+    return this.path.map(p => p.clone());
+  }
+
   get isWalking() {
     return this.path.length > 0;
   }
@@ -627,6 +631,7 @@ export class Actor {
 
   place(pos: THREE.Vector3, facing: number, seatHeight: number | null, opts: { pose?: SitPose; prop?: THREE.Object3D } = {}) {
     this.root.position.copy(pos);
+    this.root.rotation.y = facing;
     this.facing = this.targetFacing = facing;
     this.seatHeight = seatHeight;
     this.sitBlend = seatHeight !== null ? 1 : 0;
@@ -638,10 +643,13 @@ export class Actor {
     this.gesture = null;
     this.lookAt = null;
     this.talking = false;
+    this.walking = 0;
+    this.update(0, 0, true);
+    this.root.updateWorldMatrix(true, true);
   }
 
   /** Walk along waypoints; resolves when arrived. With `scoot`, slide along them sitting down (there's no standing up in a car). */
-  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean }) {
+  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean; pose?: SitPose; prop?: THREE.Object3D }) {
     return new Promise<void>((resolve) => {
       if (this.onArrive) this.onArrive();
       this.path = points.map((p) => p.clone());
@@ -654,6 +662,8 @@ export class Actor {
         this.scooting = false;
         this.targetFacing = final.facing;
         this.seatHeight = final.seat;
+        this.sitPose = final.pose ?? 'upright';
+        this.setLapProp(final.prop ?? null);
         resolve();
       };
       if (!this.path.length) this.onArrive();
@@ -695,8 +705,8 @@ export class Actor {
 
   // --------------------------------------------------------------- update
 
-  update(dt: number, t: number) {
-    if (!this.root.visible) return;
+  update(dt: number, t: number, snap = false) {
+    if (!this.root.visible && !snap) return;
     const p = this.pose;
     const target = zeroPose();
 
@@ -883,13 +893,13 @@ export class Actor {
     }
 
     // --- apply pose with smoothing
-    const lam = damp(14, dt);
+    const lam = snap ? 1 : damp(14, dt);
     const mix3 = (a: V3, b: V3) => {
       a[0] += (b[0] - a[0]) * lam; a[1] += (b[1] - a[1]) * lam; a[2] += (b[2] - a[2]) * lam;
     };
     mix3(p.lSh, target.lSh); mix3(p.rSh, target.rSh); mix3(p.spine, target.spine); mix3(p.head, target.head);
     p.lEl += (target.lEl - p.lEl) * lam; p.rEl += (target.rEl - p.rEl) * lam;
-    const legLam = damp(18, dt);
+    const legLam = snap ? 1 : damp(18, dt);
     p.lHip += (target.lHip - p.lHip) * legLam; p.rHip += (target.rHip - p.rHip) * legLam;
     p.lKnee += (target.lKnee - p.lKnee) * legLam; p.rKnee += (target.rKnee - p.rKnee) * legLam;
     p.lHipZ += (target.lHipZ - p.lHipZ) * legLam; p.rHipZ += (target.rHipZ - p.rHipZ) * legLam;

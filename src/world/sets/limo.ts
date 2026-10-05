@@ -174,7 +174,7 @@ export function buildLimo(): StageSet {
   front.position.set(2.9, 1.3, 0.3);
   g.add(front);
 
-  const N = nodes({ rear: [-2.55, 0.1], door: [-1.75, -0.4], bench_l: [-0.7, -0.45], bench_r: [0.9, -0.45], side: [1.5, 0.3], driver: [2.95, -0.42] });
+  const N = nodes({ rear: [-2.55, 0.1], door: [-1.75, -0.4], bench_l: [-0.7, -0.45], bench_r: [0.9, -0.45], side: [1.5, 0.3], driver: [2.95, -0.42], driver_door: [2.95, -0.72] });
   const benchSeat = (x: number, hint: string) => mark(x, FAR + 0.47, 0, x < 0 ? 'bench_l' : 'bench_r', hint, { seat: SEAT });
   const rearSeat = (z: number, hint: string) => mark(REAR + 0.47, z, Math.PI / 2 - 0.4, 'rear', hint, { seat: SEAT });
   return {
@@ -182,8 +182,9 @@ export function buildLimo(): StageSet {
     name: "Barney's Limo",
     group: g,
     nodes: N,
-    edges: [['rear', 'door'], ['door', 'bench_l'], ['bench_l', 'bench_r'], ['bench_r', 'side']],
+    edges: [['rear', 'door'], ['door', 'bench_l'], ['bench_l', 'bench_r'], ['bench_r', 'side'], ['driver_door', 'driver']],
     door: 'door',
+    entrances: { driver: 'driver_door', driver_door: 'driver_door' },
     marks: {
       rear_seat_left: rearSeat(-0.35, 'the rear bench across the back of the limo, far side (the power seat)'),
       rear_seat_right: rearSeat(0.4, 'the rear bench across the back of the limo, near side'),
@@ -191,11 +192,12 @@ export function buildLimo(): StageSet {
       bench_2: benchSeat(0.1, 'the long leather side bench, middle'),
       bench_3: benchSeat(0.95, 'the long leather side bench, by the bar'),
       bar_seat: mark(PART - 0.47, 0.42, -Math.PI / 2 + 0.45, 'side', 'the side seat by the bar and the champagne, facing back down the limo', { seat: SEAT }),
+      driver_door: mark(2.95, -0.72, Math.PI / 2, 'driver_door', 'driver compartment door', { seat: SEAT }),
       driver: mark(2.97, -0.42, Math.PI / 2, 'driver', "the driver's seat beyond the open partition window (Ranjit's)", { seat: SEAT }),
       door: mark(-1.75, FAR + 0.47, 0.3, 'door', 'the limo door in the far side, by the rear bench', { seat: SEAT }),
     },
     wides: [
-      { pos: v3(-0.2, 1.3, 3.9), target: v3(-0.2, 0.75, -0.4), fov: 48 },
+      { pos: v3(-0.2, 1.25, 3.9), target: v3(0, 0.9, -0.1), fov: 56 },
       { pos: v3(-1.0, 1.2, 2.6), target: v3(-1.2, 0.8, -0.4), fov: 46 },
       { pos: v3(0.8, 1.2, 2.6), target: v3(1.4, 0.8, -0.3), fov: 46 },
       { pos: v3(1.6, 1.2, 2.5), target: v3(-1.6, 0.8, -0.4), fov: 44 },
@@ -204,7 +206,7 @@ export function buildLimo(): StageSet {
     background: [{ character: 'ranjit', mark: 'driver' }],
     doorSound: 'car',
     seated: true,
-    reserved: ['driver'],
+    reserved: ['driver', 'driver_door'],
     setTime(t) {
       const night = t === 'night';
       backdrop.material = rearWindow.material = night ? backdropNight : backdropDay;

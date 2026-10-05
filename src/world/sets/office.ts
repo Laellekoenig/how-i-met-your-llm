@@ -186,14 +186,14 @@ export function buildOffice(): StageSet {
   }
 
   const N = nodes({
-    door: [EX, BACK + 0.6], back_r: [3.2, -2.6], back: [0.2, -2.9], cube_front: [-3.35, -0.2], center: [0.3, 0.3], front: [0, 2.2],
-    table: [3.2, 0.6], table_r: [5.6, -0.4], table_l: [1.2, -0.5], mgr: [-6.2, 1.2], cooler: [-0.6, -3.2],
+    door: [EX, BACK + 0.6], back_r: [3.2, -2.6], meeting_back_left: [0.8, -2.6], meeting_back_right: [5.6, -2.6], back: [0.2, -2.9], cube_front: [-3.35, -0.2], center: [0.3, 0.3], front: [0, 2.2],
+    table: [3.2, 0.6], table_front_left: [0.8, 0.6], table_front_right: [5.6, 0.6], table_r: [5.6, -0.4], table_l: [0.8, -0.5], mgr: [-6.2, 1.2], cooler: [-0.6, -3.2],
   });
   const cubeMark = (i: number, hint: string) =>
     mark(CUBES[i], CUB_BACK + 1.0, 0.15 * (i - 1), 'cube_front', hint, { seat: 0.47, approach: [CUBES[i], CUB_BACK + 1.6] });
   const meetMark = (i: number, hint: string, approach: [number, number]) => {
     const [x, z, r] = MEET[i];
-    return mark(x + Math.sin(r) * 0.05, z + Math.cos(r) * 0.05, r, i < 2 ? 'back_r' : i === 2 ? 'table_l' : 'table_r', hint, { seat: 0.47, approach });
+    return mark(x + Math.sin(r) * 0.05, z + Math.cos(r) * 0.05, r, i < 2 ? 'back_r' : i === 2 ? 'table_front_left' : 'table_front_right', hint, { seat: 0.47, approach });
   };
   return {
     id: 'office',
@@ -201,8 +201,8 @@ export function buildOffice(): StageSet {
     group: g,
     nodes: N,
     edges: [
-      ['door', 'back_r'], ['door', 'back'], ['back', 'cooler'], ['back', 'center'], ['back_r', 'table_l'], ['back_r', 'table_r'], ['table_l', 'center'],
-      ['table', 'center'], ['table', 'table_r'], ['table', 'table_l'], ['center', 'front'], ['center', 'cube_front'], ['cube_front', 'mgr'], ['front', 'mgr'],
+      ['door', 'back_r'], ['door', 'back'], ['back', 'cooler'], ['back', 'center'], ['back_r', 'meeting_back_left'], ['meeting_back_left', 'table_l'], ['back_r', 'meeting_back_right'], ['meeting_back_right', 'table_r'], ['table_l', 'center'],
+      ['table', 'center'], ['table', 'table_front_right'], ['table_front_right', 'table_r'], ['table', 'table_front_left'], ['table_front_left', 'table_l'], ['center', 'front'], ['center', 'cube_front'], ['cube_front', 'mgr'], ['front', 'mgr'],
       ['table', 'front'],
     ],
     door: 'door',
@@ -215,8 +215,8 @@ export function buildOffice(): StageSet {
       copier: mark(CPX - 0.2, BACK + 1.15, -0.2, 'back', 'at the copier, which is jammed again'),
       meeting_back_left: meetMark(0, 'meeting table, upstage chair on the left, facing the room', [TX - 0.6, TZ - TW / 2 - 0.85]),
       meeting_back_right: meetMark(1, 'meeting table, upstage chair on the right, facing the room', [TX + 0.6, TZ - TW / 2 - 0.85]),
-      meeting_head_left: meetMark(2, 'meeting table, chair at the left end', [TX - TL / 2 - 0.5, TZ + 0.7]),
-      meeting_head_right: meetMark(3, 'meeting table, chair at the right end near the whiteboard', [TX + TL / 2 + 0.5, TZ + 0.7]),
+      meeting_head_left: meetMark(2, 'meeting table, chair at the left end', [TX - TL / 2 - 0.5, TZ + 1.0]),
+      meeting_head_right: meetMark(3, 'meeting table, chair at the right end near the whiteboard', [TX + TL / 2 + 0.5, TZ + 1.0]),
       whiteboard: mark(RIGHT - 0.7, 0.6, -Math.PI / 2 + 0.7, 'table_r', 'presenting at the whiteboard on the right wall'),
       managers_door: mark(LEFT + 0.8, 1.2, Math.PI / 2 + 0.3, 'mgr', "outside the manager's office door"),
       center: mark(0.3, 0.3, 0, 'center', 'middle of the office floor'),

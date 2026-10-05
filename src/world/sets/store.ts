@@ -66,8 +66,8 @@ export function buildStore(): StageSet {
   keyLight(g, '#ffefcf', 2.1, [-3, 6, 5], [0, 0, -1]);
   return {
     id: 'store', name: 'The Store', group: g,
-    nodes: nodes({ door: [-0.9, -3.25], back: [0, -2.5], shelves: [2.7, -2.4], right: [4.1, -1.1], center: [0, 0.5], front: [2.8, 1.5], checkout: [-2.3, 0.6], clerk: [-3.9, -1.7] }),
-    edges: [['door', 'back'], ['back', 'shelves'], ['shelves', 'right'], ['right', 'front'], ['front', 'center'], ['center', 'back'], ['center', 'checkout'], ['checkout', 'door'], ['door', 'clerk']],
+    nodes: nodes({ door: [-0.9, -3.25], back: [0, -2.5], shelves: [2.7, -2.4], right: [4.4, -1.1], island_end: [4.4, 1.5], center: [0, 0.5], front: [2.8, 1.5], checkout: [-2.3, 0.6], clerk: [-3.9, -1.7], clerk_aisle: [-1, -1.7] }),
+    edges: [['door', 'back'], ['back', 'shelves'], ['shelves', 'right'], ['right', 'island_end'], ['island_end', 'front'], ['front', 'center'], ['center', 'back'], ['center', 'checkout'], ['checkout', 'door'], ['door', 'clerk_aisle'], ['clerk_aisle', 'clerk']],
     door: 'door', reserved: ['cashier'],
     marks: {
       cashier: mark(-3.9, -1.5, 0, 'clerk', 'behind the checkout counter; shopkeeper'),

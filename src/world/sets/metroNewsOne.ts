@@ -60,14 +60,14 @@ export function buildMetroNewsOne(): StageSet {
   }
   const hemi = new THREE.HemisphereLight('#e8eeff', '#4c342b', 1.6); g.add(hemi);
   keyLight(g, '#fff0dc', 2.5, [0, 6, 4], [-0.6, 1, -2.4]);
-  const N = nodes({ door: [5.05, -3.3], right: [3, -2.9], behind: [-0.65, -3.25], left: [-3.5, -2.8], left_front: [-3.5, -0.5], center: [0, 0], right_front: [2.8, -0.3], camera: [4.4, 1.6] });
+  const N = nodes({ door: [5.05, -3.3], right: [3, -3.42], behind: [-0.65, -3.42], left: [-3.5, -3.42], left_front: [-3.5, -0.5], center: [0, 0], right_front: [2.8, -0.3], camera_side: [4.8, -0.3], camera: [4.8, 1.65] });
   return {
     id: 'metro_news_one', name: 'Metro News One', group: g, nodes: N,
-    edges: [['door', 'right'], ['right', 'behind'], ['behind', 'left'], ['left', 'left_front'], ['left_front', 'center'], ['center', 'right_front'], ['right_front', 'right'], ['right_front', 'camera']],
+    edges: [['door', 'right'], ['right', 'behind'], ['behind', 'left'], ['left', 'left_front'], ['left_front', 'center'], ['center', 'right_front'], ['right_front', 'right'], ['right_front', 'camera_side'], ['camera_side', 'camera']],
     door: 'door', reserved: ['camera_operator'],
     marks: {
-      anchor_left: mark(-1.85, -2.8, 0, 'behind', "Robin's anchor chair behind the news desk", { seat: 0.47, approach: [-1.85, -3.25] }),
-      anchor_right: mark(0.55, -2.8, 0, 'behind', 'co-anchor or interview guest at the news desk', { seat: 0.47, approach: [0.55, -3.25] }),
+      anchor_left: mark(-1.85, -2.8, 0, 'behind', "Robin's anchor chair behind the news desk", { seat: 0.47, approach: [-1.85, -3.42] }),
+      anchor_right: mark(0.55, -2.8, 0, 'behind', 'co-anchor or interview guest at the news desk', { seat: 0.47, approach: [0.55, -3.42] }),
       desk_side: mark(-3.55, -1.8, 0.5, 'left', 'standing beside the anchor desk'),
       monitor: mark(3.1, -2.5, -0.3, 'right', 'presenting beside the studio monitor'),
       center: mark(0, 0, 0, 'center', 'open studio floor in front of the cameras'),

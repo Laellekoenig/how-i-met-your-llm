@@ -206,7 +206,7 @@ export function buildRooftop(): StageSet {
   g.add(fill);
 
   const N = nodes({
-    door: [-3.65, DOOR_Z], bulk: [-3.4, -0.2], back_l: [-2.6, -3.15], back_c: [0.7, -2.6], back_r: [2.6, -3.15], tower: [3.4, -0.6],
+    door: [-3.65, DOOR_Z], bulk: [-3.4, -0.2], bulk_front: [-3.4, 1.2], back_l: [-2.6, -3.15], back_c: [0.7, -2.6], back_r: [2.6, -3.15], tower: [3.4, -0.6],
     chairs: [0, -0.4], center: [0.3, 0.6], front: [0, 2.4], front_r: [3.6, 2.4], cooler: [-2.4, 1.1],
   });
 
@@ -220,7 +220,7 @@ export function buildRooftop(): StageSet {
     group: g,
     nodes: N,
     edges: [
-      ['door', 'bulk'], ['door', 'back_l'], ['bulk', 'center'], ['bulk', 'cooler'], ['cooler', 'front'], ['back_l', 'back_c'], ['back_c', 'back_r'],
+      ['door', 'bulk'], ['door', 'back_l'], ['bulk', 'bulk_front'], ['bulk_front', 'cooler'], ['cooler', 'center'], ['cooler', 'front'], ['back_l', 'back_c'], ['back_c', 'back_r'],
       ['back_r', 'tower'], ['tower', 'center'], ['tower', 'front_r'], ['chairs', 'center'], ['center', 'front'], ['front', 'front_r'], ['bulk', 'back_l'],
     ],
     door: 'door',
@@ -233,7 +233,7 @@ export function buildRooftop(): StageSet {
       ledge_seat_right: mark(2.6, BACK - 0.04, -0.15, 'back_r', 'sitting up on the parapet, back to the skyline (right)', { seat: CAP, approach: [2.6, BACK + 0.6] }),
       ledge_lookout: mark(0.7, BACK + 0.35, Math.PI - 0.45, 'back_c', 'at the parapet, leaning on it and looking out over the city'),
       water_tower: mark(3.5, -0.9, -0.5, 'tower', 'under the water tower, by its ladder'),
-      grill: mark(2.85, 1.0, -0.3, 'tower', 'at the kettle grill, flipping burgers'),
+      grill: mark(3.3, 1.15, -0.3, 'front_r', 'at the kettle grill, flipping burgers'),
       bulkhead: mark(-3.55, -0.25, 0.5, 'bulk', 'leaning on the brick stairwell bulkhead, next to the door'),
       center: mark(0.3, 0.7, 0, 'center', 'middle of the roof, in front of the lawn chairs'),
       downstage: mark(-0.6, 2.4, 0.1, 'front', 'downstage, at the front of the roof, facing out (dramatic speeches)'),

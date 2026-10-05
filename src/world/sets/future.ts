@@ -229,7 +229,7 @@ export function buildFuture(): StageSet {
   g.add(r);
   const TZ = 0.45;
   const tableMat = toon('#5a2e1a');
-  g.add(mesh(roundedBox(1.3, 0.06, 0.66, 0.015), tableMat, 0, 0.42, TZ));
+  g.add(occluder(mesh(roundedBox(1.3, 0.06, 0.66, 0.015), tableMat, 0, 0.42, TZ)));
   g.add(mesh(box(1.22, 0.1, 0.58), toon('#4a2414'), 0, 0.34, TZ, false));
   for (const sx of [1, -1]) for (const sz of [1, -1]) g.add(mesh(box(0.06, 0.4, 0.06), toon('#4a2414'), sx * 0.58, 0.2, TZ + sz * 0.26, false));
   g.add(mesh(box(1.18, 0.02, 0.54), toon('#4a2414'), 0, 0.1, TZ, false));
@@ -253,14 +253,14 @@ export function buildFuture(): StageSet {
   recessLight.position.set(0, 1.7, BACK + 0.5);
   g.add(recessLight);
 
-  const N = nodes({ couch: [0, 0.0], center: [0, 1.3], door: [2.8, 1.5] });
+  const N = nodes({ couch: [0, -0.2], side: [1.3, -0.2], front: [1.3, 1.3], center: [0, 1.3], door: [2.8, 1.5] });
 
   return {
     id: 'future',
     name: "Ted's Living Room, 2030",
     group: g,
     nodes: N,
-    edges: [['couch', 'center'], ['center', 'door']],
+    edges: [['couch', 'side'], ['side', 'front'], ['front', 'center'], ['front', 'door']],
     door: 'door',
     marks: {
       couch_left: mark(-0.5, CZ + 0.1, 0, 'couch', 'the black tufted Chesterfield, left cushion: Penny, cross-legged, hugging a striped pillow', { seat: SEAT, approach: [-0.5, CZ + 0.75], pose: 'cross_legged', prop: pennyPillow }),

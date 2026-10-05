@@ -3,7 +3,7 @@ import type { Stage } from './stage';
 import type { Actor } from '../world/actor';
 import type { EstablishingShot } from '../world/sets/establishing';
 import type { CharacterId } from '../script/types';
-import { damp, noise1, rand } from '../util';
+import { damp, noise1 } from '../util';
 
 type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing';
 
@@ -17,6 +17,8 @@ interface ActiveShot {
   push: number; // dolly speed toward target, m/s
   subject?: CharacterId;
   drift?: EstablishingShot;
+  subjects?: CharacterId[];
+  followHead?: THREE.Vector3;
 }
 
 /** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. */
@@ -30,6 +32,7 @@ export class Director {
   constructor(private camera: THREE.PerspectiveCamera, private stage: Stage) {}
 
   private cut(s: ActiveShot) {
+    s.followHead = s.follow?.headWorld;
     this.shot = s;
     this.lastCut = this.time;
     this.apply(0);
@@ -38,26 +41,44 @@ export class Director {
 
   wide(index = 0, push = 0.04) {
     const w = this.stage.current.wides[index] ?? this.stage.current.wides[0];
-    this.cut({ kind: 'wide', pos: w.pos.clone(), target: w.target.clone(), fov: w.fov, push });
+    this.cut({ kind: 'wide', pos: w.pos.clone(), target: w.target.clone(), fov: w.fov, push, subjects: this.stage.castIds() });
   }
 
   establish(s: EstablishingShot, moving = true) {
     this.cut({ kind: 'establishing', pos: s.pos.clone(), target: s.target.clone(), fov: s.fov, push: 0, drift: moving ? s : undefined });
   }
 
-  /** Wide that best covers the given characters. */
-  coverage(ids: CharacterId[]) {
+  /** Prefer a tight authored angle only when every subject is framed and unobstructed. */
+  coverage(ids: CharacterId[], allowCloseup = true) {
+    const actors = ids.filter(id => this.stage.onStage(id)).map(id => this.stage.actors[id]);
+    if (!actors.length) return this.wide(0);
     const wides = this.stage.current.wides;
-    if (!ids.length) return this.wide(0);
-    const pts = ids.filter((i) => this.stage.onStage(i)).map((i) => this.stage.actors[i].headWorld);
-    let best = 0;
-    for (let i = wides.length - 1; i >= 1; i--) {
-      if (this.allInFrame(wides[i].pos, wides[i].target, wides[i].fov, pts)) {
-        best = i;
-        break;
-      }
+    const moving = actors.filter(a => a.isWalking);
+    let best = 0, score = -1;
+    for (let i = wides.length - 1; i >= 0; i--) {
+      const shot = wides[i];
+      const visible = actors.filter(a => this.covers(shot, [a]));
+      if (visible.length === actors.length) { best = i; break; }
+      const value = visible.length + visible.filter(a => a.isWalking).length * (actors.length + 1);
+      if (value >= score) { score = value; best = i; }
     }
-    this.wide(best, best ? 0.06 : 0.04);
+    const priority = moving.length ? moving : actors.slice(0, 1);
+    if (allowCloseup && !priority.every(a => this.covers(wides[best], [a]))) return this.closeup(priority[0].def.id);
+    this.wide(best);
+    this.shot!.subjects = actors.map(a => a.def.id);
+  }
+
+  private framePoints(actors: Actor[]) {
+    return actors.flatMap(a => {
+      const head = a.headWorld;
+      return [head.clone().add(new THREE.Vector3(0, 0.1, 0)), head.clone().add(new THREE.Vector3(0, -0.35, 0))];
+    });
+  }
+
+  private covers(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }, actors: Actor[]) {
+    return this.allInFrame(shot.pos, shot.target, shot.fov, this.framePoints(actors)) &&
+      actors.every(a => this.clear(shot.pos, a.headWorld, [a]) &&
+        this.clear(shot.pos, a.headWorld.add(new THREE.Vector3(0, -0.25, 0)), [a]));
   }
 
   private allInFrame(pos: THREE.Vector3, target: THREE.Vector3, fov: number, pts: THREE.Vector3[]) {
@@ -69,21 +90,52 @@ export class Director {
     cam.updateMatrixWorld();
     return pts.every((p) => {
       const v = p.clone().project(cam);
-      return Math.abs(v.x) < 0.85 && Math.abs(v.y) < 0.85 && v.z < 1;
+      return Math.abs(v.x) < 0.85 && Math.abs(v.y) < 0.85 && v.z > -1 && v.z < 1;
     });
   }
 
-  private clear(from: THREE.Vector3, to: THREE.Vector3, ignore: Actor[]) {
-    const dir = to.clone().sub(from);
-    const dist = dir.length();
-    this.ray.set(from, dir.normalize());
-    this.ray.far = dist - 0.25;
-    const objs: THREE.Object3D[] = this.stage.occluders();
-    for (const a of Object.values(this.stage.actors)) if (a.root.visible && !ignore.includes(a)) objs.push(...a.bodyMeshes);
-    return this.ray.intersectObjects(objs, false).length === 0;
+  /** Reverse angles must have scenery behind the subject, not the missing fourth wall. */
+  private hasBackdrop(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }) {
+    const cam = this.camera.clone();
+    cam.position.copy(shot.pos); cam.fov = shot.fov; cam.lookAt(shot.target);
+    cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+    const objects = this.stage.occluders();
+    let covered = 0;
+    this.ray.near = 0.2; this.ray.far = 60;
+    for (const x of [-0.65, 0, 0.65]) for (const y of [0.25, 0.7]) {
+      this.ray.setFromCamera(new THREE.Vector2(x, y), cam);
+      if (this.ray.intersectObjects(objects, false).length) covered++;
+    }
+    return covered >= 5;
   }
 
-  closeup(id: CharacterId, toward?: CharacterId) {
+  private clear(from: THREE.Vector3, to: THREE.Vector3, ignore: Actor[]) {
+    const dir = to.clone().sub(from), distance = dir.length();
+    if (distance < 0.3) return false;
+    const objects: THREE.Object3D[] = this.stage.occluders();
+    const actors = [...Object.values(this.stage.actors),
+      ...this.stage.extras.filter(e => e.set === this.stage.current.id).map(e => e.actor)];
+    for (const a of actors) if (a.root.visible && !ignore.includes(a)) {
+      a.root.updateWorldMatrix(true, true);
+      objects.push(...a.bodyMeshes);
+    }
+    // Leave room for the small camera sway instead of accepting a ray that grazes a wall.
+    for (const [dx, dy] of [[0, 0], [-0.025, 0], [0.025, 0], [0, -0.02], [0, 0.02]]) {
+      const origin = from.clone().add(new THREE.Vector3(dx, dy, 0));
+      dir.copy(to).sub(origin);
+      this.ray.near = 0;
+      this.ray.far = dir.length() - 0.12;
+      dir.normalize();
+      this.ray.set(origin, dir);
+      if (this.ray.intersectObjects(objects, false).length) return false;
+      // Back faces also matter: otherwise a camera outside a wall sees through it.
+      this.ray.set(to, dir.clone().negate());
+      if (this.ray.intersectObjects(objects, false).some(hit => hit.distance >= 0.12 && !hit.object.userData.cameraBackdrop)) return false;
+    }
+    return true;
+  }
+
+  closeup(id: CharacterId, toward?: CharacterId): void {
     const a = this.stage.actors[id];
     if (!a?.root.visible) return this.wide(0);
     const head = a.headWorld;
@@ -92,21 +144,25 @@ export class Director {
       const t = this.stage.actors[toward].headWorld.sub(head).setY(0);
       if (t.lengthSq() > 0.01) look.copy(t.normalize());
     }
-    const candidates = [0.3, 0.55, 0.8, 1.0].map((blend) => {
-      const d = look.clone().lerp(new THREE.Vector3(0, 0, 1), blend).setY(0);
-      if (d.z < 0.3) d.z = 0.3;
-      return d.normalize();
-    });
-    const dist = rand(2.1, 2.6);
-    for (const d of candidates) {
+    const forward = new THREE.Vector3(Math.sin(a.facing), 0, Math.cos(a.facing));
+    const audience = new THREE.Vector3(0, 0, 1);
+    // Keep reverse coverage for students and chairs facing into the room.
+    const candidates = [forward.clone().lerp(look, 0.35).normalize(),
+      ...[0.65, -0.65, 1.1, -1.1].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
+      ...[0.3, 0.65, 1].map(blend => look.clone().lerp(audience, blend).normalize())];
+    for (const dist of [2.35, 1.65, 1.15]) for (const d of candidates) {
+      if (d.lengthSq() < 0.1 || d.dot(forward) < 0.05) continue;
       const pos = head.clone().addScaledVector(d, dist);
-      pos.y = head.y - 0.02;
-      if (this.clear(pos, head, [a])) {
-        this.cut({ kind: 'closeup', pos, target: head.clone().add(new THREE.Vector3(0, -0.16, 0)), fov: 32, follow: a, followOffset: new THREE.Vector3(0, -0.16, 0), push: 0.02, subject: id });
+      pos.y = head.y + 0.08;
+      const target = head.clone().add(new THREE.Vector3(0, -0.16, 0));
+      const fov = dist < 1.5 ? 44 : 32;
+      if (this.covers({ pos, target, fov }, [a]) && this.hasBackdrop({ pos, target, fov })) {
+        this.cut({ kind: 'closeup', pos, target, fov, follow: a,
+          followOffset: new THREE.Vector3(0, -0.16, 0), push: 0.02, subject: id, subjects: [id] });
         return;
       }
     }
-    this.coverage([id]);
+    this.coverage([id], false);
   }
 
   twoShot(a: CharacterId, b: CharacterId) {
@@ -122,8 +178,9 @@ export class Director {
     const dist = Math.max(2.3, sep * 1.25 + 1.3);
     const pos = mid.clone().addScaledVector(perp, dist);
     pos.y = mid.y + 0.1;
-    if (!this.clear(pos, ha, [A, B]) || !this.clear(pos, hb, [A, B])) return this.closeup(a, b);
-    this.cut({ kind: 'two', pos, target: mid.add(new THREE.Vector3(0, -0.2, 0)), fov: 36, push: 0.03, subject: a });
+    const target = mid.add(new THREE.Vector3(0, -0.2, 0));
+    if (!this.covers({ pos, target, fov: 42 }, [A, B]) || !this.hasBackdrop({ pos, target, fov: 42 })) return this.closeup(a, b);
+    this.cut({ kind: 'two', pos, target, fov: 42, push: 0.03, subject: a, subjects: [a, b] });
   }
 
   /** Over the listener's shoulder onto the speaker. */
@@ -138,9 +195,9 @@ export class Director {
     if (side.z < 0) side.negate();
     const pos = hl.clone().addScaledVector(back, 1.1).addScaledVector(side, 0.45);
     pos.y = hl.y + 0.05;
-    // stay on the audience side of the speaker (sets have no fourth wall)
-    if (pos.z < hs.z + 0.4 || !this.clear(pos, hs, [S, L])) return this.closeup(speaker, listener);
-    this.cut({ kind: 'ots', pos, target: hs.clone().add(new THREE.Vector3(0, -0.08, 0)), fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker });
+    // Validate reverse angles against the current walls and furniture too.
+    if (!this.allInFrame(pos, hs, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target: hs, fov: 36 })) return this.closeup(speaker, listener);
+    this.cut({ kind: 'ots', pos, target: hs.clone().add(new THREE.Vector3(0, -0.08, 0)), fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker, subjects: [speaker] });
   }
 
   /** Pick coverage for a line of dialogue. */
@@ -183,6 +240,12 @@ export class Director {
 
   update(dt: number) {
     this.time += dt;
+    const s = this.shot;
+    if (s && s.kind !== 'establishing' && !s.follow && this.time - this.lastCut > 0.5) {
+      const ids = s.subjects?.filter(id => this.stage.onStage(id)) ?? [];
+      const moving = ids.map(id => this.stage.actors[id]).filter(a => a.isWalking);
+      if (moving.length && !this.covers(s, moving)) this.coverage(ids);
+    }
     this.apply(dt);
   }
 
@@ -201,12 +264,25 @@ export class Director {
       s.target.addScaledVector(s.drift.look, dt);
     }
     if (s.follow && s.followOffset) {
-      const want = s.follow.headWorld.add(s.followOffset);
-      s.target.lerp(want, damp(4, dt || 1));
+      const head = s.follow.headWorld;
+      if (s.followHead) {
+        const displacement = head.clone().sub(s.followHead);
+        const moved = s.pos.clone().add(displacement);
+        if (displacement.lengthSq() > 0.000001 &&
+          (!this.clear(moved, head, [s.follow]) || !this.clear(moved, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [s.follow]))) {
+          this.closeup(s.subject!);
+          return;
+        }
+        s.pos.copy(moved);
+      }
+      s.followHead = head.clone();
+      s.target.lerp(head.add(s.followOffset), damp(4, dt || 1));
     }
-    if (dt > 0 && s.push) {
+    if (dt > 0 && s.push && this.time - this.lastCut < 4) {
       const dir = s.target.clone().sub(s.pos);
-      if (dir.length() > 1.0) s.pos.addScaledVector(dir.normalize(), s.push * dt);
+      const next = s.pos.clone().addScaledVector(dir.normalize(), s.push * dt);
+      const actors = (s.subjects ?? []).filter(id => this.stage.onStage(id)).map(id => this.stage.actors[id]);
+      if (next.distanceTo(s.target) > 1 && this.covers({ ...s, pos: next }, actors)) s.pos.copy(next);
     }
     const t = this.time;
     const sway = new THREE.Vector3(noise1(t * 0.35) * 0.012, noise1(t * 0.3 + 5) * 0.008, 0);

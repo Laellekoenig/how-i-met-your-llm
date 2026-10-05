@@ -171,15 +171,17 @@ export function buildTaxi(): StageSet {
   tvGlow.position.set(-0.35, 0.95, PZ - 0.25);
   g.add(tvGlow);
 
-  const N = nodes({ back: [0, BZ + 0.05], door: [-0.72, BZ + 0.05], front: [0, FZ] });
+  const N = nodes({ back: [0, BZ + 0.05], door: [-0.72, BZ + 0.05], front: [0, FZ + 0.05], front_door: [-0.74, FZ + 0.05] });
   return {
     id: 'taxi',
     name: 'A Cab',
     group: g,
     nodes: N,
-    edges: [['door', 'back']],
+    edges: [['door', 'back'], ['front_door', 'front']],
     door: 'door',
+    entrances: { front: 'front_door', front_door: 'front_door' },
     marks: {
+      front_door: mark(-0.74, FZ + 0.05, 0, 'front_door', 'curbside front door', { seat: SEAT }),
       back_left: mark(-0.5, BZ + 0.05, 0.08, 'back', 'back seat, left (curb side, by the door)', { seat: BACK_SEAT }),
       back_middle: mark(0, BZ + 0.05, 0, 'back', 'back seat, squeezed into the middle hump', { seat: BACK_SEAT + 0.03 }),
       back_right: mark(0.5, BZ + 0.05, -0.08, 'back', 'back seat, right (street side)', { seat: BACK_SEAT }),
@@ -197,7 +199,7 @@ export function buildTaxi(): StageSet {
     background: [],
     doorSound: 'car',
     seated: true,
-    reserved: ['driver'],
+    reserved: ['driver', 'front_door'],
     setTime(t) {
       const night = t === 'night';
       for (const sd of sides) sd.m.material = night ? sd.matNight : sd.matDay;

@@ -50,7 +50,7 @@ Spread scenes around: MacLaren's and the apartment are home base, but use the ot
 - lecture_hall: Ted's university architecture classroom, with chalkboards, a lectern, an architectural model and tiered student seats. Ted lectures at lectern/chalkboard/center; the friends can sit in student seats or interrupt from the aisle. Background students listen quietly.
 - limo: Barney's stretch limo with Ranjit at the wheel. Scenes on the way to (or fleeing from) something.
 - taxi: a yellow cab. A cabbie drives unless Ranjit is in the scene (then put him in the driver mark).
-In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car.
+In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car. Keep movement within one compartment; changing between the passenger cabin and the front/driver compartment requires getting out and back in through its own door. Door marks are entrances, not seats for dialogue.
 
 # Stagecraft vocabulary
 emotions: ${EMOTIONS.join(', ')}

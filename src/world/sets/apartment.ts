@@ -446,7 +446,7 @@ export function buildApartment(): StageSet {
 
   // the landing is up a step
   const floorAt = (x: number, z: number) => {
-    if (x < AX0 || x > AX1 || z > AZM + STEP) return 0;
+    if (x < AX0 || x > AX1 || z < AZB || z > AZM + STEP) return 0;
     return z > AZM ? PH / 2 : PH;
   };
 
@@ -462,8 +462,8 @@ export function buildApartment(): StageSet {
     red_chair: [1.8, 0.15], lounge: [-2.45, 0.98], woven: [0.9, 0.9], rug_front: [-0.7, 1.27],
     outer_left: [-2.5, 2.6], outer_front: [-0.7, 3.2], outer_right: [1.4, 3.2],
     plat_l: [-2.0, -3.5], plat: [-0.4, -3.6], plat_r: [1.8, -3.4],
-    door: off(doorWall, doorN, 0.95), right: [3.25, -0.2], dining: [2.35, 1.7], dining_side: [4.0, 1.7], dining_outer: [4.25, 3.7], dining_front: [3.05, 3.9],
-    kit_out: [3.75, -0.25], kit_in: [5.0, -0.3], kitchen: [5.8, -1.2], pass: [5.6, 0.75],
+    door: off(doorWall, doorN, 0.95), right: [3.25, -0.2], dining: [2.35, 1.45], dining_front: [3.05, 3.9],
+    kit_out: [3.75, -0.25], kit_in: [5.25, -0.32], kitchen: [5.8, -1.2], pass: [5.6, 0.75],
   });
   const tc = (i: number, hint: string, approach: [number, number], node: string) => {
     const a = tableA[i];
@@ -484,7 +484,7 @@ export function buildApartment(): StageSet {
       ['center', 'red_chair'], ['center', 'woven'], ['front', 'rug_front'],
       ['couch_l', 'back_l'], ['back_l', 'back'], ['back', 'back_r'], ['couch_r', 'center'],
       ['back_l', 'plat_l'], ['back', 'plat'], ['back_r', 'plat_r'], ['plat_l', 'plat'], ['plat', 'plat_r'],
-      ['right', 'door'], ['back_r', 'door'], ['red_chair', 'dining'], ['dining', 'right'], ['dining', 'dining_side'], ['dining_side', 'dining_outer'], ['dining_outer', 'dining_front'],
+      ['right', 'door'], ['back_r', 'door'], ['red_chair', 'dining'], ['dining', 'right'],
       ['right', 'kit_out'], ['kit_out', 'kit_in'], ['kit_in', 'kitchen'], ['kit_in', 'pass'], ['kitchen', 'pass'],
     ],
     door: 'door',
@@ -492,7 +492,7 @@ export function buildApartment(): StageSet {
       ...seating,
       piano: mark(LEFT + 1.2, PZ, -Math.PI / 2, 'piano', 'on the piano bench (under the crossed swords)', { seat: 0.53, approach: [LEFT + 1.75, PZ + 0.55] }),
       fireplace: mark(fx, fz, fireWall.rotation.y, 'fire', 'leaning on the mantel by the brick fireplace'),
-      desk: mark(0.2, -3.85, 0.15, 'plat', "up on the landing at Ted's desk, behind the couch"),
+      desk: mark(0.6, -3.65, 0.15, 'plat', "up on the landing at Ted's desk, behind the couch"),
       window: mark(-1.6, -4.25, Math.PI - 0.35, 'plat_l', 'up on the landing by the window, looking out at the street'),
       landing: mark(-0.4, -2.95, 0, 'plat', 'up on the landing behind the couch, facing the room'),
       bedroom_ted: mark(-2.55, -3.75, 0.9, 'plat_l', "in Ted's bedroom doorway, left end of the landing"),

@@ -256,8 +256,8 @@ export function buildBarneysOffice(): StageSet {
   g.add(lampGlow);
 
   const N = nodes({
-    door: [RIGHT - 0.6, DOOR_Z], right: [4.0, -0.2], sofa: [3.5, -1.95], win: [1.75, -2.5], center: [0.4, 0.5], front: [-0.6, 2.2],
-    desk_r: [-0.6, -0.85], behind: [-0.95, -2.55], desk_l: [-4.15, -0.9], front_l: [-4.0, 1.0], posters: [-4.6, -2.25],
+    door: [RIGHT - 0.6, DOOR_Z], right: [4.0, -0.2], lounge_front: [3, 1.4], chair_front: [0.4, 1.4], sofa: [3.5, -1.95], win: [1.25, -3.0], sofa_turn: [1.4, -1.65], center: [0.4, 0.5], front: [-0.6, 2.2],
+    desk_r: [-0.2, -0.85], guest_r: [-1.65, 0.4], guest_l: [-2.95, 0.4], desk_front: [-2.3, 0.4], behind: [-0.95, -2.55], desk_l: [-4.5, -0.9], front_l: [-4.5, 1.0], posters: [-4.6, -2.25],
   });
   return {
     id: 'barneys_office',
@@ -265,21 +265,21 @@ export function buildBarneysOffice(): StageSet {
     group: g,
     nodes: N,
     edges: [
-      ['door', 'right'], ['right', 'sofa'], ['right', 'center'], ['sofa', 'win'], ['center', 'win'], ['center', 'front'], ['center', 'desk_r'],
-      ['desk_r', 'behind'], ['desk_r', 'win'], ['front', 'front_l'], ['front_l', 'desk_l'], ['desk_l', 'posters'], ['center', 'front_l'],
+      ['door', 'right'], ['right', 'sofa'], ['right', 'lounge_front'], ['lounge_front', 'chair_front'], ['chair_front', 'center'], ['sofa', 'sofa_turn'], ['sofa_turn', 'win'], ['center', 'win'], ['center', 'front'], ['center', 'desk_r'], ['front', 'guest_r'], ['front', 'guest_l'], ['guest_l', 'desk_front'], ['guest_r', 'desk_front'],
+      ['desk_r', 'behind'], ['front', 'front_l'], ['front_l', 'desk_l'], ['desk_l', 'posters'], ['center', 'front_l'],
     ],
     door: 'door',
     marks: {
       desk_chair: mark(DX + 0.05, DZ - 0.8, 0, 'behind', "Barney's high-backed black leather chair behind the glass desk (the boss seat)", { seat: 0.5, approach: [DX + 0.75, DZ - 0.95] }),
-      guest_chair_left: mark(GL[0] + 0.05, GL[1], GL[2], 'desk_l', 'black leather club chair in front of the desk, left', { seat: 0.48, approach: [GL[0] - 0.35, GL[1] + 0.55] }),
-      guest_chair_right: mark(GR[0] - 0.05, GR[1], GR[2], 'desk_r', 'black leather club chair in front of the desk, right', { seat: 0.48, approach: [GR[0] + 0.35, GR[1] + 0.55] }),
-      armchair: mark(AC[0] - 0.05, AC[1] - 0.05, AC[2], 'center', 'black leather club chair out by the window, angled toward the desk', { seat: 0.48, approach: [AC[0] - 0.45, AC[1] + 0.45] }),
-      desk_edge: mark(DX - 0.35, DZ + DD / 2 + 0.05, 0, 'desk_r', 'perched on the front edge of the glass desk, facing the room', { seat: DH + 0.01, approach: [DX - 0.35, DZ + 1.0] }),
+      guest_chair_left: mark(GL[0] + 0.05, GL[1], GL[2], 'guest_l', 'black leather club chair in front of the desk, left', { seat: 0.48, approach: [-2.95, 0.4] }),
+      guest_chair_right: mark(GR[0] - 0.05, GR[1], GR[2], 'guest_r', 'black leather club chair in front of the desk, right', { seat: 0.48, approach: [-1.65, 0.4] }),
+      armchair: mark(AC[0] - 0.05, AC[1] - 0.05, AC[2], 'center', 'black leather club chair out by the window, angled toward the desk', { seat: 0.48, approach: [0.8, 0.85] }),
+      desk_edge: mark(DX - 0.35, DZ + DD / 2 + 0.05, 0, 'desk_front', 'perched on the front edge of the glass desk, facing the room', { seat: DH + 0.01, approach: [DX - 0.35, DZ + 1.0] }),
       couch_left: mark(SX - 0.52, SZ + 0.12, 0, 'sofa', 'the black leather sofa under the window, left cushion', { seat: 0.48, approach: [SX - 0.52, SZ + 0.8] }),
       couch_right: mark(SX + 0.52, SZ + 0.12, 0, 'sofa', 'the black leather sofa under the window, right cushion', { seat: 0.48, approach: [SX + 0.52, SZ + 0.8] }),
       posters: mark(-4.6, -2.25, Math.PI + 0.55, 'posters', 'admiring the wall of motivational posters (CONFORMITY, TEAMWORK, AWESOMENESS...)'),
       bar_cart: mark(BC, BACK + 1.0, Math.PI - 0.5, 'behind', 'at the chrome bar cart under the posters, pouring scotch'),
-      window: mark(1.85, BACK + 0.5, Math.PI - 0.4, 'win', 'at the window, peeking through the vertical blinds'),
+      window: mark(1.25, BACK + 0.5, Math.PI - 0.4, 'win', 'at the window, peeking through the vertical blinds'),
       center: mark(0.4, 0.5, -0.2, 'center', 'middle of the office'),
       door: mark(RIGHT - 0.4, DOOR_Z, -Math.PI / 2, 'door', 'the office door, downstage on the right wall'),
     },
