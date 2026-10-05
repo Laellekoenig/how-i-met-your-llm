@@ -189,16 +189,19 @@ export class Actor {
     this.hips.add(this.spine);
     const T = (fem
       ? [[-0.24, 0.182, 0.122, 0], [-0.08, 0.166, 0.11, 0], [0.1, 0.128, 0.09, 0], [0.4, 0.136, 0.096, 0.006], [0.63, 0.152, 0.12, 0.022], [0.84, 0.16, 0.1, 0], [0.94, 0.15, 0.082, -0.012], [1.0, 0.095, 0.06, -0.01], [1.05, 0, 0, -0.006]]
-      : [[-0.24, 0.178, 0.124, 0], [-0.08, 0.166, 0.114, 0], [0.1, 0.152, 0.102, 0], [0.4, 0.163, 0.108, 0.005], [0.66, 0.178, 0.118, 0.012], [0.84, 0.186, 0.11, 0], [0.94, 0.172, 0.088, -0.012], [1.0, 0.105, 0.066, -0.012], [1.05, 0, 0, -0.008]]
+      : [[-0.24, 0.184, 0.118, 0], [-0.08, 0.174, 0.11, 0], [0.1, 0.15, 0.1, 0], [0.4, 0.153, 0.1, 0.002], [0.66, 0.16, 0.103, 0.004], [0.84, 0.166, 0.098, 0], [0.94, 0.156, 0.084, -0.01], [1.0, 0.102, 0.064, -0.012], [1.05, 0, 0, -0.008]]
     ).map(([y, rx, rz, zc]) => [y * tl, rx * bx, rz * bz, zc * bz]);
     const torso = new Profile(T);
+    // Tailored jackets hang straight from the chest instead of following the waist in.
+    const chestY = 0.66 * tl, chest = torso.at(chestY);
+    const drape = new Profile(T.map(([y, rx, rz, zc]) => y >= chestY ? [y, rx, rz, zc] : [y, Math.max(rx, 0.97 * chest.rx), Math.max(rz, chest.rz), chest.zc]));
     const circ = Math.PI * 2 * 0.16 * bx;
     const hem = untucked ? -0.17 * tl : L.skirt ? -0.04 * tl : 0.07 * s;
     add(this.spine, mesh(torso.geometry({ seg: 26, rows: 20, e: E, y: [hem, torso.yMax], uv: [circ, tl] }), jacketed ? underMat : topMat));
 
     const nr = (fem ? 0.044 : 0.052) * s * Math.sqrt(b);
     const ramp = (a: number, b: number, y: number) => clamp((y - a) / (b - a), 0, 1);
-    const onTorso = (y: number, a: number, inflate: number) => torso.point(y, a, new THREE.Vector3(), inflate, E);
+    const onTorso = (y: number, a: number, inflate: number, prof = torso) => prof.point(y, a, new THREE.Vector3(), inflate, E);
     /** A band around the neck rising from the shoulders (collars, neckbands). */
     const collar = (open: number, inflate: number, height: number, mat: THREE.Material, flare = 0.012) =>
       mesh(surface(20, 3, (u, v, p) => {
@@ -216,10 +219,10 @@ export class Actor {
         const y = y0 + (y1 - y0) * v;
         torso.point(y, (u * 2 - 1) * w(y), p, inflate, E);
       }), mat);
-    const buttons = (ys: number[], inflate: number, mat: THREE.Material, a = 0) => {
+    const buttons = (ys: number[], inflate: number, mat: THREE.Material, a = 0, prof = torso) => {
       for (const y of ys) {
         const m = mesh(ellipsoid(0.008 * s, 0.008 * s, 0.004 * s, 6, 4), mat);
-        m.position.copy(onTorso(y, a, inflate));
+        m.position.copy(onTorso(y, a, inflate, prof));
         add(this.spine, m, false);
       }
     };
@@ -245,14 +248,19 @@ export class Actor {
       add(this.spine, mesh(ellipsoid(0.017 * s, 0.015 * s, 0.01 * s, 8, 6), tieMat, 0, y1, torso.frontZ(0, y1, E) + 0.012), false);
     };
     /** Jacket / cardigan / vest body: an inflated torso shell with a front opening. */
-    const shell = (inflate: number, y0: number, y1: number, open: (y: number) => number, mat: THREE.Material) =>
-      add(this.spine, mesh(torso.geometry({ seg: 28, rows: 20, e: E, inflate, y: [y0, y1], open, uv: [circ, tl] }), mat));
-    const lapels = (inflate: number, open: (y: number) => number, yb: number, wMax: number, mat: THREE.Material) => {
+    const shell = (inflate: number, y0: number, y1: number, open: (y: number) => number, mat: THREE.Material, prof = torso) =>
+      add(this.spine, mesh(prof.geometry({ seg: 28, rows: 20, e: E, inflate, y: [y0, y1], open, uv: [circ, tl] }), mat));
+    /** Front opening given by its half-width in metres rather than by angle, so it stays neck-wide at the top. */
+    const byWidth = (prof: Profile, inflate: number, w: (y: number) => number) => (y: number) =>
+      Math.asin(Math.pow(clamp(w(y) / (prof.at(y).rx + inflate), 0, 1), 1 / E));
+    /** Opening angle for a jacket collar whose front edges meet a V of half-width w. */
+    const collarOpen = (w: number, inflate: number) => Math.asin(clamp(w / (torso.at(0.965 * tl).rx + inflate), 0, 1));
+    const lapels = (inflate: number, open: (y: number) => number, yb: number, wMax: number, mat: THREE.Material, prof = torso) => {
       for (const sg of [1, -1])
         add(this.spine, mesh(surface(4, 12, (u, v, p) => {
           const y = yb + (0.965 * tl - yb) * v;
           const w = wMax * smoothstep(0, 0.55, v) * (1 - 0.45 * smoothstep(0.78, 0.86, v));
-          torso.point(y, sg * (open(y) + u * w), p, inflate + 0.004 + 0.006 * (1 - u), E);
+          prof.point(y, sg * (open(y) + u * w), p, inflate + 0.004 + 0.006 * (1 - u), E);
         }), mat), false);
     };
 
@@ -265,14 +273,16 @@ export class Actor {
           shell(0.008, -0.07 * tl, 0.97 * tl, (y) => 0.03 + 0.4 * smoothstep(0.55 * tl, 0.97 * tl, y), toon(L.vest, { side: DS }));
           buttons([0.12 * tl, 0.25 * tl, 0.38 * tl, 0.5 * tl], 0.011, dark);
         }
-        const open = (y: number) => (y > yb ? 0.05 + 0.5 * smoothstep(yb, 0.97 * tl, y) : 0.05 + 0.25 * smoothstep(yb, -0.22 * tl, y));
-        shell(0.016, -0.22 * tl, 0.98 * tl, open, topDS);
-        lapels(0.016, open, yb, 0.3, toon(shade(L.top, 0.8), { side: DS }));
-        add(this.spine, collar(0.55, 0.018, 0.012 * s, topDS, 0.02));
-        buttons([yb], 0.02, dark);
+        // straight V from the button up to the neck; below the button the fronts curve apart
+        const vTop = nr + 0.014 * s;
+        const open = byWidth(drape, 0.016, (y) => (y > yb ? lerp(0.008 * s, vTop, ramp(yb, 0.97 * tl, y)) : 0.008 * s + 0.05 * s * smoothstep(yb, -0.22 * tl, y)));
+        shell(0.016, -0.22 * tl, drape.yMax, open, topDS, drape);
+        lapels(0.016, open, yb, 0.3, toon(shade(L.top, 0.8), { side: DS }), drape);
+        add(this.spine, collar(collarOpen(vTop, 0.018), 0.018, 0.012 * s, topDS, 0.02));
+        buttons([yb], 0.02, dark, 0, drape);
         if (L.extras?.includes('pocketsquare')) {
           const sq = mesh(ellipsoid(0.03 * s, 0.014 * s, 0.006 * s, 8, 4), toon('#f4f4f4'));
-          sq.position.copy(onTorso(0.72 * tl, 0.62, 0.024));
+          sq.position.copy(onTorso(0.72 * tl, 0.62, 0.024, drape));
           add(this.spine, sq, false);
         }
         break;
@@ -280,15 +290,16 @@ export class Actor {
       case 'blazer': {
         shirtCollar(underDS, 0.004, 0.28);
         add(this.spine, placket(0.84 * tl, 0.99 * tl, (y) => 0.2 * ramp(0.84 * tl, 0.99 * tl, y), 0.002, skin), false);
-        const open = (y: number) => 0.12 + 0.4 * smoothstep(0.4 * tl, 0.97 * tl, y);
-        shell(0.015, -0.22 * tl, 0.98 * tl, open, topDS);
-        lapels(0.015, open, 0.4 * tl, 0.3, toon(shade(L.top, 0.78), { side: DS }));
-        add(this.spine, collar(0.6, 0.017, 0.012 * s, topDS, 0.02));
+        const vTop = nr + 0.016 * s;
+        const open = byWidth(drape, 0.015, (y) => lerp(0.03 * s, vTop, ramp(0.4 * tl, 0.97 * tl, y)));
+        shell(0.015, -0.22 * tl, drape.yMax, open, topDS, drape);
+        lapels(0.015, open, 0.4 * tl, 0.3, toon(shade(L.top, 0.78), { side: DS }), drape);
+        add(this.spine, collar(collarOpen(vTop, 0.017), 0.017, 0.012 * s, topDS, 0.02));
         if (L.extras?.includes('brass')) {
           // double-breasted yachting blazer: two rows of gold buttons
           const brass = toon('#d4a83a', { emissive: '#3a2a08', emissiveIntensity: 0.5 });
-          for (const a of [0.3, -0.3]) buttons([0.2 * tl, 0.3 * tl, 0.4 * tl], 0.02, brass, a);
-        } else buttons([0.3 * tl, 0.38 * tl], 0.02, toon('#2a1a12'), 0.3);
+          for (const a of [0.3, -0.3]) buttons([0.2 * tl, 0.3 * tl, 0.4 * tl], 0.02, brass, a, drape);
+        } else buttons([0.3 * tl, 0.38 * tl], 0.02, toon('#2a1a12'), 0.3, drape);
         break;
       }
       case 'leather': {
@@ -363,8 +374,8 @@ export class Actor {
     }
 
     // ---- arms
-    const shY = tl - 0.065 * s;
-    const shX = torso.at(shY).rx - 0.014 * s;
+    const shY = tl - (fem ? 0.065 : 0.078) * s;
+    const shX = torso.at(shY).rx - (fem ? 0.014 : 0.02) * s;
     for (const side of [1, -1]) {
       const sh = side > 0 ? this.lSh : this.rSh;
       const el = side > 0 ? this.lEl : this.rEl;

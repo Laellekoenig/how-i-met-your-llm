@@ -67,7 +67,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     main: true,
     look: {
       // Jason Segel: very tall and big; untucked red flannel over a grey tee, khakis
-      height: 1.95, build: 1.2, female: false,
+      height: 1.95, build: 1.1, female: false,
       skin: '#efc4a2', hair: '#5a3a24', hairStyle: 'shaggy', eyes: '#3a2a1c',
       top: '#8a3328', topStyle: 'flannel', plaid: ['#2e1a16', '#d6b07a'], under: '#8d9299',
       pants: '#a8916a', shoes: '#4a3424',
@@ -200,7 +200,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     main: false,
     look: {
       // Bill Fagerbakke: huge Minnesotan dad; thinning strawberry-blond hair, glasses, red-and-green plaid flannel, jeans
-      height: 1.96, build: 1.24, female: false,
+      height: 1.96, build: 1.15, female: false,
       skin: '#f0c2a0', hair: '#c49a6c', hairStyle: 'receding', eyes: '#4a5a6a',
       top: '#9a2626', topStyle: 'flannel', plaid: ['#1d4a2a', '#e4dcc0'], under: '#e8e2d6', extras: ['glasses'],
       pants: '#34425e', jeans: true, shoes: '#5a3a22',
