@@ -1,0 +1,368 @@
+import type { Stage } from './stage';
+import type { Director } from './director';
+import type { Renderer } from '../engine/renderer';
+import type { Overlay, Panel } from '../ui/overlay';
+import { audio } from '../audio/audio';
+import { speech } from '../audio/speech';
+import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
+import { CHARACTER_IDS, type Beat, type CharacterId, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
+import { sleep, clamp, pick } from '../util';
+
+export interface ContentSource {
+  next(onWaiting: (msg: string) => void): Promise<ShowItem>;
+}
+
+class Skip extends Error {}
+
+const LOCATION_LABEL: Record<string, string> = {
+  maclarens: "MacLaren's Pub",
+  apartment: 'The Apartment',
+  barneys: "Barney's Place",
+};
+
+const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_IDS as readonly string[]).includes(s);
+
+/** Plays show items: title cards, scenes beat by beat, end cards. */
+export class Player {
+  paused = false;
+  private skipLevel: 'none' | 'scene' | 'episode' = 'none';
+  private skipWaiters: (() => void)[] = [];
+  private currentEpisode: string | null = null;
+  onItem: ((item: ShowItem) => void) | null = null;
+
+  constructor(
+    private stage: Stage,
+    private director: Director,
+    private renderer: Renderer,
+    private overlay: Overlay,
+    private panel: Panel,
+    private source: ContentSource,
+  ) {}
+
+  skip(level: 'scene' | 'episode') {
+    this.skipLevel = level;
+    speech.cancel();
+    this.skipWaiters.splice(0).forEach((f) => f());
+  }
+
+  /** Sleep that aborts on skip. */
+  private wait(seconds: number) {
+    return this.race(sleep(seconds * 1000));
+  }
+
+  private race<T>(p: Promise<T>): Promise<T> {
+    if (this.skipLevel !== 'none') return Promise.reject(new Skip());
+    return new Promise<T>((resolve, reject) => {
+      const onSkip = () => reject(new Skip());
+      this.skipWaiters.push(onSkip);
+      p.then(
+        (v) => {
+          this.skipWaiters = this.skipWaiters.filter((f) => f !== onSkip);
+          resolve(v);
+        },
+        (e) => {
+          this.skipWaiters = this.skipWaiters.filter((f) => f !== onSkip);
+          reject(e);
+        },
+      );
+    });
+  }
+
+  private async untilUnpaused() {
+    while (this.paused) await sleep(150);
+  }
+
+  async run() {
+    for (;;) {
+      const item = await this.source.next((msg) => this.overlay.standby(true, msg));
+      this.overlay.standby(false);
+      // skipping an episode drops the rest of its items
+      if (this.skipLevel === 'episode' && 'episode' in item && item.episode.id === this.currentEpisode) {
+        if (item.kind === 'episode-end') this.skipLevel = 'none';
+        continue;
+      }
+      this.skipLevel = 'none';
+      this.onItem?.(item);
+      try {
+        await this.play(item);
+      } catch (e) {
+        if (!(e instanceof Skip)) console.error(e);
+        this.cleanup();
+        // (re-read: skip() may have changed it while we were awaiting)
+        if ((this.skipLevel as string) === 'scene') this.skipLevel = 'none';
+      }
+    }
+  }
+
+  private cleanup() {
+    speech.cancel();
+    this.overlay.hideCaption();
+    this.overlay.hideCards();
+    this.renderer.fade = 1;
+    for (const a of Object.values(this.stage.actors)) a.talking = false;
+  }
+
+  private async fade(to: number, seconds: number) {
+    const from = this.renderer.fade;
+    const t0 = performance.now();
+    for (;;) {
+      const u = clamp((performance.now() - t0) / (seconds * 1000), 0, 1);
+      this.renderer.fade = from + (to - from) * u;
+      if (u >= 1) break;
+      await sleep(16);
+    }
+  }
+
+  private async play(item: ShowItem) {
+    switch (item.kind) {
+      case 'episode-start': {
+        this.currentEpisode = item.episode.id;
+        this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
+        this.stage.setLocation(item.location, item.time);
+        for (const c of item.characters ?? []) this.stage.place(c, this.stage.resolveMark(undefined, c));
+        this.director.wide(0, 0.12);
+        audio.ambience('none');
+        const d = audio.sting('intro');
+        this.renderer.fade = 0.35;
+        await this.race(this.overlay.title(item.episode, Math.max(4.2, d)));
+        await this.fade(0.55, 0.4);
+        if (item.coldOpen) await this.narrate(item.coldOpen);
+        await this.fade(0, 0.5);
+        break;
+      }
+      case 'scene':
+        await this.playScene(item.scene, item.index);
+        break;
+      case 'episode-end': {
+        this.overlay.hideCaption();
+        const d = audio.sting('outro');
+        audio.laugh('applause');
+        await this.fade(0.3, 0.6);
+        await this.race(this.overlay.end(item.episode, Math.max(3.5, d)));
+        this.renderer.fade = 0;
+        break;
+      }
+    }
+  }
+
+  private async playScene(scene: Scene, index: number) {
+    await this.fade(0, 0.3);
+    this.stage.setLocation(scene.location, scene.time);
+    audio.ambience(this.stage.current.ambience);
+
+    // Anyone who acts in the scene without entering is assumed to already be there.
+    const entering = new Set<CharacterId>();
+    const present = new Set<CharacterId>();
+    for (const c of scene.cast) {
+      if (!isChar(c.character) || present.has(c.character)) continue;
+      present.add(c.character);
+      this.stage.place(c.character, c.mark);
+    }
+    for (const b of scene.beats) {
+      if (b.type === 'enter') {
+        if (!present.has(b.character)) entering.add(b.character);
+        continue;
+      }
+      const who = 'character' in b ? b.character : undefined;
+      if (isChar(who) && !present.has(who) && !entering.has(who)) {
+        present.add(who);
+        this.stage.place(who, this.stage.resolveMark(undefined, who));
+      }
+    }
+    for (const bg of this.stage.current.background) {
+      if (!present.has(bg.character) && !entering.has(bg.character)) {
+        this.stage.place(bg.character, bg.mark);
+        this.stage.setBackground(bg.character, true);
+      }
+    }
+
+    this.director.coverage(this.stage.castIds());
+    this.overlay.location(`${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
+    if (index > 0) audio.sting('transition');
+    await this.fade(1, 0.45);
+    await this.wait(0.6);
+
+    for (const beat of scene.beats) {
+      await this.untilUnpaused();
+      await this.beat(beat);
+    }
+    await this.wait(1.2);
+  }
+
+  private async narrate(line: string, laugh?: LaughKind) {
+    const text = clean(line);
+    if (!text) return;
+    this.panel.line('narr', text, 'Future Ted');
+    const h = speech.speak('future-ted', text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
+    await this.race(h.done);
+    this.overlay.hideCaption();
+    if (laugh) await this.laugh(laugh);
+    await this.wait(0.25);
+  }
+
+  private async laugh(kind: LaughKind) {
+    const d = audio.laugh(kind);
+    this.panel.line('laugh', `[${kind === 'big' ? 'big laugh' : kind}]`);
+    // react on stage: everybody enjoys a good laugh line
+    if (kind === 'big' || kind === 'laugh') this.stage.onStageIds().forEach((id) => Math.random() < 0.3 && this.stage.actors[id].setEmotion('happy'));
+    await this.wait(d ? clamp(d * 0.6, 0.8, 2.6) : 0.4);
+  }
+
+  private lookAtSpeaker(speaker: CharacterId) {
+    const head = this.stage.actors[speaker].headWorld;
+    for (const id of this.stage.onStageIds()) {
+      if (id === speaker) continue;
+      const a = this.stage.actors[id];
+      if (!a.isWalking) a.lookAt = head;
+    }
+  }
+
+  private async beat(b: Beat) {
+    const st = this.stage;
+    switch (b.type) {
+      case 'say': {
+        if (!isChar(b.character)) return;
+        const a = st.actors[b.character];
+        st.setBackground(b.character, false);
+        if (!st.onStage(b.character)) st.place(b.character, st.resolveMark(undefined, b.character));
+        const text = clean(b.line);
+        if (!text) return;
+        a.setEmotion(b.emotion);
+        const to = isChar(b.to) && b.to !== b.character && st.onStage(b.to) ? b.to : undefined;
+        if (to) {
+          const th = st.actors[to].headWorld;
+          a.lookAt = th;
+          if (!a.isSitting && !a.isWalking) a.faceTowards(th);
+        } else {
+          // addressing the room: look at whoever's closest-ish, or the audience
+          const others = st.onStageIds().filter((i) => i !== b.character);
+          a.lookAt = others.length ? st.actors[pick(others)].headWorld : null;
+        }
+        this.lookAtSpeaker(b.character);
+        this.director.onLine(b.character, to);
+        const def = CHARACTERS[b.character];
+        this.panel.line('say', text, def.name, def.color);
+        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to);
+        const h = speech.speak(b.character, text, def.voice, () => {
+          a.talking = true;
+          this.overlay.showCaption(def.name, def.color, text);
+        });
+        try {
+          await this.race(h.done);
+        } finally {
+          a.talking = false;
+        }
+        this.overlay.hideCaption();
+        if (b.laugh) await this.laugh(b.laugh);
+        else await this.wait(0.18);
+        break;
+      }
+      case 'narrate':
+        await this.narrate(b.line, b.laugh);
+        break;
+      case 'move': {
+        if (!isChar(b.character)) return;
+        const target = b.to === b.character ? 'center' : b.to;
+        this.panel.line('stage', `${charName(b.character)} moves to ${humanize(target)}.`);
+        const p = st.moveTo(b.character, target);
+        this.director.coverage(st.castIds());
+        await this.race(Promise.race([p, sleep(2200)]));
+        break;
+      }
+      case 'enter': {
+        if (!isChar(b.character)) return;
+        if (st.onStage(b.character)) {
+          if (b.to) await this.beat({ type: 'move', character: b.character, to: b.to });
+          return;
+        }
+        this.panel.line('stage', `${charName(b.character)} enters.`);
+        if (st.current.id !== 'maclarens') audio.doorbell();
+        const p = st.enter(b.character, b.to);
+        this.director.wide(0);
+        this.lookAtSpeaker(b.character);
+        await this.race(Promise.race([p, sleep(2600)]));
+        break;
+      }
+      case 'exit': {
+        if (!isChar(b.character) || !st.onStage(b.character)) return;
+        this.panel.line('stage', `${charName(b.character)} leaves.`);
+        const p = st.exit(b.character);
+        this.director.wide(0);
+        await this.race(Promise.race([p, sleep(2400)]));
+        break;
+      }
+      case 'act': {
+        if (!isChar(b.character) || !b.gesture || b.gesture === 'none') return;
+        if (!st.onStage(b.character)) return;
+        st.actors[b.character].setEmotion(b.emotion);
+        const to = isChar(b.to) && b.to !== b.character && st.onStage(b.to) ? b.to : undefined;
+        this.panel.line('stage', `${charName(b.character)} ${gestureText(b.gesture, to)}.`);
+        if (to && ['high_five', 'hug', 'slap'].includes(b.gesture)) {
+          const a = st.actors[b.character], o = st.actors[to];
+          if (a.position.distanceTo(o.position) > 1.4 && !a.isSitting) await this.race(Promise.race([st.moveTo(b.character, to), sleep(2500)]));
+          this.director.twoShot(b.character, to);
+        } else if (to) this.director.twoShot(b.character, to);
+        else if (Math.random() < 0.6) this.director.closeup(b.character);
+        const d = this.gesture(b.character, b.gesture, to);
+        await this.wait(Math.max(0.6, d * 0.85));
+        break;
+      }
+      case 'laugh':
+        await this.laugh(b.laugh);
+        break;
+      case 'pause':
+        await this.wait(clamp(Number(b.seconds) || 1, 0.3, 4));
+        break;
+    }
+  }
+
+  private gesture(id: CharacterId, g: Gesture, to?: CharacterId) {
+    const a = this.stage.actors[id];
+    const other = to ? this.stage.actors[to] : undefined;
+    if (other) {
+      if (!a.isSitting) a.faceTowards(other.position, 0.1);
+      a.lookAt = other.headWorld;
+    }
+    a.onGestureBeat = (gg) => {
+      if (gg === 'slap') {
+        audio.slap();
+        other?.react();
+        if (other) other.setEmotion('angry');
+      } else if (gg === 'high_five' && other) audio.slap();
+      else if (gg === 'cheers') audio.clink();
+    };
+    if (other && (g === 'high_five' || g === 'hug' || g === 'cheers')) {
+      if (!other.isSitting) other.faceTowards(a.position, 0.1);
+      other.lookAt = a.headWorld;
+      other.doGesture(g);
+    }
+    return a.doGesture(g);
+  }
+}
+
+/** Strip stage directions like (laughs) or *sighs* from spoken lines. */
+function clean(s: string) {
+  return String(s ?? '')
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\*[^*]*\*/g, '')
+    .replace(/\[[^\]]*\]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.!?;:])/g, '$1')
+    .trim();
+}
+
+function humanize(s: string) {
+  if (isChar(s)) return charName(s);
+  return s.replace(/_/g, ' ');
+}
+
+function gestureText(g: Gesture, to?: CharacterId) {
+  const t = to ? ` ${charName(to)}` : '';
+  const map: Partial<Record<Gesture, string>> = {
+    high_five: `high-fives${t}`, hug: `hugs${t}`, slap: `slaps${t}`, point: `points${to ? ' at' + t : ''}`,
+    suit_up: 'adjusts his suit', facepalm: 'facepalms', arms_crossed: 'crosses arms', thumbs_up: 'gives a thumbs up',
+    hands_up: 'throws hands up', shake_head: 'shakes head', cheers: `raises a glass${to ? ' to' + t : ''}`,
+    drink: 'takes a sip', think: 'ponders',
+  };
+  return map[g] ?? `${g.replace(/_/g, ' ')}s`;
+}

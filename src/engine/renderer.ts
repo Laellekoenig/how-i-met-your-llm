@@ -1,0 +1,234 @@
+import * as THREE from 'three';
+
+export interface StyleSettings {
+  enabled: boolean;
+  pixelHeight: number; // vertical resolution of the internal render
+  outline: number;
+  dither: number; // 0..1
+  levels: number; // color levels per channel
+  scanlines: number;
+  vignette: number;
+  grain: number;
+  aberration: number;
+  warmth: number;
+}
+
+export const DEFAULT_STYLE: StyleSettings = {
+  enabled: true,
+  pixelHeight: 270,
+  outline: 0.85,
+  dither: 0.85,
+  levels: 10,
+  scanlines: 0.22,
+  vignette: 0.55,
+  grain: 0.05,
+  aberration: 1.0,
+  warmth: 0.12,
+};
+
+const vert = /* glsl */ `
+varying vec2 vUv;
+void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
+`;
+
+const frag = /* glsl */ `
+precision highp float;
+uniform sampler2D tColor;
+uniform sampler2D tDepth;
+uniform vec2 lowRes;
+uniform vec2 screenRes;
+uniform float cameraNear;
+uniform float cameraFar;
+uniform float time;
+uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade;
+varying vec2 vUv;
+
+float linDepth(vec2 uv) {
+  float z = texture2D(tDepth, uv).x * 2.0 - 1.0;
+  return (2.0 * cameraNear * cameraFar) / (cameraFar + cameraNear - z * (cameraFar - cameraNear));
+}
+
+float bayer4(vec2 p) {
+  int x = int(mod(p.x, 4.0));
+  int y = int(mod(p.y, 4.0));
+  int i = x + y * 4;
+  float m[16];
+  m[0]=0.0; m[1]=8.0; m[2]=2.0; m[3]=10.0;
+  m[4]=12.0; m[5]=4.0; m[6]=14.0; m[7]=6.0;
+  m[8]=3.0; m[9]=11.0; m[10]=1.0; m[11]=9.0;
+  m[12]=15.0; m[13]=7.0; m[14]=13.0; m[15]=5.0;
+  for (int k = 0; k < 16; k++) if (k == i) return m[k] / 16.0;
+  return 0.0;
+}
+
+vec3 aces(vec3 x) {
+  return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+}
+
+vec3 toSRGB(vec3 c) {
+  return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
+}
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+
+void main() {
+  vec2 px = 1.0 / lowRes;
+  vec2 cell = floor(vUv * lowRes);
+  vec2 uv = mix(vUv, (cell + 0.5) * px, uStylize);
+
+  // chromatic aberration grows toward the edges
+  vec2 dir = (uv - 0.5);
+  float ca = uAberr * uStylize * length(dir) * 1.6;
+  vec3 col;
+  col.r = texture2D(tColor, uv + dir * px * ca).r;
+  col.g = texture2D(tColor, uv).g;
+  col.b = texture2D(tColor, uv - dir * px * ca).b;
+
+  // tone map + grade (scene is rendered linear)
+  col = aces(col * 1.05);
+  col = toSRGB(col);
+  float luma = dot(col, vec3(0.299, 0.587, 0.114));
+  col = mix(vec3(luma), col, 1.0 + 0.15 * uStylize);
+  col = (col - 0.5) * (1.0 + 0.08 * uStylize) + 0.5;
+  col += uWarmth * uStylize * vec3(0.05, 0.015, -0.04);
+
+  // depth-based ink outlines
+  if (uOutline > 0.0 && uStylize > 0.5) {
+    float d = linDepth(uv);
+    float dl = linDepth(uv - vec2(px.x, 0.0));
+    float dr = linDepth(uv + vec2(px.x, 0.0));
+    float du = linDepth(uv + vec2(0.0, px.y));
+    float dd = linDepth(uv - vec2(0.0, px.y));
+    float diff = max(max(dl - d, dr - d), max(du - d, dd - d));
+    float edge = smoothstep(0.05, 0.12, diff / max(d, 0.001));
+    col = mix(col, vec3(0.07, 0.045, 0.04), edge * uOutline);
+  }
+
+  // ordered dither + posterize
+  if (uStylize > 0.5) {
+    float b = bayer4(cell) - 0.5;
+    float L = max(uLevels, 2.0) - 1.0;
+    col = floor(col * L + 0.5 + b * uDither) / L;
+  }
+
+  // scanlines per low-res row, vignette, grain
+  float row = fract(vUv.y * lowRes.y);
+  col *= 1.0 - uScan * uStylize * smoothstep(0.55, 1.0, abs(row - 0.5) * 2.0);
+  vec2 v = vUv - 0.5;
+  col *= 1.0 - uVignette * uStylize * dot(v, v) * 1.6;
+  col += (hash(vUv * screenRes + time * 61.0) - 0.5) * uGrain * uStylize;
+  col *= uFade;
+
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}
+`;
+
+export class Renderer {
+  readonly gl: THREE.WebGLRenderer;
+  readonly camera: THREE.PerspectiveCamera;
+  readonly scene = new THREE.Scene();
+  style: StyleSettings = { ...DEFAULT_STYLE };
+  fade = 1;
+  private rt: THREE.WebGLRenderTarget;
+  private post: THREE.ShaderMaterial;
+  private postScene = new THREE.Scene();
+  private postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  private container: HTMLElement;
+
+  constructor(container: HTMLElement) {
+    this.container = container;
+    this.gl = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+    this.gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.gl.shadowMap.enabled = true;
+    this.gl.shadowMap.type = THREE.PCFShadowMap;
+    container.appendChild(this.gl.domElement);
+    this.camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.1, 60);
+    this.scene.background = new THREE.Color('#050403');
+
+    this.rt = new THREE.WebGLRenderTarget(16, 9, {
+      type: THREE.HalfFloatType,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      depthTexture: new THREE.DepthTexture(16, 9),
+    });
+    this.post = new THREE.ShaderMaterial({
+      vertexShader: vert,
+      fragmentShader: frag,
+      uniforms: {
+        tColor: { value: this.rt.texture },
+        tDepth: { value: this.rt.depthTexture },
+        lowRes: { value: new THREE.Vector2(16, 9) },
+        screenRes: { value: new THREE.Vector2(16, 9) },
+        cameraNear: { value: this.camera.near },
+        cameraFar: { value: this.camera.far },
+        time: { value: 0 },
+        uOutline: { value: 0 }, uDither: { value: 0 }, uLevels: { value: 8 }, uScan: { value: 0 },
+        uVignette: { value: 0 }, uGrain: { value: 0 }, uAberr: { value: 0 }, uWarmth: { value: 0 },
+        uStylize: { value: 1 }, uFade: { value: 1 },
+      },
+      depthTest: false,
+      depthWrite: false,
+    });
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.post);
+    quad.frustumCulled = false;
+    this.postScene.add(quad);
+
+    new ResizeObserver(() => this.resize()).observe(container);
+    this.resize();
+  }
+
+  resize() {
+    const w = Math.max(1, this.container.clientWidth);
+    const h = Math.max(1, this.container.clientHeight);
+    this.gl.setSize(w, h, false);
+    this.gl.domElement.style.width = '100%';
+    this.gl.domElement.style.height = '100%';
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    this.updateTarget();
+  }
+
+  updateTarget() {
+    const w = this.container.clientWidth || 16;
+    const h = this.container.clientHeight || 9;
+    const pr = this.gl.getPixelRatio();
+    let lh = this.style.enabled ? this.style.pixelHeight : Math.round(h * pr);
+    lh = Math.max(90, Math.min(lh, Math.round(h * pr)));
+    const lw = Math.round(lh * (w / h));
+    this.rt.setSize(lw, lh);
+    const filter = this.style.enabled ? THREE.NearestFilter : THREE.LinearFilter;
+    this.rt.texture.minFilter = this.rt.texture.magFilter = filter;
+    this.rt.texture.needsUpdate = true;
+    this.post.uniforms.lowRes.value.set(lw, lh);
+    this.post.uniforms.screenRes.value.set(w * pr, h * pr);
+  }
+
+  setStyle(s: Partial<StyleSettings>) {
+    const resChanged = s.pixelHeight !== undefined || s.enabled !== undefined;
+    Object.assign(this.style, s);
+    if (resChanged) this.updateTarget();
+  }
+
+  render(time: number) {
+    const u = this.post.uniforms;
+    const s = this.style;
+    u.time.value = time;
+    u.uStylize.value = s.enabled ? 1 : 0;
+    u.uOutline.value = s.outline;
+    u.uDither.value = s.dither;
+    u.uLevels.value = s.levels;
+    u.uScan.value = s.scanlines;
+    u.uVignette.value = s.vignette;
+    u.uGrain.value = s.grain;
+    u.uAberr.value = s.aberration;
+    u.uWarmth.value = s.warmth;
+    u.uFade.value = this.fade;
+    u.cameraNear.value = this.camera.near;
+    u.cameraFar.value = this.camera.far;
+
+    this.gl.setRenderTarget(this.rt);
+    this.gl.render(this.scene, this.camera);
+    this.gl.setRenderTarget(null);
+    this.gl.render(this.postScene, this.postCam);
+  }
+}
