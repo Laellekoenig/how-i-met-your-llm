@@ -31,12 +31,33 @@ export class AudioEngine {
   /** Silent mode for automated testing: everything still runs, nothing reaches the speakers. */
   muted = false;
 
+  /** A context the browser hasn't let start yet (autoplay policy): it goes live on the first user gesture. */
+  private pending: AudioContext | null = null;
+
+  /** Start the audio graph. Safe to call repeatedly; call it again from a user gesture to unlock autoplay. */
   init() {
     if (this.ctx) {
       void this.ctx.resume();
       return;
     }
-    const ctx = (this.ctx = new AudioContext());
+    if (!this.pending) {
+      const ctx = (this.pending = new AudioContext());
+      ctx.onstatechange = () => {
+        if (ctx.state !== 'running' || this.ctx) return;
+        this.pending = null;
+        this.build(ctx);
+      };
+    }
+    // Sounds scheduled on a suspended clock would all fire at once on unlock, so until the
+    // context runs `ctx` stays null and every cue is skipped.
+    if (this.pending.state === 'running') {
+      this.build(this.pending);
+      this.pending = null;
+    } else void this.pending.resume();
+  }
+
+  private build(ctx: AudioContext) {
+    this.ctx = ctx;
     this.master = ctx.createGain();
     this.master.gain.value = this.muted ? 0 : this.volume;
     const comp = ctx.createDynamicsCompressor();

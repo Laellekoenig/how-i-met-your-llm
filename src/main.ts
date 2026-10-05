@@ -121,7 +121,7 @@ window.addEventListener('keydown', (e) => {
   } else if (e.code === 'ArrowLeft') player.back(e.shiftKey ? 'episode' : 'scene');
 });
 
-// ---------------------------------------------------------------- tune in
+// ---------------------------------------------------------------- start
 
 // Agents testing the show play it silently: ?mute, a webdriver browser, or T3 Code's preview browser
 // (where agents drive the app). ?sound overrides the detection.
@@ -131,31 +131,21 @@ function testingMuted() {
   return q.has('mute') || navigator.webdriver || /\bT3Code\b/.test(navigator.userAgent);
 }
 
-let tunedIn = false;
-function tuneIn() {
-  if (tunedIn) return;
-  tunedIn = true;
-  const muted = (audio.muted = speech.muted = testingMuted());
+// The show starts on load. Browsers may hold sound back until the viewer first interacts with the
+// page; the picture and captions run regardless, and the first click or key press brings in the audio.
+const muted = (audio.muted = speech.muted = testingMuted());
+audio.init();
+audio.setVolume(Number(vol.value));
+function unlockSound() {
+  window.removeEventListener('pointerdown', unlockSound, true);
+  window.removeEventListener('keydown', unlockSound, true);
   audio.init();
-  audio.setVolume(Number(vol.value));
   // unlock speech synthesis inside the user gesture
   if (speech.supported && !muted) speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
-  $('tune-in').classList.add('hidden');
-  void player.run();
 }
-$('tune-in').addEventListener('click', tuneIn);
-
-// Preview behind the tune-in screen: the gang in the booth.
-stage.setLocation('maclarens', 'night');
-stage.place('ted', 'booth_end');
-stage.place('marshall', 'booth_left_back');
-stage.place('lily', 'booth_left_front');
-stage.place('robin', 'booth_right_back');
-stage.place('barney', 'booth_right_front');
-stage.place('carl', 'behind_bar');
-stage.setBackground('carl', true);
-director.wide(1, 0.05);
-let previewChatter = 0;
+window.addEventListener('pointerdown', unlockSound, true);
+window.addEventListener('keydown', unlockSound, true);
+void player.run();
 
 // ---------------------------------------------------------------- frame loop
 
@@ -164,17 +154,6 @@ function frame(now: number) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   const t = now / 1000;
-  if (!tunedIn) {
-    previewChatter -= dt;
-    if (previewChatter < 0) {
-      previewChatter = 1.5 + Math.random() * 2;
-      const ids = stage.onStageIds().filter((i) => i !== 'carl');
-      for (const id of ids) stage.actors[id].talking = false;
-      const who = ids[Math.floor(Math.random() * ids.length)];
-      stage.actors[who].talking = true;
-      for (const id of ids) if (id !== who) stage.actors[id].lookAt = stage.actors[who].headWorld;
-    }
-  }
   if (!player.paused) {
     stage.update(dt, t);
     director.update(dt);

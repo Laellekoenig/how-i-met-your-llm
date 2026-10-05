@@ -4,7 +4,7 @@ import type { CreditCard } from '../show/credits';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
-/** On-screen graphics: captions, title cards, location labels, standby. */
+/** On-screen graphics: captions, title cards, cutaway cards, standby. */
 export class Overlay {
   captionsEnabled = true;
   private caption = $('caption');
@@ -119,7 +119,7 @@ export class Overlay {
     this.creditEl.classList.add('hidden');
   }
 
-  /** The location label; a cutaway gets its own styled card instead. */
+  /** The cutaway card, styled as a fantasy or a memory. */
   location(text: string, cutaway?: CutawayStyle) {
     this.loc.className = cutaway ? `cutaway ${cutaway}` : '';
     this.loc.textContent = text;
