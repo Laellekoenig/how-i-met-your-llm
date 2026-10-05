@@ -5,7 +5,12 @@ import type { Overlay, Panel } from '../ui/overlay';
 import { audio } from '../audio/audio';
 import { speech, deliveryRate, estimateDuration } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
-import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type CutawayBeat, type CutawayStyle, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
+import {
+  CHARACTER_IDS, KIDS, PAIRED_GESTURES, isKid,
+  type Beat, type CharacterId, type Costume, type CutawayBeat, type CutawayStyle, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind,
+  type MontageBeat, type Reaction, type Scene, type ShowItem,
+} from '../script/types';
+import { GRIP, PROP_NAME } from '../world/props';
 import { sleep, clamp, pick } from '../util';
 import { sceneTransition } from './transitions';
 import { BURSTS, GANG, HUDDLE_AT, TITLE_TAIL, type Burst } from './mainTitles';
@@ -17,24 +22,31 @@ export interface ContentSource {
 
 class Skip extends Error {}
 
-const LOCATION_LABEL: Record<string, string> = {
-  maclarens: "MacLaren's Pub",
-  apartment: 'The Apartment',
-  barneys: "Barney's Place",
-  rooftop: 'The Roof',
-  barneys_office: "Barney's Office",
-  office: 'The Office',
-  metro_news_one: 'Metro News One',
-  store: 'The Store',
-  restaurant: 'The Restaurant',
-  lecture_hall: "Ted's Lecture Hall",
-  limo: "Barney's Limo",
-  taxi: 'A Cab',
-};
-
 const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_IDS as readonly string[]).includes(s);
 /** Lines and reactions from Penny or Luke: these happen on the couch in 2030. */
 const isKidBeat = (b: Beat) => (b.type === 'say' || b.type === 'act') && isKid(b.character);
+
+/** Everyone a beat puts on stage: the speaker and whoever says it with them or reacts, both ends of a hand-off. */
+function participants(b: Beat): string[] {
+  switch (b.type) {
+    case 'say': return [b.character, ...(b.chorus ?? []), ...(b.react ?? []).map((r) => r.character)];
+    case 'give': return [b.character, b.to];
+    case 'insert': return (b.react ?? []).map((r) => r.character);
+    case 'act': case 'hold': case 'move': case 'exit': return [b.character];
+    case 'freeze': return b.character ? [b.character] : [];
+    default: return [];
+  }
+}
+
+/** The episode's costumes with the scene's over them. */
+function mergeWardrobe(episode: Costume[] = [], scene: Costume[] = []): Costume[] {
+  const out = new Map(episode.map((c) => [c.character, c]));
+  for (const c of scene) {
+    const ep = out.get(c.character);
+    out.set(c.character, ep ? { ...ep, ...c, extras: [...new Set([...(ep.extras ?? []), ...(c.extras ?? [])])] } : c);
+  }
+  return [...out.values()];
+}
 
 /** Plays show items: main titles, scenes beat by beat, closing credits. */
 export class Player {
@@ -43,6 +55,8 @@ export class Player {
   private skipWaiters: (() => void)[] = [];
   private currentEpisode: string | null = null;
   private previousScene: Scene | null = null;
+  /** This episode's costumes, worn in every scene. */
+  private episodeWardrobe: Costume[] = [];
   /** Opening credits still to show over the first scenes of this episode. */
   private credits: CreditCard[] = [];
   private billing: ReturnType<typeof openingCredits> | null = null;
@@ -87,6 +101,14 @@ export class Player {
       to = start > 0 ? episodeStart(start - 1) : 0;
     }
     this.rewound.unshift(...h.splice(to));
+    this.skip('scene');
+    this.wake?.();
+  }
+
+  /** Cut away from what's on screen and air whatever the source brings next (after it has been re-cued). */
+  cue() {
+    this.rewound = [];
+    this.fetching = null;
     this.skip('scene');
     this.wake?.();
   }
@@ -304,11 +326,14 @@ export class Player {
     speech.cancel();
     this.overlay.hideCaption();
     this.overlay.hideCards();
+    this.overlay.insert(null);
     this.overlay.year(false);
     this.renderer.fade = 1;
     this.renderer.rewind = 0;
-    this.renderer.dream = this.renderer.ripple = this.renderer.memory = 0;
+    this.renderer.dream = this.renderer.ripple = this.renderer.memory = this.renderer.still = 0;
+    this.stage.frozen = this.director.held = false;
     audio.stopSting();
+    audio.stopBed(0.05);
     for (const a of Object.values(this.stage.actors)) a.talking = false;
   }
 
@@ -328,6 +353,9 @@ export class Player {
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
         this.stage.castGuests(item.guests);
         for (const g of item.guests ?? []) this.panel.line('stage', `Guest star: ${g.name}${g.role ? ` (${g.role})` : ''}.`);
+        // the titles show everyone in their usual clothes; the costumes go on in the first scene
+        this.episodeWardrobe = item.wardrobe ?? [];
+        this.stage.setWardrobe([]);
         this.stage.setLocation('future', 'night');
         this.stage.seatKids();
         this.director.wide(0, 0.02);
@@ -350,8 +378,10 @@ export class Player {
           // Stepped back into an earlier episode past its cold open: bring back its guest stars.
           const start = [...this.history].reverse().find((i) => i.kind === 'episode-start' && i.episode.id === item.episode.id);
           if (start?.kind === 'episode-start') this.stage.castGuests(start.guests);
+          this.episodeWardrobe = start?.kind === 'episode-start' ? start.wardrobe ?? [] : [];
           this.currentEpisode = item.episode.id;
         }
+        this.stage.setWardrobe(mergeWardrobe(this.episodeWardrobe, item.scene.wardrobe));
         await this.playScene(item.scene, item.index);
         break;
       case 'episode-end': {
@@ -478,7 +508,7 @@ export class Player {
   }
 
   /** Stage and frame the interior in one synchronous cut, including the midpoint of a flashback. */
-  private stageScene(scene: Pick<Scene, 'location' | 'time' | 'cast' | 'beats'>, cutaway?: { label: string; style: CutawayStyle }) {
+  private stageScene(scene: Pick<Scene, 'location' | 'time' | 'cast' | 'beats'>, cutaway?: { label: string; style: CutawayStyle | 'montage' }) {
     this.stage.setLocation(scene.location, scene.time);
     audio.ambience(this.stage.current.ambience);
     const onCouch = scene.location === 'future';
@@ -499,8 +529,8 @@ export class Player {
         if (!present.has(b.character) && !isKid(b.character)) entering.add(b.character);
         continue;
       }
-      const who = 'character' in b ? b.character : undefined;
-      if (isChar(who) && !isKid(who) && !present.has(who) && !entering.has(who)) {
+      for (const who of participants(b)) {
+        if (!isChar(who) || isKid(who) || present.has(who) || entering.has(who)) continue;
         present.add(who);
         this.stage.place(who, this.stage.resolveMark(undefined, who));
       }
@@ -514,9 +544,147 @@ export class Player {
 
     this.director.coverage(this.stage.castIds());
     this.overlay.year(onCouch);
-    if (cutaway) this.overlay.location(cutaway.label, cutaway.style);
-    else if (!onCouch) this.overlay.location(`${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
+    if (cutaway?.label) this.overlay.location(cutaway.label, cutaway.style);
     else this.overlay.hideLocation();
+  }
+
+  /**
+   * "And that's how it went for three weeks": hard cuts between quick shots on any set over a music bed,
+   * each with its own little card, then back to the scene exactly as we left it.
+   */
+  private async playMontage(m: MontageBeat) {
+    const st = this.stage;
+    const shot = this.director.current;
+    const ambience = st.current.ambience;
+    const frozen = st.freeze();
+    this.overlay.hideCaption();
+    this.panel.line('stage', `Montage${m.label ? `: ${m.label}` : ''}.`);
+    audio.montage(m.music);
+    try {
+      for (const [i, s] of m.shots.entries()) {
+        await this.untilUnpaused();
+        const label = i === 0 && m.label ? m.label + (s.label ? ` · ${s.label}` : '') : s.label ?? '';
+        this.stageScene({ location: s.location, time: s.time, cast: s.cast, beats: s.beats }, { label, style: 'montage' });
+        // the music carries it; no room tone
+        audio.ambience('none');
+        await this.wait(0.15);
+        await Promise.all([this.playBeats(s.beats, false), this.wait(1.6)]);
+        await this.wait(0.35);
+      }
+    } finally {
+      audio.stopBed();
+      st.thaw(frozen);
+      this.overlay.hideLocation();
+      this.overlay.year(st.current.id === 'future');
+      audio.ambience(ambience);
+      this.director.resume(shot);
+    }
+    await this.wait(0.3);
+  }
+
+  /** Future Ted talks over a frozen frame, maybe caught mid-gesture; then it all carries on. */
+  private async freeze(b: FreezeBeat) {
+    const st = this.stage, r = this.renderer;
+    const who = isChar(b.character) && st.onStage(b.character) ? b.character : undefined;
+    let rest = 0;
+    if (who) {
+      st.actors[who].setEmotion(b.emotion);
+      const to = isChar(b.to) && b.to !== who && st.onStage(b.to) ? b.to : undefined;
+      if (b.shot) this.director.intent(b.shot, who, to);
+      else if (to) this.director.twoShot(who, to);
+      else this.director.closeup(who);
+      const d = b.gesture ? this.gesture(who, b.gesture, to) : 0;
+      // caught at the height of it
+      await this.wait(d ? d * 0.45 : 0.4);
+      rest = d * 0.55;
+    }
+    audio.freezeFrame();
+    st.frozen = this.director.held = true;
+    r.still = 1;
+    this.panel.line('stage', '[freeze frame]');
+    try {
+      await this.narrate(b.line, b.laugh);
+    } finally {
+      st.frozen = this.director.held = false;
+      r.still = 0;
+    }
+    if (rest) await this.wait(rest);
+  }
+
+  /**
+   * Cut to the thing itself, full screen: the text, the chart, the slide, the sign, the Playbook page. Its items
+   * come in one at a time while someone (or Future Ted) reads over it; then back to the room for the reaction.
+   */
+  private async insert(b: InsertBeat) {
+    this.overlay.hideCaption();
+    this.overlay.insert(b);
+    if (b.kind !== 'text') audio.whoosh();
+    this.panel.line('stage', insertText(b));
+    const n = this.overlay.revealInsert(0);
+    const words = [b.title, ...(b.lines ?? []), ...(b.messages ?? []).map((m) => m.text), ...(b.items ?? []).map((i) => i.label)]
+      .join(' ').split(/\s+/).filter(Boolean).length;
+    const step = b.kind === 'text' ? 1.1 : clamp(2.4 / Math.max(1, n), 0.35, 0.9);
+    let shown = 0;
+    const reveal = this.animate(0.3 + n * step, (u) => {
+      const k = Math.min(n, Math.floor((u * (0.3 + n * step)) / step) + (b.kind === 'text' ? 1 : 0));
+      if (k === shown) return;
+      shown = k;
+      this.overlay.revealInsert(k);
+      if (b.kind === 'text') audio.textChime();
+    });
+    const line = clean(b.line ?? '');
+    const reader = isChar(b.character) && !isKid(b.character) ? b.character : undefined;
+    let read: Promise<unknown> = Promise.resolve();
+    if (line && reader) {
+      const def = CHARACTERS[reader];
+      this.panel.line('say', line, def.name, def.color);
+      read = this.race(speech.speak(line, def.voice, () => this.overlay.showCaption(def.name, def.color, line)).done);
+    } else if (line) read = this.narrate(line);
+    try {
+      await Promise.all([reveal, read, this.wait(clamp(1.2 + words * 0.28, 2.6, 8))]);
+      this.overlay.hideCaption();
+      if (b.laugh && !b.react?.length) await this.laugh(b.laugh);
+    } finally {
+      this.overlay.insert(null);
+    }
+    if (b.react?.length) {
+      await this.react(b.react, reader);
+      if (b.laugh) await this.laugh(b.laugh);
+    }
+  }
+
+  /** The listeners' faces once a line lands: one closeup, a two-shot or the whole table. */
+  private async react(reactions: Reaction[], speaker?: CharacterId) {
+    const st = this.stage;
+    const who = reactions.filter((r) => isChar(r.character) && r.character !== speaker && st.onStage(r.character));
+    if (!who.length) return;
+    let longest = 0;
+    for (const r of who) {
+      st.actors[r.character].setEmotion(r.emotion ?? (r.gesture ? undefined : 'surprised'));
+      if (r.gesture) longest = Math.max(longest, this.gesture(r.character, r.gesture, speaker && st.onStage(speaker) ? speaker : undefined));
+    }
+    this.panel.line('stage', `${groupName(who.map((r) => r.character), st.castIds())} ${who.length > 1 ? 'react' : 'reacts'}.`);
+    const toward = speaker && st.onStage(speaker) ? speaker : undefined;
+    const ids = who.map((r) => r.character);
+    // a single take cheats out toward the lens, so the face reads
+    const take = (id: CharacterId) => {
+      this.director.closeup(id, toward);
+      const lens = this.director.current?.pos;
+      if (lens) st.actors[id].lookAt = (toward ? st.actors[toward].headWorld : st.actors[id].headWorld).lerp(lens, 0.7);
+    };
+    const spread = Math.max(0, ...ids.flatMap((a) => ids.map((b) => st.actors[a].position.distanceTo(st.actors[b].position))));
+    if (ids.length > 2 && spread > 2.6) {
+      // too far apart for one shot: cut from face to face
+      for (const id of ids.slice(0, 3)) {
+        take(id);
+        await this.wait(0.6);
+      }
+      await this.wait(clamp(longest * 0.8 - 1.8, 0, 0.6));
+      return;
+    }
+    if (ids.length === 1) take(ids[0]);
+    else this.director.group(ids, toward);
+    await this.wait(clamp(longest * 0.8, 0.9, 2.2));
   }
 
   /** Hard cut to Penny and Luke on the couch in 2030, play their beats, then cut straight back to the story. */
@@ -553,7 +721,7 @@ export class Player {
     this.panel.line('narr', text, 'Future Ted');
     // the kids look back at their dad
     for (const id of KIDS) if (this.stage.onStage(id)) this.stage.actors[id].lookAt = null;
-    const h = speech.speak('future-ted', text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
+    const h = speech.speak(text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
     await this.race(h.done);
     await this.untilUnpaused();
     this.overlay.hideCaption();
@@ -600,33 +768,52 @@ export class Player {
           a.lookAt = null;
         } else {
           // addressing the room: look at whoever's closest-ish, or the audience
-          const others = st.onStageIds().filter((i) => i !== b.character);
+          const others = st.onStageIds().filter((i) => i !== b.character && !b.chorus?.includes(i));
           a.lookAt = others.length ? st.actors[pick(others)].headWorld : null;
         }
         this.lookAtSpeaker(b.character);
+        // a line said together: everyone in it talks at once, at the same person
+        const chorus = (b.chorus ?? []).filter((id) => isChar(id) && id !== b.character && st.onStage(id));
+        const voices = [a, ...chorus.map((id) => st.actors[id])];
+        for (const id of chorus) {
+          st.setBackground(id, false);
+          st.actors[id].setEmotion(b.emotion);
+          st.actors[id].lookAt = a.lookAt;
+        }
         const delivery = b.delivery;
-        if (isKid(b.character)) this.director.onCouchLine(b.character);
+        if (isKid(b.character)) chorus.length ? this.director.wide(0, 0.02) : this.director.onCouchLine(b.character);
+        else if (b.shot) this.director.intent(b.shot, b.character, to);
+        else if (chorus.length) this.director.group([b.character, ...chorus]);
         // a whisper is a two-shot secret; a shout gets the single
         else if (delivery === 'whisper' && to) this.director.twoShot(b.character, to);
         else if (delivery === 'shout') this.director.closeup(b.character, to);
         else this.director.onLine(b.character, to);
         const def = CHARACTERS[b.character];
-        this.panel.line('say', delivery && delivery !== 'fast' && delivery !== 'slow' ? `(${delivery}) ${text}` : text, def.name, def.color);
-        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to);
-        a.talkLevel = delivery === 'shout' ? 1.6 : delivery === 'whisper' ? 0.45 : delivery === 'sing' ? 1.2 : 1;
-        const h = speech.speak(b.character, text, def.voice, () => {
-          a.talking = true;
-          this.overlay.showCaption(def.name, def.color, text, false, delivery);
-          if (delivery === 'sing') audio.serenade(estimateDuration(text, def.voice.rate * deliveryRate(delivery)));
+        const name = chorus.length ? groupName([b.character, ...chorus], st.castIds()) : def.name;
+        const color = chorus.length ? '#ffffff' : def.color;
+        this.panel.line('say', delivery && delivery !== 'fast' && delivery !== 'slow' ? `(${delivery}) ${text}` : text, name, color);
+        const seconds = estimateDuration(text, def.voice.rate * deliveryRate(delivery));
+        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to, seconds);
+        const level = delivery === 'shout' ? 1.6 : delivery === 'whisper' ? 0.45 : delivery === 'sing' ? 1.2 : 1;
+        const h = speech.speak(text, def.voice, () => {
+          for (const v of voices) {
+            v.talking = true;
+            v.talkLevel = level;
+          }
+          this.overlay.showCaption(name, color, text, false, delivery);
+          if (delivery === 'sing') audio.serenade(seconds);
         }, { delivery, cutOff: b.interrupted });
         try {
           await this.race(h.done);
         } finally {
-          a.talking = false;
-          a.talkLevel = 1;
+          for (const v of voices) {
+            v.talking = false;
+            v.talkLevel = 1;
+          }
           if (delivery === 'sing') audio.stopSting();
         }
         this.overlay.hideCaption();
+        if (b.react?.length && !b.interrupted) await this.react(b.react, b.character);
         if (b.laugh) await this.laugh(b.laugh);
         // whoever interrupts jumps straight in
         else if (!b.interrupted) await this.wait(0.18);
@@ -672,16 +859,78 @@ export class Player {
         st.actors[b.character].setEmotion(b.emotion);
         const to = isChar(b.to) && b.to !== b.character && st.onStage(b.to) ? b.to : undefined;
         this.panel.line('stage', `${charName(b.character)} ${gestureText(b.gesture, to)}.`);
-        if (to && ['high_five', 'hug', 'slap'].includes(b.gesture)) {
+        if (b.gesture === 'sit' || b.gesture === 'stand') {
+          const p = b.gesture === 'sit' ? st.sitDown(b.character) : st.standUp(b.character);
+          if (b.shot) this.director.intent(b.shot, b.character, to);
+          else this.director.coverage(st.castIds());
+          await this.race(Promise.race([p, sleep(2600)]));
+          break;
+        }
+        if (to && (PAIRED_GESTURES as readonly Gesture[]).includes(b.gesture)) {
           const a = st.actors[b.character], o = st.actors[to];
-          if (a.position.distanceTo(o.position) > 1.4 && !a.isSitting) await this.race(Promise.race([st.moveTo(b.character, to), sleep(2500)]));
-          this.director.twoShot(b.character, to);
-        } else if (to) this.director.twoShot(b.character, to);
+          const reach = b.gesture === 'kiss' ? 1.1 : 1.4;
+          if (a.position.distanceTo(o.position) > reach && !a.isSitting) await this.race(Promise.race([st.moveTo(b.character, to), sleep(2500)]));
+          if (b.shot) this.director.intent(b.shot, b.character, to);
+          else this.director.twoShot(b.character, to);
+        } else if (b.shot) this.director.intent(b.shot, b.character, to);
+        else if (to) this.director.twoShot(b.character, to);
         else if (Math.random() < 0.6) this.director.closeup(b.character);
         const d = this.gesture(b.character, b.gesture, to);
         await this.wait(Math.max(0.6, d * 0.85));
         break;
       }
+      case 'hold': {
+        if (!isChar(b.character) || !st.onStage(b.character)) return;
+        const a = st.actors[b.character];
+        const prop = b.prop === 'none' ? null : b.prop;
+        if (a.prop === prop) return;
+        const was = a.prop;
+        this.panel.line('stage', prop ? `${charName(b.character)} picks up ${PROP_NAME[prop]}.` : `${charName(b.character)} puts ${PROP_NAME[was!].replace(/^an? /, 'the ')} down.`);
+        if (b.shot) this.director.intent(b.shot, b.character);
+        else if ((prop && GRIP[prop] !== 'hang') || Math.random() < 0.5) this.director.closeup(b.character);
+        // reach out, and it's in hand (or gone)
+        a.onGestureBeat = () => a.hold(prop);
+        const d = a.doGesture('give');
+        await this.wait(d * 0.75);
+        a.hold(prop);
+        break;
+      }
+      case 'give': {
+        const to = b.to;
+        if (!isChar(b.character) || !isChar(to) || to === b.character || !st.onStage(b.character) || !st.onStage(to)) return;
+        const a = st.actors[b.character], o = st.actors[to];
+        const prop = b.prop ?? a.prop;
+        if (!prop) return;
+        a.hold(prop);
+        this.panel.line('stage', `${charName(b.character)} hands ${charName(to)} ${PROP_NAME[prop]}.`);
+        if (a.position.distanceTo(o.position) > 1.3 && !a.isSitting && !st.current.seated) await this.race(Promise.race([st.moveTo(b.character, to), sleep(2500)]));
+        if (b.shot) this.director.intent(b.shot, b.character, to);
+        else this.director.twoShot(b.character, to);
+        if (!a.isSitting) a.faceTowards(o.position, 0.1);
+        if (!o.isSitting) o.faceTowards(a.position, 0.1);
+        a.lookAt = o.headWorld;
+        o.lookAt = a.headWorld;
+        const handOver = () => {
+          if (a.prop !== prop) return;
+          a.hold(null);
+          o.hold(prop);
+        };
+        a.onGestureBeat = handOver;
+        const d = a.doGesture('give');
+        o.doGesture('give');
+        await this.wait(d * 0.8);
+        handOver();
+        break;
+      }
+      case 'freeze':
+        await this.freeze(b);
+        break;
+      case 'insert':
+        await this.insert(b);
+        break;
+      case 'montage':
+        if (!st.inCutaway) await this.playMontage(b);
+        break;
       case 'laugh':
         await this.laugh(b.laugh);
         break;
@@ -695,9 +944,14 @@ export class Player {
     }
   }
 
-  private gesture(id: CharacterId, g: Gesture, to?: CharacterId) {
+  /** Start a gesture (with a partner joining in, for the paired ones); `seconds` holds a phone call for a whole line. */
+  private gesture(id: CharacterId, g: Gesture, to?: CharacterId, seconds = 0) {
     const a = this.stage.actors[id];
     const other = to ? this.stage.actors[to] : undefined;
+    if (g === 'sit' || g === 'stand') {
+      void (g === 'sit' ? this.stage.sitDown(id) : this.stage.standUp(id));
+      return 0;
+    }
     if (other) {
       if (!a.isSitting) a.faceTowards(other.position, 0.1);
       a.lookAt = other.headWorld;
@@ -708,14 +962,18 @@ export class Player {
         other?.react();
         if (other) other.setEmotion('angry');
       } else if (gg === 'high_five' && other) audio.slap();
+      else if (gg === 'fist_bump' && other) audio.bump();
       else if (gg === 'cheers') audio.clink();
+      else if (gg === 'spit_take') audio.spray();
     };
-    if (other && (g === 'high_five' || g === 'hug' || g === 'cheers')) {
+    const together = other && (g === 'high_five' || g === 'hug' || g === 'cheers' || g === 'kiss' || g === 'fist_bump');
+    if (together) {
       if (!other.isSitting) other.faceTowards(a.position, 0.1);
       other.lookAt = a.headWorld;
-      other.doGesture(g);
+      other.doGesture(g, { partner: true });
     }
-    return a.doGesture(g);
+    const held = g === 'phone_call' || g === 'lean_in' || g === 'arms_crossed' ? seconds : 0;
+    return a.doGesture(g, { partner: !!together, dur: held });
   }
 }
 
@@ -739,9 +997,25 @@ function gestureText(g: Gesture, to?: CharacterId) {
   const t = to ? ` ${charName(to)}` : '';
   const map: Partial<Record<Gesture, string>> = {
     high_five: `high-fives${t}`, hug: `hugs${t}`, slap: `slaps${t}`, point: `points${to ? ' at' + t : ''}`,
-    suit_up: 'adjusts his suit', facepalm: 'facepalms', arms_crossed: 'crosses arms', thumbs_up: 'gives a thumbs up',
+    suit_up: 'suits up', facepalm: 'facepalms', arms_crossed: 'crosses arms', thumbs_up: 'gives a thumbs up',
     hands_up: 'throws hands up', shake_head: 'shakes head', cheers: `raises a glass${to ? ' to' + t : ''}`,
-    drink: 'takes a sip', think: 'ponders',
+    drink: 'takes a sip', think: 'ponders', kiss: to ? `kisses${t}` : 'blows a kiss', phone_call: 'takes a call',
+    sit: 'sits down', stand: 'stands up', lean_in: `leans in${to ? ' to' + t : ''}`, jaw_drop: 'gapes',
+    fist_bump: `fist-bumps${t}`, spit_take: 'does a spit take',
   };
   return map[g] ?? `${g.replace(/_/g, ' ')}s`;
+}
+
+/** "Ted & Marshall", "Ted, Lily & Robin", or "Everyone" when it's the whole room. */
+function groupName(ids: CharacterId[], room: CharacterId[]) {
+  const names = ids.map(charName);
+  if (ids.length >= 3 && room.every((id) => ids.includes(id))) return 'Everyone';
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names.at(-1)}` : names[0] ?? '';
+}
+
+/** The transcript's note for an insert. */
+function insertText(b: InsertBeat) {
+  const whose = b.character ? `${charName(b.character)}'s ` : '';
+  const what = { text: 'phone', chart: 'chart', slides: 'slideshow', sign: 'sign', playbook: 'Playbook' }[b.kind];
+  return `[${whose}${what}${b.title ? `: ${b.title}` : ''}]`;
 }

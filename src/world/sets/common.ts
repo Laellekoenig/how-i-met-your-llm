@@ -33,6 +33,10 @@ export interface StageSet {
   edges: [string, string][];
   door: string;
   wides: Shot[];
+  /** Closed sets (the cars): every generated angle keeps the camera inside this box, never outside the body. */
+  cameraBounds?: THREE.Box3;
+  /** Keep generated two-shots near the actors; distant pairs get singles instead. */
+  maxTwoShotDistance?: number;
   ambience: Ambience;
   background: { character: CharacterId; mark: string }[];
   /** What you hear when someone comes in (defaults to the doorbell). */

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import { sceneTransition } from '../src/show/transitions';
-import { normalizeScene } from '../src/llm/normalize';
+import { validateEpisode } from '../src/script/validate';
+import { testStage } from './helpers/sets';
+import { rerun } from './helpers/episodes';
 import { Player } from '../src/show/player';
 import { audio } from '../src/audio/audio';
 import { speech } from '../src/audio/speech';
@@ -32,7 +34,7 @@ function playback(incoming: Scene) {
     establish() { this.outside = true; return {}; },
     endEstablishing() { this.outside = false; },
     setLocation(id: string) { this.current.id = id; },
-    seatKids() {}, castIds: () => [], onStage: () => false,
+    seatKids() {}, setWardrobe() {}, castIds: () => [], onStage: () => false,
   };
   const director = {
     current: { kind: 'wide' }, moving: true,
@@ -40,9 +42,9 @@ function playback(incoming: Scene) {
     resume(shot: { kind: string }) { this.current = shot; },
     coverage() { this.current = { kind: 'wide' }; },
   };
-  const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 };
-  const overlay = { hideCaption() {}, hideCards() {}, standby() {}, location() {}, hideLocation() {}, year() {}, showCaption() {} };
-  const episode = { id: 'test', code: 'S1E1', title: 'Test', logline: '', source: 'sample' as const };
+  const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
+  const overlay = { hideCaption() {}, hideCards() {}, insert() {}, standby() {}, location() {}, hideLocation() {}, year() {}, showCaption() {} };
+  const episode = { id: 'test', code: 'S1E1', title: 'Test', logline: '' };
   const item: ShowItem = { kind: 'scene', episode, index: 1, scene: incoming };
   let requests = 0;
   const source = { next: () => ++requests === 1 ? Promise.resolve(item) : new Promise<ShowItem>(() => {}) };
@@ -52,6 +54,12 @@ function playback(incoming: Scene) {
 }
 
 describe('script compatibility and intentional time jumps', () => {
+  test('new interiors and period locations do not inherit the Manhattan walk-up exterior', () => {
+    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const) {
+      expect(sceneTransition(scene({ location }), scene(), 1)).toBe('cut');
+      expect(sceneTransition(scene({ location, transition: 'rewind' }), scene(), 1)).toBe('rewind');
+    }
+  });
   test('legacy scenes establish time/location changes but never invent flashbacks', () => {
     expect(sceneTransition(scene(), null, 0)).toBe('skyline');
     expect(sceneTransition(scene({ time: 'day' }), scene(), 1)).toBe('skyline');
@@ -62,13 +70,12 @@ describe('script compatibility and intentional time jumps', () => {
     expect(sceneTransition(scene({ location: 'future', transition: 'rewind' }), scene(), 1)).toBe('cut');
   });
 
-  test('untrusted transition values are normalized or safely fall back', () => {
-    for (const input of [' SKYLINE ', 'exterior', 'cut', 'rewind']) {
-      expect(normalizeScene({ transition: input }, 'maclarens', 'night').transition).toBe(input.trim().toLowerCase());
-    }
-    for (const input of [undefined, null, 2, {}, 'dissolve', '__proto__']) {
-      expect(normalizeScene({ transition: input }, 'maclarens', 'night').transition).toBeUndefined();
-    }
+  test('episode files can only ask for transitions the player knows', () => {
+    const sets = testStage().sets;
+    const ep = rerun('The Understudy');
+    const withTransition = (transition: unknown) => validateEpisode({ ...ep, scenes: [{ ...ep.scenes[0], transition }, ...ep.scenes.slice(1)] }, sets).errors;
+    for (const t of ['skyline', 'exterior', 'cut', 'rewind', undefined]) expect(withTransition(t)).toEqual([]);
+    for (const t of [' SKYLINE ', null, 2, 'dissolve', '__proto__']) expect(withTransition(t)).toHaveLength(1);
   });
 });
 
@@ -105,7 +112,7 @@ describe('transition playback', () => {
     expect(p.stage.outside).toBe(false);
     expect(p.stage.current.id).toBe('apartment');
     expect(p.director.current.kind).toBe('wide');
-    expect(p.renderer).toEqual({ fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 });
+    expect(p.renderer).toEqual({ fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 });
     expect(stop).toHaveBeenCalled();
   });
 

@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import type { CharacterDef, Look } from './characters';
-import type { Emotion, Gesture } from '../script/types';
+import type { Emotion, Gesture, Prop } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
-import { plaid, tweed, denim, tieWeave, kitchenPrint } from '../engine/textures';
+import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint } from '../engine/textures';
 import { Profile, limb, ellipsoid, surface, smoothstep } from '../engine/shapes';
 import { buildHairGeometry } from './hair';
+import { buildProp, GRIP } from './props';
 import { clamp, damp, dampAngle, angleDiff, noise1, rand, lerp } from '../util';
 
 type V3 = [number, number, number];
@@ -46,10 +47,15 @@ const FACES: Record<Emotion, Face> = {
   bored:     { browY: -0.005, browTilt: 0.06, browAsym: 0.005, smile: -0.25, mouthBase: 0,  headTilt: 0.14,  headDown: 0.04 },
 };
 
-const GESTURE_DUR: Record<Gesture, number> = {
+/** Gestures, plus `give`: holding something out to someone (or reaching to take it). */
+export type Motion = Gesture | 'give';
+
+/** Sitting down and standing up are walks, not animations: the stage handles them. */
+const GESTURE_DUR: Record<Motion, number> = {
   none: 0, wave: 1.6, point: 1.5, shrug: 1.3, facepalm: 2.0, arms_crossed: 3.2, drink: 2.0, cheers: 1.6,
   thumbs_up: 1.4, high_five: 1.3, suit_up: 1.7, hands_up: 1.6, nod: 1.0, shake_head: 1.1, dance: 3.2,
-  hug: 2.2, slap: 1.0, think: 2.2,
+  hug: 2.2, slap: 1.0, think: 2.2, kiss: 2.0, phone_call: 3.0, sit: 0, stand: 0, lean_in: 2.4, jaw_drop: 2.2,
+  fist_bump: 1.4, spit_take: 2.0, give: 1.4,
 };
 
 export class Actor {
@@ -71,6 +77,9 @@ export class Actor {
   private browL!: THREE.Mesh; private browR!: THREE.Mesh;
   private mouthOpen!: THREE.Mesh; private cornerL!: THREE.Mesh; private cornerR!: THREE.Mesh;
   private glass!: THREE.Mesh;
+  /** Where hand props go (in the right hand), and where carried ones are held against the chest. */
+  private hand = new THREE.Group();
+  private chest = new THREE.Group();
   private skirt: THREE.Group | null = null;
   private browY0 = 0;
   private headH: number;
@@ -95,15 +104,24 @@ export class Actor {
   emotion: Emotion = 'neutral';
   private face: Face = { ...FACES.neutral };
   lookAt: THREE.Vector3 | null = null;
-  private gesture: { g: Gesture; t: number; dur: number } | null = null;
+  private gesture: { g: Motion; t: number; dur: number; partner: boolean } | null = null;
   holdingGlass = false;
+  /** What they're holding, if anything. */
+  prop: Prop | null = null;
+  private propObj: THREE.Object3D | null = null;
+  /** The phone that appears for a phone call when they weren't already holding one. */
+  private callPhone: THREE.Object3D | null = null;
+  /** This frame's gesture extras: stepping in (kiss, lean in) and how far the jaw has dropped. */
+  private gestureLean = 0;
+  private jaw = 0;
+  private spray: { drops: THREE.Group; vel: Float32Array; t: number } | null = null;
   private blinkT = rand(1, 4);
   private accent = { t: 0, side: 1, dur: 0 };
   private seed = Math.random() * 100;
   private pose = zeroPose();
   private bounce = 0;
   private reactT = 0;
-  onGestureBeat: ((g: Gesture) => void) | null = null;
+  onGestureBeat: ((g: Motion) => void) | null = null;
   private gestureBeatFired = false;
 
   constructor(def: CharacterDef) {
@@ -137,7 +155,11 @@ export class Actor {
     };
     const skin = toon(L.skin);
     const outer = (side?: THREE.Side) =>
-      L.plaid ? fabric(plaid(L.top, L.plaid[0], L.plaid[1]), 0.075, side) : L.tweed ? fabric(tweed(L.top), 0.07, side) : toon(L.top, { side });
+      L.plaid ? fabric(plaid(L.top, L.plaid[0], L.plaid[1]), 0.075, side)
+      : L.stripes ? fabric(wardrobePrint(L.top, 'stripes', L.stripes), 0.22, side)
+      : L.print ? fabric(wardrobePrint(L.top, L.print), 0.28, side)
+      : L.topStyle === 'denim' ? fabric(denim(L.top), 0.09, side)
+      : L.tweed ? fabric(tweed(L.top), 0.07, side) : toon(L.top, { side });
     const topMat = outer();
     const topDS = outer(DS);
     const topDark = toon(shade(L.top, 0.72), { side: DS });
@@ -157,11 +179,11 @@ export class Actor {
     };
 
     const style = L.topStyle;
-    const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie';
+    const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie' || style === 'denim';
     const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee' || style === 'hoodie';
     const shortSleeves = style === 'tee' || style === 'polo';
     const sleeveless = style === 'dress';
-    const rolled = style === 'shirt';
+    const rolled = L.sleeves === 'rolled' || (style === 'shirt' && L.sleeves !== 'long');
 
     this.root.add(this.hips);
     this.hips.position.y = this.legLen;
@@ -191,6 +213,7 @@ export class Actor {
         rim.rotation.x = Math.PI / 2;
         add(knee, rim, false);
       }
+      if (L.socks) add(knee, mesh(new THREE.CylinderGeometry(0.048 * s, 0.044 * s, 0.09 * s, 12), toon(L.socks), 0, -shin + 0.09 * s, 0));
       const foot = new THREE.Group();
       foot.position.y = -shin;
       knee.add(foot);
@@ -318,6 +341,7 @@ export class Actor {
         } else buttons([0.3 * tl, 0.38 * tl], 0.02, toon('#2a1a12'), 0.3, drape);
         break;
       }
+      case 'denim':
       case 'leather': {
         const open = (y: number) => 0.32 + 0.35 * smoothstep(0.5 * tl, 0.97 * tl, y);
         shell(0.016, -0.06 * tl, 0.98 * tl, open, topDS);
@@ -326,6 +350,15 @@ export class Actor {
         add(this.spine, collar(0.7, 0.018, 0.02 * s, topDS, 0.03));
         // scoop neckline
         add(this.spine, placket(0.87 * tl, 0.99 * tl, (y) => 0.45 * Math.sqrt(ramp(0.87 * tl, 0.99 * tl, y)), 0.002, skin), false);
+        if (style === 'denim') {
+          const stitch = toon('#d3d8cf', { side: DS });
+          for (const sg of [-1, 1]) {
+            const pocket = mesh(surface(6, 6, (u, v, p) => torso.point((0.56 + 0.18 * v) * tl, sg * (0.8 + u * 0.45), p, 0.026, E)), topDark);
+            add(this.spine, pocket, false);
+            const button = mesh(ellipsoid(0.008, 0.008, 0.004, 6, 4), stitch);
+            button.position.copy(onTorso(0.71 * tl, sg * 1.01, 0.03)); add(this.spine, button, false);
+          }
+        }
         break;
       }
       case 'cardigan': {
@@ -378,7 +411,7 @@ export class Actor {
         // Victoria's scoop-neck plum dress, with folded ruffles along both shoulder straps.
         add(this.spine, placket(0.73 * tl, 0.99 * tl, y => 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y)), 0.003, skin), false);
         add(this.spine, mesh(torso.geometry({ seg: 26, rows: 3, e: E, y: [0.975 * tl, torso.yMax], inflate: 0.004 }), skin), false);
-        for (const sg of [-1, 1]) add(this.spine, mesh(surface(6, 24, (u, v, p) => {
+        if (L.dressRuffles !== false) for (const sg of [-1, 1]) add(this.spine, mesh(surface(6, 24, (u, v, p) => {
           const y = (0.74 + 0.25 * v) * tl;
           const edge = 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y));
           torso.point(y, sg * (edge + 0.03 + u * 0.34), p, 0.006 + Math.sin(u * Math.PI) * (0.014 + 0.013 * Math.sin(v * Math.PI * 8)), E);
@@ -426,6 +459,32 @@ export class Actor {
       }
     }
 
+    if (L.scarf) {
+      const mat = fabric(wardrobePrint(L.scarf, 'floral'), 0.2, DS);
+      add(this.spine, collar(0, 0.03, 0.035 * s, mat, 0.035));
+      add(this.spine, placket(0.5 * tl, 0.94 * tl, () => 0.28, 0.037, mat), false);
+    }
+    if (L.beads) {
+      const beads = toon(L.beads);
+      for (let i = 0; i < 19; i++) {
+        const a = Math.PI * i / 18, x = Math.cos(a) * 0.084 * s;
+        const y = (0.98 - 0.38 * Math.sin(a)) * tl;
+        add(this.spine, mesh(ellipsoid(0.011 * s, 0.012 * s, 0.011 * s, 6, 4), beads, x, y, torso.frontZ(x, y, E) + 0.03), false);
+      }
+    }
+    if (L.boutonniere) {
+      const flower = toon(L.boutonniere);
+      const pos = onTorso(0.77 * tl, 0.65, 0.038, drape);
+      for (let i = 0; i < 5; i++) {
+        const a = i * Math.PI * 2 / 5;
+        add(this.spine, mesh(ellipsoid(0.012, 0.013, 0.009, 6, 4), flower, pos.x + Math.cos(a) * 0.012, pos.y + Math.sin(a) * 0.012, pos.z), false);
+      }
+    }
+    if (L.belt) {
+      shell(0.027, -0.01 * tl, 0.07 * tl, () => 0, toon(L.belt, { side: DS }));
+      add(this.spine, mesh(new THREE.BoxGeometry(0.044 * s, 0.04 * s, 0.014 * s), toon('#d9bd69'), 0, 0.028 * tl, torso.frontZ(0, 0.028 * tl, E) + 0.036), false);
+    }
+
     // ---- skirt + apron hang from a pivot at hip-joint height that follows the thighs
     const apron = L.extras?.includes('apron');
     if (L.skirt || apron) {
@@ -435,7 +494,9 @@ export class Actor {
     }
     if (L.skirt) {
       const sk = new Profile([[-thigh * 0.86, 0.205 * bx, 0.17 * bz], [-thigh * 0.5, 0.188 * bx, 0.152 * bz], [0, hipR * 1.04, 0.114 * bz], [0.1 * s, hipR * 0.93, 0.1 * bz], [0.13 * s, hipR * 0.82, 0.088 * bz]]);
-      add(this.skirt!, mesh(sk.geometry({ seg: 24, rows: 12, e: 0.9 }), toon(L.skirt, { side: DS })));
+      const skirtMat = L.print ? fabric(wardrobePrint(L.skirt, L.print), 0.28, DS)
+        : style === 'denim' ? fabric(denim(L.skirt), 0.09, DS) : toon(L.skirt, { side: DS });
+      add(this.skirt!, mesh(sk.geometry({ seg: 24, rows: 12, e: 0.9, uv: [circ, thigh] }), skirtMat));
     }
     if (apron) {
       const r = Math.max(hipR, torso.at(hem).rx) + 0.014;
@@ -471,6 +532,10 @@ export class Actor {
       add(el, mesh(limb(er * 0.98, wr, fore - 0.04, { bulge: 0.005 * ba, bulgeAt: 0.25, uv: true }), bare ? skin : topMat));
       if (rolled) add(el, mesh(new Profile([[-0.06 * s, er + 0.008, er + 0.008], [0.0, er + 0.012, er + 0.012], [0.01, er + 0.009, er + 0.009]]).geometry({ seg: 12, rows: 3 }), topDS));
       if (style === 'hoodie') add(el, mesh(new THREE.CylinderGeometry(wr + 0.008, wr + 0.009, 0.04, 12, 1, true), topDark, 0, -fore + 0.06, 0), false);
+      if (L.bangles) for (let i = 0; i < 5; i++) {
+        const ring = mesh(new THREE.TorusGeometry(wr + 0.005, 0.006 * s, 5, 12), toon(L.bangles[i % 2]), 0, -fore + (0.045 + i * 0.014) * s, 0);
+        ring.rotation.x = Math.PI / 2; add(el, ring, false);
+      }
       if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under && !L.neckline)) {
         const cuff = mesh(new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true), underDS, 0, -fore + 0.05, 0);
         add(el, cuff, false);
@@ -485,6 +550,11 @@ export class Actor {
     this.glass = mesh(cyl(0.035, 0.03, 0.12, 10), toon('#d9902a', { emissive: '#5a3008', emissiveIntensity: 0.6 }), 0, -fore - 0.04, 0.06);
     this.glass.visible = false;
     this.rEl.add(this.glass);
+    this.hand.position.set(0, -fore - 0.035, 0.035);
+    this.rEl.add(this.hand);
+    const carryY = 0.42 * tl, carry = torso.at(carryY);
+    this.chest.position.set(0, carryY, carry.zc + carry.rz + 0.15);
+    this.spine.add(this.chest);
 
     // ---- neck + head
     this.neck.position.y = tl;
@@ -629,6 +699,20 @@ export class Actor {
       this.spine.add(m);
       this.bodyMeshes.push(m);
     }
+    if (L.beanie) {
+      const knit = toon(L.beanie);
+      const hat = new Profile([[fy(0.73), 0.4 * hh, 0.45 * hh, -0.015], [fy(0.96), 0.42 * hh, 0.46 * hh, -0.02], [fy(1.2), 0.3 * hh, 0.34 * hh, -0.04], [fy(1.28), 0, 0, -0.04]]);
+      add(mesh(hat.geometry({ seg: 24, rows: 12 }), knit), true);
+      add(mesh(hat.geometry({ seg: 24, rows: 3, y: [fy(0.73), fy(0.86)], inflate: 0.004 }), toon(new THREE.Color(L.beanie).multiplyScalar(0.8))), true);
+    }
+    if (L.bow) {
+      const mat = toon(L.bow);
+      for (const sg of [-1, 1]) {
+        const wing = add(mesh(ellipsoid(0.14 * hh, 0.1 * hh, 0.045 * hh, 8, 6), mat, (-0.24 + sg * 0.11) * hh, fy(1.05), 0.18 * hh), true);
+        wing.rotation.z = sg * -0.45;
+      }
+      add(mesh(ellipsoid(0.055 * hh, 0.055 * hh, 0.055 * hh, 8, 6), mat, -0.24 * hh, fy(1.05), 0.2 * hh), true);
+    }
     if (L.extras?.includes('cap')) {
       const r = head.at(fy(0.85));
       const capMat = toon('#141418');
@@ -731,11 +815,30 @@ export class Actor {
     if (e && FACES[e]) this.emotion = e;
   }
 
-  doGesture(g: Gesture | undefined) {
-    if (!g || g === 'none' || !(g in GESTURE_DUR)) return 0;
-    this.gesture = { g, t: 0, dur: GESTURE_DUR[g] };
+  /**
+   * Start a gesture; returns how long it takes. `partner` is for gestures done with someone (a kiss rather than
+   * a blown one); `dur` stretches a held one, like a phone call that lasts a whole line.
+   */
+  doGesture(g: Motion | undefined, opts: { partner?: boolean; dur?: number } = {}) {
+    if (!g || !GESTURE_DUR[g]) return 0;
+    const dur = Math.max(GESTURE_DUR[g], opts.dur ?? 0);
+    this.gesture = { g, t: 0, dur, partner: !!opts.partner };
     this.gestureBeatFired = false;
-    return GESTURE_DUR[g];
+    return dur;
+  }
+
+  /** Pick something up, or put it down (null). Hand props go in the right hand; big ones are carried in both arms. */
+  hold(kind: Prop | null) {
+    if (this.prop === kind) return;
+    this.propObj?.removeFromParent();
+    this.propObj = null;
+    this.prop = kind;
+    if (!kind) return;
+    const obj = buildProp(kind);
+    const grip = GRIP[kind];
+    if (grip === 'arms') this.chest.add(obj);
+    else this.hand.add(grip === 'hand' ? upright(obj) : obj);
+    this.propObj = grip === 'hand' ? obj.parent! : obj;
   }
 
   /** Small flinch, e.g. after being slapped. */
@@ -850,6 +953,17 @@ export class Actor {
       target.spine[2] -= 0.16 * k;
     }
 
+    // --- props: held up in front, or cradled in both arms
+    const grip = this.prop ? GRIP[this.prop] : null;
+    if (grip === 'hand') {
+      target.rSh = [-0.32, 0, -0.1];
+      target.rEl = -1.25;
+    } else if (grip === 'arms') {
+      target.lSh = [-0.85, 0, -0.3];
+      target.rSh = [-0.85, 0, 0.3];
+      target.lEl = target.rEl = -1.3;
+    }
+
     // --- face & emotion
     const fTarget = FACES[this.emotion];
     const k = damp(6, dt);
@@ -861,8 +975,8 @@ export class Actor {
       target.head[0] += 0.34 * sb;
       target.head[2] += 0.08 * sb;
     }
-    if (this.emotion === 'excited' && !moving) this.bounce = Math.max(0, Math.sin(t * 9)) * 0.025 * (1 - sb);
-    else this.bounce *= 1 - damp(10, dt);
+    // only the dance action hops; let it settle once the dance ends
+    this.bounce *= 1 - damp(10, dt);
     if (this.emotion === 'nervous') target.spine[1] += Math.sin(t * 7) * 0.04;
 
     // --- talking
@@ -878,8 +992,9 @@ export class Actor {
       target.spine[0] += (level > 1 ? 0.1 * (level - 1) : 0.12 * (1 - level)) * this.talkEnv;
       // conversational hand accents
       this.accent.t -= dt;
-      if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving) {
-        this.accent = { t: rand(0.7, 1.3), side: Math.random() < 0.5 ? 1 : -1, dur: 0 };
+      if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving && grip !== 'arms') {
+        // a hand holding something stays put
+        this.accent = { t: rand(0.7, 1.3), side: grip === 'hand' || Math.random() < 0.5 ? 1 : -1, dur: 0 };
         this.accent.dur = this.accent.t;
       }
       if (this.accent.t > 0 && !this.gesture) {
@@ -923,7 +1038,8 @@ export class Actor {
     }
 
     // --- gesture overrides
-    this.glass.visible = this.holdingGlass;
+    this.glass.visible = this.holdingGlass && !this.prop;
+    this.gestureLean = this.jaw = 0;
     if (this.gesture) {
       const gs = this.gesture;
       gs.t += dt;
@@ -931,13 +1047,21 @@ export class Actor {
       if (u >= 1) this.gesture = null;
       else {
         const env = Math.min(1, gs.t / 0.22, (gs.dur - gs.t) / 0.25);
-        this.applyGesture(gs.g, gs.t, u, env, target);
+        this.applyGesture(gs.g, gs.t, u, env, target, gs.partner);
         if (!this.gestureBeatFired && u > 0.45) {
           this.gestureBeatFired = true;
+          if (gs.g === 'spit_take') this.spit();
           this.onGestureBeat?.(gs.g);
         }
       }
     }
+    const calling = this.gesture?.g === 'phone_call' && !this.prop;
+    if (calling && !this.callPhone) this.hand.add(this.callPhone = upright(buildProp('phone')));
+    else if (!calling && this.callPhone) {
+      this.callPhone.removeFromParent();
+      this.callPhone = null;
+    }
+    this.updateSpray(dt);
     if (this.reactT > 0) {
       this.reactT -= dt;
       target.head[1] += Math.sin(this.reactT * 10) * 0.5 * this.reactT;
@@ -970,9 +1094,50 @@ export class Actor {
     this.spine.rotation.set(...p.spine);
     this.head.rotation.set(p.head[0] * 0.7, p.head[1] * 0.75, p.head[2]);
     this.neck.rotation.set(p.head[0] * 0.3, p.head[1] * 0.25, 0);
+    // stepping in for a kiss or a secret
+    this.hips.position.z += this.gestureLean;
+    if (this.jaw > 0) {
+      this.mouthOpen.scale.y = Math.max(this.mouthOpen.scale.y, 0.05 + 1.3 * this.jaw);
+      this.mouthOpen.scale.x = Math.max(this.mouthOpen.scale.x, 0.7 + 0.25 * this.jaw);
+      if (this.blinkT >= 0.12) this.eyes.scale.y = Math.max(this.eyes.scale.y, 1 + 0.3 * this.jaw);
+      this.browL.position.y += 0.012 * this.jaw;
+      this.browR.position.y += 0.012 * this.jaw;
+    }
   }
 
-  private applyGesture(g: Gesture, s: number, u: number, env: number, T: Pose) {
+  /** A spray of whatever they were drinking, out across the room: droplets, so they pixelate like everything else. */
+  private spit() {
+    if (!this.spray) {
+      const drops = new THREE.Group();
+      const geo = ellipsoid(0.017, 0.017, 0.017, 5, 4), mat = toon('#f4ead0', { emissive: '#8a7a5a', emissiveIntensity: 0.6 });
+      for (let i = 0; i < 28; i++) drops.add(new THREE.Mesh(geo, mat));
+      this.root.add(drops);
+      this.spray = { drops, vel: new Float32Array(28 * 3), t: 0 };
+    }
+    const s = this.spray;
+    const mouth = this.root.worldToLocal(this.mouthOpen.getWorldPosition(new THREE.Vector3()));
+    s.drops.children.forEach((d, i) => {
+      d.position.set(mouth.x, mouth.y, mouth.z + 0.04);
+      d.scale.setScalar(rand(0.6, 1.4));
+      s.vel.set([rand(-0.45, 0.45), rand(-0.3, 0.6), rand(1.1, 2.6)], i * 3);
+    });
+    s.t = 0;
+    s.drops.visible = true;
+  }
+
+  private updateSpray(dt: number) {
+    const s = this.spray;
+    if (!s?.drops.visible) return;
+    s.t += dt;
+    s.drops.children.forEach((d, i) => {
+      s.vel[i * 3 + 1] -= 5 * dt;
+      d.position.set(d.position.x + s.vel[i * 3] * dt, Math.max(0.02, d.position.y + s.vel[i * 3 + 1] * dt), d.position.z + s.vel[i * 3 + 2] * dt);
+      d.scale.multiplyScalar(1 - 0.9 * dt);
+    });
+    if (s.t > 0.9) s.drops.visible = false;
+  }
+
+  private applyGesture(g: Motion, s: number, u: number, env: number, T: Pose, partner: boolean) {
     const set = (key: 'lSh' | 'rSh', v: V3) => {
       T[key] = [lerp(T[key][0], v[0], env), lerp(T[key][1], v[1], env), lerp(T[key][2], v[2], env)];
     };
@@ -998,13 +1163,13 @@ export class Actor {
         T.head[0] -= 0.06 * env;
         break;
       case 'drink': {
-        this.glass.visible = true;
+        if (!this.prop) this.glass.visible = true;
         const sip = Math.sin(clamp((u - 0.15) / 0.7, 0, 1) * Math.PI);
         set('rSh', [-0.75 - 0.4 * sip, 0, 0.25]); el('rEl', -1.9 - 0.4 * sip); T.head[0] -= 0.3 * sip * env;
         break;
       }
       case 'cheers':
-        this.glass.visible = true;
+        if (!this.prop) this.glass.visible = true;
         set('rSh', [-2.3, 0, -0.25]); el('rEl', -0.6);
         break;
       case 'thumbs_up':
@@ -1049,8 +1214,63 @@ export class Actor {
         set('rSh', [-1.15, 0, 0.35]); el('rEl', -2.35); T.head[2] += 0.12 * env; T.head[0] -= 0.12 * env;
         set('lSh', [-0.5, 0, -0.3]); el('lEl', -1.6);
         break;
+      case 'kiss':
+        if (partner) {
+          // step in, lean in, hands on their arms
+          // seated, the lean has to do all the work
+          this.gestureLean = this.isSitting ? 0.04 * env : 0.2 * env;
+          T.spine[0] += (this.isSitting ? 0.38 : 0.2) * env; T.head[0] += 0.1 * env;
+          set('lSh', [-0.75, 0, -0.15]); set('rSh', [-0.75, 0, 0.15]); el('lEl', -0.8); el('rEl', -0.8);
+        } else {
+          // fingertips to the lips, then blown off toward someone
+          const out = smoothstep(0.45, 0.7, u);
+          set('rSh', [lerp(-1.75, -1.45, out), 0, lerp(0.4, -0.1, out)]); el('rEl', lerp(-2.35, -0.35, out));
+        }
+        break;
+      case 'phone_call':
+        set('rSh', [-1.45, 0, -0.6]); el('rEl', -2.4); T.head[2] -= 0.14 * env;
+        break;
+      case 'lean_in':
+        this.gestureLean = this.isSitting ? 0 : 0.1 * env;
+        T.spine[0] += 0.26 * env; T.head[0] -= 0.06 * env;
+        break;
+      case 'jaw_drop':
+        this.jaw = env;
+        T.head[0] -= 0.14 * env; T.spine[0] -= 0.04 * env;
+        set('lSh', [-0.25, 0, 0.32]); set('rSh', [-0.25, 0, -0.32]); el('lEl', -0.35); el('rEl', -0.35);
+        break;
+      case 'fist_bump': {
+        // knuckles out, bump, then blow it up
+        const blow = smoothstep(0.6, 0.75, u);
+        set('rSh', [-1.35 - 0.35 * blow, 0, 0.12 - 0.4 * blow + Math.sin(s * 30) * 0.08 * blow]); el('rEl', -0.2 - 0.5 * blow);
+        break;
+      }
+      case 'spit_take': {
+        // a sip... then it all comes back out
+        if (!this.prop) this.glass.visible = true;
+        const sip = smoothstep(0.05, 0.3, u) * (1 - smoothstep(0.42, 0.52, u));
+        const lurch = smoothstep(0.4, 0.48, u) * (1 - smoothstep(0.75, 1, u));
+        set('rSh', [-0.75 - 0.4 * sip + 0.35 * lurch, 0, 0.25]); el('rEl', -1.9 - 0.4 * sip + 0.9 * lurch);
+        T.head[0] += (-0.3 * sip + 0.3 * lurch) * env;
+        T.spine[0] += 0.28 * lurch * env;
+        this.jaw = 0.8 * lurch;
+        break;
+      }
+      case 'give':
+        set('rSh', [-1.15, 0, 0.05]); el('rEl', -0.35); T.spine[0] += 0.08 * env;
+        break;
+      case 'sit':
+      case 'stand':
       case 'none':
         break;
     }
   }
+}
+
+/** Stand a hand prop up in the right hand: its +y along the thumb, +z along the fingers. */
+function upright(o: THREE.Object3D) {
+  const g = new THREE.Group();
+  g.rotation.x = Math.PI / 2;
+  g.add(o);
+  return g;
 }

@@ -1,0 +1,62 @@
+{
+  "code": "S10E06",
+  "title": "The Committee",
+  "logline": "Stella, Zoey and Nora organize a neighborhood benefit. Ted assumes their meeting requires an apology from him.",
+  "coldOpen": "Kids, there is a mature way to run into your ex. I am told it involves letting her finish lunch.",
+  "scenes": [
+    {
+      "location": "restaurant",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [{ "character": "stella", "mark": "booth_left" }, { "character": "zoey", "mark": "booth_middle" }, { "character": "nora", "mark": "booth_right" }],
+      "beats": [
+        { "type": "say", "character": "stella", "to": "zoey", "line": "Lucy has soccer at four. We have forty minutes to plan this benefit." },
+        { "type": "say", "character": "zoey", "to": "stella", "line": "Thirty-nine. I am petitioning the restaurant to keep this booth.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "nora", "to": "zoey", "line": "I booked the musicians. None of them described themselves as a visionary.", "emotion": "happy", "laugh": "laugh" },
+        { "type": "enter", "character": "ted", "to": "center" },
+        { "type": "say", "character": "ted", "line": "Stella. Zoey. Nora. I suppose I owe this table an explanation.", "emotion": "nervous" },
+        { "type": "say", "character": "nora", "to": "ted", "line": "For standing in front of the specials?", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "stella", "line": "I thought you might be discussing me.", "emotion": "nervous" },
+        { "type": "say", "character": "stella", "to": "ted", "line": "Ted, our agenda has a time limit.", "laugh": "laugh" },
+        { "type": "say", "character": "zoey", "to": "ted", "line": "We need chairs. Can you arrange chairs without an emotional journey?" },
+        { "type": "say", "character": "ted", "to": "zoey", "line": "Absolutely.", "emotion": "smug" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "label": "Ted plans the seating",
+          "location": "lecture_hall",
+          "time": "day",
+          "cast": [{ "character": "ted", "mark": "lectern" }],
+          "beats": [
+            { "type": "say", "character": "ted", "line": "A chair is a promise that someone will stay.", "emotion": "happy", "gesture": "hands_up" },
+            { "type": "say", "character": "ted", "line": "Unless it is a folding chair. I have been hurt by folding chairs.", "emotion": "sad", "laugh": "laugh" },
+            { "type": "act", "character": "ted", "gesture": "think" }
+          ]
+        },
+        { "type": "say", "character": "stella", "to": "ted", "line": "You just stared at a chair for thirty seconds.", "laugh": "big" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "exterior",
+      "cast": [
+        { "character": "stella", "mark": "booth_left_back" },
+        { "character": "zoey", "mark": "booth_left_front" },
+        { "character": "nora", "mark": "booth_right_back" },
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "barney", "mark": "booth_right_front" }
+      ],
+      "beats": [
+        { "type": "say", "character": "zoey", "line": "Benefit sold out. We saved the community garden.", "emotion": "excited", "laugh": "applause" },
+        { "type": "say", "character": "stella", "line": "And I made soccer. Lucy scored twice. I only negotiated one goal.", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "nora", "line": "Nora, I have matured. I donated anonymously.", "emotion": "smug" },
+        { "type": "say", "character": "nora", "to": "barney", "line": "The receipt says Anonymous Stinson.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "zoey", "line": "And the chairs?", "emotion": "nervous" },
+        { "type": "say", "character": "zoey", "to": "ted", "line": "People sat in them, Ted." },
+        { "type": "say", "character": "ted", "to": "zoey", "line": "Together?", "emotion": "happy" },
+        { "type": "say", "character": "stella", "to": "ted", "line": "Separately. They were chairs.", "laugh": "big" }
+      ]
+    }
+  ]
+}

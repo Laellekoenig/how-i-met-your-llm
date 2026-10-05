@@ -1,0 +1,145 @@
+{
+  "code": "S10E03",
+  "title": "The Correction",
+  "logline": "Ted corrects Robin’s pronunciation on live television, and her new producer turns it into the station’s hottest segment.",
+  "coldOpen": "Kids, everybody has a calling. Mine, it turned out, was correcting people on live television.",
+  "couch": [
+    { "type": "say", "character": "penny", "line": "Was it a calling, or were you just annoying?", "emotion": "smug" },
+    { "type": "narrate", "line": "Those can be the same thing.", "laugh": "chuckle" }
+  ],
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Margo",
+      "role": "Metro News One’s new producer, who turns every disagreement into a ratings segment",
+      "gender": "female",
+      "height": "short",
+      "build": "average",
+      "skin": "dark",
+      "hair": "black",
+      "hairStyle": "curly",
+      "top": "red",
+      "topStyle": "blazer",
+      "under": "black",
+      "pants": "black",
+      "extras": ["earrings"],
+      "voice": { "pitch": "low", "pace": "fast" }
+    },
+    {
+      "id": "guest2",
+      "name": "Hector",
+      "role": "a camera operator who has not said a word on set in twelve years",
+      "gender": "male",
+      "height": "tall",
+      "build": "broad",
+      "skin": "olive",
+      "hair": "black",
+      "hairStyle": "buzz",
+      "top": "mustard",
+      "topStyle": "hoodie",
+      "under": "gray",
+      "pants": "denim",
+      "extras": ["beard", "cap"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    }
+  ],
+  "scenes": [
+    {
+      "location": "metro_news_one",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [
+        { "character": "robin", "mark": "anchor_left" },
+        { "character": "sandy", "mark": "anchor_right" },
+        { "character": "guest1", "mark": "monitor" },
+        { "character": "guest2", "mark": "camera_operator" }
+      ],
+      "beats": [
+        { "type": "say", "character": "robin", "line": "Breaking news. A Wor-chester-shire sauce shortage has hit Manhattan delis." },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Devastating, Robin. My thoughts are with the sandwiches.", "delivery": "slow", "emotion": "sad", "laugh": "laugh" },
+        { "type": "enter", "character": "ted", "to": "center" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Actually, it’s pronounced Wooster-sher.", "emotion": "smug", "gesture": "point", "laugh": "ooh", "shot": "push_in" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted! We are live!", "delivery": "shout", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "guest2", "line": "Keep rolling. Hector, get his face. He looks like a man who corrects menus.", "delivery": "whisper", "emotion": "excited", "laugh": "laugh" },
+        { "type": "act", "character": "guest2", "gesture": "thumbs_up" },
+        { "type": "say", "character": "ted", "to": "sandy", "line": "And while I’m here, Sandy, it’s espresso. Not ex-presso.", "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "sandy", "to": "ted", "line": "How dare you. I have said ex-presso on this network for fifteen years.", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Ratings just tripled. Ted, how do you feel about a weekly segment?", "delivery": "fast", "emotion": "excited" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "No. Absolutely not—", "interrupted": true, "emotion": "angry" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "I’d be honored.", "emotion": "happy", "laugh": "big" },
+        { "type": "act", "character": "robin", "gesture": "facepalm" },
+        { "type": "narrate", "line": "Now, kids, to understand how I ended up on live television, we have to back up." }
+      ]
+    },
+    {
+      "location": "limo",
+      "time": "day",
+      "transition": "rewind",
+      "cast": [{ "character": "robin", "mark": "rear_seat_left" }, { "character": "kevin", "mark": "rear_seat_right" }, { "character": "ted", "mark": "bench_2" }],
+      "beats": [
+        { "type": "narrate", "line": "That morning, Barney lent Robin, Kevin and me his limo. Don’t ask.", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted, whatever happens today, do not come to the studio.", "emotion": "angry", "gesture": "point" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Why would I come to the studio?", "emotion": "confused" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Because I’m reading a story about a sauce nobody can pronounce, and I know you.", "laugh": "laugh" },
+        { "type": "say", "character": "kevin", "to": "ted", "line": "Interesting. Ted, you need to be right the way other people need oxygen.", "emotion": "smug" },
+        { "type": "say", "character": "ted", "to": "kevin", "line": "Technically, people need air. Oxygen is just one component of—", "interrupted": true, "emotion": "smug" },
+        { "type": "say", "character": "kevin", "to": "robin", "line": "I rest my case.", "delivery": "deadpan", "laugh": "big" },
+        { "type": "say", "character": "robin", "to": "kevin", "line": "Okay, doctor. Where does it come from?" },
+        { "type": "say", "character": "kevin", "to": "robin", "line": "I have a theory. I picture a very small Ted, in a very large classroom.", "gesture": "think" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "label": "How Kevin pictured it",
+          "location": "lecture_hall",
+          "time": "day",
+          "cast": [{ "character": "kevin", "mark": "lectern" }, { "character": "ted", "mark": "student_1_3" }],
+          "beats": [
+            { "type": "say", "character": "kevin", "line": "Good morning, class. Today we are going to the li-berry.", "emotion": "happy", "gesture": "hands_up" },
+            { "type": "say", "character": "ted", "to": "kevin", "line": "Actually, it’s library. With an R. Two, technically.", "delivery": "fast", "emotion": "smug", "gesture": "point" },
+            { "type": "say", "character": "kevin", "to": "ted", "line": "And how does that make you feel?" },
+            { "type": "say", "character": "ted", "to": "kevin", "line": "Correct.", "emotion": "happy", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "ted", "to": "kevin", "line": "That’s absurd. I was a delight in third grade.", "emotion": "angry" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Just promise me. Not one word." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "I’ll watch from home. Quietly. With a notepad.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "act", "character": "kevin", "to": "robin", "emotion": "happy", "gesture": "kiss" },
+        { "type": "say", "character": "ted", "to": "kevin", "line": "Guys. I’m right here. It’s a limo, not a hotel.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "metro_news_one",
+      "time": "night",
+      "transition": "skyline",
+      "cast": [
+        { "character": "sandy", "mark": "anchor_left" },
+        { "character": "ted", "mark": "anchor_right" },
+        { "character": "robin", "mark": "desk_side" },
+        { "character": "guest1", "mark": "monitor" },
+        { "character": "guest2", "mark": "camera_operator" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "One week later, my segment was the most-watched thing on Metro News One." },
+        { "type": "insert", "laugh": "chuckle", "kind": "sign", "title": "No corrections", "lines": ["This means you Ted", "— Robin"] },
+        { "type": "say", "character": "ted", "to": "robin", "line": "It needs a comma.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "hold", "character": "sandy", "prop": "microphone" },
+        { "type": "say", "character": "ted", "line": "Welcome back to Actually, with Ted Mosby. Tonight: it’s supposedly, not supposably.", "emotion": "smug", "gesture": "point" },
+        { "type": "say", "character": "sandy", "to": "ted", "line": "Actually, Ted, it’s Actually, with Sandy Rivers now. I took a meeting.", "emotion": "smug", "laugh": "ooh" },
+        { "type": "say", "character": "ted", "to": "sandy", "line": "That’s not how a segment—", "interrupted": true, "emotion": "angry" },
+        { "type": "say", "character": "sandy", "to": "ted", "line": "Actually, it is.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "sandy", "line": "Actually, it isn’t, and actually, you said Wooster-shire-shire in the promo.", "delivery": "fast", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "This is incredible television. Nobody touch anything.", "delivery": "whisper", "emotion": "excited", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Margo, they’re just saying actually at each other.", "delivery": "deadpan" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "And the people love it. Look.", "emotion": "happy", "gesture": "phone_call" },
+        { "type": "insert", "character": "guest1", "laugh": "laugh", "kind": "chart", "chart": "line", "title": "Actually: Viewers", "items": [{ "label": "Mon", "value": 12 }, { "label": "Tue", "value": 30 }, { "label": "Wed", "value": 55 }, { "label": "Thu", "value": 140 }, { "label": "Fri", "value": 410 }] },
+        { "type": "move", "character": "guest2", "to": "center" },
+        { "type": "say", "character": "guest2", "line": "Actually. Metro News One has never once been number one.", "delivery": "slow", "laugh": "gasp" },
+        { "type": "say", "character": "guest1", "to": "guest2", "line": "Get that man a segment!", "delivery": "shout", "emotion": "excited", "laugh": "applause" },
+        { "type": "act", "character": "guest1", "to": "guest2", "emotion": "excited", "gesture": "fist_bump" },
+        { "type": "narrate", "line": "Hector’s segment ran for eleven years. Nobody ever corrected him.", "laugh": "laugh" },
+        { "type": "say", "character": "luke", "line": "So you got cancelled by the camera guy.", "emotion": "bored" },
+        { "type": "narrate", "line": "It was a mutual decision.", "laugh": "big" }
+      ]
+    }
+  ]
+}
