@@ -3,10 +3,9 @@ import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/m
 import { planks, paneling, brick, sign, skyline, stripes, mural, paneGlass, glassBlock, neonShamrock } from '../../engine/textures';
 import { type StageSet, mark, nodes, room, band, frame, door, bottles, keyLight, v3 } from './common';
 
-// Laid out after the show's set: the gang's booth sits downstage centre with two red benches
-// facing each other and a chair at the far end; behind it the frosted window with the shamrock
-// neon, the mural over the corner booth on the left, the entrance and glass block on the right
-// of the window, and the bar along the right wall.
+// See docs/maclarens-reference.md for floor plans and photographic references.
+// The gang's booth is a freestanding island downstage of the window. The column stands
+// BEHIND its shared back, with an open cross-aisle; it is not attached to the booth.
 export function buildMaclarens(): StageSet {
   const g = new THREE.Group();
   g.name = 'maclarens';
@@ -50,8 +49,9 @@ export function buildMaclarens(): StageSet {
     b.add(occluder(mesh(roundedBox(len, 0.42, 0.58, 0.03), wood, 0, 0.21, 0)));
     b.add(mesh(roundedBox(len - 0.06, 0.1, 0.55, 0.04), leather, 0, 0.46, 0.01));
     b.add(occluder(mesh(roundedBox(len, bh, 0.16, 0.05), leatherDark, 0, 0.4 + bh / 2, -0.37)));
-    const n = Math.round(len / 0.42);
-    for (let i = 1; i < n; i++) b.add(mesh(box(0.025, bh - 0.14, 0.02), leather, -len / 2 + (i * len) / n, 0.4 + bh / 2, -0.285, false));
+    // Broad, smooth upholstered backs with a narrow wood edge, as on the set.
+    b.add(mesh(box(len + 0.04, 0.045, 0.2), woodDark, 0, backTop + 0.015, -0.37));
+    for (const end of [-1, 1]) b.add(mesh(box(0.045, bh, 0.19), woodDark, end * len / 2, 0.4 + bh / 2, -0.37));
     g.add(b);
   };
   /** Wooden pub chair with a red seat pad, facing local +z. */
@@ -109,11 +109,11 @@ export function buildMaclarens(): StageSet {
   };
 
   // ---- the booth -------------------------------------------------------
-  const BX = -1.0, BZ = 0.6;
+  const BX = -0.3, BZ = 1.35;
   bench(BX - 0.98, BZ, 1.7, Math.PI / 2);
   bench(BX + 0.98, BZ, 1.7, -Math.PI / 2);
   chair(BX, BZ - 1.3, 0);
-  g.add(occluder(mesh(roundedBox(0.9, 0.07, 1.6, 0.02), toon('#3b2414'), BX, 0.76, BZ)));
+  g.add(occluder(mesh(roundedBox(1.16, 0.07, 1.6, 0.02), toon('#3b2414'), BX, 0.76, BZ)));
   g.add(mesh(cyl(0.06, 0.08, 0.72, 6), black, BX, 0.36, BZ));
   g.add(mesh(box(0.4, 0.04, 0.7), black, BX, 0.02, BZ));
   // pints, bottles, napkins and the snack bowl
@@ -130,13 +130,12 @@ export function buildMaclarens(): StageSet {
   g.add(mesh(box(0.42, 0.06, 1.9), woodDark, BX - 1.44, 1.08, BZ));
   g.add(mesh(roundedBox(0.9, 0.07, 1.5, 0.02), toon('#3b2414'), BX - 2.75, 0.76, BZ));
   g.add(mesh(cyl(0.06, 0.08, 0.72, 6), black, BX - 2.75, 0.36, BZ));
-  // square column and the low partition running off it
+  // Separate column beyond the booth's shared back. Keep the cross-aisle open.
+  const COLUMN_X = BX - 1.8, COLUMN_Z = BZ - 2.6;
   const colMat = toon('#ffffff', { map: stripes('#33241a', '#291c13', [2, 1]) });
-  g.add(occluder(mesh(box(0.34, H, 0.34), colMat, BX - 1.44, H / 2, BZ - 1.07)));
-  g.add(mesh(box(0.44, 0.3, 0.44), woodDark, BX - 1.44, 0.15, BZ - 1.07));
-  g.add(mesh(box(0.44, 0.2, 0.44), woodDark, BX - 1.44, H - 0.35, BZ - 1.07, false));
-  g.add(occluder(mesh(box(2.6, 1.0, 0.12), bead(2.6), BX - 2.9, 0.5, BZ - 1.07)));
-  g.add(mesh(box(2.7, 0.06, 0.22), woodDark, BX - 2.9, 1.03, BZ - 1.07));
+  g.add(occluder(mesh(box(0.34, H, 0.34), colMat, COLUMN_X, H / 2, COLUMN_Z)));
+  g.add(mesh(box(0.44, 0.3, 0.44), woodDark, COLUMN_X, 0.15, COLUMN_Z));
+  g.add(mesh(box(0.44, 0.2, 0.44), woodDark, COLUMN_X, H - 0.35, COLUMN_Z, false));
 
   // ---- corner booth under the mural ------------------------------------
   bench(-4.75, BACK + 0.45, 4.3, 0, 1.15);
@@ -150,12 +149,12 @@ export function buildMaclarens(): StageSet {
   g.add(muralMesh);
 
   // ---- floor tables ------------------------------------------------------
-  pubTable(-1.2, -3.1, [0.6, Math.PI + 0.5, -1.6]);
+  pubTable(-0.6, -2.5, [Math.PI / 2, -Math.PI / 2]);
   pubTable(1.3, -3.2, [Math.PI, 1.4, -0.9]);
-  pubTable(2.6, 0.5, [2.4, -2.2, 0.3]);
+  pubTable(2.7, 1.0, [2.4, -2.2, 0.3]);
   pint(1.25, 0.775, -3.3);
-  pint(2.5, 0.775, 0.45);
-  beerBottle(-1.25, 0.775, -3.05);
+  pint(2.6, 0.775, 0.95);
+  beerBottle(-0.65, 0.775, -2.45);
 
   // ---- back wall: window, glass block, entrance ------------------------------
   const paneNight = toon('#ffffff', { map: paneGlass(true), emissive: '#ffffff', emissiveIntensity: 0.3 });
@@ -198,14 +197,25 @@ export function buildMaclarens(): StageSet {
   g.add(exit);
 
   // ---- the bar -----------------------------------------------------------
-  const barX = 5.0, barZ0 = -2.9, barZ1 = 0.3;
+  const barX = 5.0, barZ0 = -3.1, barZ1 = 0.75;
   const barLen = barZ1 - barZ0, barMid = (barZ0 + barZ1) / 2;
   const barFront = toon('#ffffff', { map: paneling('#3e2414', [1, 4]) });
   g.add(occluder(mesh(box(0.6, 1.05, barLen), barFront, barX, 0.525, barMid)));
-  g.add(mesh(roundedBox(0.8, 0.07, barLen + 0.1, 0.02), woodDark, barX, 1.08, barMid));
-  // the return closing off the downstage end
+  // One continuous counter with a rounded outside corner on its downstage return.
+  const counter = new THREE.Shape();
+  counter.moveTo(barX - 0.4, barZ0 - 0.05);
+  counter.lineTo(barX - 0.4, barZ1 - 0.4);
+  counter.quadraticCurveTo(barX - 0.4, barZ1 + 0.1, barX + 0.1, barZ1 + 0.1);
+  counter.lineTo(RIGHT, barZ1 + 0.1);
+  counter.lineTo(RIGHT, barZ1 - 0.7);
+  counter.lineTo(barX + 0.4, barZ1 - 0.7);
+  counter.lineTo(barX + 0.4, barZ0 - 0.05);
+  counter.closePath();
+  const counterGeo = new THREE.ExtrudeGeometry(counter, { depth: 0.07, bevelEnabled: false, curveSegments: 8 });
+  counterGeo.rotateX(Math.PI / 2);
+  g.add(mesh(counterGeo, woodDark, 0, 1.115, 0));
+  // The return closing off the downstage end.
   g.add(occluder(mesh(box(RIGHT - barX - 0.3, 1.05, 0.6), toon('#ffffff', { map: paneling('#3e2414', [3, 1]) }), (RIGHT + barX + 0.3) / 2, 0.525, barZ1 - 0.3)));
-  g.add(mesh(roundedBox(RIGHT - barX + 0.4, 0.07, 0.8, 0.02), woodDark, (RIGHT + barX - 0.4) / 2, 1.08, barZ1 - 0.3));
   g.add(mesh(box(0.06, 0.06, barLen + 0.3), brass, barX - 0.36, 0.12, barMid + 0.15, false));
   g.add(mesh(box(RIGHT - barX + 0.3, 0.06, 0.06), brass, (RIGHT + barX - 0.4) / 2, 0.12, barZ1 + 0.06, false));
   // taps
@@ -220,7 +230,7 @@ export function buildMaclarens(): StageSet {
   pint(barX - 0.12, 1.115, -1.2);
   pint(barX - 0.1, 1.115, -2.55);
   // high-backed wooden stools with black seats
-  const stoolZ = [-2.4, -1.5, -0.6];
+  const stoolZ = [-2.6, -1.65, -0.7, 0.25];
   for (const z of stoolZ) {
     const sx = barX - 0.7;
     g.add(mesh(cyl(0.2, 0.2, 0.06, 8), black, sx, 0.76, z));
@@ -231,7 +241,7 @@ export function buildMaclarens(): StageSet {
     g.add(mesh(box(0.03, 0.12, 0.36), wood, sx - 0.19, 1.12, z, false));
   }
   // back bar: cabinet, mirror, shelves of bottles
-  const bbZ0 = barZ0, bbLen = 2.6, bbMid = bbZ0 + bbLen / 2;
+  const bbZ0 = barZ0, bbLen = 3.3, bbMid = bbZ0 + bbLen / 2;
   g.add(mesh(box(0.5, 0.95, bbLen), woodDark, RIGHT - 0.28, 0.475, bbMid));
   g.add(mesh(box(0.05, 1.3, bbLen - 0.2), glow('#6a6a78', 0.55), RIGHT - 0.06, 1.85, bbMid, false));
   for (const y of [1.25, 1.75, 2.25]) {
@@ -287,12 +297,20 @@ export function buildMaclarens(): StageSet {
   bowlLamp(BX - 2.75, 2.4, BZ, 3, 5);
   bowlLamp(-5.3, 2.45, -3.1, 4, 5);
   bowlLamp(1.5, 2.55, -2.5, 4, 5);
-  bowlLamp(barX, 2.4, -2.2, 5, 5);
-  bowlLamp(barX, 2.4, -0.6, 5, 5);
+  // The bar has broad stained-glass drum pendants, unlike the small booth bowls.
+  for (const z of [-2.2, -0.5]) {
+    g.add(mesh(cyl(0.012, 0.012, 0.85, 6), brass, barX, 2.975, z, false));
+    g.add(mesh(cyl(0.34, 0.34, 0.22, 12), amber, barX, 2.44, z, false));
+    for (const y of [2.33, 2.44, 2.55]) g.add(mesh(cyl(0.35, 0.35, 0.025, 12), woodDark, barX, y, z, false));
+    const light = new THREE.PointLight('#ffc884', 5, 5, 1.4);
+    light.position.set(barX, 2.15, z);
+    g.add(light);
+  }
 
   const N = nodes({
-    door: [DOOR_X, -3.8], entry: [3.3, -3.3], back_bar: [5.85, -3.6], mid: [1.4, -1.3], bar: [3.75, -1.5], bar_front: [3.8, 1.1],
-    booth_up: [-1.0, -1.6], booth_r: [0.9, 0.3], front: [1.2, 2.0], left: [-3.4, -1.4], left_far: [-5.6, -1.0],
+    door: [DOOR_X, -3.8], entry: [3.3, -3.3], back_bar: [5.85, -3.8], mid: [1.4, -1.1], bar: [3.75, -1.65], bar_front: [3.8, 2.0],
+    booth_up: [BX, BZ - 2.05], booth_r: [BX + 1.85, BZ - 1.3], front: [BX + 1.85, BZ + 1.5],
+    left: [BX - 2.9, BZ - 1.7], left_far: [-5.6, -0.5],
   });
 
   const stool = (i: number, hint: string) => mark(barX - 0.75, stoolZ[i], Math.PI / 2, 'bar', hint, { seat: 0.76, approach: [barX - 1.25, stoolZ[i]] });
@@ -303,30 +321,31 @@ export function buildMaclarens(): StageSet {
     nodes: N,
     edges: [
       ['door', 'entry'], ['entry', 'mid'], ['entry', 'bar'], ['entry', 'back_bar'], ['mid', 'bar'], ['mid', 'booth_up'], ['mid', 'booth_r'],
-      ['booth_up', 'left'], ['left', 'left_far'], ['mid', 'front'], ['booth_r', 'front'], ['bar', 'bar_front'], ['front', 'bar_front'],
+      ['booth_up', 'left'], ['left', 'left_far'], ['booth_r', 'front'], ['bar', 'bar_front'], ['front', 'bar_front'],
     ],
     door: 'door',
     marks: {
-      booth_left_front: mark(BX - 0.85, BZ + 0.4, Math.PI / 2, 'booth_up', 'the booth, left bench, seat nearest the audience', { seat: 0.47, approach: [BX - 0.72, BZ - 1.4] }),
-      booth_left_back: mark(BX - 0.85, BZ - 0.4, Math.PI / 2, 'booth_up', 'the booth, left bench, inner seat', { seat: 0.47, approach: [BX - 0.72, BZ - 1.4] }),
-      booth_right_front: mark(BX + 0.85, BZ + 0.4, -Math.PI / 2, 'booth_up', 'the booth, right bench, seat nearest the audience', { seat: 0.47, approach: [BX + 0.72, BZ - 1.4] }),
-      booth_right_back: mark(BX + 0.85, BZ - 0.4, -Math.PI / 2, 'booth_up', 'the booth, right bench, inner seat', { seat: 0.47, approach: [BX + 0.72, BZ - 1.4] }),
+      booth_left_front: mark(BX - 0.85, BZ + 0.4, Math.PI / 2, 'booth_up', 'the booth, left bench, seat nearest the audience', { seat: 0.47, approach: [BX - 0.85, BZ - 1.4] }),
+      booth_left_back: mark(BX - 0.85, BZ - 0.4, Math.PI / 2, 'booth_up', 'the booth, left bench, inner seat', { seat: 0.47, approach: [BX - 0.85, BZ - 1.4] }),
+      booth_right_front: mark(BX + 0.85, BZ + 0.4, -Math.PI / 2, 'booth_up', 'the booth, right bench, seat nearest the audience', { seat: 0.47, approach: [BX + 0.85, BZ - 1.4] }),
+      booth_right_back: mark(BX + 0.85, BZ - 0.4, -Math.PI / 2, 'booth_up', 'the booth, right bench, inner seat', { seat: 0.47, approach: [BX + 0.85, BZ - 1.4] }),
       booth_end: mark(BX, BZ - 1.17, 0, 'booth_up', "the booth, chair at the head of the table facing the audience (Ted's usual spot)", { seat: 0.48, approach: [BX, BZ - 1.95] }),
       booth_side: mark(BX + 1.35, BZ - 1.35, -0.78, 'mid', 'standing at the end of the booth table (where the waitress stands)'),
       bar_stool_1: stool(0, 'bar stool, far'),
       bar_stool_2: stool(1, 'bar stool, middle'),
       bar_stool_3: stool(2, 'bar stool, near'),
-      bar_standing: mark(4.2, 1.0, -0.5, 'bar_front', 'standing at the near end of the bar, facing the room'),
-      behind_bar: mark(5.85, -1.3, -Math.PI / 2, 'back_bar', 'behind the bar (bartender spot)', { approach: [5.85, -3.4] }),
+      bar_stool_4: stool(3, 'bar stool nearest the rounded return'),
+      bar_standing: mark(4.2, 1.6, -0.5, 'bar_front', 'standing at the near end of the bar, facing the room', { approach: [3.75, 1.6] }),
+      behind_bar: mark(5.85, -1.3, -Math.PI / 2, 'back_bar', 'behind the bar (bartender spot)', { approach: [5.85, -3.8] }),
       center: mark(1.4, -1.0, 0.1, 'mid', 'middle of the pub floor, between the booth and the bar'),
       darts: mark(-6.2, 0.6, -Math.PI / 2 + 0.5, 'left_far', 'by the dartboard on the left wall'),
       door: mark(DOOR_X, -4.0, 0, 'door', 'the front door, back wall right of the window'),
     },
     wides: [
       { pos: v3(0.2, 1.9, 7.4), target: v3(0.4, 1.15, -1.5), fov: 44 },
-      { pos: v3(-1.0, 1.6, 4.9), target: v3(-1.0, 1.05, 0.0), fov: 44 },
-      { pos: v3(0.3, 1.45, 3.7), target: v3(-1.1, 0.98, 0.1), fov: 42 },
-      { pos: v3(1.6, 1.6, 3.4), target: v3(5.0, 1.1, -1.3), fov: 46 },
+      { pos: v3(BX, 1.6, BZ + 4.3), target: v3(BX, 1.05, BZ - 0.6), fov: 44 },
+      { pos: v3(BX + 1.3, 1.45, BZ + 3.1), target: v3(BX - 0.1, 0.98, BZ - 0.5), fov: 42 },
+      { pos: v3(1.8, 1.6, 4.0), target: v3(5.0, 1.1, -1.3), fov: 46 },
     ],
     ambience: 'bar',
     background: [{ character: 'carl', mark: 'behind_bar' }],
