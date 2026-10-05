@@ -191,6 +191,49 @@ describe('camera coverage on the current sets', () => {
     }
   });
 
+  test('new master wides cover every mark, including short actors behind reception', () => {
+    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const) {
+      for (const id of ['marshall', 'patrice'] as const) for (const name of Object.keys(stage.sets[location].marks)) {
+        stage.setLocation(location, 'day');
+        stage.place(id, name);
+        director.wide(0, 0);
+        expectVisible(stage.actors[id], `${location}/${name}/${id}/master`);
+      }
+    }
+  });
+
+  test('subway and elevator group coverage keeps people large enough in the picture', () => {
+    for (const [location, minimumHeight] of [['subway', 0.25], ['elevator', 0.30]] as const) {
+      const scene = EPISODES.flatMap(ep => ep.scenes).find(s => s.location === location)!;
+      stage.setLocation(location, 'day');
+      for (const c of scene.cast) stage.place(c.character, c.mark);
+      director.coverage(stage.castIds());
+      expect(director.current!.kind).toBe('wide');
+      camera.updateMatrixWorld();
+      for (const id of stage.castIds()) {
+        const actor = stage.actors[id];
+        const head = actor.headWorld.add(new THREE.Vector3(0, 0.1, 0)).project(camera);
+        const floor = actor.position.clone().project(camera);
+        expect((head.y - floor.y) / 2, `${location}/${id}/picture height`).toBeGreaterThan(minimumHeight);
+        expectVisible(actor, `${location}/${id}/closer coverage`);
+      }
+    }
+  });
+
+  test('opposite subway benches get close-ups instead of a distant generated two-shot', () => {
+    stage.setLocation('subway', 'day');
+    stage.place('ted', 'seat_left'); stage.place('robin', 'seat_right_window');
+    for (const [speaker, listener] of [['ted', 'robin'], ['robin', 'ted']] as const) {
+      director.twoShot(speaker, listener);
+      expect(director.current!.kind).toBe('closeup');
+      expectVisible(stage.actors[speaker], `${speaker}/opposite benches`);
+    }
+    // With both people on one bench, the authored close pair stays preferred.
+    stage.place('robin', 'seat_left_inner');
+    director.coverage(['ted', 'robin']);
+    expect(director.current!.pos.distanceTo(stage.sets.subway.wides[3].pos)).toBeLessThan(0.01);
+  });
+
   test('a reverse-facing apartment chair gets a face angle backed by scenery', () => {
     stage.setLocation('apartment', 'day'); stage.place('robin', 'woven_chair');
     director.closeup('robin');

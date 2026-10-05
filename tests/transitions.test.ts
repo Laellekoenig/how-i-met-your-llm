@@ -54,6 +54,12 @@ function playback(incoming: Scene) {
 }
 
 describe('script compatibility and intentional time jumps', () => {
+  test('new interiors and period locations do not inherit the Manhattan walk-up exterior', () => {
+    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const) {
+      expect(sceneTransition(scene({ location }), scene(), 1)).toBe('cut');
+      expect(sceneTransition(scene({ location, transition: 'rewind' }), scene(), 1)).toBe('rewind');
+    }
+  });
   test('legacy scenes establish time/location changes but never invent flashbacks', () => {
     expect(sceneTransition(scene(), null, 0)).toBe('skyline');
     expect(sceneTransition(scene({ time: 'day' }), scene(), 1)).toBe('skyline');

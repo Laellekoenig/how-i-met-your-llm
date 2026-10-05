@@ -180,6 +180,7 @@ export class Director {
     if (perp.z < 0) perp.negate();
     perp.lerp(new THREE.Vector3(0, 0, 1), 0.45).normalize();
     const dist = Math.max(2.3, sep * 1.25 + 1.3);
+    if (dist > (this.stage.current.maxTwoShotDistance ?? Infinity)) return this.closeup(a, b);
     const pos = mid.clone().addScaledVector(perp, dist);
     pos.y = mid.y + 0.1;
     const target = mid.add(new THREE.Vector3(0, -0.2, 0));
