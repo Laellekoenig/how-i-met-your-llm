@@ -202,6 +202,14 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
         edge: () => 0.2,
       }));
       break;
+    case 'balding':
+      // Mickey's bare crown with a narrow horseshoe of hair at the temples and back.
+      out.head.push(surface(28, 8, (u, v, p) => {
+        const a = 1.15 + u * (Math.PI * 2 - 2.3);
+        const low = 0.52 - 0.27 * Math.sin((a - 1.15) / (Math.PI * 2 - 2.3) * Math.PI);
+        c.head.point((low + (0.84 - low) * v) * hh, a, p, 0.004);
+      }));
+      break;
     case 'receding':
       // Ranjit: close-cropped, high forehead
       out.head.push(shell(c, {

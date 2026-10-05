@@ -1,8 +1,8 @@
 import { GUEST_IDS, type CharacterId, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly';
-export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress';
+export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
   height: number;
@@ -24,6 +24,18 @@ export interface Look {
   vest?: string;
   plaid?: [string, string];
   tweed?: boolean;
+  stripes?: string; // horizontal stripes over the top color
+  print?: 'floral' | 'sparkle';
+  sleeves?: 'long' | 'rolled';
+  dressRuffles?: boolean;
+  scarf?: string;
+  beanie?: string;
+  bow?: string;
+  belt?: string;
+  beads?: string;
+  boutonniere?: string;
+  bangles?: [string, string];
+  socks?: string;
   pants: string;
   jeans?: boolean;
   skirt?: string; // knee-length skirt (worn over `legs`)
@@ -352,6 +364,115 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 1.06, long: 0.96, nose: 0.93, brow: 1.08 },
     },
     voice: { gender: 'male', pitch: 1.12, rate: 1.08 },
+  },
+  // More family, returning exes, and Robin's pop-star persona. See docs/cast-reference.md.
+  loretta: {
+    id: 'loretta', name: 'Loretta Stinson', color: '#eac89a', main: false,
+    look: {
+      // Frances Conroy: auburn updo and the black-and-gold shimmering blouse from the wedding weekend.
+      height: 1.7, build: 0.98, female: true,
+      skin: '#efc5ab', hair: '#91492c', hairStyle: 'updo', eyes: '#6b8492',
+      top: '#25201e', topStyle: 'shirt', print: 'sparkle', sleeves: 'long',
+      pants: '#28262d', shoes: '#29201c', extras: ['earrings'],
+      face: { long: 1.08, jaw: 0.94, nose: 1.08, brow: 0.95 },
+    },
+    voice: { gender: 'female', pitch: 0.9, rate: 0.98 },
+  },
+  mickey: {
+    id: 'mickey', name: 'Mickey Aldrin', color: '#dba282', main: false,
+    look: {
+      // Chris Elliott: balding, graying beard; rumpled red plaid over a charcoal tee.
+      height: 1.83, build: 1.09, female: false,
+      skin: '#e7b896', hair: '#a99e85', hairStyle: 'balding', eyes: '#6e808a',
+      top: '#994c3d', topStyle: 'flannel', plaid: ['#bca68b', '#5b5660'], under: '#343840', sleeves: 'rolled',
+      pants: '#4a5261', jeans: true, shoes: '#655141', extras: ['beard'],
+      face: { long: 1.08, jaw: 1.07, nose: 1.2, brow: 0.95 },
+    },
+    voice: { gender: 'male', pitch: 1.03, rate: 1.06 },
+  },
+  hammond: {
+    id: 'hammond', name: 'Hammond Druthers', color: '#c4baa3', main: false,
+    look: {
+      // Bryan Cranston, "Aldrin Justice": brown sweater vest, pale checked shirt, blue tie.
+      height: 1.79, build: 1.04, female: false,
+      skin: '#e1b492', hair: '#634b37', hairStyle: 'receding', eyes: '#647984',
+      top: '#b8c5cd', topStyle: 'shirt', plaid: ['#dfcfad', '#8298b1'], sleeves: 'long',
+      vest: '#49392c', tie: '#38577e', pants: '#675e50', shoes: '#382d23',
+      face: { long: 1.09, jaw: 1.08, nose: 1.16, brow: 1.24 },
+    },
+    voice: { gender: 'male', pitch: 0.85, rate: 0.96 },
+  },
+  stella: {
+    id: 'stella', name: 'Stella Zinman', color: '#80d3eb', main: false,
+    look: {
+      // Sarah Chalke: blonde waves; blue-and-beige striped cardigan over a coral blouse, dark jeans.
+      height: 1.73, build: 0.92, female: true,
+      skin: '#f0c9aa', hair: '#ceb379', hairStyle: 'waves', eyes: '#638998',
+      top: '#2495bc', topStyle: 'cardigan', stripes: '#d6c7ad', under: '#df7587',
+      pants: '#28354b', jeans: true, shoes: '#695146', extras: ['earrings'],
+      face: { long: 1.07, jaw: 0.9, nose: 1.01 },
+    },
+    voice: { gender: 'female', pitch: 1.04, rate: 1.07 },
+  },
+  zoey: {
+    id: 'zoey', name: 'Zoey Pierson', color: '#dda6c3', main: false,
+    look: {
+      // Jennifer Morrison protesting the Arcadian: burgundy knit hat, blonde waves, dark coat and colorful scarf.
+      height: 1.66, build: 0.94, female: true,
+      skin: '#f1c6a9', hair: '#ddc898', hairStyle: 'waves', eyes: '#668378',
+      top: '#242832', topStyle: 'blazer', under: '#666976', beanie: '#7d2646', scarf: '#b08792',
+      pants: '#333b50', jeans: true, shoes: '#3b2c27', boots: true,
+      face: { long: 1.02, jaw: 0.98, nose: 0.93, brow: 1.15 },
+    },
+    voice: { gender: 'female', pitch: 0.97, rate: 1.08 },
+  },
+  nora: {
+    id: 'nora', name: 'Nora', color: '#e6dba8', main: false,
+    look: {
+      // Nazanin Boniadi: dark flowing hair and the ivory floral sundress from her sidewalk conversation with Barney.
+      height: 1.62, build: 0.93, female: true,
+      skin: '#d5a57f', hair: '#201a18', hairStyle: 'long', eyes: '#473025',
+      top: '#ece7dc', topStyle: 'dress', print: 'floral', dressRuffles: false, skirt: '#ece7dc',
+      pants: '#d5a57f', legs: '#d5a57f', shoes: '#9b7b59', extras: ['earrings'],
+      face: { long: 1.03, jaw: 0.93, nose: 0.96, brow: 1.08 },
+    },
+    voice: { gender: 'female', pitch: 1.0, rate: 0.95 },
+  },
+  virginia: {
+    id: 'virginia', name: 'Virginia Mosby', color: '#f1a9ad', main: false,
+    look: {
+      // Cristine Rose at MacLaren's: short chestnut hair, red open-neck blouse, dark trousers and gold earrings.
+      height: 1.66, build: 1.03, female: true,
+      skin: '#e8bc9b', hair: '#63432d', hairStyle: 'bob', eyes: '#694b35',
+      top: '#b82d37', topStyle: 'shirt', pants: '#292b35', shoes: '#32252a', extras: ['earrings'],
+      face: { long: 0.99, jaw: 1.01, nose: 1.04, brow: 1.03 },
+    },
+    voice: { gender: 'female', pitch: 0.92, rate: 1.03 },
+  },
+  punchy: {
+    id: 'punchy', name: 'Punchy', color: '#f1bd79', main: false,
+    look: {
+      // Chris Romano at the wedding: short dark hair, black suit, ivory tie and pale boutonniere.
+      height: 1.68, build: 1.1, female: false,
+      skin: '#e5b591', hair: '#3b2b22', hairStyle: 'short', eyes: '#583b28',
+      top: '#25252b', topStyle: 'suit', under: '#f3eee2', tie: '#dfd6ba', boutonniere: '#e9d4a0',
+      pants: '#25252b', shoes: '#242122',
+      face: { long: 0.96, jaw: 1.1, nose: 1.08, brow: 1.18 },
+    },
+    voice: { gender: 'male', pitch: 1.14, rate: 1.15 },
+  },
+  robin_sparkles: {
+    id: 'robin_sparkles', name: 'Robin Sparkles', color: '#ff92ce', main: false,
+    look: {
+      // Cobie Smulders, "Let's Go to the Mall": faded denim, red bow and belt, black beads, neon bangles.
+      height: 1.74, build: 0.94, female: true,
+      skin: '#f2c8a8', hair: '#c4a36d', hairStyle: 'curly', eyes: '#4a3a2a',
+      top: '#9daebb', topStyle: 'denim', under: '#f5f0e6', sleeves: 'rolled', skirt: '#9daebb',
+      pants: '#292735', legs: '#292735', shoes: '#25232c', socks: '#eee9df',
+      bow: '#e62f48', belt: '#cf2840', beads: '#28232c', bangles: ['#f77539', '#e9c834'], extras: ['earrings'],
+      face: { jaw: 0.95, long: 1.02, nose: 0.9 },
+    },
+    voice: { gender: 'female', pitch: 1.14, rate: 1.13 },
   },
   penny: {
     id: 'penny',

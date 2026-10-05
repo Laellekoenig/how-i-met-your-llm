@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { normalizeScene } from '../src/llm/normalize';
+import { asChar, normalizeScene } from '../src/llm/normalize';
 import { RERUNS } from '../src/script/samples';
 import { roles } from '../src/ui/casting';
 import { testStage } from './helpers/sets';
@@ -24,6 +24,20 @@ describe('recurring guest dialogue', () => {
     });
   });
 
+  test('family names and Robin Sparkles resolve in casting, dialogue and directed actions', () => {
+    const names = ['Loretta Stinson', "Lily's dad", 'Hammond Druthers', 'Stella Zinman', 'Zoey Pierson', 'Nora', "Ted's mom", 'Adam Punciarello', 'Robin Sparkles'];
+    const ids = ['loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles'];
+    const scene = normalizeScene({
+      cast: names.map(character => ({ character, mark: 'center' })),
+      beats: names.map(character => ({ type: 'say', character, line: 'Hello.', to: 'Robin Sparkles', gesture: 'wave' })),
+    }, 'maclarens', 'night');
+    expect(scene.cast.map(c => c.character)).toEqual(ids);
+    scene.beats.forEach((beat, i) => expect(beat).toMatchObject({ type: 'say', character: ids[i], to: 'robin_sparkles' }));
+    for (const id of ids) expect(roles().filter(([key]) => key === id)).toHaveLength(1);
+    expect(asChar('robin-sparkles')).toBe('robin_sparkles');
+    expect(asChar('Robin Scherbatsky')).toBe('robin');
+  });
+
   test('the offline reruns give every recurring character a line that survives normalization', () => {
     const speakers = new Set<string>();
     for (const { scenes, guests } of RERUNS) for (const scene of scenes) {
@@ -31,7 +45,7 @@ describe('recurring guest dialogue', () => {
       expect(normalized.beats).toEqual(scene.beats);
       for (const beat of normalized.beats.flatMap((b) => b.type === 'cutaway' ? b.beats : [b])) if (beat.type === 'say') speakers.add(beat.character);
     }
-    for (const id of ['sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter']) expect(speakers.has(id)).toBe(true);
+    for (const id of ['sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles']) expect(speakers.has(id)).toBe(true);
   });
 });
 
