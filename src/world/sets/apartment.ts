@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
 import { planks, brick, books, sign, stripes, painting, tvScreen, blindsWindow, patchRug, checker, fridgePhotos, phoneBox, blueprint, clockFace, archNiche, glassCabinet } from '../../engine/textures';
-import { type StageSet, mark, nodes, frame, door, couch, armchair, plant, keyLight, window_, v3 } from './common';
+import { type StageSet, mark, nodes, frame, door, plant, keyLight, window_, v3 } from './common';
+import { apartmentSeating, APARTMENT_SOFA } from './apartmentSeating';
 
 // Ted & Marshall's apartment, laid out after the show's set: the orange couch in the middle of the
 // room facing the audience; behind it a raised landing with Ted's desk under the two tall windows
@@ -279,18 +280,13 @@ export function buildApartment(): StageSet {
   g.add(mesh(cyl(0.12, 0.2, 0.26, 8), glow('#f5e0b0', 1.0), LEFT + 0.35, 1.65, 1.6, false));
   plant(g, LEFT + 0.4, 2.3, 1.3);
 
-  // ---- the living room: couch, coffee table, rug, armchair ------------------------------------
-  const CX = -0.4, CZ = -1.3;
-  const rugM = mesh(new THREE.PlaneGeometry(4.4, 2.8), toon('#ffffff', { map: patchRug() }), CX, 0.012, -0.45, false);
+  // ---- the living room: sofa and four mismatched chairs around the coffee table --------------
+  const { x: CX, z: CZ } = APARTMENT_SOFA;
+  const rugM = mesh(new THREE.PlaneGeometry(5.2, 4.4), toon('#ffffff', { map: patchRug() }), -0.55, 0.012, 0.2, false);
   rugM.rotation.x = -Math.PI / 2;
   rugM.receiveShadow = true;
   g.add(rugM);
-  couch(g, CX, CZ, 2.6, '#c4501f', '#2a1a10');
-  for (const [dx, c, rz] of [[-1.0, '#e0b030', 0.3], [-0.65, '#7a9aa8', -0.2], [0.55, '#e8dcc0', 0.2], [0.95, '#e0b030', -0.3]] as const) {
-    const p = mesh(roundedBox(0.38, 0.34, 0.12, 0.05), toon(c), CX + dx, 0.66, CZ - 0.18, false);
-    p.rotation.set(-0.25, 0, rz);
-    g.add(p);
-  }
+  const seating = apartmentSeating(g);
   // coffee table: marble top on a dark wood frame
   const TZ = 0.15;
   g.add(occluder(mesh(box(1.3, 0.05, 0.66), toon('#e8e6e0'), CX, 0.43, TZ)));
@@ -302,14 +298,12 @@ export function buildApartment(): StageSet {
   g.add(mesh(cyl(0.045, 0.038, 0.15, 6), toon('#e09a2a', { emissive: '#6a3a08', emissiveIntensity: 0.4 }), CX + 0.5, 0.53, TZ - 0.15, false));
   g.add(mesh(box(0.05, 0.02, 0.16), black, CX + 0.1, 0.465, TZ + 0.18, false)); // remote
   // end table with the big lamp and the cordless phone
-  const ET = CX + 1.65;
+  const ET = CX + APARTMENT_SOFA.width / 2 + 0.35;
   g.add(occluder(mesh(box(0.5, 0.58, 0.5), toon('#7ab0c0'), ET, 0.29, CZ)));
   g.add(mesh(box(0.4, 0.14, 0.02), toon('#5a8a9a'), ET, 0.4, CZ + 0.26, false));
   g.add(mesh(cyl(0.1, 0.12, 0.38, 6), toon('#3a7a5a'), ET - 0.05, 0.77, CZ - 0.08, false));
   g.add(mesh(cyl(0.2, 0.24, 0.3, 10), glow('#fff2d0', 1.05), ET - 0.05, 1.12, CZ - 0.08, false));
   g.add(mesh(box(0.06, 0.18, 0.04), black, ET + 0.14, 0.67, CZ + 0.1, false));
-  // Ted's red armchair
-  armchair(g, 2.15, -0.2, -0.95, '#c42a24');
   plant(g, -3.3, -2.2, 1.0);
 
   // ---- living-room side of the kitchen wall: the little desk and the round table -------------
@@ -335,8 +329,8 @@ export function buildApartment(): StageSet {
   deskChair.add(mesh(box(0.42, 0.06, 0.04), chairWood, 0, 0.9, -0.19, false));
   g.add(deskChair);
 
-  // round wooden table with chrome chairs (and one wicker one) in the corner by the kitchen
-  const TX = 2.65, TZ2 = 1.55;
+  // Dining sits outside the lounge-chair group, downstage of the pass-through desk.
+  const TX = 3.05, TZ2 = 2.75;
   g.add(occluder(mesh(cyl(0.55, 0.55, 0.05, 14), toon('#b88a50'), TX, 0.76, TZ2)));
   g.add(mesh(cyl(0.07, 0.09, 0.72, 6), toon('#8a5a32'), TX, 0.36, TZ2));
   g.add(mesh(cyl(0.3, 0.34, 0.05, 8), toon('#8a5a32'), TX, 0.025, TZ2, false));
@@ -349,11 +343,13 @@ export function buildApartment(): StageSet {
     c.position.set(TX + Math.sin(a) * 0.76, 0, TZ2 + Math.cos(a) * 0.76);
     c.rotation.y = a + Math.PI;
     if (i === 0) {
-      // the wicker one
-      const wicker = toon('#c8a870');
-      c.add(mesh(box(0.44, 0.06, 0.42), wicker, 0, 0.45, 0));
-      c.add(mesh(box(0.44, 0.42, 0.05), toon('#ffffff', { map: stripes('#c8a870', '#a8885a', [3, 3]) }), 0, 0.72, -0.2));
-      for (const sx of [1, -1]) for (const sz of [1, -1]) c.add(mesh(box(0.04, 0.44, 0.04), wicker, sx * 0.19, 0.22, sz * 0.18, false));
+      // Plain wooden dining chair; the woven lounge chair belongs on the living-room rug.
+      c.add(mesh(box(0.44, 0.06, 0.42), chairWood, 0, 0.45, 0));
+      c.add(mesh(box(0.44, 0.06, 0.05), chairWood, 0, 0.9, -0.2));
+      for (const sx of [-1, 1]) {
+        c.add(mesh(box(0.04, 0.88, 0.04), chairWood, sx * 0.19, 0.44, -0.18, false));
+        c.add(mesh(box(0.04, 0.44, 0.04), chairWood, sx * 0.19, 0.22, 0.18, false));
+      }
     } else {
       c.add(mesh(roundedBox(0.4, 0.06, 0.4, 0.02), toon('#e0dccc'), 0, 0.46, 0));
       for (const sx of [1, -1]) {
@@ -460,10 +456,13 @@ export function buildApartment(): StageSet {
   const off = (w: THREE.Group, n: THREE.Vector3, d: number): [number, number] => [w.position.x + n.x * d, w.position.z + n.z * d];
 
   const N = nodes({
-    front: [-0.4, 1.4], center: [1.2, 0.85], left: [-2.4, 1.2], piano: [-3.6, 0.7], fire: off(fireWall, fireN, 1.0),
-    couch_l: [-2.2, -0.7], couch_r: [1.25, -0.6], back_l: [-2.3, -2.05], back: [-0.4, -2.15], back_r: [1.5, -2.15],
+    front: [-0.4, 1.1], center: [0.75, 0.65], left: [-1.55, 1.15], inner_left: [-1.35, 0.65], piano: [-3.8, 1.35], fire: off(fireWall, fireN, 1.0),
+    couch_l: [-2.2, -0.75], couch_r: [1.2, -0.5], back_l: [-2.3, -2.15], back: [-0.4, -2.2], back_r: [1.85, -2.15],
+    sofa_left: [CX - 0.9, CZ + 0.75], sofa_center: [CX, CZ + 0.75], sofa_right: [CX + 0.9, CZ + 0.75],
+    red_chair: [1.8, 0.15], lounge: [-2.45, 0.98], woven: [0.9, 0.9], rug_front: [-0.7, 1.27],
+    outer_left: [-2.5, 2.6], outer_front: [-0.7, 3.2], outer_right: [1.4, 3.2],
     plat_l: [-2.0, -3.5], plat: [-0.4, -3.6], plat_r: [1.8, -3.4],
-    door: off(doorWall, doorN, 0.95), right: [3.25, -0.2], dining: [2.1, 2.7],
+    door: off(doorWall, doorN, 0.95), right: [3.25, -0.2], dining: [2.35, 1.7], dining_side: [4.0, 1.7], dining_outer: [4.25, 3.7], dining_front: [3.05, 3.9],
     kit_out: [3.75, -0.25], kit_in: [5.0, -0.3], kitchen: [5.8, -1.2], pass: [5.6, 0.75],
   });
   const tc = (i: number, hint: string, approach: [number, number], node: string) => {
@@ -479,18 +478,18 @@ export function buildApartment(): StageSet {
     group: g,
     nodes: N,
     edges: [
-      ['front', 'center'], ['front', 'left'], ['left', 'piano'], ['left', 'couch_l'], ['couch_l', 'fire'], ['fire', 'piano'], ['fire', 'back_l'],
-      ['couch_l', 'back_l'], ['back_l', 'back'], ['back', 'back_r'], ['back_r', 'couch_r'], ['couch_r', 'center'],
+      ['front', 'center'], ['front', 'left'], ['left', 'lounge'], ['left', 'inner_left'], ['inner_left', 'sofa_left'], ['couch_l', 'fire'], ['fire', 'back_l'],
+      ['piano', 'outer_left'], ['outer_left', 'lounge'], ['outer_left', 'outer_front'], ['outer_front', 'outer_right'], ['outer_right', 'dining_front'],
+      ['couch_l', 'sofa_left'], ['sofa_left', 'sofa_center'], ['sofa_center', 'sofa_right'], ['sofa_right', 'couch_r'],
+      ['center', 'red_chair'], ['center', 'woven'], ['front', 'rug_front'],
+      ['couch_l', 'back_l'], ['back_l', 'back'], ['back', 'back_r'], ['couch_r', 'center'],
       ['back_l', 'plat_l'], ['back', 'plat'], ['back_r', 'plat_r'], ['plat_l', 'plat'], ['plat', 'plat_r'],
-      ['center', 'right'], ['right', 'door'], ['back_r', 'door'], ['front', 'dining'], ['center', 'dining'],
-      ['right', 'kit_out'], ['center', 'kit_out'], ['kit_out', 'kit_in'], ['kit_in', 'kitchen'], ['kit_in', 'pass'], ['kitchen', 'pass'],
+      ['right', 'door'], ['back_r', 'door'], ['red_chair', 'dining'], ['dining', 'right'], ['dining', 'dining_side'], ['dining_side', 'dining_outer'], ['dining_outer', 'dining_front'],
+      ['right', 'kit_out'], ['kit_out', 'kit_in'], ['kit_in', 'kitchen'], ['kit_in', 'pass'], ['kitchen', 'pass'],
     ],
     door: 'door',
     marks: {
-      couch_left: mark(CX - 0.85, CZ + 0.1, 0, 'couch_l', 'the orange couch, left cushion', { seat: 0.45, approach: [CX - 0.85, CZ + 0.75] }),
-      couch_center: mark(CX, CZ + 0.1, 0, 'couch_r', 'the orange couch, middle cushion', { seat: 0.45, approach: [CX, CZ + 0.75] }),
-      couch_right: mark(CX + 0.85, CZ + 0.1, 0, 'couch_r', 'the orange couch, right cushion', { seat: 0.45, approach: [CX + 0.85, CZ + 0.75] }),
-      armchair: mark(2.12, -0.18, -0.95, 'couch_r', 'red armchair to the right of the couch', { seat: 0.45, approach: [1.6, 0.35] }),
+      ...seating,
       piano: mark(LEFT + 1.2, PZ, -Math.PI / 2, 'piano', 'on the piano bench (under the crossed swords)', { seat: 0.53, approach: [LEFT + 1.75, PZ + 0.55] }),
       fireplace: mark(fx, fz, fireWall.rotation.y, 'fire', 'leaning on the mantel by the brick fireplace'),
       desk: mark(0.2, -3.85, 0.15, 'plat', "up on the landing at Ted's desk, behind the couch"),
@@ -502,15 +501,15 @@ export function buildApartment(): StageSet {
       kitchen_stove: mark(6.35, SZ, -1.1, 'pass', 'in the kitchen, at the stove'),
       kitchen_passthrough: mark(KX + 0.95, DZ, -Math.PI / 2, 'pass', 'in the kitchen, leaning on the pass-through window counter'),
       kitchen_doorway: mark(KX, -0.32, -1.0, 'kit_out', 'leaning in the kitchen doorway'),
-      dining_chair_1: tc(0, 'round table by the kitchen, wicker chair facing the audience', [2.05, 0.6], 'center'),
-      dining_chair_2: tc(1, 'round table by the kitchen, left chair', [1.5, 1.1], 'center'),
-      dining_chair_3: tc(2, 'round table by the kitchen, right chair (by the little desk)', [3.55, 2.15], 'dining'),
+      dining_chair_1: tc(0, 'round table by the kitchen, wooden chair facing the audience', [2.5, 1.9], 'dining'),
+      dining_chair_2: tc(1, 'round table by the kitchen, left chrome chair', [2.15, 3.55], 'dining_front'),
+      dining_chair_3: tc(2, 'round table by the kitchen, right chrome chair', [3.8, 3.55], 'dining_front'),
       little_desk: mark(LX - 0.68, DZ, Math.PI / 2, 'right', 'at the little desk under the kitchen pass-through', { seat: 0.47, approach: [3.3, 0.4] }),
-      center: mark(1.0, 1.0, -0.2, 'center', 'middle of the living room, in front of the coffee table'),
+      center: mark(0.65, 0.65, -0.2, 'center', 'middle of the living room, beside the coffee table'),
       door: mark(dx, dz, doorWall.rotation.y, 'door', 'the front door, on the angled wall upstage right'),
     },
     wides: [
-      { pos: v3(-0.1, 1.75, 5.5), target: v3(-0.2, 1.3, -2.2), fov: 52 },
+      { pos: v3(-0.1, 2.3, 6.4), target: v3(-0.3, 0.9, -0.9), fov: 52 },
       { pos: v3(-0.6, 1.6, 4.3), target: v3(-3.2, 1.1, -1.0), fov: 50 },
       { pos: v3(0.2, 1.6, 4.8), target: v3(3.6, 1.1, 0.4), fov: 50 },
       { pos: v3(5.9, 1.65, 4.0), target: v3(5.9, 1.15, -1.4), fov: 52 },
