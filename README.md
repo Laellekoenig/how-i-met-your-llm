@@ -187,7 +187,7 @@ with named marks, navigation, camera coverage, background occupants, day/night l
 The Season 10 episodes visit all four: **The Silent Auction** the store and restaurant, **The Correction** Metro News One
 (and the lecture hall in a cutaway), and **The Guest Lecture** the lecture hall.
 
-The two show-specific interiors use these online visual references:
+The show-specific sets use these online visual references:
 
 - **Metro News One**: [Robin at the anchor desk in “Come On” (S01E22)](https://www.imdb.com/title/tt0774239/)
   ([reference still](https://m.media-amazon.com/images/M/MV5BZDM2MDFhY2MtZDUzMi00NTE4LWFmNzQtMTE5YmRmNjQ3ZmQ4XkEyXkFqcGc%40._V1_.jpg)).
@@ -197,9 +197,15 @@ The two show-specific interiors use these online visual references:
   and [Prime Video's Season 5 imagery](https://www.primevideo.com/detail/How-I-Met-Your-Mother/0P557GI6F8MMATTJJ6RFJMCRWP)
   ([chalkboard still](https://m.media-amazon.com/images/S/pv-target-images/6454f55bb1ecf5d61dc284c210a45d996a20cd9dbf223027815bfe058a434c0f.jpg)).
   Dark chalkboards, cream walls, wood paneling, a lectern, and banked student seating.
+- **Lecture-hall exterior**: Columbia's Low Memorial Library, viewed from South Lawn, based on the
+  supplied photograph and [Columbia's architectural reference](https://news.columbia.edu/news/six-secrets-low-library)
+  and [campus photograph](https://president.columbia.edu/news/sharing-update-our-leadership-structure).
+  A shallow granite dome, semicircular window, ten-column portico, Low Steps, Alma Mater, campus lamps,
+  trees and students on the lawn replace the generic street frontage. The dedicated campus establishing
+  shot has a gentle forward drift and day/night lighting, without the avenue's traffic or neighboring towers.
 
 These are original procedural interpretations. Reference images are not bundled or fetched by the app;
-the store, restaurant, and destination exteriors are generic original designs.
+the store, restaurant, and other destination exteriors are generic original designs.
 
 ## City interiors and period flashbacks
 

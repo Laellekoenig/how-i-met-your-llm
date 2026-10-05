@@ -4,6 +4,7 @@ import { brick, facade, metroNewsLogo, sign, skyGradient, riverWater } from '../
 import { keyLight, v3 } from './common';
 import type { LocationId, TimeOfDay } from '../../script/types';
 import { mulberry32, pick, rand } from '../../util';
+import { buildCampusExterior } from './campusExterior';
 
 // The show's scene transitions: between scenes HIMYM cuts to New York itself, the skyline across the river or
 // the outside of wherever we're headed, usually on a guitar sting, sometimes with Future Ted talking over it.
@@ -58,7 +59,8 @@ export function buildEstablishing(): Establishing {
 
   const skyline = buildSkyline(dn, nightOnly);
   const street = buildStreet(dn, nightOnly, nightLights);
-  g.add(skyline.group, street.group);
+  const campus = buildCampusExterior(dn, nightLights);
+  g.add(skyline.group, street.group, campus);
 
   const hemi = new THREE.HemisphereLight('#8a9ac8', '#2a2420', 1.0);
   g.add(hemi);
@@ -85,8 +87,19 @@ export function buildEstablishing(): Establishing {
     group: g,
     show(kind, location, time) {
       setTime(time);
+      const atCampus = kind === 'exterior' && location === 'lecture_hall';
       skyline.group.visible = kind === 'skyline';
-      street.group.visible = kind === 'exterior';
+      street.group.visible = kind === 'exterior' && !atCampus;
+      campus.visible = atCampus;
+      // Keep the portico, steps and lawn inside the campus sun's shadow volume.
+      sun.position.set(atCampus ? -24 : -14, atCampus ? 35 : 22, atCampus ? 24 : 18);
+      sun.target.position.set(0, 0, atCampus ? 0 : -10);
+      const shadow = sun.shadow.camera;
+      shadow.left = atCampus ? -40 : -20; shadow.right = atCampus ? 40 : 20;
+      shadow.top = atCampus ? 35 : 20; shadow.bottom = atCampus ? -35 : -10;
+      shadow.far = atCampus ? 110 : 60;
+      shadow.updateProjectionMatrix();
+      if (atCampus) return shot(v3(-6, 5.6, 49), v3(0, 5, -9), 38, v3(0.13, 0.015, -0.22), v3(0.04, 0, 0));
       return kind === 'skyline' ? skyline.framing() : street.framing(location);
     },
     update(dt) {
@@ -245,7 +258,7 @@ function buildSkyline(dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Mate
 // the middle is whichever one we're cutting to: the gang's walk-up with MacLaren's on the ground floor,
 // Barney's luxury high-rise, or a glass office tower (GNB, when it's Barney's office).
 
-type Hero = 'walkup' | 'highrise' | 'glass' | 'store' | 'restaurant' | 'studio' | 'campus';
+type Hero = 'walkup' | 'highrise' | 'glass' | 'store' | 'restaurant' | 'studio';
 
 function buildStreet(
   dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh,
@@ -322,12 +335,12 @@ function buildStreet(
   }
 
   // ---- the hero buildings -----------------------------------------------------------------------------
-  const heroes: Record<Hero, THREE.Group> = { walkup: new THREE.Group(), highrise: new THREE.Group(), glass: new THREE.Group(), store: new THREE.Group(), restaurant: new THREE.Group(), studio: new THREE.Group(), campus: new THREE.Group() };
+  const heroes: Record<Hero, THREE.Group> = { walkup: new THREE.Group(), highrise: new THREE.Group(), glass: new THREE.Group(), store: new THREE.Group(), restaurant: new THREE.Group(), studio: new THREE.Group() };
   for (const [name, h] of Object.entries(heroes)) { h.name = `exterior_${name}`; g.add(h); }
   const apt = buildWalkup(heroes.walkup, dn, nightLights, FRONT);
   buildHighrise(heroes.highrise, dn, FRONT);
   const gnb = buildGlassTower(heroes.glass, dn, FRONT);
-  for (const kind of ['store', 'restaurant', 'studio', 'campus'] as const) buildPublicExterior(heroes[kind], kind, dn, FRONT);
+  for (const kind of ['store', 'restaurant', 'studio'] as const) buildPublicExterior(heroes[kind], kind, dn, FRONT);
 
   // ---- time-lapse traffic --------------------------------------------------------------------------------
   const cars: { grp: THREE.Group; dir: number; speed: number }[] = [];
@@ -381,12 +394,11 @@ function buildStreet(
     office: () => shot(v3(3.6, 1.0, 8), v3(0, 8, FRONT), 56, v3(-0.1, 0, -0.1), v3(0, 1.3, 0)),
     storefront: () => shot(v3(-3.5, 1.7, 8), v3(0, 2.9, FRONT), 48, v3(0.24, 0, -0.14)),
     studio: () => shot(v3(3.2, 1.6, 9), v3(0, 4.2, FRONT), 50, v3(-0.2, 0.08, -0.1)),
-    campus: () => shot(v3(-4.2, 1.5, 10), v3(0, 4.8, FRONT), 52, v3(0.16, 0.05, -0.1)),
     // the cars: a high, wide look down the avenue as the traffic streams by
     cars: () => shot(v3(-9, 5.5, 9.5), v3(0, 1.4, -2), 50, v3(0.9, 0, 0)),
   };
-  const HERO: Partial<Record<LocationId, Hero>> = { barneys: 'highrise', barneys_office: 'glass', office: 'glass', limo: 'highrise', metro_news_one: 'studio', store: 'store', restaurant: 'restaurant', lecture_hall: 'campus' };
-  const FRAMING: Partial<Record<LocationId, string>> = { barneys_office: 'office', limo: 'cars', taxi: 'cars', metro_news_one: 'studio', store: 'storefront', restaurant: 'storefront', lecture_hall: 'campus' };
+  const HERO: Partial<Record<LocationId, Hero>> = { barneys: 'highrise', barneys_office: 'glass', office: 'glass', limo: 'highrise', metro_news_one: 'studio', store: 'store', restaurant: 'restaurant' };
+  const FRAMING: Partial<Record<LocationId, string>> = { barneys_office: 'office', limo: 'cars', taxi: 'cars', metro_news_one: 'studio', store: 'storefront', restaurant: 'storefront' };
 
   return {
     group: g,
@@ -408,35 +420,27 @@ function buildStreet(
 }
 
 /** Distinct public destinations, so arriving at a new set never cuts through MacLaren's. */
-function buildPublicExterior(g: THREE.Group, kind: 'store' | 'restaurant' | 'studio' | 'campus',
+function buildPublicExterior(g: THREE.Group, kind: 'store' | 'restaurant' | 'studio',
   dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh, front: number) {
-  const campus = kind === 'campus', studio = kind === 'studio';
-  const color = campus ? '#b9ab92' : studio ? '#727d8b' : kind === 'store' ? '#9f7553' : '#905d49';
-  const f = facadeMats(color, campus ? 843 : studio ? 842 : 841, 10, 18);
+  const studio = kind === 'studio';
+  const color = studio ? '#727d8b' : kind === 'store' ? '#9f7553' : '#905d49';
+  const f = facadeMats(color, studio ? 842 : 841, 10, 18);
   g.add(dn(mesh(box(10, 18, 7), f.day, 0, 9, front - 3.5, false), f.day, f.night));
-  const trim = toon(campus ? '#e0d3b9' : studio ? '#bac2ca' : '#435c4d');
+  const trim = toon(studio ? '#bac2ca' : '#435c4d');
   const day = toon('#73858b'), night = glow('#f6d09b', 0.9);
-  g.add(mesh(box(10.25, 0.35, 0.45), trim, 0, campus ? 7.2 : 4.5, front + 0.18, false));
-  g.add(mesh(box(10, campus ? 6.7 : 4.2, 0.15), toon(color), 0, campus ? 3.35 : 2.1, front + 0.06, false));
+  g.add(mesh(box(10.25, 0.35, 0.45), trim, 0, 4.5, front + 0.18, false));
+  g.add(mesh(box(10, 4.2, 0.15), toon(color), 0, 2.1, front + 0.06, false));
   for (const x of [-3.2, 3.2]) {
-    g.add(dn(mesh(new THREE.PlaneGeometry(2.75, campus ? 2.9 : 2.4), day, x, campus ? 3.0 : 1.8, front + 0.15, false), day, night));
-    for (const dx of [-1.4, 0, 1.4]) g.add(mesh(box(0.09, campus ? 3.05 : 2.55, 0.07), trim, x + dx, campus ? 3.0 : 1.8, front + 0.19, false));
+    g.add(dn(mesh(new THREE.PlaneGeometry(2.75, 2.4), day, x, 1.8, front + 0.15, false), day, night));
+    for (const dx of [-1.4, 0, 1.4]) g.add(mesh(box(0.09, 2.55, 0.07), trim, x + dx, 1.8, front + 0.19, false));
   }
   g.add(mesh(box(1.7, 2.8, 0.12), toon('#34473f'), 0, 1.4, front + 0.17, false));
   g.add(dn(mesh(new THREE.PlaneGeometry(1.3, 1.7), day, 0, 1.7, front + 0.24, false), day, night));
   g.add(mesh(box(0.06, 2.6, 0.04), trim, 0, 1.4, front + 0.26, false));
-  const title = campus ? 'ARCHITECTURE' : studio ? 'METRO NEWS ONE' : kind === 'store' ? 'NEIGHBORHOOD GOODS' : 'THE RESTAURANT';
+  const title = studio ? 'METRO NEWS ONE' : kind === 'store' ? 'NEIGHBORHOOD GOODS' : 'THE RESTAURANT';
   const signBg = kind === 'restaurant' ? '#613329' : '#253f38';
-  g.add(mesh(new THREE.PlaneGeometry(8.6, 0.68), new THREE.MeshBasicMaterial({ map: sign(title, '#f3ddb1', signBg, 512, 64, 'bold 33px Georgia') }), 0, campus ? 6.65 : 3.83, front + 0.25, false));
-  if (campus) {
-    for (const x of [-4.6, -1.5, 1.5, 4.6]) {
-      g.add(mesh(cyl(0.2, 0.26, 5.0, 10), trim, x, 3.0, front + 0.55, false));
-      g.add(mesh(box(0.66, 0.24, 0.66), trim, x, 5.6, front + 0.55, false));
-      g.add(mesh(box(0.65, 0.35, 0.65), trim, x, 0.57, front + 0.55, false));
-    }
-    for (let i = 0; i < 3; i++) g.add(mesh(box(10.2, 0.16, 0.48), trim, 0, 0.08 + (2 - i) * 0.16, front + 0.25 + i * 0.48, false));
-    g.add(mesh(box(10.1, 0.4, 1.0), trim, 0, 5.99, front + 0.45, false));
-  } else if (studio) {
+  g.add(mesh(new THREE.PlaneGeometry(8.6, 0.68), new THREE.MeshBasicMaterial({ map: sign(title, '#f3ddb1', signBg, 512, 64, 'bold 33px Georgia') }), 0, 3.83, front + 0.25, false));
+  if (studio) {
     g.add(mesh(new THREE.PlaneGeometry(3.4, 1.15), new THREE.MeshBasicMaterial({ map: metroNewsLogo() }), 0, 5.65, front + 0.18, false));
     g.add(mesh(cyl(0.9, 0.25, 0.25, 12), toon('#c4c8ca'), 2.4, 18.45, front - 1.6, false).rotateZ(0.55));
   } else {
