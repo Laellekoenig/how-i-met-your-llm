@@ -17,7 +17,6 @@
             <div id="viewport"></div>
 
             <div id="loc-label" class="hidden"></div>
-            <div id="onair" class="hidden"><span class="dot"></span><span>LIVE · LLM</span></div>
 
             <div id="year" class="hidden">2030</div>
 
@@ -66,7 +65,7 @@
       <aside id="panel">
         <header>
           <div class="logo small">how i met your <span class="llm">llm</span></div>
-          <div class="tagline">an endless sitcom, written live by a language model</div>
+          <div class="tagline">an endless sitcom, written by language models</div>
         </header>
 
         <section id="now">
@@ -75,36 +74,6 @@
           <div id="now-title">Waiting to tune in…</div>
           <div id="now-logline"></div>
           <div id="now-meta"></div>
-        </section>
-
-        <section id="writers">
-          <h3>writers' room <span class="sub">via OpenRouter</span></h3>
-          <label>API key
-            <input id="api-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false" />
-          </label>
-          <label>model
-            <input id="model" list="model-list" spellcheck="false" />
-            <datalist id="model-list"></datalist>
-          </label>
-          <label class="check"><input id="remember-key" type="checkbox" checked /> remember key in this browser</label>
-          <div class="row">
-            <button id="btn-write" class="primary">start writing</button>
-            <span id="writer-status" class="status">offline</span>
-          </div>
-          <div id="writer-stats"></div>
-          <details id="writer-log-wrap">
-            <summary>writers' log</summary>
-            <ol id="writer-log"></ol>
-          </details>
-        </section>
-
-        <section id="pitch">
-          <h3>pitch an episode</h3>
-          <div class="row">
-            <input id="pitch-input" placeholder="e.g. Barney tries to get banned from a Costco" />
-            <button id="btn-pitch">pitch</button>
-          </div>
-          <div id="pitch-queue"></div>
         </section>
 
         <section id="transcript-wrap">

@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import * as THREE from 'three';
 import { testStage } from './helpers/sets';
-import { normalizeGuests, normalizeScene } from '../src/llm/normalize';
-import { RERUNS, sampleCount, sampleEpisode } from '../src/script/samples';
+import { EPISODES, EPISODE_FILES, rerun } from './helpers/episodes';
+import { validateCatalog, validateEpisode } from '../src/script/validate';
+import { episodeItems } from '../src/script/episodes';
 import { CHARACTERS, charName, setGuests } from '../src/world/characters';
 import { Director } from '../src/show/director';
 import { Player } from '../src/show/player';
 import { speech } from '../src/audio/speech';
-import { isGuest, type Beat, type CutawayBeat, type GuestStar, type Scene, type ShowItem } from '../src/script/types';
+import type { Beat, EpisodeScript, GuestStar, ShowItem } from '../src/script/types';
 
 const spies: { mockRestore(): void }[] = [];
 afterEach(() => {
@@ -15,138 +16,122 @@ afterEach(() => {
   setGuests([]);
 });
 
-const nora = { name: 'Nora Vale', role: "Ted's date", gender: 'female', top: 'burgundy', top_style: 'dress', hair: 'brunette', hair_style: 'bob' };
+const nora: GuestStar = {
+  id: 'guest1', name: 'Nora Vale', role: "Ted's date", gender: 'female', height: 'average', build: 'slim', skin: 'olive',
+  hair: 'dark_brown', hairStyle: 'bob', top: 'burgundy', topStyle: 'dress', pants: 'black', extras: [], voice: { pitch: 'medium', pace: 'normal' },
+};
+const dmitri: GuestStar = { ...nora, id: 'guest2', name: 'Dmitri', gender: 'male', height: 'tall', build: 'broad', hairStyle: 'short', topStyle: 'suit', top: 'black' };
+
+const sets = testStage().sets;
+const messages = (ep: unknown) => validateEpisode(ep, sets).errors.map((e) => `${e.path}: ${e.message}`);
+
+/** A minimal valid episode, for breaking one thing at a time. */
+function episode(beats: Beat[], extra: Partial<EpisodeScript> = {}): EpisodeScript {
+  return {
+    code: 'S99E01', title: 'The Test', logline: 'A test.', coldOpen: 'Kids, this is a test.', guests: [nora],
+    scenes: [{ location: 'maclarens', time: 'night', cast: [{ character: 'ted', mark: 'booth_end' }, { character: 'guest1', mark: 'booth_left_back' }], beats }],
+    ...extra,
+  };
+}
 
 describe('guest stars', () => {
-  test('the planner’s guests fill slots in order with plain-word looks, and odd values fall back', () => {
-    const guests = normalizeGuests([
-      nora,
-      { name: 'Dmitri', gender: 'male', height: 'tall', build: 'broad', skin: 'pale', top: '#ffffff', top_style: 'button-down', vest: 'black', extras: ['mustache', 'jetpack'], voice: { pitch: 'low', pace: 'warp' } },
-      { name: 'nora vale', gender: 'female' }, // duplicate name
-      { name: 'Gus', gender: 'm', top_style: 'cape', top: 'chartreuse' },
-      { name: 'Fourth', gender: 'female' },
-    ]);
-    expect(guests.map((g) => [g.id, g.name])).toEqual([['guest1', 'Nora Vale'], ['guest2', 'Dmitri'], ['guest3', 'Gus']]);
-    expect(guests[0]).toMatchObject({ gender: 'female', hair: 'dark_brown', hairStyle: 'bob', topStyle: 'dress', top: 'burgundy' });
-    expect(guests[1]).toMatchObject({ height: 'tall', build: 'broad', skin: 'fair', top: '#ffffff', topStyle: 'shirt', vest: 'black', extras: ['mustache'], voice: { pitch: 'low', pace: 'normal' } });
-    expect(guests[2]).toMatchObject({ gender: 'male', topStyle: 'blazer', top: 'navy' });
-  });
-
-  test('scene beats address guests by slot or by name, and an uncast slot never speaks', () => {
-    const guests = normalizeGuests([nora]);
-    const scene = normalizeScene({
-      cast: [{ character: 'Nora', mark: 'table_right' }, { character: 'ted', mark: 'table_left' }, { character: 'guest2', mark: 'center' }],
-      beats: [
-        { type: 'say', character: 'Nora Vale', line: 'Hi.', to: 'Ted' },
-        { type: 'say', character: 'ted', line: 'Hi, Nora.', to: 'nora' },
-        { type: 'say', character: 'guest2', line: 'I was never cast.' },
-        { type: 'say', character: 'guest1', line: 'Still me.' },
-      ],
-    }, 'restaurant', 'night', undefined, { guests });
-    expect(scene.cast.map((c) => c.character)).toEqual(['guest1', 'ted']);
-    expect(scene.beats).toEqual([
-      expect.objectContaining({ character: 'guest1', to: 'ted' }),
-      expect.objectContaining({ character: 'ted', to: 'guest1' }),
-      expect.objectContaining({ character: 'guest1', line: 'Still me.' }),
-    ]);
-  });
-
   test('casting an episode renames and rebuilds the slots; the next episode resets the unused ones', () => {
     const stage = testStage();
-    const [g1, g2] = normalizeGuests([nora, { name: 'Dmitri', gender: 'male', height: 'tall', top_style: 'suit', top: 'black' }]);
     const before = stage.actors.guest1;
-    stage.castGuests([g1, g2]);
+    stage.castGuests([nora, dmitri]);
     expect(charName('guest1')).toBe('Nora Vale');
     expect(CHARACTERS.guest2.voice.gender).toBe('male');
     expect(stage.actors.guest1).not.toBe(before);
     expect(stage.actors.guest2.height).toBeGreaterThan(stage.actors.guest1.height);
     const nextWeek = stage.actors.guest2;
-    stage.castGuests([g1]);
+    stage.castGuests([nora]);
     expect(stage.actors.guest1.def.name).toBe('Nora Vale');
     expect(charName('guest2')).toBe('Guest');
     expect(stage.actors.guest2).not.toBe(nextWeek);
     // casting the same people again doesn't rebuild anyone
     const kept = stage.actors.guest1;
-    stage.castGuests([g1]);
+    stage.castGuests([nora]);
     expect(stage.actors.guest1).toBe(kept);
   });
-});
 
-describe('cutaways', () => {
-  test('a cutaway keeps its own set, time, label and cast; nesting flattens and the couch is not a cutaway location', () => {
-    const scene = normalizeScene({
-      cast: [{ character: 'barney', mark: 'booth_right_front' }],
-      beats: [
-        { type: 'say', character: 'barney', line: "Here's how it'll go." },
-        {
-          type: 'flashback', label: 'Three years earlier', location: 'the roof', cast: [{ character: 'Barney Stinson', mark: 'ledge_lookout' }],
-          beats: [
-            { type: 'say', character: 'barney', line: 'Challenge accepted.' },
-            { type: 'cutaway', location: 'limo', beats: [{ type: 'say', character: 'ranjit', line: 'Hello!' }] },
-          ],
-        },
-        { type: 'cutaway', location: 'future', beats: [{ type: 'narrate', line: 'Kids, the couch is real.' }] },
-        { type: 'cutaway', style: 'imagined', location: 'store', beats: [] },
-      ],
-    }, 'maclarens', 'day');
-    expect(scene.beats.map((b) => b.type)).toEqual(['say', 'cutaway', 'narrate']);
-    const c = scene.beats[1] as CutawayBeat;
-    expect(c).toMatchObject({ style: 'flashback', label: 'Three years earlier', location: 'rooftop', time: 'day', cast: [{ character: 'barney', mark: 'ledge_lookout' }] });
-    expect(c.beats.map((b) => b.type === 'say' && b.character)).toEqual(['barney', 'ranjit']);
-  });
-
-  test('cutaway beats count toward the scene budget', () => {
-    const many = Array.from({ length: 50 }, (_, i) => ({ type: 'say', character: 'ted', line: `Line ${i}` }));
-    const scene = normalizeScene({ beats: [...many.slice(0, 40), { type: 'cutaway', location: 'store', beats: many }, ...many] }, 'maclarens', 'night');
-    const count = (beats: Beat[]): number => beats.reduce((n, b) => n + 1 + (b.type === 'cutaway' ? count(b.beats) : 0), 0);
-    expect(count(scene.beats)).toBeLessThanOrEqual(70);
-    expect((scene.beats[40] as CutawayBeat).beats.length).toBeLessThanOrEqual(24);
+  test('guests fill their slots in order, in words the wardrobe knows, and an uncast slot never speaks', () => {
+    const say = (character: string): Beat => ({ type: 'say', character, line: 'Hi.' } as Beat);
+    expect(messages(episode([say('guest1')]))).toEqual([]);
+    expect(messages(episode([say('guest1')], { guests: [{ ...nora, id: 'guest2' }] })).join('\n')).toContain('"id": "guest1"');
+    const odd = { ...nora, top: 'chartreuse', extras: ['jetpack'], hairStyle: 'mohawk', voice: { pitch: 'low', pace: 'warp' } } as unknown as GuestStar;
+    expect(messages(episode([say('guest1')], { guests: [odd] }))).toHaveLength(4);
+    expect(messages(episode([say('guest1'), say('guest2')])).join('\n')).toContain("guest2 isn't cast");
   });
 });
 
-describe('delivery', () => {
-  test('delivery words are recognized and an interrupted line always ends on a dash', () => {
-    const scene = normalizeScene({
-      beats: [
-        { type: 'say', character: 'marshall', line: 'Speak up!', delivery: 'YELLING' },
-        { type: 'say', character: 'lily', line: 'There it is.', delivery: 'whispered' },
-        { type: 'say', character: 'ted', line: 'Actually, it is...', interrupted: true },
-        { type: 'say', character: 'ted', line: 'Fine.', delivery: 'interpretive dance' },
-      ],
-    }, 'apartment', 'night');
-    expect(scene.beats).toEqual([
-      expect.objectContaining({ delivery: 'shout' }),
-      expect.objectContaining({ delivery: 'whisper' }),
-      expect.objectContaining({ line: 'Actually, it is—', interrupted: true }),
-      expect.not.objectContaining({ delivery: expect.anything() }),
-    ]);
+describe('the validator', () => {
+  const say = (character: string, line = 'Hi.', more: object = {}) => ({ type: 'say', character, line, ...more } as Beat);
+  const errors = (beats: Beat[], extra?: Partial<EpisodeScript>) => messages(episode(beats, extra)).join('\n');
+
+  test('everyone who speaks, moves or leaves is on stage', () => {
+    expect(errors([say('robin')])).toContain("robin isn't on stage here");
+    expect(errors([{ type: 'enter', character: 'robin', to: 'bar_standing' }, say('robin'), { type: 'exit', character: 'robin' }, say('robin')]))
+      .toMatch(/^scenes\[0\]\.beats\[3\]: robin isn't on stage/);
+    expect(errors([{ type: 'enter', character: 'ted' }])).toContain('ted is already on stage');
+    expect(errors([{ type: 'move', character: 'ted', to: 'guest1' }, { type: 'move', character: 'ted', to: 'booth_left_back' }])).toContain('"booth_left_back" is taken by guest1');
+    expect(errors([{ type: 'move', character: 'ted', to: 'the_moon' }])).toContain('neither a mark at maclarens');
+  });
+
+  test('the kids stay on the couch', () => {
+    expect(errors([say('penny', 'Dad.')])).toBe('');
+    expect(errors([{ type: 'enter', character: 'luke' }])).toContain('never leaves the 2030 couch');
+    expect(errors([], { scenes: [{ location: 'maclarens', time: 'night', cast: [{ character: 'penny', mark: 'booth_end' }], beats: [say('ted')] }] })).toContain('only ever on the 2030 couch');
+  });
+
+  test('lines are performable: no stage directions, not too long, interruptions land', () => {
+    expect(errors([say('ted', 'Well (sighs) okay.')])).toContain('no stage directions');
+    expect(errors([say('ted', Array(36).fill('word').join(' '))])).toContain('36 words');
+    expect(errors([say('ted', 'Actually, it is pronounced', { interrupted: true }), say('guest1')])).toContain('em dash');
+    expect(errors([say('ted', 'Actually—', { interrupted: true })])).toContain('followed straight away');
+    expect(errors([say('ted', 'Actually—', { interrupted: true }), say('guest1', 'No.')])).toBe('');
+  });
+
+  test('typos and invented vocabulary are caught, not guessed at', () => {
+    expect(errors([{ ...say('ted'), emotions: 'happy' } as Beat])).toContain('unknown field "emotions"');
+    expect(errors([say('ted', 'Hi.', { gesture: 'moonwalk' })])).toContain('"gesture": "moonwalk" is not one of');
+    expect(errors([say('Ted Mosby')])).toContain('is not a character id');
+    expect(errors([{ type: 'dialogue' } as unknown as Beat])).toContain('"type": "dialogue"');
+  });
+
+  test('cutaways use their own set and cast, and never nest', () => {
+    const cutaway = (beats: Beat[]) => ({ type: 'cutaway', style: 'imagined', label: 'How Ted imagined it', location: 'rooftop', time: 'night', cast: [{ character: 'ted', mark: 'ledge_lookout' }], beats }) as Beat;
+    expect(errors([cutaway([say('ted'), say('ted'), say('ted')])])).toBe('');
+    expect(errors([cutaway([say('guest1')])])).toContain("guest1 isn't on stage");
+    expect(errors([cutaway([cutaway([say('ted')])])])).toContain('no cutaways inside a cutaway');
+  });
+
+  test('in a car, nobody slides through the partition', () => {
+    const limo = (beats: Beat[]): Partial<EpisodeScript> => ({ scenes: [{ location: 'limo', time: 'night', cast: [{ character: 'barney', mark: 'bench_2' }, { character: 'ranjit', mark: 'driver' }], beats }] });
+    expect(errors([], limo([{ type: 'move', character: 'barney', to: 'bench_3' }]))).toBe('');
+    expect(errors([], limo([{ type: 'move', character: 'barney', to: 'driver_door' }]))).toContain('different compartments');
+  });
+
+  test('codes and titles are unique across the catalog', () => {
+    const a = episode([]);
+    expect(validateCatalog([{ file: 'a.json', episode: a }, { file: 'b.json', episode: { ...a, code: 'S99E02' } }]).map((i) => i.message)).toEqual(['same title as a.json: The Test']);
   });
 });
 
-describe('the offline reruns', () => {
-  const sets = testStage().sets;
-  const deliveries = (beats: Beat[]): string[] => beats.flatMap((b) =>
-    b.type === 'cutaway' ? deliveries(b.beats) : b.type === 'say' ? [b.delivery ?? '', b.interrupted ? 'interrupted' : ''] : []);
+describe('the catalog', () => {
+  for (const file of EPISODE_FILES) test(`${file} is performable as written`, () => {
+    const ep = EPISODES.find((e) => file.startsWith(`${e.code.toLowerCase()}-`));
+    expect(ep, 'file name starts with its episode code').toBeDefined();
+    expect(messages(ep)).toEqual([]);
+  });
 
-  for (const ep of RERUNS) test(`${ep.meta.title} casts its guests, cuts away, and survives normalization unchanged`, () => {
-    const scenes = ep.scenes.flatMap((s) => [s as Pick<Scene, 'location' | 'cast' | 'beats'>, ...s.beats.filter((b): b is CutawayBeat => b.type === 'cutaway')]);
-    const cast = new Set(ep.guests!.map((g) => g.id));
-    const speakers = new Set<string>();
-    for (const s of scenes) {
-      for (const c of s.cast) expect(sets[s.location].marks[c.mark], `${s.location}/${c.mark}`).toBeDefined();
-      for (const b of s.beats) {
-        if ('character' in b && isGuest(b.character)) expect(cast.has(b.character)).toBe(true);
-        if (b.type === 'say') speakers.add(b.character);
-        if ((b.type === 'move' || b.type === 'enter') && b.to && !(b.to in sets[s.location].marks)) expect(b.to in CHARACTERS, `${s.location}/${b.to}`).toBe(true);
-      }
-    }
-    for (const id of cast) expect(speakers.has(id)).toBe(true);
-    expect(scenes.length).toBeGreaterThan(ep.scenes.length);
-    for (const s of ep.scenes) expect(normalizeScene({ ...s }, s.location, s.time, undefined, { guests: ep.guests as GuestStar[] }).beats).toEqual(s.beats);
+  test('every code and title is unique', () => {
+    expect(validateCatalog(EPISODES.map((episode, i) => ({ file: EPISODE_FILES[i], episode })))).toEqual([]);
   });
 
   test('between them, every delivery, both cutaway styles and every transition', () => {
-    const scenes = RERUNS.flatMap((ep) => ep.scenes);
+    const deliveries = (beats: Beat[]): string[] => beats.flatMap((b) =>
+      b.type === 'cutaway' ? deliveries(b.beats) : b.type === 'say' ? [b.delivery ?? '', b.interrupted ? 'interrupted' : ''] : []);
+    const scenes = EPISODES.flatMap((ep) => ep.scenes);
     const used = new Set(scenes.flatMap((s) => deliveries(s.beats)));
     for (const d of ['whisper', 'shout', 'sing', 'deadpan', 'fast', 'slow', 'interrupted']) expect(used.has(d), d).toBe(true);
     const styles = new Set(scenes.flatMap((s) => s.beats.flatMap((b) => b.type === 'cutaway' ? [b.style] : [])));
@@ -154,12 +139,11 @@ describe('the offline reruns', () => {
     expect(new Set(scenes.map((s) => s.transition))).toEqual(new Set(['cut', 'skyline', 'exterior', 'rewind']));
   });
 
-  test('they air with their guests in the rotation', () => {
-    const items = Array.from({ length: sampleCount() }, () => sampleEpisode()).flat();
-    for (const ep of RERUNS) {
-      const start = items.find((i) => i.kind === 'episode-start' && i.episode.title === ep.meta.title);
-      expect(start?.kind === 'episode-start' && start.guests?.map((g) => g.name)).toEqual(ep.guests!.map((g) => g.name));
-    }
+  test('an episode airs from its cold open, with its guests, to its credits', () => {
+    const ep = rerun('The Guest Lecture');
+    const items = episodeItems(ep, 'x');
+    expect(items.map((i) => i.kind)).toEqual(['episode-start', ...ep.scenes.map(() => 'scene'), 'episode-end']);
+    expect(items[0].kind === 'episode-start' && items[0].guests?.map((g) => g.name)).toEqual(ep.guests!.map((g) => g.name));
   });
 });
 
@@ -177,9 +161,9 @@ describe('cutaway playback', () => {
       spoken.push({ who: key, set: stage.current.id, dream: renderer.dream, memory: renderer.memory, delivery: opts.delivery, cutOff: opts.cutOff });
       return { done: Promise.resolve() };
     }));
-    const ep = RERUNS.find((e) => e.meta.title === 'The Silent Auction')!;
+    const ep = rerun('The Silent Auction');
     const [first, , third] = ep.scenes;
-    const episode = { id: 'auction', code: ep.meta.code, title: ep.meta.title, logline: '', source: 'sample' as const };
+    const episode = { id: 'auction', code: ep.code, title: ep.title, logline: '' };
     // the store scene's imagined auction, then the flashback back home, no transitions in between
     const items: ShowItem[] = [
       { kind: 'scene', episode, index: 0, scene: { ...first, transition: 'cut' } },

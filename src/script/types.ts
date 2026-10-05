@@ -1,9 +1,9 @@
-// The script language shared by the LLM, the sample episodes and the player.
+// The script language shared by the episode files (episodes/*.json), the validator and the player.
 
 export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'guest1', 'guest2', 'guest3', 'penny', 'luke'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
-/** One-off guest stars (Ted's date, Barney's mark, a bouncer): slots the episode planner recasts every episode. */
+/** One-off guest stars (Ted's date, Barney's mark, a bouncer): slots each episode recasts. */
 export const GUEST_IDS = ['guest1', 'guest2', 'guest3'] as const satisfies readonly CharacterId[];
 export type GuestId = (typeof GUEST_IDS)[number];
 export const isGuest = (id: string | undefined): id is GuestId => (GUEST_IDS as readonly string[]).includes(id ?? '');
@@ -42,7 +42,7 @@ export type Delivery = (typeof DELIVERIES)[number];
 export const CUTAWAY_STYLES = ['imagined', 'flashback'] as const;
 export type CutawayStyle = (typeof CUTAWAY_STYLES)[number];
 
-// What the writer can say about a guest star's look. Kept to plain words so any model can describe someone.
+// What a writer can say about a guest star's look, in plain words.
 export const GUEST_SKIN = ['fair', 'light', 'olive', 'tan', 'brown', 'dark'] as const;
 export const GUEST_HAIR = ['black', 'dark_brown', 'brown', 'auburn', 'red', 'blonde', 'gray', 'white'] as const;
 export const GUEST_HAIR_STYLES = ['short', 'buzz', 'neat', 'slick', 'messy', 'shaggy', 'swoop', 'receding', 'curly', 'bob', 'long', 'waves', 'ponytail', 'updo'] as const;
@@ -143,7 +143,19 @@ export interface EpisodeMeta {
   title: string;
   logline: string;
   code: string; // e.g. "S04E12"
-  source: 'sample' | 'llm';
+}
+
+/** One pre-written episode, as stored in episodes/<code>-<slug>.json. */
+export interface EpisodeScript {
+  code: string;
+  title: string;
+  logline: string;
+  /** Future Ted over the kids on the couch in 2030: "Kids, ..." */
+  coldOpen: string;
+  /** The kids' reaction to the cold open: say beats by penny/luke and Future Ted's narrate answers. */
+  couch?: Beat[];
+  guests?: GuestStar[];
+  scenes: Scene[];
 }
 
 // Items the player consumes, in order.

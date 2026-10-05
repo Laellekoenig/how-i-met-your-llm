@@ -16,7 +16,6 @@ export class Overlay {
   private standbyEl = $('standby');
   private standbyMsg = $('standby-msg');
   private loc = $('loc-label');
-  private onair = $('onair');
   private yearEl = $('year');
 
   showCaption(name: string, color: string, text: string, narration = false, delivery?: Delivery) {
@@ -139,10 +138,6 @@ export class Overlay {
     this.standbyEl.classList.toggle('hidden', !on);
     if (msg) this.standbyMsg.textContent = msg;
   }
-
-  setLive(live: boolean) {
-    this.onair.classList.toggle('hidden', !live);
-  }
 }
 
 /** Sidebar transcript + now-playing widgets. */
@@ -155,12 +150,6 @@ export class Panel {
     $('now-logline').textContent = ep.logline;
     const m = $('now-meta');
     m.innerHTML = '';
-    if (ep.source === 'llm') {
-      const src = document.createElement('span');
-      src.className = 'badge live';
-      src.textContent = 'freshly written';
-      m.appendChild(src);
-    }
     for (const t of meta) {
       const b = document.createElement('span');
       b.className = 'badge';
