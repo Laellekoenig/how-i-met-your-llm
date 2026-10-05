@@ -1,0 +1,136 @@
+{
+  "code": "S10E01",
+  "title": "The Understudy",
+  "logline": "Barney hires a community-theater actor to be Barney at the boring parts of his life. The actor turns out to be a better Barney than Barney.",
+  "coldOpen": "Kids, in the winter of 2009, your Uncle Barney had a problem. There was only one of him. So he held auditions.",
+  "couch": [
+    { "type": "say", "character": "luke", "line": "Please tell me he built a robot.", "emotion": "bored" },
+    { "type": "narrate", "line": "Worse. He hired an actor.", "laugh": "chuckle" }
+  ],
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Gordon",
+      "role": "a community-theater actor Barney hires to play Barney, who goes so deep into the role that he improves it",
+      "gender": "male",
+      "height": "tall",
+      "build": "slim",
+      "skin": "fair",
+      "hair": "blonde",
+      "hairStyle": "slick",
+      "top": "charcoal",
+      "topStyle": "suit",
+      "under": "white",
+      "tie": "red",
+      "pants": "charcoal",
+      "extras": ["mustache"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    }
+  ],
+  "scenes": [
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "skyline",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "robin", "mark": "booth_right_back" },
+        { "character": "barney", "mark": "booth_right_front" }
+      ],
+      "beats": [
+        { "type": "say", "character": "barney", "line": "Tonight I have two places to be. A rooftop party with a ball pit, and my mother’s book club.", "emotion": "smug", "gesture": "hands_up" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "So pick one.", "emotion": "bored" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Lily, legends don’t pick. Legends delegate.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Barney. What did you do?", "emotion": "nervous" },
+        { "type": "say", "character": "barney", "line": "I held auditions. Ladies, gentlemen, Marshall: meet my understudy.", "emotion": "excited", "gesture": "suit_up" },
+        { "type": "enter", "character": "guest1", "to": "booth_side" },
+        { "type": "say", "character": "guest1", "line": "Suit up!", "delivery": "shout", "emotion": "excited", "gesture": "suit_up", "laugh": "big" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Barney, he has a mustache.", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Barney has always wanted a mustache. He’s just afraid of what it says about him.", "delivery": "slow", "laugh": "ooh" },
+        { "type": "act", "character": "barney", "gesture": "think" },
+        { "type": "say", "character": "barney", "line": "He’s very good.", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "So he goes to the book club, and you go to the ball pit?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "And to work. Gordon covers work too. Here’s how I see that going.", "emotion": "smug" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "label": "How Barney imagined it",
+          "location": "barneys_office",
+          "time": "day",
+          "cast": [{ "character": "guest1", "mark": "desk_chair" }, { "character": "arthur", "mark": "guest_chair_left" }],
+          "beats": [
+            { "type": "say", "character": "arthur", "to": "guest1", "line": "Stinson! The ethics seminar started an hour ago!", "emotion": "angry", "gesture": "point" },
+            { "type": "say", "character": "guest1", "to": "arthur", "line": "Please.", "delivery": "deadpan" },
+            { "type": "say", "character": "arthur", "to": "guest1", "line": "You’re right. Ethics can wait.", "emotion": "nervous", "laugh": "laugh" }
+          ]
+        },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Nobody knows how your job works. How does he know how your job works?", "emotion": "confused", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Barney knows, Ted. Barney just doesn’t tell you.", "emotion": "smug", "laugh": "ooh" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "That was creepy. And exactly right.", "delivery": "whisper", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Gordon, go. Book club starts at eight. Don’t touch the cheese plate.", "gesture": "point" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Barney would touch the cheese plate.", "emotion": "smug" },
+        { "type": "exit", "character": "guest1" },
+        { "type": "say", "character": "barney", "line": "He’s right. I would.", "emotion": "sad", "laugh": "big" }
+      ]
+    },
+    {
+      "location": "barneys_office",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [{ "character": "guest1", "mark": "desk_chair" }, { "character": "arthur", "mark": "desk_edge" }, { "character": "marshall", "mark": "guest_chair_left" }],
+      "beats": [
+        { "type": "narrate", "line": "On Monday, Marshall stopped by to see if Barney still worked there." },
+        { "type": "say", "character": "arthur", "to": "guest1", "line": "Stinson, this report is concise, accurate and on time. Who are you?", "emotion": "surprised", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "arthur", "line": "Barney Stinson. Senior vice president of Please.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "Gordon. Barney has never handed in a report. Not once.", "delivery": "whisper", "emotion": "nervous" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Barney has never been given the chance.", "delivery": "whisper", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "arthur", "to": "guest1", "line": "I’m putting you in charge of the Tugboat Foundation. It’s a charity. For my dog.", "emotion": "happy" },
+        { "type": "say", "character": "guest1", "to": "arthur", "line": "Sir, I would be honored to serve Tugboat.", "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "arthur", "to": "guest1", "line": "He’s going to love you.", "emotion": "happy", "laugh": "aww" },
+        { "type": "enter", "character": "barney", "to": "center" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Gordon! Why are you at my desk? That chair is calibrated to my—", "interrupted": true, "emotion": "angry" },
+        { "type": "say", "character": "arthur", "to": "guest1", "line": "Who is this man?", "emotion": "angry" },
+        { "type": "say", "character": "guest1", "to": "arthur", "line": "Never seen him before in my life.", "delivery": "deadpan", "laugh": "big" },
+        { "type": "say", "character": "arthur", "line": "Security!", "delivery": "shout", "emotion": "angry", "gesture": "point" },
+        { "type": "act", "character": "barney", "emotion": "surprised", "gesture": "hands_up" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "In his defense, new Barney is really nice to me.", "emotion": "nervous", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "cast": [
+        { "character": "guest1", "mark": "booth_end" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "robin", "mark": "booth_right_back" },
+        { "character": "ted", "mark": "booth_side" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "By Friday, the understudy had Barney’s job, Barney’s apartment and, somehow, my seat." },
+        { "type": "say", "character": "lily", "to": "guest1", "line": "Gordon, you remembered our class hamster’s birthday.", "emotion": "happy" },
+        { "type": "say", "character": "guest1", "to": "lily", "line": "Barney cares, Lily. He just hides it under a suit.", "laugh": "aww" },
+        { "type": "enter", "character": "barney", "to": "bar_standing" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Okay! Gordon, you’re fired. Effective immediately.", "emotion": "angry", "gesture": "point" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "You can’t fire Barney Stinson.", "emotion": "smug" },
+        { "type": "say", "character": "barney", "line": "I am Barney Stinson!", "delivery": "shout", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Are you, though? He’s been to the gym four times this week.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "enter", "character": "quinn", "to": "center" },
+        { "type": "say", "character": "guest1", "to": "quinn", "line": "Quinn. You look stunning. Let me buy you a drink.", "emotion": "flirty" },
+        { "type": "say", "character": "quinn", "to": "guest1", "line": "Nice try. Barney has never once bought me a drink.", "emotion": "smug", "laugh": "ooh" },
+        { "type": "move", "character": "quinn", "to": "barney" },
+        { "type": "say", "character": "quinn", "to": "barney", "line": "Hi, you. Your understudy tips better.", "emotion": "flirty" },
+        { "type": "say", "character": "barney", "to": "quinn", "line": "Finally. Someone who can tell the real Barney from a fake one.", "emotion": "happy" },
+        { "type": "say", "character": "quinn", "to": "barney", "line": "It’s the mustache. You’d never commit.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "line": "The curtain falls on Barney, and the understudy takes a bow!", "delivery": "sing", "emotion": "happy", "gesture": "hands_up", "laugh": "big" },
+        { "type": "exit", "character": "guest1" },
+        { "type": "narrate", "line": "Gordon went on to play Barney at four bar mitzvahs and one divorce hearing. Rave reviews.", "laugh": "laugh" },
+        { "type": "say", "character": "luke", "line": "Did Uncle Barney ever get his job back?", "emotion": "bored" },
+        { "type": "narrate", "line": "He did. Gordon got the promotion.", "laugh": "big" }
+      ]
+    }
+  ]
+}

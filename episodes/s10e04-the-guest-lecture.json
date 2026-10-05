@@ -1,0 +1,147 @@
+{
+  "code": "S10E04",
+  "title": "The Guest Lecture",
+  "logline": "Ted’s architecture idol agrees to guest-lecture his class, and remembers him as the boy who sent her forty fan letters.",
+  "coldOpen": "Kids, in 1997 I wrote a fan letter to the greatest architect alive. In 2010 she finally answered it. In front of my class.",
+  "couch": [
+    { "type": "say", "character": "luke", "line": "Was it a restraining order?", "emotion": "bored" },
+    { "type": "narrate", "line": "It was not a restraining order.", "laugh": "chuckle" }
+  ],
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Ingrid Solberg",
+      "role": "a legendary Norwegian architect who speaks slowly, profoundly, and mostly against buildings",
+      "gender": "female",
+      "height": "tall",
+      "build": "slim",
+      "skin": "fair",
+      "hair": "white",
+      "hairStyle": "bob",
+      "top": "black",
+      "topStyle": "sweater",
+      "pants": "black",
+      "extras": ["glasses"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    },
+    {
+      "id": "guest2",
+      "name": "Wade",
+      "role": "Ted’s most eager student, who asks three questions per breath and records everything",
+      "gender": "male",
+      "height": "short",
+      "build": "slim",
+      "skin": "light",
+      "hair": "red",
+      "hairStyle": "messy",
+      "top": "green",
+      "topStyle": "cardigan",
+      "under": "white",
+      "pants": "tan",
+      "extras": ["glasses"],
+      "voice": { "pitch": "high", "pace": "fast" }
+    }
+  ],
+  "scenes": [
+    {
+      "location": "rooftop",
+      "time": "night",
+      "transition": "skyline",
+      "cast": [
+        { "character": "ted", "mark": "ledge_seat_left" },
+        { "character": "marshall", "mark": "lawn_chair_left" },
+        { "character": "lily", "mark": "lawn_chair_middle" },
+        { "character": "robin", "mark": "lawn_chair_right" },
+        { "character": "barney", "mark": "cooler" }
+      ],
+      "beats": [
+        { "type": "say", "character": "ted", "line": "Ingrid Solberg is guest-lecturing my class tomorrow. The Ingrid Solberg.", "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Never heard of her.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "She designed the Oslo Opera Annex. It’s shaped like a sigh.", "emotion": "happy" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Is she hot?", "emotion": "smug" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "She’s seventy-four, and she once made a bridge cry.", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "So that’s a maybe.", "emotion": "flirty", "laugh": "big" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Ted, you’re not going to bring up the letters, right?", "emotion": "nervous" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Oh no. The letters.", "emotion": "nervous", "laugh": "ooh" },
+        { "type": "narrate", "line": "Kids, back in college, I may have written Ingrid Solberg a fan letter." },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "Wesleyan, 1997",
+          "location": "apartment",
+          "time": "night",
+          "cast": [{ "character": "ted", "mark": "desk" }, { "character": "marshall", "mark": "couch_center" }],
+          "beats": [
+            { "type": "say", "character": "ted", "line": "Dear Ms. Solberg. Your buildings make me feel the way a cathedral feels.", "delivery": "slow", "emotion": "happy" },
+            { "type": "say", "character": "marshall", "to": "ted", "line": "Ted, buildings don’t have feelings.", "emotion": "confused" },
+            { "type": "say", "character": "ted", "to": "marshall", "line": "Hers do. That’s draft forty. I’m sending all forty.", "emotion": "excited", "laugh": "laugh" },
+            { "type": "say", "character": "marshall", "to": "ted", "line": "Buddy, that’s not a fan letter. That’s a book with stamps.", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Forty letters. She never wrote back.", "emotion": "sad" },
+        { "type": "say", "character": "ted", "line": "She was busy. Making bridges cry.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "I’m coming to class tomorrow. Watching you meet your hero is going to be legen—", "interrupted": true, "emotion": "excited", "gesture": "suit_up" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Dary. We know. We’re all coming.", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "lecture_hall",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [
+        { "character": "guest1", "mark": "lectern" },
+        { "character": "ted", "mark": "demonstration" },
+        { "character": "guest2", "mark": "student_1_3" },
+        { "character": "barney", "mark": "student_2_2" },
+        { "character": "marshall", "mark": "student_2_4" },
+        { "character": "brad", "mark": "student_2_5" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "The next morning, my class had never been so full." },
+        { "type": "say", "character": "ted", "line": "Class, it is my great honor to introduce Ingrid Solberg.", "emotion": "excited", "gesture": "hands_up", "laugh": "applause" },
+        { "type": "say", "character": "guest1", "line": "Thank you. Buildings are a mistake.", "delivery": "slow", "emotion": "bored", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "line": "She’s being provocative.", "delivery": "whisper", "emotion": "nervous" },
+        { "type": "say", "character": "guest2", "to": "guest1", "line": "Is that a metaphor, will it be on the final, and can I record this?", "delivery": "fast", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "guest2", "line": "Nothing is on the final. Life is the final.", "delivery": "slow", "laugh": "laugh" },
+        { "type": "say", "character": "brad", "to": "marshall", "line": "Bro, she’s incredible. I have her coffee-table book. It’s shaped like a coffee table.", "emotion": "excited", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "brad", "line": "Brad, why are you even here?", "emotion": "confused" },
+        { "type": "say", "character": "brad", "to": "marshall", "line": "I minored in architecture, Marshall. I don’t just do brunch.", "emotion": "smug", "laugh": "ooh" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Ms. Solberg. Barney Stinson. I’ve designed several things. Mostly evenings.", "emotion": "flirty", "gesture": "suit_up", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "You are not the one I came for.", "delivery": "deadpan", "laugh": "ooh" },
+        { "type": "move", "character": "guest1", "to": "ted" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "You. You are the letter boy.", "emotion": "surprised" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "You read them? All forty?", "emotion": "nervous" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Every one. My plane is at six. Walk with me." },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Better. I’ll drive. I have a limo.", "emotion": "excited", "gesture": "suit_up", "laugh": "woo" }
+      ]
+    },
+    {
+      "location": "limo",
+      "time": "night",
+      "transition": "exterior",
+      "cast": [
+        { "character": "guest1", "mark": "rear_seat_left" },
+        { "character": "ted", "mark": "rear_seat_right" },
+        { "character": "barney", "mark": "bench_2" },
+        { "character": "brad", "mark": "bench_3" },
+        { "character": "ranjit", "mark": "driver" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "Barney offered his limo. Brad offered nothing, and got in anyway.", "laugh": "chuckle" },
+        { "type": "say", "character": "ranjit", "line": "Hello! Where to?", "emotion": "happy" },
+        { "type": "say", "character": "guest1", "to": "ranjit", "line": "The airport. Slowly. I like to think.", "delivery": "slow" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Ms. Solberg, why did you say buildings are a mistake?", "emotion": "sad" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Because I retired. Twelve years ago." },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "But why?", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Forty letters from a boy who loved buildings more than I did. I thought, good. He can do it now.", "emotion": "happy", "laugh": "aww" },
+        { "type": "say", "character": "barney", "to": "brad", "line": "Okay, that’s actually beautiful. I hate it.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "brad", "to": "barney", "line": "Bro, I’m crying. This limo has great acoustics for crying.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "So what do you do now?" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "I make soup.", "delivery": "deadpan" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "What kind?", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Load-bearing.", "emotion": "smug", "laugh": "big" },
+        { "type": "narrate", "line": "Kids, I wrote her one more letter that night. She wrote back. It was a soup recipe.", "laugh": "laugh" }
+      ]
+    }
+  ]
+}

@@ -30,7 +30,7 @@ function playback() {
     hideCards() { visible = null; },
     closingCredit(cards: CreditCard[] | null) { visible = cards; if (cards) shown.push(cards); },
   };
-  const episode = { id: 'ending', code: 'S09E99', title: 'Never Put This On Screen', logline: 'No logline either', source: 'sample' as const };
+  const episode = { id: 'ending', code: 'S09E99', title: 'Never Put This On Screen', logline: 'No logline either' };
   const billing = openingCredits();
   let requests = 0;
   const source = { next: () => ++requests === 1

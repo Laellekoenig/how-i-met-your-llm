@@ -4,12 +4,12 @@ import { Stage } from './show/stage';
 import { Director } from './show/director';
 import { Player } from './show/player';
 import { Overlay, Panel } from './ui/overlay';
-import { Showrunner, Programming } from './llm/showrunner';
-import { listModels } from './llm/openrouter';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
 import { initCasting } from './ui/casting';
+import { EPISODES } from './script/catalog';
+import { Syndication } from './script/episodes';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -19,93 +19,15 @@ const director = new Director(renderer.camera, stage);
 const overlay = new Overlay();
 const panel = new Panel();
 
-// ---------------------------------------------------------------- writers' room
+// ---------------------------------------------------------------- programming
 
-const statusEl = $('writer-status');
-const logEl = $('writer-log');
-const writer = new Showrunner(stage.sets, {
-  status(text, state) {
-    statusEl.textContent = text;
-    statusEl.className = `status ${state === 'busy' ? 'busy' : state === 'error' ? 'error' : ''}`;
-    syncWriteButton();
-  },
-  log(text, error) {
-    const li = document.createElement('li');
-    li.textContent = text;
-    if (error) li.className = 'err';
-    logEl.appendChild(li);
-    logEl.scrollTop = logEl.scrollHeight;
-    if (error) ($('writer-log-wrap') as HTMLDetailsElement).open = true;
-  },
-  stats(text) {
-    $('writer-stats').textContent = text;
-  },
-});
-const programming = new Programming(writer);
-const player = new Player(stage, director, renderer, overlay, panel, programming);
-
-const keyInput = $<HTMLInputElement>('api-key');
-const modelInput = $<HTMLInputElement>('model');
-const remember = $<HTMLInputElement>('remember-key');
-const writeBtn = $<HTMLButtonElement>('btn-write');
-
-keyInput.value = localStorage.getItem('himyllm.key') ?? '';
-modelInput.value = localStorage.getItem('himyllm.model') ?? writer.model;
-remember.checked = localStorage.getItem('himyllm.remember') !== '0';
-
-function syncWriteButton() {
-  writeBtn.textContent = writer.running ? 'stop writing' : 'start writing';
-  writeBtn.classList.toggle('stop', writer.running);
-}
-
-function persistKey() {
-  localStorage.setItem('himyllm.remember', remember.checked ? '1' : '0');
-  if (remember.checked && keyInput.value) localStorage.setItem('himyllm.key', keyInput.value.trim());
-  else localStorage.removeItem('himyllm.key');
-}
-keyInput.addEventListener('change', persistKey);
-remember.addEventListener('change', persistKey);
-modelInput.addEventListener('change', () => localStorage.setItem('himyllm.model', modelInput.value.trim()));
-
-writeBtn.addEventListener('click', () => {
-  if (writer.running) {
-    writer.stop();
-    syncWriteButton();
-    return;
-  }
-  writer.apiKey = keyInput.value.trim();
-  writer.model = modelInput.value.trim() || 'anthropic/claude-sonnet-5.5';
-  persistKey();
-  writer.start();
-  syncWriteButton();
-});
-
-listModels()
-  .then((models) => {
-    const dl = $('model-list');
-    const preferred = ['anthropic/', 'openai/', 'google/', 'deepseek/', 'x-ai/', 'moonshotai/', 'meta-llama/', 'mistralai/', 'qwen/'];
-    models
-      .filter((m) => !m.id.endsWith(':batch') && !m.id.startsWith('~'))
-      .sort((a, b) => {
-        const pa = preferred.findIndex((p) => a.id.startsWith(p));
-        const pb = preferred.findIndex((p) => b.id.startsWith(p));
-        return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb) || a.id.localeCompare(b.id);
-      })
-      .forEach((m) => {
-        const o = document.createElement('option');
-        o.value = m.id;
-        o.label = `${m.name} · $${(m.promptPrice * 1e6).toFixed(2)}/$${(m.completionPrice * 1e6).toFixed(2)} per M`;
-        dl.appendChild(o);
-      });
-  })
-  .catch(() => {
-    /* offline: free-text model input still works */
-  });
+// Pre-written episodes air back to back. `?ep=S11E03` starts at a given episode.
+const startAt = Math.max(0, Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep')));
+const player = new Player(stage, director, renderer, overlay, panel, new Syndication(EPISODES, startAt));
 
 // ---------------------------------------------------------------- now playing
 
 player.onItem = (item: ShowItem) => {
-  overlay.setLive(item.episode.source === 'llm');
   const meta: string[] = [];
   if (item.kind === 'scene') meta.push(`scene ${item.index + 1}`, item.scene.location, item.scene.time);
   if (item.kind === 'episode-start') meta.push('cold open');
@@ -157,16 +79,7 @@ function setPaused(paused: boolean) {
   }
 }
 pauseBtn.addEventListener('click', () => setPaused(!player.paused));
-let currentEpisodeId: string | null = null;
-const prevOnItem = player.onItem;
-player.onItem = (item) => {
-  currentEpisodeId = item.episode.id;
-  prevOnItem?.(item);
-};
-function skipEpisode() {
-  if (currentEpisodeId) programming.dropEpisode(currentEpisodeId);
-  player.skip('episode');
-}
+const skipEpisode = () => player.skip('episode');
 $('btn-back-ep').addEventListener('click', () => player.back('episode'));
 $('btn-back').addEventListener('click', () => player.back('scene'));
 $('btn-skip').addEventListener('click', () => player.skip('scene'));
@@ -181,7 +94,7 @@ $('btn-full').addEventListener('click', toggleFullscreen);
 // ---------------------------------------------------------------- dev mode
 
 // Regular mode is just the TV: the show plays on its own, letterboxed to fill the window.
-// Dev mode (?dev, or press D) brings back the transport, the writers' room and all the settings.
+// Dev mode (?dev, or press D) brings back the transport, the transcript and all the settings.
 const devMode = () => document.body.classList.contains('dev');
 function setDevMode(on: boolean) {
   document.body.classList.toggle('dev', on);
@@ -232,8 +145,6 @@ function unlockSound() {
 }
 window.addEventListener('pointerdown', unlockSound, true);
 window.addEventListener('keydown', unlockSound, true);
-// Regular mode has no writers' room UI, so a remembered key starts the writers on its own.
-if (!devMode() && keyInput.value.trim()) writeBtn.click();
 void player.run();
 
 // ---------------------------------------------------------------- frame loop
@@ -253,4 +164,4 @@ function frame(now: number) {
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-Object.assign(window as unknown as Record<string, unknown>, { himyllm: { stage, director, renderer, player, writer, programming, audio } });
+Object.assign(window as unknown as Record<string, unknown>, { himyllm: { stage, director, renderer, player, audio } });
