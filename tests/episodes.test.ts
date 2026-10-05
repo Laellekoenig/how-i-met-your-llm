@@ -173,9 +173,10 @@ describe('cutaway playback', () => {
     const labels: [string, string | undefined][] = [];
     const overlay = { hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, showCaption() {}, location: (t: string, s?: string) => labels.push([t, s]) };
     const spoken: { who: string; set: string; dream: number; memory: number; delivery?: string; cutOff?: boolean }[] = [];
-    spies.push(spyOn(speech, 'speak').mockImplementation((key, _text, _profile, onStart, opts = {}) => {
+    spies.push(spyOn(speech, 'speak').mockImplementation((_text, profile, onStart, opts = {}) => {
       onStart?.();
-      spoken.push({ who: key, set: stage.current.id, dream: renderer.dream, memory: renderer.memory, delivery: opts.delivery, cutOff: opts.cutOff });
+      const who = Object.values(CHARACTERS).find((c) => c.voice === profile)?.id ?? 'future-ted';
+      spoken.push({ who, set: stage.current.id, dream: renderer.dream, memory: renderer.memory, delivery: opts.delivery, cutOff: opts.cutOff });
       return { done: Promise.resolve() };
     }));
     const ep = RERUNS.find((e) => e.meta.title === 'The Silent Auction')!;

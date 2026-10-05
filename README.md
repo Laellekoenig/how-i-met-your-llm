@@ -103,12 +103,12 @@ In dev mode, skip episodes from the first rerun to reach the others.
 ## Recurring cast and wardrobe references
 
 Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
-Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voice auditions and writer guidance.
+Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voices and writer guidance.
 They appear in three additional offline reruns. See [their inspected references and wardrobe notes](docs/cast-reference.md).
 
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
-episode planner, scene writer, director and voice-casting panel. Each has a distinct procedural model,
+episode planner, scene writer and director. Each has a distinct procedural model,
 voice profile, caption color and show-bible entry. Between them, the offline reruns
 give all eight a scene: Arthur and Quinn in **The Understudy**, Judy, Scooter and Victoria in **The Silent Auction**,
 Sandy and Kevin in **The Correction**, and Brad in **The Guest Lecture**.

@@ -9,7 +9,6 @@ import { listModels } from './llm/openrouter';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
-import { initCasting } from './ui/casting';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -128,7 +127,6 @@ const bind = (id: string, fn: (on: boolean) => void) => {
 };
 bind('opt-style', (on) => renderer.setStyle({ enabled: on }));
 bind('opt-voices', (on) => (speech.enabled = on));
-initCasting($('casting'));
 bind('opt-laughs', (on) => (audio.laughsEnabled = on));
 bind('opt-music', (on) => (audio.musicEnabled = on));
 bind('opt-captions', (on) => {

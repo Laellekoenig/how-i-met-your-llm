@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { asChar, normalizeScene } from '../src/llm/normalize';
 import { RERUNS } from '../src/script/samples';
-import { roles } from '../src/ui/casting';
+import { CHARACTERS } from '../src/world/characters';
 import { testStage } from './helpers/sets';
 import type { CharacterId } from '../src/script/types';
 
@@ -20,7 +20,7 @@ describe('recurring guest dialogue', () => {
     expected.forEach((id, i) => {
       expect(normalized.beats[i * 2]).toMatchObject({ type: 'say', character: id, to: 'sandy', gesture: 'wave' });
       expect(normalized.beats[i * 2 + 1]).toMatchObject({ type: 'act', character: id, to: 'quinn', gesture: 'nod' });
-      expect(roles().filter(([key]) => key === id)).toHaveLength(1);
+      expect(CHARACTERS[id as CharacterId].voice).toBeDefined();
     });
   });
 
@@ -33,7 +33,7 @@ describe('recurring guest dialogue', () => {
     }, 'maclarens', 'night');
     expect(scene.cast.map(c => c.character)).toEqual(ids);
     scene.beats.forEach((beat, i) => expect(beat).toMatchObject({ type: 'say', character: ids[i], to: 'robin_sparkles' }));
-    for (const id of ids) expect(roles().filter(([key]) => key === id)).toHaveLength(1);
+    for (const id of ids) expect(CHARACTERS[id as CharacterId].voice).toBeDefined();
     expect(asChar('robin-sparkles')).toBe('robin_sparkles');
     expect(asChar('Robin Scherbatsky')).toBe('robin');
   });

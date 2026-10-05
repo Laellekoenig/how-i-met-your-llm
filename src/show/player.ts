@@ -537,7 +537,7 @@ export class Player {
     this.panel.line('narr', text, 'Future Ted');
     // the kids look back at their dad
     for (const id of KIDS) if (this.stage.onStage(id)) this.stage.actors[id].lookAt = null;
-    const h = speech.speak('future-ted', text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
+    const h = speech.speak(text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
     await this.race(h.done);
     await this.untilUnpaused();
     this.overlay.hideCaption();
@@ -598,7 +598,7 @@ export class Player {
         this.panel.line('say', delivery && delivery !== 'fast' && delivery !== 'slow' ? `(${delivery}) ${text}` : text, def.name, def.color);
         if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to);
         a.talkLevel = delivery === 'shout' ? 1.6 : delivery === 'whisper' ? 0.45 : delivery === 'sing' ? 1.2 : 1;
-        const h = speech.speak(b.character, text, def.voice, () => {
+        const h = speech.speak(text, def.voice, () => {
           a.talking = true;
           this.overlay.showCaption(def.name, def.color, text, false, delivery);
           if (delivery === 'sing') audio.serenade(estimateDuration(text, def.voice.rate * deliveryRate(delivery)));
