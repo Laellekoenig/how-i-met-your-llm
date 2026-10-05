@@ -17,27 +17,6 @@ export interface ContentSource {
 
 class Skip extends Error {}
 
-const LOCATION_LABEL: Record<string, string> = {
-  maclarens: "MacLaren's Pub",
-  apartment: 'The Apartment',
-  barneys: "Barney's Place",
-  rooftop: 'The Roof',
-  barneys_office: "Barney's Office",
-  office: 'The Office',
-  metro_news_one: 'Metro News One',
-  store: 'The Store',
-  restaurant: 'The Restaurant',
-  lecture_hall: "Ted's Lecture Hall",
-  limo: "Barney's Limo",
-  taxi: 'A Cab',
-  subway: 'NYC Subway Car',
-  laser_tag: 'Laser Tag Arena',
-  wesleyan_dorm: 'Wesleyan · College, 1996',
-  hospital: 'Hospital Waiting Room',
-  elevator: 'The Elevator',
-  canadian_mall: 'Canada · 1990',
-};
-
 const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_IDS as readonly string[]).includes(s);
 /** Lines and reactions from Penny or Luke: these happen on the couch in 2030. */
 const isKidBeat = (b: Beat) => (b.type === 'say' || b.type === 'act') && isKid(b.character);
@@ -521,7 +500,6 @@ export class Player {
     this.director.coverage(this.stage.castIds());
     this.overlay.year(onCouch);
     if (cutaway) this.overlay.location(cutaway.label, cutaway.style);
-    else if (!onCouch) this.overlay.location(`${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
     else this.overlay.hideLocation();
   }
 

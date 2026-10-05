@@ -24,6 +24,13 @@ const CHAR_ALIASES: Record<string, CharacterId> = {
   'brad morris': 'brad', 'quinn garvey': 'quinn', 'kevin venkataraghavan': 'kevin', 'dr. kevin': 'kevin',
   'judy eriksen': 'judy', 'mrs. eriksen': 'judy', "marshall's mom": 'judy', "marshall's mother": 'judy',
   "lily's ex": 'scooter',
+  'loretta stinson': 'loretta', "barney's mom": 'loretta', "barney's mother": 'loretta',
+  'mickey aldrin': 'mickey', "lily's dad": 'mickey', "lily's father": 'mickey',
+  'hammond druthers': 'hammond', druthers: 'hammond', "ted's old boss": 'hammond',
+  'stella zinman': 'stella', 'zoey pierson': 'zoey', 'zoey pierson van smoot': 'zoey',
+  'virginia mosby': 'virginia', "ted's mom": 'virginia', "ted's mother": 'virginia',
+  'adam punciarello': 'punchy', 'adam "punchy" punciarello': 'punchy',
+  'robin sparkles': 'robin_sparkles', sparkles: 'robin_sparkles',
   'penny mosby': 'penny', "ted's daughter": 'penny', daughter: 'penny', 'luke mosby': 'luke', "ted's son": 'luke', son: 'luke',
   // a line "the kids" say together goes to whoever's quicker
   kids: 'penny', 'the kids': 'penny', 'both kids': 'penny',

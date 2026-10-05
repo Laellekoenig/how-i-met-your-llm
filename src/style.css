@@ -282,25 +282,6 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 .standby-title { font-size: clamp(16px, 4.2cqw, 40px); font-weight: 600; letter-spacing: 0.25em; }
 #standby-msg { margin-top: 10px; color: var(--umbrella); font-size: clamp(10px, 1.8cqw, 16px); }
 
-#tune-in {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2.5cqh;
-  border: 0;
-  color: #fff;
-  background: radial-gradient(ellipse at center, rgba(20, 12, 6, 0.55), rgba(0, 0, 0, 0.85));
-  backdrop-filter: blur(2px);
-}
-.tune-logo { font-family: var(--hand); font-weight: 700; font-size: clamp(28px, 8.4cqw, 80px); }
-.tune-logo .llm { color: var(--umbrella); }
-.tune-cta { font-size: clamp(12px, 2.5cqw, 22px); letter-spacing: 0.2em; padding: 10px 22px; border: 2px solid var(--umbrella); color: var(--umbrella); border-radius: 999px; transition: all 0.15s; }
-#tune-in:hover .tune-cta { background: var(--umbrella); color: #000; }
-.tune-note { color: var(--dim); font-size: clamp(10px, 1.5cqw, 13px); }
-
 #transport { display: flex; align-items: center; gap: 8px; padding-top: 18px; }
 #transport button {
   background: var(--bg2);
@@ -372,9 +353,6 @@ details summary { cursor: pointer; color: var(--dim); font-size: 11px; margin-to
 #casting select { min-width: 0; width: 100%; background: #120c08; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font-family: var(--mono); font-size: 11px; }
 #casting button { padding: 3px 8px !important; }
 .casting-note { color: var(--dim); font-size: 10px; margin-top: 8px; line-height: 1.4; }
-
-#pitch-queue { margin-top: 8px; color: var(--dim); font-size: 11px; }
-#pitch-queue div::before { content: '☂ '; color: var(--umbrella); }
 
 #transcript-wrap { flex: 1; min-height: 180px; display: flex; flex-direction: column; }
 #transcript { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; max-height: 340px; font-size: 12px; line-height: 1.45; }

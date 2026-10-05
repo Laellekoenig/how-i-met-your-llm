@@ -1,9 +1,10 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on twelve sets (MacLaren's, the apartment,
+Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on eighteen sets (MacLaren's, the apartment,
 Barney's place, the roof, Barney's office, a generic office, Metro News One, a neighborhood store, a restaurant,
-Ted's lecture hall, Barney's limo and a cab), framed by Future Ted telling
+Ted's lecture hall, Barney's limo, a cab, the subway, a laser-tag arena, a Wesleyan dorm, a hospital waiting room,
+an elevator and a Canadian mall), framed by Future Ted telling
 the story to his bored kids on the couch in 2030, with browser TTS voices,
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
@@ -12,15 +13,14 @@ bun install
 bun dev            # http://localhost:5173
 ```
 
-Click **tune in**. By default it's just the TV: episodes play back to back, letterboxed to 16:9 with black bars,
-with no controls. Press `d` (or open `/?dev`) for **dev mode**, which brings back the transport bar and the side panel.
+The show starts as soon as the page loads. By default it's just the TV: episodes play back to back, letterboxed to 16:9 with black bars,
+with no controls. Browsers may hold the sound back until you first click or press a key on the page. Press `d` (or open `/?dev`) for **dev mode**, which brings back the transport bar and the side panel.
 Add `mute` (`/?mute`, `/?dev&mute`) to play everything silently. Automated browsers (`navigator.webdriver`) and
 the T3 Code preview browser are muted automatically, so agents testing the show stay quiet; `?sound` overrides that.
 
-With no API key it plays five hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
+With no API key it plays eight hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
 pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is
-remembered, regular mode starts the writers on its own when you tune in.
-You can also **pitch an episode** idea; the writers use the next pitch for the next episode.
+remembered, regular mode starts the writers on its own when the page loads.
 
 Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `→` skip scene.
 
@@ -87,7 +87,7 @@ Everything here is written by the model through the same two tool calls, and is 
   caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
   mid-word and the next speaker jumps straight in.
 
-All five offline reruns use all of it: each casts its own guest stars and cuts away at least once.
+The original four offline reruns each cast one-off guests and cut away at least once. Three more feature the expanded recurring cast, and **The High Score** visits the six new city and period sets.
 
 | Rerun | Guest stars | Cutaways | Sets |
 | --- | --- | --- | --- |
@@ -95,11 +95,19 @@ All five offline reruns use all of it: each casts its own guest stars and cuts a
 | **The Silent Auction** | Delphine, the PTA president; Rusty, the auctioneer | How Marshall imagined it; St. Cloud, 1985 | store, restaurant, apartment |
 | **The Correction** | Margo, the producer; Hector, the silent camera operator | How Kevin pictured it (lecture hall) | Metro News One, Barney's limo (with a rewind) |
 | **The Guest Lecture** | Ingrid Solberg, Ted's hero; Wade, his keenest student | College, 1996 (Wesleyan dorm) | roof, lecture hall, limo |
+| **The Family Fine Print** | Mickey, Loretta and Virginia | Earlier that afternoon at Barney's | apartment, restaurant |
+| **The Committee** | Stella, Zoey and Nora | Ted imagines a seating lecture | restaurant, MacLaren's |
+| **The Reunion Tape** | Hammond, Punchy and Robin Sparkles | Canada, 1993 — a retail promotion | lecture hall, MacLaren's, store |
 | **The High Score** | Denise, a laser-tag referee | College, 1996; Canada, 1990 | subway, laser tag, Wesleyan dorm, Canadian mall, hospital, elevator |
 
 In dev mode, skip episodes from the first rerun to reach the others.
 
 ## Recurring cast and wardrobe references
+
+Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
+Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voice auditions and writer guidance.
+They appear in three additional offline reruns. See [their inspected references and wardrobe notes](docs/cast-reference.md).
+
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
 episode planner, scene writer, director and voice-casting panel. Each has a distinct procedural model,
@@ -160,10 +168,10 @@ for dialogue coverage. Their master cameras sit near eye level with tighter fram
 bench-and-aisle group angles, and the elevator has a compact cabin. Generated two-shots have distance
 limits so conversations across a room cut to singles instead of shrinking the actors into the set.
 These interiors default to direct cuts instead of an unrelated Manhattan exterior.
-The fifth offline rerun, **The High Score**, visits the subway, arena, hospital and elevator and cuts away
+The eighth offline rerun, **The High Score**, visits the subway, arena, hospital and elevator and cuts away
 to both period sets. **The Guest Lecture** now uses the actual Wesleyan dorm for its college memory.
-Robin Sparkles uses the existing `robin` actor; these additions supply locations, not new character models
-or era-specific wardrobe. The mall follows the requested 1990 art direction.
+The mall flashback uses the `robin_sparkles` persona and wardrobe from the expanded cast, returning to `robin`
+after the cutaway. The mall follows the requested 1990 art direction.
 
 Visual references used for the original geometry (no reference photos are loaded by the app):
 

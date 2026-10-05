@@ -1,6 +1,6 @@
 // The script language shared by the LLM, the sample episodes and the player.
 
-export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'guest1', 'guest2', 'guest3', 'penny', 'luke'] as const;
+export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles', 'guest1', 'guest2', 'guest3', 'penny', 'luke'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
 /** One-off guest stars (Ted's date, Barney's mark, a bouncer): slots the episode planner recasts every episode. */

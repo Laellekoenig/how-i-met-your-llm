@@ -39,7 +39,6 @@ export class Showrunner {
   model = 'anthropic/claude-sonnet-5.5';
   running = false;
   readonly queue: ShowItem[] = [];
-  suggestions: string[] = [];
   private abandoned = new Set<string>();
   private cost = 0;
   private calls = 0;
@@ -185,12 +184,11 @@ export class Showrunner {
   private async plan(): Promise<Plan> {
     this.ev.status('pitching a new episode…', 'busy');
     const past = this.history();
-    const pitch = this.suggestions.shift();
     const user = [
       'Pitch and outline the next episode. Use 3 or 4 scenes; vary the sets; give every main character something to do; build to a satisfying, funny ending with a Future Ted button.',
       'Cast up to 3 guest stars if the story needs new faces (a date, a mark, a rival, a boss): give each a vivid look and a comic hook, and put their ids in the scenes that need them. Plan where an imagined cutaway or flashback would land a joke, if one would.',
       past.length ? `Recent episodes (don't repeat these premises):\n${past.slice(-12).map((p) => `- ${p.title}: ${p.logline}`).join('\n')}` : '',
-      pitch ? `A viewer pitched this idea — build the episode around it: "${pitch}"` : `Some random inspiration (optional): ${pick(INSPIRATION)}.`,
+      `Some random inspiration (optional): ${pick(INSPIRATION)}.`,
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -214,7 +212,7 @@ export class Showrunner {
       source: 'llm',
     };
     const cameos = guests.length ? ` · guest stars: ${guests.map((g) => g.name).join(', ')}` : '';
-    this.ev.log(`☂ Pitched ${meta.code} “${meta.title}” — ${meta.logline}${pitch ? ' (viewer pitch)' : ''}${cameos}`);
+    this.ev.log(`☂ Pitched ${meta.code} “${meta.title}” — ${meta.logline}${cameos}`);
     return { meta, coldOpen: String(args.cold_open ?? ''), couch: kidsReaction(args.kids_reaction), guests, scenes };
   }
 
