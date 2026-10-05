@@ -17,6 +17,7 @@ export class AudioEngine {
   private laughBus!: GainNode;
   private sfxBus!: GainNode;
   private musicBus!: GainNode;
+  private stingGain: GainNode | null = null;
   private ambBus!: GainNode;
   private reverb!: ConvolverNode;
   private noise!: AudioBuffer;
@@ -510,8 +511,39 @@ export class AudioEngine {
     const tone = ctx.createBiquadFilter();
     tone.type = 'lowpass';
     tone.frequency.value = 3200;
-    drive.connect(tone).connect(this.musicBus);
+    drive.connect(tone).connect(this.cueOutput());
     return drive;
+  }
+
+  private cueOutput() {
+    this.stopSting();
+    const out = this.ctx!.createGain();
+    out.connect(this.musicBus);
+    this.stingGain = out;
+    return out;
+  }
+
+  /** Silence even scheduled notes when a viewer skips a scene or episode. */
+  stopSting() {
+    if (!this.ctx || !this.stingGain) return;
+    this.stingGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015);
+    this.stingGain = null;
+  }
+
+  /** Original, short descending tape-like zip to punctuate an intentional flashback. */
+  rewind() {
+    if (!this.ctx || !this.musicEnabled) return;
+    const ctx = this.ctx;
+    const duration = 0.5;
+    const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let phase = 0;
+    for (let i = 0; i < data.length; i++) {
+      const u = i / data.length;
+      phase += (1100 * Math.pow(0.12, u)) * 2 * Math.PI / ctx.sampleRate;
+      data[i] = (Math.sin(phase) * 0.6 + (Math.random() * 2 - 1) * 0.15) * Math.sin(Math.PI * u) ** 2;
+    }
+    this.note(buf, ctx.currentTime, 0.28, this.cueOutput());
   }
 
   /** Upbeat jangly guitar transition riff. Returns duration. */

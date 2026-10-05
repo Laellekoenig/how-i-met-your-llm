@@ -40,7 +40,7 @@ uniform vec2 screenRes;
 uniform float cameraNear;
 uniform float cameraFar;
 uniform float time;
-uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade;
+uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind;
 varying vec2 vUv;
 
 float linDepth(vec2 uv) {
@@ -83,6 +83,16 @@ void main() {
   col.r = texture2D(tColor, uv + dir * px * ca).r;
   col.g = texture2D(tColor, uv).g;
   col.b = texture2D(tColor, uv - dir * px * ca).b;
+
+  // A brief horizontal smear for a narrated jump back in time. Works with the picture filter off too.
+  if (uRewind > 0.0) {
+    vec3 smear = vec3(0.0);
+    for (int i = -4; i <= 4; i++) {
+      vec2 sampleUv = clamp(uv + vec2(float(i) * uRewind * 0.055, 0.0), vec2(0.001), vec2(0.999));
+      smear += texture2D(tColor, sampleUv).rgb;
+    }
+    col = mix(col, smear / 9.0, uRewind);
+  }
 
   // tone map + grade (scene is rendered linear)
   col = aces(col * 1.05);
@@ -129,6 +139,7 @@ export class Renderer {
   readonly scene = new THREE.Scene();
   style: StyleSettings = { ...DEFAULT_STYLE };
   fade = 1;
+  rewind = 0;
   private rt: THREE.WebGLRenderTarget;
   private post: THREE.ShaderMaterial;
   private postScene = new THREE.Scene();
@@ -164,7 +175,7 @@ export class Renderer {
         time: { value: 0 },
         uOutline: { value: 0 }, uDither: { value: 0 }, uLevels: { value: 8 }, uScan: { value: 0 },
         uVignette: { value: 0 }, uGrain: { value: 0 }, uAberr: { value: 0 }, uWarmth: { value: 0 },
-        uStylize: { value: 1 }, uFade: { value: 1 },
+        uStylize: { value: 1 }, uFade: { value: 1 }, uRewind: { value: 0 },
       },
       depthTest: false,
       depthWrite: false,
@@ -223,6 +234,7 @@ export class Renderer {
     u.uAberr.value = s.aberration;
     u.uWarmth.value = s.warmth;
     u.uFade.value = this.fade;
+    u.uRewind.value = this.rewind;
     u.cameraNear.value = this.camera.near;
     u.cameraFar.value = this.camera.far;
 

@@ -7,6 +7,7 @@ import { speech } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
 import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
 import { sleep, clamp, pick } from '../util';
+import { sceneTransition } from './transitions';
 
 export interface ContentSource {
   next(onWaiting: (msg: string) => void): Promise<ShowItem>;
@@ -35,6 +36,7 @@ export class Player {
   private skipLevel: 'none' | 'scene' | 'episode' = 'none';
   private skipWaiters: (() => void)[] = [];
   private currentEpisode: string | null = null;
+  private previousScene: Scene | null = null;
   onItem: ((item: ShowItem) => void) | null = null;
 
   constructor(
@@ -52,9 +54,25 @@ export class Player {
     this.skipWaiters.splice(0).forEach((f) => f());
   }
 
-  /** Sleep that aborts on skip. */
+  /** Playback time freezes on pause; all waits and fades abort on skip. */
   private wait(seconds: number) {
-    return this.race(sleep(seconds * 1000));
+    return this.animate(seconds, () => {});
+  }
+
+  private async animate(seconds: number, update: (progress: number) => void) {
+    await this.untilUnpaused();
+    let elapsed = 0;
+    let last = performance.now();
+    update(0);
+    while (elapsed < seconds) {
+      await this.race(sleep(16));
+      const now = performance.now();
+      if (!this.paused) {
+        elapsed += (now - last) / 1000;
+        update(clamp(elapsed / seconds, 0, 1));
+      }
+      last = now;
+    }
   }
 
   private race<T>(p: Promise<T>): Promise<T> {
@@ -76,7 +94,8 @@ export class Player {
   }
 
   private async untilUnpaused() {
-    while (this.paused) await sleep(150);
+    if (this.skipLevel !== 'none') throw new Skip();
+    while (this.paused) await this.race(sleep(50));
   }
 
   async run() {
@@ -91,6 +110,7 @@ export class Player {
       this.skipLevel = 'none';
       this.onItem?.(item);
       try {
+        await this.untilUnpaused();
         await this.play(item);
       } catch (e) {
         if (!(e instanceof Skip)) console.error(e);
@@ -106,18 +126,14 @@ export class Player {
     this.overlay.hideCaption();
     this.overlay.hideCards();
     this.renderer.fade = 1;
+    this.renderer.rewind = 0;
+    audio.stopSting();
     for (const a of Object.values(this.stage.actors)) a.talking = false;
   }
 
   private async fade(to: number, seconds: number) {
     const from = this.renderer.fade;
-    const t0 = performance.now();
-    for (;;) {
-      const u = clamp((performance.now() - t0) / (seconds * 1000), 0, 1);
-      this.renderer.fade = from + (to - from) * u;
-      if (u >= 1) break;
-      await sleep(16);
-    }
+    await this.animate(seconds, (u) => { this.renderer.fade = from + (to - from) * u; });
   }
 
   private async play(item: ShowItem) {
@@ -125,6 +141,7 @@ export class Player {
       case 'episode-start': {
         // Kids, ... : every episode opens on Penny and Luke on the couch in 2030, then the titles
         this.currentEpisode = item.episode.id;
+        this.previousScene = null;
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
         this.stage.setLocation('future', 'night');
         this.stage.seatKids();
@@ -162,7 +179,71 @@ export class Player {
   }
 
   private async playScene(scene: Scene, index: number) {
-    await this.fade(0, 0.3);
+    await this.untilUnpaused();
+    this.overlay.hideCaption();
+    this.overlay.hideLocation();
+    const transition = sceneTransition(scene, this.previousScene, index);
+    const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let firstBeat = 0;
+    if (transition === 'skyline' || transition === 'exterior') {
+      const shot = this.director.current;
+      const ambience = this.stage.current.ambience;
+      try {
+        this.director.establish(this.stage.establish(transition, scene.location, scene.time), !reducedMotion);
+        audio.ambience('none');
+        this.renderer.fade = 1;
+        audio.sting('transition');
+        const opening = scene.beats[0];
+        if (opening?.type === 'narrate') {
+          // Start Ted over the city, then cut inside when his setup lands. Never repeat this beat.
+          await Promise.all([this.wait(1.9), this.narrate(opening.line, opening.laugh)]);
+          firstBeat = 1;
+        } else await this.wait(1.9);
+      } finally {
+        this.stage.endEstablishing();
+        this.director.resume(shot);
+        audio.ambience(ambience);
+      }
+    }
+    if (transition === 'rewind') {
+      audio.rewind();
+      if (!reducedMotion) {
+        try {
+          await this.animate(0.22, (u) => { this.renderer.rewind = u; });
+          this.stageScene(scene);
+          this.renderer.fade = 1;
+          await this.animate(0.28, (u) => { this.renderer.rewind = 1 - u; });
+        } finally {
+          this.renderer.rewind = 0;
+        }
+      } else this.stageScene(scene);
+    } else {
+      this.stageScene(scene);
+      if (transition === 'cut' && index > 0 && scene.location !== 'future') audio.sting('transition');
+    }
+    this.renderer.fade = 1;
+    this.previousScene = scene;
+    await this.wait(0.25);
+
+    const onCouch = scene.location === 'future';
+    const beats = scene.beats;
+    for (let i = firstBeat; i < beats.length; i++) {
+      await this.untilUnpaused();
+      if (onCouch || !isKidBeat(beats[i])) {
+        await this.beat(beats[i]);
+        continue;
+      }
+      // the kids chime in: stay on the couch through their lines and Dad's answers
+      let j = i + 1;
+      while (j < beats.length && (isKidBeat(beats[j]) || ['narrate', 'laugh', 'pause'].includes(beats[j].type))) j++;
+      await this.cutaway(beats.slice(i, j));
+      i = j - 1;
+    }
+    await this.wait(0.6);
+  }
+
+  /** Stage and frame the interior in one synchronous cut, including the midpoint of a flashback. */
+  private stageScene(scene: Scene) {
     this.stage.setLocation(scene.location, scene.time);
     audio.ambience(this.stage.current.ambience);
     const onCouch = scene.location === 'future';
@@ -197,24 +278,6 @@ export class Player {
 
     this.director.coverage(this.stage.castIds());
     this.overlay.location(onCouch ? 'the year 2030' : `${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
-    if (index > 0) audio.sting('transition');
-    await this.fade(1, 0.45);
-    await this.wait(0.6);
-
-    const beats = scene.beats;
-    for (let i = 0; i < beats.length; i++) {
-      await this.untilUnpaused();
-      if (onCouch || !isKidBeat(beats[i])) {
-        await this.beat(beats[i]);
-        continue;
-      }
-      // the kids chime in: stay on the couch through their lines and Dad's answers
-      let j = i + 1;
-      while (j < beats.length && (isKidBeat(beats[j]) || ['narrate', 'laugh', 'pause'].includes(beats[j].type))) j++;
-      await this.cutaway(beats.slice(i, j));
-      i = j - 1;
-    }
-    await this.wait(1.2);
   }
 
   /** Hard cut to Penny and Luke on the couch in 2030, play their beats, then cut straight back to the story. */
@@ -247,6 +310,7 @@ export class Player {
     for (const id of KIDS) if (this.stage.onStage(id)) this.stage.actors[id].lookAt = null;
     const h = speech.speak('future-ted', text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
     await this.race(h.done);
+    await this.untilUnpaused();
     this.overlay.hideCaption();
     if (laugh) await this.laugh(laugh);
     await this.wait(0.25);

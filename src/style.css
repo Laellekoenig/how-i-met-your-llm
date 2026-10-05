@@ -90,7 +90,6 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   text-shadow: 0 1px 0 #000;
 }
 #onair .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red); animation: blink 1.6s infinite; }
-#onair.rerun .dot { background: var(--umbrella); box-shadow: 0 0 8px var(--umbrella); }
 @keyframes blink { 50% { opacity: 0.3; } }
 
 #loc-label {
@@ -231,7 +230,6 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 #now-meta { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 .badge { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; color: var(--dim); }
 .badge.live { border-color: var(--red); color: #ff8a7a; }
-.badge.rerun { border-color: var(--umbrella); color: var(--umbrella); }
 
 #panel label { display: block; color: var(--dim); font-size: 11px; margin-bottom: 8px; }
 #panel label input:not([type='checkbox']):not([type='range']) {

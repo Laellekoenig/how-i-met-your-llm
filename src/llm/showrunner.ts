@@ -1,8 +1,8 @@
 import { chat, type ChatMessage } from './openrouter';
 import { showBible, PLAN_TOOL, SCENE_TOOL } from './prompts';
-import { normalizeScene, asChar, asLocation, asTime } from './normalize';
+import { normalizeScene, asChar, asLocation, asTime, asTransition } from './normalize';
 import type { StageSet } from '../world/sets/common';
-import { EMOTIONS, isKid, type Beat, type EpisodeMeta, type Emotion, type Scene, type ShowItem, type LocationId, type TimeOfDay, type CharacterId } from '../script/types';
+import { EMOTIONS, isKid, type Beat, type EpisodeMeta, type Emotion, type Scene, type ShowItem, type LocationId, type TimeOfDay, type CharacterId, type Transition } from '../script/types';
 import { charName } from '../world/characters';
 import { sampleEpisode } from '../script/samples';
 import { sleep, uid, pick } from '../util';
@@ -11,6 +11,7 @@ import type { ContentSource } from '../show/player';
 interface PlannedScene {
   location: LocationId;
   time: TimeOfDay;
+  transition?: Transition;
   summary: string;
   characters: CharacterId[];
 }
@@ -62,7 +63,7 @@ export class Showrunner {
     this.running = false;
     this.abort?.abort();
     this.queue.length = 0;
-    this.ev.status('offline — playing reruns', 'idle');
+    this.ev.status('offline', 'idle');
   }
 
   /** Stop writing an episode the viewer skipped. */
@@ -196,6 +197,7 @@ export class Showrunner {
     const scenes: PlannedScene[] = rawScenes.slice(0, 4).map((s: Record<string, unknown>) => ({
       location: asLocation(s.location),
       time: asTime(s.time),
+      transition: asTransition(s.transition),
       summary: String(s.summary ?? ''),
       characters: (Array.isArray(s.characters) ? s.characters : []).map(asChar).filter((c): c is CharacterId => !!c && !isKid(c)),
     }));
@@ -215,7 +217,7 @@ export class Showrunner {
     const ps = plan.scenes[index];
     const set = this.sets[ps.location];
     this.ev.status(`writing scene ${index + 1}/${plan.scenes.length} (${set.name})…`, 'busy');
-    const outline = plan.scenes.map((s, i) => `${i + 1}. [${s.location}, ${s.time}] ${s.summary}${i === index ? '   ← WRITE THIS ONE' : ''}`).join('\n');
+    const outline = plan.scenes.map((s, i) => `${i + 1}. [${s.location}, ${s.time}, ${s.transition ?? 'automatic transition'}] ${s.summary}${i === index ? '   ← WRITE THIS ONE' : ''}`).join('\n');
     const recap = previous
       .map((s, i) => `--- Scene ${i + 1} (${s.location}) ---\n` + s.beats.map(beatText).filter(Boolean).slice(-40).join('\n'))
       .join('\n');
@@ -232,6 +234,7 @@ export class Showrunner {
       .join('\n\n');
     const args = await this.call([{ role: 'system', content: showBible(this.sets) }, { role: 'user', content: user }], SCENE_TOOL, 6000);
     const scene = normalizeScene(args, ps.location, ps.time, ps.summary);
+    scene.transition ??= ps.transition;
     if (scene.beats.length < 4) throw new Error(`scene ${index + 1} came back nearly empty`);
     const lines = scene.beats.filter((b) => b.type === 'say').length;
     this.ev.log(`✎ Scene ${index + 1}/${plan.scenes.length} at ${set.name}: ${scene.beats.length} beats, ${lines} lines`);

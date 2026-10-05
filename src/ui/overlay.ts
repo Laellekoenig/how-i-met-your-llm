@@ -15,7 +15,6 @@ export class Overlay {
   private standbyMsg = $('standby-msg');
   private loc = $('loc-label');
   private onair = $('onair');
-  private onairText = $('onair-text');
 
   showCaption(name: string, color: string, text: string, narration = false) {
     if (!this.captionsEnabled) return;
@@ -59,14 +58,17 @@ export class Overlay {
     this.loc.style.animation = '';
   }
 
+  hideLocation() {
+    this.loc.classList.add('hidden');
+  }
+
   standby(on: boolean, msg?: string) {
     this.standbyEl.classList.toggle('hidden', !on);
     if (msg) this.standbyMsg.textContent = msg;
   }
 
   setLive(live: boolean) {
-    this.onair.classList.toggle('rerun', !live);
-    this.onairText.textContent = live ? 'LIVE · LLM' : 'RERUN';
+    this.onair.classList.toggle('hidden', !live);
   }
 }
 
@@ -80,10 +82,12 @@ export class Panel {
     $('now-logline').textContent = ep.logline;
     const m = $('now-meta');
     m.innerHTML = '';
-    const src = document.createElement('span');
-    src.className = `badge ${ep.source === 'llm' ? 'live' : 'rerun'}`;
-    src.textContent = ep.source === 'llm' ? 'freshly written' : 'rerun';
-    m.appendChild(src);
+    if (ep.source === 'llm') {
+      const src = document.createElement('span');
+      src.className = 'badge live';
+      src.textContent = 'freshly written';
+      m.appendChild(src);
+    }
     for (const t of meta) {
       const b = document.createElement('span');
       b.className = 'badge';

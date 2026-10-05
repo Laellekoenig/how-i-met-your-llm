@@ -11,6 +11,7 @@ import { buildBarneysOffice } from '../world/sets/barneysOffice';
 import { buildOffice } from '../world/sets/office';
 import { buildLimo } from '../world/sets/limo';
 import { buildTaxi } from '../world/sets/taxi';
+import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 
@@ -26,8 +27,10 @@ export class Stage {
   private backgroundIds = new Set<CharacterId>();
   /** The scene we cut away from while we're on the 2030 couch. */
   private paused: { set: StageSet; visible: CharacterId[] } | null = null;
+  private establishing: Establishing | null = null;
+  private establishingCast: CharacterId[] | null = null;
 
-  constructor(scene: THREE.Scene) {
+  constructor(private scene: THREE.Scene) {
     this.sets = {
       maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), rooftop: buildRooftop(),
       barneys_office: buildBarneysOffice(), office: buildOffice(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
@@ -91,6 +94,7 @@ export class Stage {
   }
 
   setLocation(id: LocationId, time: TimeOfDay) {
+    this.endEstablishing();
     this.paused = null;
     for (const s of Object.values(this.sets)) s.group.visible = false;
     this.current = this.sets[id] ?? this.sets.maclarens;
@@ -105,6 +109,28 @@ export class Stage {
     this.occupancy.clear();
     this.actorMark.clear();
     this.backgroundIds.clear();
+  }
+
+  /** Temporarily replace the story with an actor-free view of New York. Built only when first needed. */
+  establish(kind: 'skyline' | 'exterior', location: LocationId, time: TimeOfDay) {
+    this.endEstablishing();
+    if (!this.establishing) {
+      this.establishing = buildEstablishing();
+      this.scene.add(this.establishing.group);
+    }
+    this.establishingCast = this.onStageIds();
+    for (const id of this.establishingCast) this.actors[id].root.visible = false;
+    this.current.group.visible = false;
+    this.establishing.group.visible = true;
+    return this.establishing.show(kind, location, time);
+  }
+
+  endEstablishing() {
+    if (!this.establishingCast) return;
+    this.establishing!.group.visible = false;
+    this.current.group.visible = true;
+    for (const id of this.establishingCast) this.actors[id].root.visible = true;
+    this.establishingCast = null;
   }
 
   onStage(id: CharacterId) {
@@ -368,6 +394,10 @@ export class Stage {
   }
 
   update(dt: number, t: number) {
+    if (this.establishingCast) {
+      this.establishing!.update(dt);
+      return;
+    }
     for (const a of Object.values(this.actors)) a.update(dt, t);
     // step actors up onto raised floors
     const floorAt = this.current.floorAt;

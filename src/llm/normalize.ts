@@ -1,5 +1,5 @@
 import {
-  CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, LOCATION_IDS, isKid,
+  CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, LOCATION_IDS, TRANSITIONS, isKid,
   type Beat, type CastPlacement, type CharacterId, type Emotion, type Gesture, type LaughKind, type LocationId, type Scene, type TimeOfDay,
 } from '../script/types';
 
@@ -45,6 +45,7 @@ export const asLocation = (v: unknown): LocationId => {
 };
 
 export const asTime = (v: unknown): TimeOfDay => (v === 'day' ? 'day' : 'night');
+export const asTransition = (v: unknown) => inSet(TRANSITIONS, v);
 
 const TYPE_ALIASES: Record<string, Beat['type']> = {
   dialogue: 'say', line: 'say', speak: 'say', talk: 'say', narration: 'narrate', voiceover: 'narrate', future_ted: 'narrate',
@@ -66,7 +67,7 @@ export function normalizeScene(raw: Record<string, unknown>, location: LocationI
     if (b) beats.push(b);
     if (beats.length >= 70) break;
   }
-  return { location, time, summary, cast, beats };
+  return { location, time, summary, transition: asTransition(raw.transition), cast, beats };
 }
 
 function normalizeBeat(r: Record<string, unknown>): Beat | null {

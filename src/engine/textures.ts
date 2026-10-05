@@ -1057,3 +1057,46 @@ export function road(seed = 57) {
     g.fillRect(0, h / 2 - 1, w / 2, 2);
   }, [1, 1]);
 }
+
+/** Open sky behind the establishing shots: dusky blue with the city's glow on the horizon at night. */
+export function skyGradient(night: boolean, seed = 89) {
+  const r = mulberry32(seed);
+  return canvas(512, 256, (g, w, h) => {
+    const sky = g.createLinearGradient(0, 0, 0, h);
+    if (night) {
+      sky.addColorStop(0, '#05081c');
+      sky.addColorStop(0.55, '#141a44');
+      sky.addColorStop(0.85, '#3a2a5a');
+      sky.addColorStop(1, '#6a3a5a');
+    } else {
+      sky.addColorStop(0, '#4a8ad0');
+      sky.addColorStop(0.7, '#9cc4ea');
+      sky.addColorStop(1, '#dce8f0');
+    }
+    g.fillStyle = sky;
+    g.fillRect(0, 0, w, h);
+    if (night) {
+      for (let i = 0; i < 40; i++) {
+        g.fillStyle = r() < 0.8 ? '#fff6d0' : '#a8c8ff';
+        g.fillRect(Math.floor(r() * w), Math.floor(r() * h * 0.6), 1, 1);
+      }
+    } else {
+      // a few flat streaky clouds
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      for (let i = 0; i < 6; i++) g.fillRect(Math.floor(r() * w), Math.floor(h * 0.15 + r() * h * 0.45), 48 + Math.floor(r() * 72), 3 + Math.floor(r() * 5));
+    }
+  });
+}
+
+/** The river at the skyline's feet: dashes of reflected light on dark water. Tiles in both directions. */
+export function riverWater(night: boolean, seed = 93) {
+  const r = mulberry32(seed);
+  return canvas(64, 32, (g, w, h) => {
+    g.fillStyle = night ? '#080c1c' : '#3a5a72';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < (night ? 70 : 50); i++) {
+      g.fillStyle = night ? (r() < 0.7 ? '#e8b860' : r() < 0.5 ? '#9ac0ff' : '#ff8a6a') : r() < 0.6 ? '#8aa8c0' : '#c8dcea';
+      g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 2 + Math.floor(r() * 5), 1);
+    }
+  }, [10, 4]);
+}

@@ -1,4 +1,4 @@
-import { CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, SCENE_LOCATION_IDS, KIDS, isKid } from '../script/types';
+import { CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, SCENE_LOCATION_IDS, TRANSITIONS, KIDS, isKid } from '../script/types';
 import type { Tool } from './openrouter';
 import type { StageSet } from '../world/sets/common';
 
@@ -53,6 +53,14 @@ emotions: ${EMOTIONS.join(', ')}
 gestures: ${GESTURES.join(', ')}
 laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (huge laugh + applause), ooh (scandal/burn), aww (sweet moment), woo (crowd cheers, e.g. Barney's entrance), applause, gasp.
 
+# Scene transitions
+Choose the incoming transition for each scene. Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
+- cut: straight into the scene on a short guitar sting. Best for immediate continuations and punchline reveals.
+- skyline: a brief day/night New York skyline shot with a guitar sting. Good after the titles or for time passing.
+- exterior: the outside of the destination building (or street traffic for a cab/limo), then cut inside. Good for a new location.
+- rewind: a half-second blurred jump with a descending sound cue. ONLY for an actual flashback or a "let me back up" correction, never an ordinary location change. Start with a short narrate beat making the time jump explicit; use cut when returning to the present.
+An opening narrate beat plays over skyline/exterior footage before we cut inside. Keep it to one short sentence. No dialogue or character action happens outside. The kids' couch cutaways always remain straight cuts.
+
 # Writing rules
 - Write for performance: short spoken lines (mostly under 18 words, never over 35). No stage directions inside lines (no parentheses or asterisks); use beats for action.
 - Every scene needs a clear comic idea that escalates and lands a button (final joke) at the end.
@@ -65,6 +73,7 @@ laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), 
 }
 
 const loc = { type: 'string', enum: [...SCENE_LOCATION_IDS] };
+const transition = { type: 'string', enum: [...TRANSITIONS], description: 'How this scene begins: cut (usual), skyline (time passing/opening), exterior (new location), rewind (explicit flashback only).' };
 const charEnum = { type: 'string', enum: [...CHARACTER_IDS] };
 /** People who can be in a scene (the kids are only ever on the couch). */
 const storyCharEnum = { type: 'string', enum: CHARACTER_IDS.filter((c) => !isKid(c)) };
@@ -103,6 +112,7 @@ export const PLAN_TOOL: Tool = {
             properties: {
               location: loc,
               time: { type: 'string', enum: ['day', 'night'] },
+              transition,
               summary: { type: 'string', description: 'What happens, the comic bit, and how the scene ends. 2-4 sentences.' },
               characters: { type: 'array', items: storyCharEnum },
             },
@@ -123,6 +133,7 @@ export const SCENE_TOOL: Tool = {
     parameters: {
       type: 'object',
       properties: {
+        transition,
         cast: {
           type: 'array',
           description: 'Who is on stage when the scene opens, and where. Characters arriving later use an "enter" beat instead.',

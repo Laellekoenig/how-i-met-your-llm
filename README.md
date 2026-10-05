@@ -40,6 +40,14 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
   sets: the city scrolls past outside, and people slide between seats and climb in and out instead of walking.
 - **The look** (`src/engine/renderer.ts`): renders at ~270p, then applies depth-based ink outlines, posterize + Bayer
   dithering, chromatic aberration, scanlines, grain and vignette. Toggle/tune under *picture & sound*.
+- **Scene transitions**: quick cuts, moving day/night Manhattan skyline shots, destination exteriors with passing
+  cabs, and an optional short rewind cue for narrated flashbacks. An opening Future Ted line can play over the city.
+  Both the episode planner and scene writer can choose `cut`, `skyline`, `exterior`, or `rewind`; unannotated scripts
+  choose automatically from changes in time and location. Transitions pause and skip with playback; reduced-motion
+  preferences disable camera drift and the rewind blur. All scenery and sounds are procedural.
+  The pacing and musical punctuation draw on [Pamela Fryman's DGA interview](https://www.dga.org/craft/dgaq/issues/1001-spring-2010/profile-pamela-fryman)
+  and [composer John Swihart's interview](https://goseetalk.com/interview-film-and-tv-composer-john-swihart/);
+  these are original stylized interpretations, not recreations of specific shots or cues.
 - **The sound** (`src/audio/`): every laugh is ~10–40 formant-filtered synthetic "ha-ha" voices in a reverb;
   applause, slaps, the guitar stings (Karplus–Strong) and bar ambience are synthesized too. Voices use the browser's
   speech synthesis; Chrome/Edge on macOS or Windows have the best voice selection.

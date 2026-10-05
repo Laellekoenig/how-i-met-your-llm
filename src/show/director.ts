@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import type { Stage } from './stage';
 import type { Actor } from '../world/actor';
+import type { EstablishingShot } from '../world/sets/establishing';
 import type { CharacterId } from '../script/types';
 import { damp, noise1, rand } from '../util';
 
-type ShotKind = 'wide' | 'closeup' | 'two' | 'ots';
+type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing';
 
 interface ActiveShot {
   kind: ShotKind;
@@ -15,6 +16,7 @@ interface ActiveShot {
   followOffset?: THREE.Vector3;
   push: number; // dolly speed toward target, m/s
   subject?: CharacterId;
+  drift?: EstablishingShot;
 }
 
 /** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. */
@@ -37,6 +39,10 @@ export class Director {
   wide(index = 0, push = 0.04) {
     const w = this.stage.current.wides[index] ?? this.stage.current.wides[0];
     this.cut({ kind: 'wide', pos: w.pos.clone(), target: w.target.clone(), fov: w.fov, push });
+  }
+
+  establish(s: EstablishingShot, moving = true) {
+    this.cut({ kind: 'establishing', pos: s.pos.clone(), target: s.target.clone(), fov: s.fov, push: 0, drift: moving ? s : undefined });
   }
 
   /** Wide that best covers the given characters. */
@@ -183,6 +189,17 @@ export class Director {
   private apply(dt: number) {
     const s = this.shot;
     if (!s) return;
+    // Exterior backdrops sit beyond the indoor camera's clipping plane.
+    const far = s.kind === 'establishing' ? 180 : 60;
+    if (this.camera.far !== far) {
+      this.camera.far = far;
+      this.camera.updateProjectionMatrix();
+    }
+    // Settle the camera after a short move if a voice-over runs long.
+    if (s.drift && this.time - this.lastCut < 4) {
+      s.pos.addScaledVector(s.drift.move, dt);
+      s.target.addScaledVector(s.drift.look, dt);
+    }
     if (s.follow && s.followOffset) {
       const want = s.follow.headWorld.add(s.followOffset);
       s.target.lerp(want, damp(4, dt || 1));

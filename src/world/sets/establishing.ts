@@ -1,0 +1,530 @@
+import * as THREE from 'three';
+import { toon, glow, box, mesh, cyl } from '../../engine/materials';
+import { brick, facade, sign, skyGradient, riverWater } from '../../engine/textures';
+import { keyLight, v3 } from './common';
+import type { LocationId, TimeOfDay } from '../../script/types';
+import { mulberry32, pick, rand } from '../../util';
+
+// The show's scene transitions: between scenes HIMYM cuts to New York itself, the skyline across the river or
+// the outside of wherever we're headed, usually on a guitar sting, sometimes with Future Ted talking over it.
+// These are those shots: no marks and no actors, just a camera move.
+
+export interface EstablishingShot {
+  pos: THREE.Vector3;
+  target: THREE.Vector3;
+  fov: number;
+  /** Camera and aim drift in m/s: a slow pan across the city, or a tilt up a building. */
+  move: THREE.Vector3;
+  look: THREE.Vector3;
+}
+
+export interface Establishing {
+  group: THREE.Group;
+  show(kind: 'skyline' | 'exterior', location: LocationId, time: TimeOfDay): EstablishingShot;
+  update(dt: number): void;
+}
+
+type Swap = { m: THREE.Mesh; day: THREE.Material; night: THREE.Material };
+
+const shot = (pos: THREE.Vector3, target: THREE.Vector3, fov: number, move = v3(0, 0, 0), look = move.clone()): EstablishingShot => ({ pos, target, fov, move, look });
+
+/** Day and night facades for a building of a given size, windows roughly a storey apart. */
+function facadeMats(wall: string, seed: number, w: number, h: number) {
+  const cols = Math.max(2, Math.round(w / 1.1)), rows = Math.max(3, Math.round(h / 1.4));
+  return {
+    day: toon('#ffffff', { map: facade(false, wall, seed, cols, rows) }),
+    night: toon('#ffffff', { map: facade(true, wall, seed, cols, rows), emissive: '#ffffff', emissiveIntensity: 0.55 }),
+  };
+}
+
+/** A thin rod from a to b (cables, wires). */
+function rod(g: THREE.Group, a: THREE.Vector3, b: THREE.Vector3, r: number, mat: THREE.Material) {
+  const m = mesh(cyl(r, r, a.distanceTo(b), 3), mat, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, false);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+  g.add(m);
+  return m;
+}
+
+export function buildEstablishing(): Establishing {
+  const g = new THREE.Group();
+  g.name = 'establishing';
+  const swaps: Swap[] = [];
+  const dn = (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => {
+    swaps.push({ m, day, night });
+    return m;
+  };
+  const nightOnly: THREE.Object3D[] = [];
+  const nightLights: [THREE.Light, number][] = [];
+
+  const skyline = buildSkyline(dn, nightOnly);
+  const street = buildStreet(dn, nightOnly, nightLights);
+  g.add(skyline.group, street.group);
+
+  const hemi = new THREE.HemisphereLight('#8a9ac8', '#2a2420', 1.0);
+  g.add(hemi);
+  const sun = keyLight(g, '#fff2dc', 2.4, [-14, 22, 18], [0, 0, -10]);
+  sun.shadow.camera.left = -20;
+  sun.shadow.camera.right = 20;
+  sun.shadow.camera.top = 20;
+  sun.shadow.camera.bottom = -10;
+  sun.shadow.camera.far = 60;
+
+  const setTime = (t: TimeOfDay) => {
+    const night = t === 'night';
+    for (const s of swaps) s.m.material = night ? s.night : s.day;
+    for (const o of nightOnly) o.visible = night;
+    for (const [l, i] of nightLights) l.intensity = night ? i : 0;
+    hemi.color.set(night ? '#6a7ab8' : '#cfe4ff');
+    hemi.groundColor.set(night ? '#2a2420' : '#5a5048');
+    hemi.intensity = night ? 0.9 : 2.2;
+    sun.color.set(night ? '#a8b8ff' : '#fff2dc');
+    sun.intensity = night ? 0.5 : 2.4;
+  };
+
+  return {
+    group: g,
+    show(kind, location, time) {
+      setTime(time);
+      skyline.group.visible = kind === 'skyline';
+      street.group.visible = kind === 'exterior';
+      return kind === 'skyline' ? skyline.framing() : street.framing(location);
+    },
+    update(dt) {
+      if (skyline.group.visible) skyline.update(dt);
+      if (street.group.visible) street.update(dt);
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Manhattan across the East River: a wall of towers with the Empire State and the Chrysler sticking up out
+// of it, and a bridge striding off toward it on the left.
+
+function buildSkyline(dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh, nightOnly: THREE.Object3D[]) {
+  const g = new THREE.Group();
+  const r = mulberry32(2005);
+
+  const sky = dn(mesh(new THREE.PlaneGeometry(170, 70), toon('#ffffff'), 0, 22, -52, false),
+    toon('#ffffff', { map: skyGradient(false), emissive: '#ffffff', emissiveIntensity: 0.9 }),
+    toon('#ffffff', { map: skyGradient(true), emissive: '#ffffff', emissiveIntensity: 0.9 }));
+  sky.receiveShadow = false;
+  g.add(sky);
+
+  const waterDay = riverWater(false), waterNight = riverWater(true);
+  const water = dn(mesh(new THREE.PlaneGeometry(170, 40), toon('#ffffff'), 0, 0, -2, false),
+    toon('#ffffff', { map: waterDay }),
+    toon('#ffffff', { map: waterNight, emissive: '#ffffff', emissiveIntensity: 0.7 }));
+  water.rotation.x = -Math.PI / 2;
+  g.add(water);
+  // the Manhattan seawall
+  g.add(mesh(box(170, 0.7, 2), toon('#3a3634'), 0, 0.35, -22.5, false));
+
+  // ---- the towers: a near row, a far row, sized and colored at random ---------------------------------
+  const walls = ['#a89a8a', '#8a7a6a', '#9a9aa8', '#7a8090', '#b8ab95', '#6a6a78', '#a88a72', '#c8c0b0'];
+  const tower = (x: number, z: number, w: number, d: number, h: number, wall: string, seed: number) => {
+    const f = facadeMats(wall, seed, w, h);
+    const m = dn(mesh(box(w, h, d), f.night, x, h / 2, z, false), f.day, f.night);
+    g.add(m);
+    g.add(mesh(box(w + 0.15, 0.3, d + 0.15), toon('#2e2a28'), x, h + 0.15, z, false));
+    if (r() < 0.25) g.add(mesh(cyl(0.45, 0.45, 0.8, 7), toon('#3a2e26'), x + rand(-w / 4, w / 4), h + 0.7, z, false));
+    return m;
+  };
+  const ESB_X = 3, ESB_Z = -29, CHRYSLER_X = -10, CHRYSLER_Z = -33;
+  const row = (z0: number, z1: number, hMin: number, hMax: number, seed: number) => {
+    let x = -60;
+    let i = 0;
+    while (x < 60) {
+      const w = 2.2 + r() * 3.2;
+      const cx = x + w / 2;
+      const z = z0 + r() * (z1 - z0);
+      // leave room for the landmarks
+      if (Math.abs(cx - ESB_X) > 3.4 && Math.abs(cx - CHRYSLER_X) > 2.4) {
+        const mid = Math.exp(-((cx - ESB_X) * (cx - ESB_X)) / 900); // Midtown bulks up around the Empire State
+        tower(cx, z, w, 2 + r() * 2.5, hMin + r() * (hMax - hMin) * (0.5 + mid), pick(walls), seed + i);
+      }
+      x += w + r() * 0.6;
+      i++;
+    }
+  };
+  row(-24, -27, 3, 8, 300);
+  row(-34, -40, 7, 15, 400);
+
+  // ---- the Empire State Building ------------------------------------------------------------------------
+  const esbStone = '#b8ab95';
+  const tiers: [number, number, number][] = [[5, 3.6, 9], [3.6, 2.8, 5], [2.6, 2.2, 3], [1.7, 1.7, 1.2], [1.1, 1.1, 0.9]];
+  let y = 0;
+  tiers.forEach(([w, d, h], i) => {
+    if (i < 3) {
+      const f = facadeMats(esbStone, 500 + i, w, h);
+      g.add(dn(mesh(box(w, h, d), f.night, ESB_X, y + h / 2, ESB_Z, false), f.day, f.night));
+    } else {
+      // the lit crown
+      g.add(dn(mesh(box(w, h, d), toon(esbStone), ESB_X, y + h / 2, ESB_Z, false), toon(esbStone), glow(i === 3 ? '#fff4d8' : '#ffd890', 1.1)));
+    }
+    y += h;
+  });
+  g.add(dn(mesh(cyl(0.3, 0.45, 1.6, 8), toon('#c8c0b0'), ESB_X, y + 0.8, ESB_Z, false), toon('#c8c0b0'), glow('#e8f0ff', 1.2)));
+  g.add(mesh(cyl(0.05, 0.1, 3.2, 4), toon('#5a5a60'), ESB_X, y + 3.2, ESB_Z, false));
+  const beacon = mesh(new THREE.SphereGeometry(0.12, 6, 4), glow('#ff3a2a', 2), ESB_X, y + 4.85, ESB_Z, false);
+  g.add(beacon);
+  nightOnly.push(beacon);
+
+  // ---- the Chrysler Building: a shaft and a stepped steel crown --------------------------------------------
+  const chH = 13;
+  const chF = facadeMats('#a8a8a8', 520, 3, chH);
+  g.add(dn(mesh(box(3, chH, 2.6), chF.night, CHRYSLER_X, chH / 2, CHRYSLER_Z, false), chF.day, chF.night));
+  const steel = toon('#d8dce0');
+  const crown: [number, number, number][] = [[1.15, 1.45, 1.2], [0.8, 1.15, 1.1], [0.5, 0.8, 1.0], [0.18, 0.5, 1.0]];
+  let cy = chH;
+  crown.forEach(([rt, rb, h], i) => {
+    g.add(dn(mesh(cyl(rt, rb, h, 8), steel, CHRYSLER_X, cy + h / 2, CHRYSLER_Z, false), steel, i % 2 ? glow('#f0f4ff', 1.0) : toon('#8a8e94')));
+    cy += h;
+  });
+  g.add(mesh(cyl(0.02, 0.1, 2.6, 4), steel, CHRYSLER_X, cy + 1.3, CHRYSLER_Z, false));
+
+  // ---- a suspension bridge, receding toward Manhattan on the left ----------------------------------------
+  const bridge = new THREE.Group();
+  bridge.position.set(-21, 0, -6);
+  bridge.rotation.y = Math.atan2(30, 20);
+  const stone = toon('#a89a82');
+  const L = 40, DECK = 2.4, TOWER_X = 11, TOP = 8;
+  bridge.add(mesh(box(L, 0.45, 2.8), toon('#4a4440'), 0, DECK, 0, false));
+  for (const tx of [-TOWER_X, TOWER_X]) {
+    for (const s of [-1, 1]) bridge.add(mesh(box(1.0, TOP, 1.0), stone, tx, TOP / 2, s * 1.15, false));
+    bridge.add(mesh(box(1.1, 1.4, 3.4), stone, tx, TOP - 0.2, 0, false));
+    bridge.add(mesh(box(1.1, 0.5, 3.4), stone, tx, DECK + 2.2, 0, false));
+    bridge.add(mesh(box(1.6, 0.6, 3.6), stone, tx, 0.3, 0, false));
+  }
+  // the main cables: up to the first tower, a sagging span, up to the second, down to the far end
+  const cableAt = (x: number) => {
+    const ax = Math.abs(x);
+    if (ax > TOWER_X) return TOP - 0.5 - ((ax - TOWER_X) / (L / 2 - TOWER_X)) * (TOP - 0.5 - DECK - 0.3);
+    const u = x / TOWER_X;
+    return DECK + 1.2 + (TOP - 0.5 - DECK - 1.2) * u * u;
+  };
+  const cable = toon('#2a2a2e');
+  const cableLight = glow('#fff0c0', 1.6);
+  for (const s of [-1, 1]) {
+    const N = 24;
+    let prev = v3(-L / 2, cableAt(-L / 2), s * 1.2);
+    for (let i = 1; i <= N; i++) {
+      const x = -L / 2 + (L * i) / N;
+      const p = v3(x, cableAt(x), s * 1.2);
+      rod(bridge, prev, p, 0.05, cable);
+      if (i % 2 === 0) rod(bridge, p, v3(p.x, DECK, p.z), 0.015, cable); // suspenders
+      const bulb = mesh(new THREE.SphereGeometry(0.09, 4, 3), cableLight, p.x, p.y, p.z, false);
+      bridge.add(bulb);
+      nightOnly.push(bulb);
+      prev = p;
+    }
+  }
+  g.add(bridge);
+
+  const FRAMINGS = [
+    // across the river, panning along the skyline
+    () => shot(v3(-7, 2.4, 12), v3(2, 7.5, -30), 42, v3(0.75, 0, 0)),
+    // pushing in on the Empire State, tilting up
+    () => shot(v3(-1, 3, 14), v3(ESB_X, 10, ESB_Z), 42, v3(0.15, 0.1, -0.7), v3(0, 0.3, 0)),
+    // the bridge in the foreground, drifting toward Midtown
+    () => shot(v3(-12, 3.0, 11), v3(-6, 6, -24), 46, v3(0.8, 0, -0.1), v3(1.1, 0, 0)),
+  ];
+  return {
+    group: g,
+    framing: () => pick(FRAMINGS)(),
+    update(dt: number) {
+      // the river shimmers
+      waterDay.offset.x = (waterDay.offset.x + dt * 0.02) % 1;
+      waterNight.offset.x = (waterNight.offset.x + dt * 0.02) % 1;
+      waterNight.offset.y = (Math.sin(performance.now() / 700) * 0.01 + 1) % 1;
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// One New York block, seen from across the avenue, with time-lapse traffic streaming past. The building in
+// the middle is whichever one we're cutting to: the gang's walk-up with MacLaren's on the ground floor,
+// Barney's luxury high-rise, or a glass office tower (GNB, when it's Barney's office).
+
+type Hero = 'walkup' | 'highrise' | 'glass';
+
+function buildStreet(
+  dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh,
+  nightOnly: THREE.Object3D[],
+  nightLights: [THREE.Light, number][],
+) {
+  const g = new THREE.Group();
+  const r = mulberry32(1987);
+  const FRONT = -6; // building line
+  const CURB = -3.2;
+
+  const sky = dn(mesh(new THREE.PlaneGeometry(400, 200), toon('#ffffff'), 0, 35, -55, false),
+    toon('#ffffff', { map: skyGradient(false, 97), emissive: '#ffffff', emissiveIntensity: 0.9 }),
+    toon('#ffffff', { map: skyGradient(true, 97), emissive: '#ffffff', emissiveIntensity: 0.9 }));
+  g.add(sky);
+
+  // ---- ground: avenue, sidewalks ------------------------------------------------------------------------
+  const road = mesh(new THREE.PlaneGeometry(140, 14), toon('#2a2a2e'), 0, 0, 2.6);
+  road.rotation.x = -Math.PI / 2;
+  road.castShadow = false;
+  g.add(road);
+  for (let x = -66; x < 66; x += 6) g.add(mesh(box(3, 0.01, 0.12), toon('#d8d0a0'), x, 0.006, 0, false)); // lane dashes
+  g.add(mesh(box(140, 0.16, CURB - FRONT), toon('#8a8682'), 0, 0.08, (FRONT + CURB) / 2));
+  g.add(mesh(box(140, 0.18, 0.2), toon('#a8a49e'), 0, 0.09, CURB, false));
+  g.add(mesh(box(140, 0.16, 2.5), toon('#8a8682'), 0, 0.08, 10.2)); // the near sidewalk, under the camera
+
+  // ---- the neighbors -----------------------------------------------------------------------------------
+  const walls = ['#7a3a28', '#8a5a40', '#6a4a3a', '#a89a7a', '#5a4a48', '#9a6a4a', '#7a6a5a'];
+  const awnings = ['#a82a22', '#2a6a3a', '#2a3a7a', '#c88a22', '#3a3a3a'];
+  const shopLit = glow('#ffd890', 1.0);
+  const neighbor = (x0: number, w: number, seed: number) => {
+    const h = 9 + r() * 12;
+    const x = x0 + w / 2;
+    const f = facadeMats(pick(walls), seed, w, h);
+    g.add(dn(mesh(box(w - 0.08, h, 8), f.night, x, h / 2, FRONT - 4, false), f.day, f.night));
+    g.add(mesh(box(w + 0.1, 0.45, 0.4), toon('#3a3430'), x, h - 0.2, FRONT + 0.15, false)); // cornice
+    // shopfront with an awning
+    g.add(dn(mesh(box(w - 0.8, 2.3, 0.1), toon('#3a4048'), x, 1.35, FRONT + 0.06, false), toon('#3a4048'), shopLit));
+    g.add(mesh(box(w - 0.5, 0.18, 1.0), toon(pick(awnings)), x, 2.75, FRONT + 0.5, false));
+    if (r() < 0.4) fireEscape(g, x - w / 4, w / 2.2, Math.floor((h - 3.4) / 2.7), FRONT);
+  };
+  for (const [from, to] of [[-62, -5.5], [5.5, 62]] as const) {
+    let x = from;
+    let i = 0;
+    while (x < to - 3) {
+      const w = Math.min(to - x, 5 + r() * 4);
+      neighbor(x, w, 600 + i + (from > 0 ? 50 : 0));
+      x += w;
+      i++;
+    }
+  }
+  // Midtown towers looming behind the block
+  for (let i = 0; i < 12; i++) {
+    const x = -44 + i * 8 + r() * 4, w = 5 + r() * 4, h = 26 + r() * 22;
+    const f = facadeMats(pick(['#8a8a9a', '#7a8090', '#a89a8a', '#5a6070']), 700 + i, w, h);
+    g.add(dn(mesh(box(w, h, 5), f.night, x, h / 2, -22 - r() * 10, false), f.day, f.night));
+  }
+
+  // ---- streetlamps along the far curb ---------------------------------------------------------------------
+  const pole = toon('#2a2c30');
+  for (let x = -60; x <= 60; x += 12) {
+    g.add(mesh(cyl(0.07, 0.1, 4.6, 6), pole, x, 2.3, CURB + 0.35, false));
+    g.add(mesh(box(0.06, 0.06, 1.1), pole, x, 4.55, CURB + 0.85, false));
+    g.add(dn(mesh(box(0.2, 0.08, 0.36), toon('#b8b4a8'), x, 4.48, CURB + 1.35, false), toon('#b8b4a8'), glow('#ffd890', 1.6)));
+  }
+  for (const x of [-6, 6]) {
+    const l = new THREE.PointLight('#ffcf80', 0, 12, 1.3);
+    l.position.set(x, 4.2, CURB + 1.3);
+    g.add(l);
+    nightLights.push([l, 8]);
+  }
+
+  // ---- the hero buildings -----------------------------------------------------------------------------
+  const heroes: Record<Hero, THREE.Group> = { walkup: new THREE.Group(), highrise: new THREE.Group(), glass: new THREE.Group() };
+  for (const h of Object.values(heroes)) g.add(h);
+  const apt = buildWalkup(heroes.walkup, dn, nightLights, FRONT);
+  buildHighrise(heroes.highrise, dn, FRONT);
+  const gnb = buildGlassTower(heroes.glass, dn, FRONT);
+
+  // ---- time-lapse traffic --------------------------------------------------------------------------------
+  const cars: { grp: THREE.Group; dir: number; speed: number }[] = [];
+  const SPAN = 120;
+  const headOff = toon('#d8d8c8'), headOn = glow('#fff2c0', 2.0);
+  const tailOff = toon('#7a1a1a'), tailOn = glow('#ff2a1a', 1.6);
+  const trailHead = glow('#fff0d0', 1.3), trailTail = glow('#ff3a2a', 1.2);
+  const car = (cab: boolean, color: string) => {
+    const c = new THREE.Group();
+    const body = toon(cab ? '#e8b812' : color);
+    c.add(mesh(box(4.2, 0.62, 1.8), body, 0, 0.6, 0, false));
+    c.add(mesh(box(2.3, 0.55, 1.62), toon('#2a3440'), -0.2, 1.18, 0, false));
+    c.add(mesh(box(2.1, 0.08, 1.64), body, -0.2, 1.48, 0, false));
+    for (const sx of [-1.3, 1.3]) for (const sz of [-0.82, 0.82]) {
+      const wheel = mesh(cyl(0.32, 0.32, 0.22, 8), toon('#141416'), sx, 0.32, sz, false);
+      wheel.rotation.x = Math.PI / 2;
+      c.add(wheel);
+    }
+    if (cab) c.add(mesh(box(0.6, 0.2, 0.3), toon('#f8f0c0'), -0.2, 1.62, 0, false));
+    for (const sz of [-0.6, 0.6]) {
+      c.add(dn(mesh(box(0.06, 0.14, 0.32), headOff, 2.11, 0.68, sz, false), headOff, headOn));
+      c.add(dn(mesh(box(0.06, 0.14, 0.3), tailOff, -2.11, 0.7, sz, false), tailOff, tailOn));
+    }
+    // long-exposure light trails, stretched out behind the car
+    const trails = new THREE.Group();
+    trails.add(mesh(box(9, 0.07, 0.07), trailHead, -2.4, 0.68, 0.6, false), mesh(box(9, 0.07, 0.07), trailHead, -2.4, 0.68, -0.6, false));
+    trails.add(mesh(box(11, 0.07, 0.07), trailTail, -7.6, 0.7, 0.6, false), mesh(box(11, 0.07, 0.07), trailTail, -7.6, 0.7, -0.6, false));
+    c.add(trails);
+    nightOnly.push(trails);
+    return c;
+  };
+  const colors = ['#1a1a1e', '#a8acb0', '#7a1a1a', '#1a2a4a', '#e8e8e4', '#2a3a2a'];
+  for (const [lane, dir] of [[-1.6, 1], [1.7, -1]] as const) {
+    for (let i = 0; i < 7; i++) {
+      const c = car(r() < 0.45, pick(colors));
+      c.position.set(-SPAN / 2 + (i + r() * 0.6) * (SPAN / 7), 0, lane);
+      c.rotation.y = dir > 0 ? 0 : Math.PI;
+      g.add(c);
+      cars.push({ grp: c, dir, speed: 15 + r() * 7 });
+    }
+  }
+
+  const framings: Record<string, () => EstablishingShot> = {
+    // street level on the pub's front, cabs whipping past
+    maclarens: () => shot(v3(-2.6, 1.5, 7.5), v3(-0.9, 2.5, FRONT), 48, v3(0.3, 0.02, -0.2), v3(0.28, 0.04, 0)),
+    // up the face of the building to the gang's window
+    apartment: () => shot(v3(-4.5, 1.3, 8), apt.window.clone().setY(apt.window.y - 2.4), 46, v3(0.1, 0, -0.1), v3(0, 0.75, 0)),
+    // way up to the roof and its water tower
+    rooftop: () => shot(v3(-3.4, 1.2, 8.5), v3(1, 9, FRONT), 54, v3(0, 0, -0.1), v3(0, 0.7, 0)),
+    barneys: () => shot(v3(-3.6, 0.9, 8), v3(0, 7, FRONT), 56, v3(0.1, 0, -0.1), v3(0, 1.3, 0)),
+    office: () => shot(v3(3.6, 1.0, 8), v3(0, 8, FRONT), 56, v3(-0.1, 0, -0.1), v3(0, 1.3, 0)),
+    // the cars: a high, wide look down the avenue as the traffic streams by
+    cars: () => shot(v3(-9, 5.5, 9.5), v3(0, 1.4, -2), 50, v3(0.9, 0, 0)),
+  };
+  const HERO: Partial<Record<LocationId, Hero>> = { barneys: 'highrise', barneys_office: 'glass', office: 'glass', limo: 'highrise' };
+  const FRAMING: Partial<Record<LocationId, string>> = { barneys_office: 'office', limo: 'cars', taxi: 'cars' };
+
+  return {
+    group: g,
+    framing(location: LocationId) {
+      const hero = HERO[location] ?? 'walkup';
+      for (const [k, grp] of Object.entries(heroes)) grp.visible = k === hero;
+      gnb.visible = location === 'barneys_office';
+      return (framings[FRAMING[location] ?? location] ?? framings.maclarens)();
+    },
+    update(dt: number) {
+      for (const c of cars) {
+        const p = c.grp.position;
+        p.x += c.dir * c.speed * dt;
+        if (p.x > SPAN / 2) p.x -= SPAN;
+        if (p.x < -SPAN / 2) p.x += SPAN;
+      }
+    },
+  };
+}
+
+/** Zig-zag iron fire escape down the front of a building. */
+function fireEscape(g: THREE.Group, x: number, w: number, floors: number, front: number) {
+  const iron = toon('#1e1e22');
+  for (let i = 0; i < floors; i++) {
+    const y = 3.4 + i * 2.7;
+    g.add(mesh(box(w, 0.06, 1.0), iron, x, y, front + 0.55, false));
+    g.add(mesh(box(w, 0.04, 0.04), iron, x, y + 0.95, front + 1.05, false));
+    for (let px = -w / 2; px <= w / 2 + 0.01; px += w / 6) g.add(mesh(box(0.03, 0.95, 0.03), iron, x + px, y + 0.47, front + 1.05, false));
+    if (i < floors - 1) {
+      // the ladder up to the next landing
+      const len = Math.hypot(2.7, w * 0.7);
+      const ladder = mesh(box(len, 0.05, 0.45), iron, x, y + 1.35, front + 0.55, false);
+      ladder.rotation.z = Math.atan2(2.7, w * 0.7) * (i % 2 ? -1 : 1);
+      g.add(ladder);
+    }
+  }
+}
+
+/** Window with a cream frame and a stone lintel; returns the glass. */
+function streetWindow(g: THREE.Group, x: number, y: number, front: number, w = 1.0, h = 1.6) {
+  const frame = toon('#e9e2d0');
+  g.add(mesh(box(w + 0.12, h + 0.12, 0.06), frame, x, y, front + 0.03, false));
+  g.add(mesh(box(w + 0.3, 0.16, 0.16), toon('#b8b0a0'), x, y + h / 2 + 0.14, front + 0.08, false));
+  g.add(mesh(box(w + 0.2, 0.08, 0.2), toon('#b8b0a0'), x, y - h / 2 - 0.06, front + 0.1, false));
+  const glass = mesh(new THREE.PlaneGeometry(w - 0.1, h - 0.1), toon('#4a5a70'), x, y, front + 0.07, false);
+  g.add(glass);
+  g.add(mesh(box(w - 0.1, 0.05, 0.03), frame, x, y + 0.1, front + 0.08, false));
+  return glass;
+}
+
+/** The gang's building: a brick walk-up with MacLaren's on the ground floor and the apartment up on four. */
+function buildWalkup(g: THREE.Group, dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh, nightLights: [THREE.Light, number][], FRONT: number) {
+  const r = mulberry32(42);
+  const W = 9, GROUND = 3.4, FLOOR = 2.7, FLOORS = 4;
+  const H = GROUND + FLOOR * FLOORS;
+  g.add(mesh(box(W, H, 8), toon('#ffffff', { map: brick('#7a3a28', '#4a3a32', [6, 9]) }), 0, H / 2, FRONT - 4, false));
+  g.add(mesh(box(W + 0.3, 0.55, 0.5), toon('#4a3a32'), 0, H - 0.1, FRONT + 0.2, false)); // cornice
+  for (let x = -W / 2 + 0.3; x < W / 2; x += 0.6) g.add(mesh(box(0.12, 0.2, 0.16), toon('#4a3a32'), x, H - 0.48, FRONT + 0.1, false)); // dentils
+
+  // upper floors: four windows a floor; the gang's is the one on four, second from the right
+  const dark = toon('#141420'), day = toon('#4a5a70');
+  const warm = glow('#f6d27a', 1.0), cool = glow('#9ad0ff', 0.8);
+  let aptWindow = v3(0, 0, 0);
+  for (let f = 0; f < FLOORS; f++)
+    for (const x of [-3.3, -1.1, 1.1, 3.3]) {
+      const y = GROUND + f * FLOOR + 1.35;
+      const glass = streetWindow(g, x, y, FRONT);
+      const theirs = f === 2 && x === 1.1;
+      if (theirs) aptWindow = v3(x, y, FRONT);
+      dn(glass, day, theirs ? warm : r() < 0.45 ? (r() < 0.8 ? warm : cool) : dark);
+    }
+  fireEscape(g, -2.2, 3.4, FLOORS, FRONT);
+
+  // the water tower on the roof (the one on the rooftop set)
+  for (const [dx, dz] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]] as const) g.add(mesh(box(0.1, 1.8, 0.1), toon('#2e3034'), 2.6 + dx, H + 0.9, FRONT - 2.6 + dz, false));
+  g.add(mesh(cyl(0.85, 0.85, 1.5, 12), toon('#7a5a3e'), 2.6, H + 2.55, FRONT - 2.6, false));
+  g.add(mesh(cyl(0.05, 0.95, 0.55, 12), toon('#3e3a36'), 2.6, H + 3.57, FRONT - 2.6, false));
+
+  // ---- MacLaren's: dark green wood frontage, amber windows, gold lettering --------------------------------
+  const green = toon('#1f3a2a');
+  const PUB_X0 = -W / 2, PUB_X1 = 2.5, pubMid = (PUB_X0 + PUB_X1) / 2;
+  g.add(mesh(box(PUB_X1 - PUB_X0, GROUND, 0.25), green, pubMid, GROUND / 2, FRONT + 0.12, false));
+  const amberDay = toon('#5a3a22'), amberNight = glow('#ffb860', 1.1);
+  for (const [x, w] of [[-2.85, 2.6], [1.0, 2.0]] as const) {
+    g.add(dn(mesh(new THREE.PlaneGeometry(w, 1.6), amberDay, x, 1.75, FRONT + 0.26, false), amberDay, amberNight));
+    for (let i = 1; i < 4; i++) g.add(mesh(box(0.05, 1.6, 0.04), green, x - w / 2 + (w * i) / 4, 1.75, FRONT + 0.28, false));
+    g.add(mesh(box(w, 0.05, 0.04), green, x, 2.15, FRONT + 0.28, false));
+    g.add(mesh(box(w + 0.2, 0.1, 0.2), green, x, 0.9, FRONT + 0.32, false));
+  }
+  g.add(mesh(box(1.0, 2.4, 0.08), toon('#2a1a10'), -0.8, 1.2, FRONT + 0.27, false));
+  g.add(dn(mesh(new THREE.PlaneGeometry(0.5, 0.6), amberDay, -0.8, 1.8, FRONT + 0.32, false), amberDay, amberNight));
+  // the sign board over the windows, and a little sign hanging off a bracket
+  const lettering = toon('#ffffff', { map: sign("MacLaren's", '#e8c46a', '#16301f', 256, 32, 'italic bold 24px Georgia') });
+  g.add(mesh(new THREE.PlaneGeometry(6.4, 0.6), lettering, pubMid, 2.95, FRONT + 0.26, false));
+  g.add(mesh(box(1.0, 0.05, 0.05), toon('#1a1a1a'), PUB_X0 + 0.4, 3.75, FRONT + 0.6, false).rotateY(Math.PI / 2));
+  const blade = toon('#ffffff', { map: sign("MacLaren's", '#e8c46a', '#16301f', 96, 48, 'italic bold 16px Georgia'), side: THREE.DoubleSide });
+  g.add(mesh(new THREE.PlaneGeometry(0.9, 0.5), blade, PUB_X0 + 0.4, 3.4, FRONT + 0.75, false).rotateY(Math.PI / 2));
+  const spill = new THREE.PointLight('#ffb070', 0, 8, 1.4);
+  spill.position.set(-1, 1.6, FRONT + 1.6);
+  g.add(spill);
+  nightLights.push([spill, 6]);
+
+  // the building's own front door, up a little stoop, with a lamp either side
+  g.add(mesh(box(1.1, 2.4, 0.08), toon('#5a1a14'), 3.55, 1.5, FRONT + 0.05, false));
+  g.add(dn(mesh(new THREE.PlaneGeometry(0.9, 0.3), toon('#4a5a70'), 3.55, 2.88, FRONT + 0.1, false), toon('#4a5a70'), warm));
+  for (let i = 0; i < 2; i++) g.add(mesh(box(1.6, 0.15, 0.35), toon('#8a847a'), 3.55, 0.08 + i * 0.15, FRONT + 0.2 + (1 - i) * 0.35));
+  for (const sx of [-0.8, 0.8]) g.add(dn(mesh(box(0.14, 0.22, 0.14), toon('#d8d0b8'), 3.55 + sx, 2.2, FRONT + 0.12, false), toon('#d8d0b8'), glow('#ffd890', 1.4)));
+
+  return { window: aptWindow };
+}
+
+/** Barney's building: a limestone luxury tower with a canopy out to the curb. */
+function buildHighrise(g: THREE.Group, dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh, FRONT: number) {
+  const W = 10, H = 46;
+  const f = facadeMats('#c8bca8', 811, W, H);
+  g.add(dn(mesh(box(W, H, 8), f.night, 0, H / 2, FRONT - 4, false), f.day, f.night));
+  const stone = toon('#d8ccb8');
+  for (let x = -W / 2; x <= W / 2 + 0.01; x += 2) g.add(mesh(box(0.25, H - 4, 0.25), stone, x, 4 + (H - 4) / 2, FRONT + 0.1, false)); // piers
+  g.add(mesh(box(W + 0.4, 4, 0.4), stone, 0, 2, FRONT + 0.15, false));
+  // the lobby: glass, brass, a revolving door
+  const lobbyDay = toon('#6a7a88'), lobbyNight = glow('#ffe6b0', 0.9);
+  g.add(dn(mesh(new THREE.PlaneGeometry(6, 2.8), lobbyDay, 0, 1.5, FRONT + 0.36, false), lobbyDay, lobbyNight));
+  g.add(mesh(cyl(0.9, 0.9, 2.6, 10), toon('#2a2a2a'), 0, 1.3, FRONT + 0.4, false));
+  const brass = toon('#c9a227');
+  g.add(mesh(box(4, 0.3, 3.6), toon('#141414'), 0, 3.2, FRONT + 2.1, false));
+  g.add(mesh(box(4.05, 0.08, 3.65), brass, 0, 3.0, FRONT + 2.1, false));
+  for (const sx of [-1.9, 1.9]) g.add(mesh(cyl(0.05, 0.05, 3.0, 6), brass, sx, 1.5, FRONT + 3.8, false));
+  g.add(mesh(new THREE.PlaneGeometry(4, 0.25), toon('#ffffff', { map: sign('PRIVATE RESIDENCES', '#c9a227', '#141414', 128, 16, 'bold 11px Georgia') }), 0, 3.2, FRONT + 3.91, false));
+}
+
+/** A blue-glass office tower; GNB's when the sign over the door is up. Returns the sign. */
+function buildGlassTower(g: THREE.Group, dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh, FRONT: number) {
+  const W = 11, H = 50;
+  const f = facadeMats('#2e4658', 822, W * 1.4, H);
+  g.add(dn(mesh(box(W, H, 9), f.night, 0, H / 2, FRONT - 4.5, false), f.day, f.night));
+  const mull = toon('#8a9aa8');
+  for (let x = -W / 2; x <= W / 2 + 0.01; x += 1.1) g.add(mesh(box(0.08, H - 4.5, 0.12), mull, x, 4.5 + (H - 4.5) / 2, FRONT + 0.06, false));
+  for (let y = 4.5; y < H; y += 2.8) g.add(mesh(box(W, 0.12, 0.12), mull, 0, y, FRONT + 0.06, false));
+  // a double-height glass lobby
+  const lobbyDay = toon('#5a7a90'), lobbyNight = glow('#e8f0ff', 0.9);
+  g.add(dn(mesh(new THREE.PlaneGeometry(W - 1, 4.2), lobbyDay, 0, 2.1, FRONT + 0.02, false), lobbyDay, lobbyNight));
+  for (let x = -W / 2 + 0.5; x <= W / 2 - 0.4; x += 1.4) g.add(mesh(box(0.1, 4.2, 0.1), toon('#3a4a58'), x, 2.1, FRONT + 0.06, false));
+  g.add(mesh(box(W + 0.2, 0.3, 0.6), toon('#3a4a58'), 0, 4.4, FRONT + 0.25, false));
+  const gnb = new THREE.Group();
+  gnb.add(mesh(new THREE.PlaneGeometry(3.4, 0.9), toon('#ffffff', { map: sign('GNB', '#ffffff', '#1a2a44', 96, 24, 'bold 18px Arial'), emissive: '#ffffff', emissiveIntensity: 0.35 }), 0, 5.2, FRONT + 0.1, false));
+  g.add(gnb);
+  return gnb;
+}

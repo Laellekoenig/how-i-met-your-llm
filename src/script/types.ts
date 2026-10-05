@@ -29,6 +29,14 @@ export type LaughKind = (typeof LAUGHS)[number];
 
 export type TimeOfDay = 'day' | 'night';
 
+/**
+ * How we get into a scene, HIMYM-style. Most scenes just cut in on the guitar sting; now and then the show
+ * cuts to the New York skyline or the outside of the building first, or uses a rewind cue when Future Ted
+ * is getting ahead of himself. An opening narrate beat can play over an establishing shot.
+ */
+export const TRANSITIONS = ['cut', 'skyline', 'exterior', 'rewind'] as const;
+export type Transition = (typeof TRANSITIONS)[number];
+
 export type Beat =
   | { type: 'say'; character: CharacterId; line: string; emotion?: Emotion; to?: string; gesture?: Gesture; laugh?: LaughKind }
   | { type: 'narrate'; line: string; laugh?: LaughKind }
@@ -48,6 +56,8 @@ export interface Scene {
   location: LocationId;
   time: TimeOfDay;
   summary?: string;
+  /** Omit for automatic skyline/time-change, exterior/location-change, or same-location cut. */
+  transition?: Transition;
   cast: CastPlacement[];
   beats: Beat[];
 }

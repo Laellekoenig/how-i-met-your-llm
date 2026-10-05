@@ -278,8 +278,10 @@ function frame(now: number) {
       for (const id of ids) if (id !== who) stage.actors[id].lookAt = stage.actors[who].headWorld;
     }
   }
-  stage.update(dt, t);
-  director.update(dt);
+  if (!player.paused) {
+    stage.update(dt, t);
+    director.update(dt);
+  }
   renderer.render(t);
   requestAnimationFrame(frame);
 }

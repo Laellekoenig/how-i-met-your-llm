@@ -25,7 +25,7 @@ const EPISODES: SampleEpisode[] = [
     couch: [say('luke', 'Is this the one where you finally meet Mom?', { e: 'bored' }), narr("We're getting there.", 'chuckle')],
     scenes: [
       {
-        location: 'maclarens', time: 'night',
+        location: 'maclarens', time: 'night', transition: 'skyline',
         cast: [
           { character: 'ted', mark: 'booth_end' }, { character: 'marshall', mark: 'booth_left_back' },
           { character: 'lily', mark: 'booth_left_front' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' },
@@ -55,12 +55,13 @@ const EPISODES: SampleEpisode[] = [
         ],
       },
       {
-        location: 'apartment', time: 'day',
+        location: 'apartment', time: 'day', transition: 'exterior',
         cast: [
           { character: 'ted', mark: 'armchair' }, { character: 'marshall', mark: 'couch_left' },
           { character: 'lily', mark: 'couch_center' }, { character: 'robin', mark: 'dining_chair_1' },
         ],
         beats: [
+          narr('By the next morning, my friends had turned one dinner invitation into a presidential election.'),
           say('ted', 'Welcome to the pitch. Each of you gets sixty seconds. Marshall, you are up.', { e: 'smug' }),
           move('marshall', 'center'),
           say('marshall', "Ted. We've been best friends since freshman year. I've seen you at your best. I've seen you at your worst.", { to: 'ted', e: 'sad' }),
@@ -85,7 +86,7 @@ const EPISODES: SampleEpisode[] = [
         ],
       },
       {
-        location: 'maclarens', time: 'night',
+        location: 'maclarens', time: 'night', transition: 'exterior',
         cast: [
           { character: 'ted', mark: 'bar_stool_2' }, { character: 'marshall', mark: 'booth_left_back' },
           { character: 'lily', mark: 'booth_left_front' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' },
@@ -117,7 +118,7 @@ const EPISODES: SampleEpisode[] = [
     couch: [say('penny', 'This whole story is about a thermostat?', { e: 'bored' }), say('luke', 'Can we skip to the part where somebody gets slapped?', { e: 'bored', l: 'chuckle' })],
     scenes: [
       {
-        location: 'apartment', time: 'night',
+        location: 'apartment', time: 'night', transition: 'skyline',
         cast: [{ character: 'lily', mark: 'couch_left' }, { character: 'marshall', mark: 'kitchen' }, { character: 'ted', mark: 'armchair' }],
         beats: [
           say('lily', 'Marshmallow, it is sixty-four degrees in here. I can see my breath. My breath is spelling the word divorce.', { e: 'angry', to: 'marshall', l: 'laugh' }),
@@ -140,12 +141,13 @@ const EPISODES: SampleEpisode[] = [
         ],
       },
       {
-        location: 'barneys', time: 'day',
+        location: 'barneys', time: 'day', transition: 'exterior',
         cast: [
           { character: 'barney', mark: 'center' }, { character: 'marshall', mark: 'couch_left' },
           { character: 'lily', mark: 'couch_right' }, { character: 'robin', mark: 'bar_cart' },
         ],
         beats: [
+          narr('The next morning, Barney hosted the least important climate summit in human history.'),
           say('barney', 'Welcome to the Stinson Climate Summit. My apartment is kept at exactly seventy-one degrees. The official temperature of awesome.', { e: 'smug', g: 'hands_up' }),
           say('robin', 'Barney, it feels like a meat locker in here.', { to: 'barney', e: 'confused' }),
           say('barney', "That's because awesome is crisp.", { to: 'robin', e: 'smug', l: 'laugh' }),
@@ -167,7 +169,7 @@ const EPISODES: SampleEpisode[] = [
         ],
       },
       {
-        location: 'maclarens', time: 'night',
+        location: 'maclarens', time: 'night', transition: 'cut',
         cast: [{ character: 'ted', mark: 'booth_end' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' }],
         beats: [
           enter('marshall', 'booth_left_back'),
