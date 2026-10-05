@@ -16,11 +16,12 @@ afterEach(() => {
   setGuests([]);
 });
 
-const nora: GuestStar = {
-  id: 'guest1', name: 'Nora Vale', role: "Ted's date", gender: 'female', height: 'average', build: 'slim', skin: 'olive',
+// Nora is a recurring role; one-off guests use distinct names.
+const elodie: GuestStar = {
+  id: 'guest1', name: 'Elodie Vale', role: "Ted's date", gender: 'female', height: 'average', build: 'slim', skin: 'olive',
   hair: 'dark_brown', hairStyle: 'bob', top: 'burgundy', topStyle: 'dress', pants: 'black', extras: [], voice: { pitch: 'medium', pace: 'normal' },
 };
-const dmitri: GuestStar = { ...nora, id: 'guest2', name: 'Dmitri', gender: 'male', height: 'tall', build: 'broad', hairStyle: 'short', topStyle: 'suit', top: 'black' };
+const dmitri: GuestStar = { ...elodie, id: 'guest2', name: 'Dmitri', gender: 'male', height: 'tall', build: 'broad', hairStyle: 'short', topStyle: 'suit', top: 'black' };
 
 const sets = testStage().sets;
 const messages = (ep: unknown) => validateEpisode(ep, sets).errors.map((e) => `${e.path}: ${e.message}`);
@@ -28,7 +29,7 @@ const messages = (ep: unknown) => validateEpisode(ep, sets).errors.map((e) => `$
 /** A minimal valid episode, for breaking one thing at a time. */
 function episode(beats: Beat[], extra: Partial<EpisodeScript> = {}): EpisodeScript {
   return {
-    code: 'S99E01', title: 'The Test', logline: 'A test.', coldOpen: 'Kids, this is a test.', guests: [nora],
+    code: 'S99E01', title: 'The Test', logline: 'A test.', coldOpen: 'Kids, this is a test.', guests: [elodie],
     scenes: [{ location: 'maclarens', time: 'night', cast: [{ character: 'ted', mark: 'booth_end' }, { character: 'guest1', mark: 'booth_left_back' }], beats }],
     ...extra,
   };
@@ -38,27 +39,27 @@ describe('guest stars', () => {
   test('casting an episode renames and rebuilds the slots; the next episode resets the unused ones', () => {
     const stage = testStage();
     const before = stage.actors.guest1;
-    stage.castGuests([nora, dmitri]);
-    expect(charName('guest1')).toBe('Nora Vale');
+    stage.castGuests([elodie, dmitri]);
+    expect(charName('guest1')).toBe('Elodie Vale');
     expect(CHARACTERS.guest2.voice.gender).toBe('male');
     expect(stage.actors.guest1).not.toBe(before);
     expect(stage.actors.guest2.height).toBeGreaterThan(stage.actors.guest1.height);
     const nextWeek = stage.actors.guest2;
-    stage.castGuests([nora]);
-    expect(stage.actors.guest1.def.name).toBe('Nora Vale');
+    stage.castGuests([elodie]);
+    expect(stage.actors.guest1.def.name).toBe('Elodie Vale');
     expect(charName('guest2')).toBe('Guest');
     expect(stage.actors.guest2).not.toBe(nextWeek);
     // casting the same people again doesn't rebuild anyone
     const kept = stage.actors.guest1;
-    stage.castGuests([nora]);
+    stage.castGuests([elodie]);
     expect(stage.actors.guest1).toBe(kept);
   });
 
   test('guests fill their slots in order, in words the wardrobe knows, and an uncast slot never speaks', () => {
     const say = (character: string): Beat => ({ type: 'say', character, line: 'Hi.' } as Beat);
     expect(messages(episode([say('guest1')]))).toEqual([]);
-    expect(messages(episode([say('guest1')], { guests: [{ ...nora, id: 'guest2' }] })).join('\n')).toContain('"id": "guest1"');
-    const odd = { ...nora, top: 'chartreuse', extras: ['jetpack'], hairStyle: 'mohawk', voice: { pitch: 'low', pace: 'warp' } } as unknown as GuestStar;
+    expect(messages(episode([say('guest1')], { guests: [{ ...elodie, id: 'guest2' }] })).join('\n')).toContain('"id": "guest1"');
+    const odd = { ...elodie, top: 'chartreuse', extras: ['jetpack'], hairStyle: 'mohawk', voice: { pitch: 'low', pace: 'warp' } } as unknown as GuestStar;
     expect(messages(episode([say('guest1')], { guests: [odd] }))).toHaveLength(4);
     expect(messages(episode([say('guest1'), say('guest2')])).join('\n')).toContain("guest2 isn't cast");
   });
@@ -103,6 +104,12 @@ describe('the validator', () => {
     expect(errors([cutaway([say('ted'), say('ted'), say('ted')])])).toBe('');
     expect(errors([cutaway([say('guest1')])])).toContain("guest1 isn't on stage");
     expect(errors([cutaway([cutaway([say('ted')])])])).toContain('no cutaways inside a cutaway');
+  });
+
+  test('Robin Sparkles only meets Robin in a cutaway', () => {
+    const sparkles = { type: 'cutaway', style: 'imagined', label: 'Canada, 1993', location: 'store', time: 'day', cast: [{ character: 'robin', mark: 'cashier' }, { character: 'robin_sparkles', mark: 'produce' }], beats: [say('robin_sparkles', 'Hi!'), say('robin', 'No.'), say('robin_sparkles', 'Bye!')] } as Beat;
+    expect(errors([sparkles])).toBe('');
+    expect(errors([{ type: 'enter', character: 'robin', to: 'bar_standing' }, { type: 'enter', character: 'robin_sparkles', to: 'center' }])).toContain('the same person');
   });
 
   test('in a car, nobody slides through the partition', () => {

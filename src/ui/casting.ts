@@ -3,7 +3,7 @@ import { CHARACTERS, FUTURE_TED_VOICE, type VoiceProfile } from '../world/charac
 import type { CharacterId } from '../script/types';
 
 // Settings order.
-const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'penny', 'luke', 'wendy', 'ranjit', 'carl', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter'];
+const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'penny', 'luke', 'wendy', 'ranjit', 'carl', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles'];
 
 const SAMPLES: Record<string, string> = {
   'future-ted': 'Kids, I want to tell you an incredible story.',
@@ -27,6 +27,15 @@ const SAMPLES: Record<string, string> = {
   kevin: 'As your friend, I support you. As a therapist, I need a larger notebook.',
   judy: 'Marshall, honey, I brought enough salad for everyone. It has marshmallows.',
   scooter: 'Lily said maybe. I have been very loyal to that maybe.',
+  loretta: "Barney, sweetheart, your father was very famous. Depending on which story I told you.",
+  mickey: 'Marshall, the board game is finished. I just need rules, pieces, and a small investment.',
+  hammond: 'Mosby, my building has vision. Your building has usable doors.',
+  stella: 'Ted, I have two minutes. Please choose your metaphor accordingly.',
+  zoey: 'I brought a petition. You can sign it before or after our argument.',
+  nora: 'Barney, honesty is a surprisingly effective opening line.',
+  virginia: "Teddy, I met someone. You might want to put down your drink.",
+  punchy: 'Schmosby! Look at us! Two grown men, zero improvement!',
+  robin_sparkles: 'Hello, Canada! Even the food court deserves an encore!',
   penny: 'Dad. You said this story was about Mom.',
   luke: 'Are we almost done? I have practice.',
 };

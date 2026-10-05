@@ -101,7 +101,8 @@ Episodes use all of these through the episode file format (see `bun run bible`):
   caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
   mid-word and the next speaker jumps straight in.
 
-All four original episodes (Season 10) use all of it: each casts its own guest stars and cuts away at least once.
+The four original episodes (S10E01–S10E04) each cast their own guest stars and cut away at least once. Three more
+(S10E05–S10E07) feature the expanded recurring cast.
 
 | Episode | Guest stars | Cutaways | Sets |
 | --- | --- | --- | --- |
@@ -109,10 +110,18 @@ All four original episodes (Season 10) use all of it: each casts its own guest s
 | **The Silent Auction** | Delphine, the PTA president; Rusty, the auctioneer | How Marshall imagined it; St. Cloud, 1985 | store, restaurant, apartment |
 | **The Correction** | Margo, the producer; Hector, the silent camera operator | How Kevin pictured it (lecture hall) | Metro News One, Barney's limo (with a rewind) |
 | **The Guest Lecture** | Ingrid Solberg, Ted's hero; Wade, his keenest student | Wesleyan, 1997 | roof, lecture hall, limo |
+| **The Family Fine Print** | Mickey, Loretta and Virginia | Earlier that afternoon at Barney's | apartment, restaurant |
+| **The Committee** | Stella, Zoey and Nora | Ted imagines a seating lecture | restaurant, MacLaren's |
+| **The Reunion Tape** | Hammond, Punchy and Robin Sparkles | Canada, 1993 — a retail promotion | lecture hall, MacLaren's, store |
 
 In dev mode, skip episodes to reach the others, or open `/?ep=S10E02`.
 
 ## Recurring cast and wardrobe references
+
+Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
+Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voice auditions and writer guidance.
+They appear in S10E05–S10E07. See [their inspected references and wardrobe notes](docs/cast-reference.md).
+
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
 show bible, director and voice-casting panel. Each has a distinct procedural model,

@@ -138,14 +138,16 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     set: Sets[string];
     /** On stage, and the mark they're on (null: next to someone, off any mark). */
     at: Map<string, string | null>;
+    /** A scene, not a cutaway. */
+    real: boolean;
   }
 
   const compartment = (st: Stage, mark: string) => st.set.entrances?.[mark] ?? st.set.door;
 
-  const castOn = (raw: unknown, location: string, path: string): Stage | null => {
+  const castOn = (raw: unknown, location: string, path: string, real: boolean): Stage | null => {
     const set = sets[location];
     if (!set) return null;
-    const st: Stage = { location, set, at: new Map() };
+    const st: Stage = { location, set, at: new Map(), real };
     if (!Array.isArray(raw)) {
       err(path, '"cast" must be an array of { "character", "mark" }');
       return st;
@@ -169,7 +171,13 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         st.at.set(who, set.marks[mark] ? mark : null);
       }
     });
+    bothRobins(st, path);
     return st;
+  };
+
+  /** Robin Sparkles is Robin's teen-pop past: she can share a cutaway with Robin, never a real scene. */
+  const bothRobins = (st: Stage | null, path: string) => {
+    if (st?.real && st.at.has('robin') && st.at.has('robin_sparkles')) err(path, 'robin and robin_sparkles are the same person: only a cutaway can put them side by side');
   };
 
   /** A mark or a character on stage someone can walk (or slide) to. */
@@ -243,6 +251,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         if (st.at.has(who)) err(p, `${who} is already on stage: use "move"`);
         st.at.set(who, null);
         destination(st, who, b.to, p);
+        bothRobins(st, p);
       } else if (!st.at.has(who)) {
         err(p, `${who} isn't on stage here: put them in the cast or give them an "enter" beat first`);
       } else if (type === 'exit') {
@@ -262,7 +271,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         if (b.label !== undefined && (typeof b.label !== 'string' || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
         if (!b.label) warn(p, 'give the cutaway an on-screen "label", e.g. "How Barney imagined it" or "Wesleyan, 1996"');
         const location = oneOf(b, 'location', SCENE_LOCATION_IDS, p, true);
-        const inner = location ? castOn(b.cast, location, `${p}.cast`) : null;
+        const inner = location ? castOn(b.cast, location, `${p}.cast`, false) : null;
         const n = Array.isArray(b.beats) ? b.beats.length : 0;
         if (n > MAX_CUTAWAY_BEATS) err(p, `${n} beats: a cutaway has at most ${MAX_CUTAWAY_BEATS}`);
         else if (n < 3 || n > 10) warn(p, `${n} beats: cutaways land best with 3-10`);
@@ -299,7 +308,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       oneOf(s, 'time', ['day', 'night'], path, true);
       oneOf(s, 'transition', TRANSITIONS, path);
       if (s.summary !== undefined && typeof s.summary !== 'string') err(path, '"summary" is a string');
-      const st = location ? castOn(s.cast, location, `${path}.cast`) : null;
+      const st = location ? castOn(s.cast, location, `${path}.cast`, true) : null;
       const budget = { left: MAX_SCENE_BEATS };
       beats(s.beats, st, `${path}.beats`, false, budget);
       if (budget.left < 0) err(path, `${MAX_SCENE_BEATS - budget.left} beats (counting cutaways): a scene has at most ${MAX_SCENE_BEATS}`);
