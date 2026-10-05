@@ -18,7 +18,8 @@ interface ActiveShot {
   subject?: CharacterId;
   drift?: EstablishingShot;
   subjects?: CharacterId[];
-  followHead?: THREE.Vector3;
+  /** Where the followed actor's body stood last frame; the camera tracks it, not the bobbing head. */
+  followRoot?: THREE.Vector3;
   /** Where a jogged shot was originally framed. */
   base?: { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
 }
@@ -34,7 +35,7 @@ export class Director {
   constructor(private camera: THREE.PerspectiveCamera, private stage: Stage) {}
 
   private cut(s: ActiveShot) {
-    s.followHead = s.follow?.headWorld;
+    s.followRoot = s.follow?.root.getWorldPosition(new THREE.Vector3());
     this.shot = s;
     this.lastCut = this.time;
     this.apply(0);
@@ -290,19 +291,24 @@ export class Director {
       s.target.addScaledVector(s.drift.look, dt);
     }
     if (s.follow && s.followOffset) {
+      // Track the body, not the head: breathing, talk nods and excited hops would shake the camera.
+      const root = s.follow.root.getWorldPosition(new THREE.Vector3());
       const head = s.follow.headWorld;
-      if (s.followHead) {
-        const displacement = head.clone().sub(s.followHead);
-        const moved = s.pos.clone().add(displacement);
-        if (displacement.lengthSq() > 0.000001 &&
-          (!this.clear(moved, head, [s.follow]) || !this.clear(moved, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [s.follow]))) {
-          this.closeup(s.subject!);
-          return;
+      if (s.followRoot) {
+        const displacement = root.clone().sub(s.followRoot);
+        if (displacement.lengthSq() > 0.000001) {
+          const moved = s.pos.clone().add(displacement);
+          if (!this.clear(moved, head, [s.follow]) || !this.clear(moved, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [s.follow])) {
+            this.closeup(s.subject!);
+            return;
+          }
+          s.pos.copy(moved);
+          s.target.add(displacement);
         }
-        s.pos.copy(moved);
       }
-      s.followHead = head.clone();
-      s.target.lerp(head.add(s.followOffset), damp(4, dt || 1));
+      s.followRoot = root;
+      // Ease the aim slowly so sitting down or standing up is reframed, but idle motion isn't.
+      s.target.lerp(head.add(s.followOffset), dt ? damp(1.2, dt) : 1);
     }
     if (dt > 0 && s.push && this.time - this.lastCut < 4) {
       const dir = s.target.clone().sub(s.pos);
