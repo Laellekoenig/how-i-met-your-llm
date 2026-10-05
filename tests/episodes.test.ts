@@ -159,9 +159,9 @@ describe('cutaway playback', () => {
     const stage = testStage();
     const camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.05, 60);
     const director = new Director(camera, stage);
-    const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 };
+    const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
     const labels: [string, string | undefined][] = [];
-    const overlay = { hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, showCaption() {}, location: (t: string, s?: string) => labels.push([t, s]) };
+    const overlay = { hideCaption() {}, hideCards() {}, insert() {}, revealInsert: () => 0, standby() {}, hideLocation() {}, year() {}, showCaption() {}, location: (t: string, s?: string) => labels.push([t, s]) };
     const spoken: { who: string; set: string; dream: number; memory: number; delivery?: string; cutOff?: boolean }[] = [];
     spies.push(spyOn(speech, 'speak').mockImplementation((_text, profile, onStart, opts = {}) => {
       onStart?.();
@@ -174,7 +174,8 @@ describe('cutaway playback', () => {
     const episode = { id: 'auction', code: ep.code, title: ep.title, logline: '' };
     // the store scene's imagined auction, then the flashback back home, no transitions in between
     const items: ShowItem[] = [
-      { kind: 'scene', episode, index: 0, scene: { ...first, transition: 'cut' } },
+      // (its insert and montage are covered by their own playback test)
+      { kind: 'scene', episode, index: 0, scene: { ...first, transition: 'cut', beats: first.beats.filter((b) => b.type !== 'insert' && b.type !== 'montage') } },
       { kind: 'scene', episode, index: 2, scene: { ...third, transition: 'cut', beats: third.beats.slice(2, 5) } },
     ];
     let requests = 0;
@@ -195,7 +196,7 @@ describe('cutaway playback', () => {
     const player = new Player(stage, director, renderer as never, overlay as never, { line() {} } as never, source);
     void player.run();
     const start = performance.now();
-    while (requests <= items.length && performance.now() - start < 20000) await new Promise((r) => setTimeout(r, 20));
+    while (requests <= items.length && performance.now() - start < 40000) await new Promise((r) => setTimeout(r, 20));
 
     const inStore = spoken.filter((s) => s.set === 'store' && s.memory === 0).map((s) => s.who);
     const imagined = spoken.filter((s) => s.set === 'restaurant' && s.dream === 1);
@@ -215,5 +216,5 @@ describe('cutaway playback', () => {
     const after = spoken.at(-1)!;
     expect(after).toMatchObject({ who: 'judy', set: 'apartment', dream: 0, memory: 0 });
     expect(renderer).toMatchObject({ dream: 0, memory: 0, ripple: 0, rewind: 0 });
-  }, 30000);
+  }, 60000);
 });

@@ -52,6 +52,8 @@
       "cast": [{ "character": "lily", "mark": "shelves" }, { "character": "marshall", "mark": "produce" }, { "character": "scooter", "mark": "queue" }],
       "beats": [
         { "type": "narrate", "line": "It started, like most of Lily’s wars, in the snack aisle." },
+        { "type": "hold", "character": "lily", "prop": "gift" },
+        { "type": "insert", "character": "lily", "laugh": "laugh", "kind": "text", "title": "guest1", "messages": [{ "from": "guest1", "text": "Basket rankings are live!" }, { "from": "guest1", "text": "You are #14." }, { "from": "lily", "text": "There are 14 baskets." }, { "from": "guest1", "text": "Yes!" }] },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Marshall, this basket has to win. Last year Delphine’s basket had a spa voucher.", "emotion": "nervous" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, it’s a school auction. Nobody’s keeping score.", "emotion": "happy" },
         { "type": "enter", "character": "guest1", "to": "lily" },
@@ -79,7 +81,10 @@
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lily, that canoe is going to be mine.", "emotion": "excited", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "lily", "line": "Bidding starts at eight. Don’t worry, fourteenth is still a place.", "emotion": "smug" },
         { "type": "exit", "character": "guest1" },
-        { "type": "say", "character": "lily", "line": "I am going to bury her in jam.", "delivery": "whisper", "emotion": "angry", "laugh": "big" }
+        { "type": "say", "character": "lily", "line": "I am going to bury her in jam.", "delivery": "whisper", "emotion": "angry", "laugh": "big" },
+        { "type": "narrate", "line": "For the next three days, your Aunt Lily did nothing but improve that basket." },
+        { "type": "montage", "label": "Three days of basket", "music": "upbeat", "shots": [{ "location": "store", "time": "day", "label": "Day 1", "cast": [{ "character": "lily", "mark": "shelves" }], "beats": [{ "type": "hold", "character": "lily", "prop": "flowers" }, { "type": "say", "character": "lily", "line": "More jam.", "emotion": "excited" }] }, { "location": "apartment", "time": "night", "label": "Day 2", "cast": [{ "character": "lily", "mark": "couch_center" }, { "character": "marshall", "mark": "couch_left" }], "beats": [{ "type": "act", "character": "lily", "gesture": "think" }, { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, it’s three in the morning.", "emotion": "bored" }] }, { "location": "store", "time": "day", "label": "Day 3", "cast": [{ "character": "lily", "mark": "checkout" }, { "character": "scooter", "mark": "queue" }], "beats": [{ "type": "act", "character": "scooter", "to": "lily", "emotion": "excited", "gesture": "wave" }, { "type": "act", "character": "lily", "gesture": "facepalm" }] }] },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Three jams, Lilypad. Plural. Delphine is going down.", "emotion": "excited", "laugh": "laugh" }
       ]
     },
     {
@@ -97,6 +102,7 @@
       ],
       "beats": [
         { "type": "narrate", "line": "That night, the auction took over the back room of a bistro on Amsterdam." },
+        { "type": "insert", "character": "guest1", "line": "Before we begin: the standings. Jam is not a strategy.", "laugh": "laugh", "kind": "chart", "title": "Basket Rankings", "items": [{ "label": "Spa day", "value": 98 }, { "label": "Wine", "value": 91 }, { "label": "Candles", "value": 77 }, { "label": "Lily", "value": 4 }], "react": [{ "character": "lily", "emotion": "angry", "gesture": "arms_crossed" }] },
         { "type": "say", "character": "guest2", "line": "Welcome, folks! Lot one, a cake from Victoria’s bakery, do I hear twenty, twenty-five, sold!", "delivery": "fast", "emotion": "excited", "gesture": "point", "laugh": "laugh" },
         { "type": "say", "character": "victoria", "to": "lily", "line": "Did anybody bid? I didn’t see anybody bid.", "emotion": "confused" },
         { "type": "say", "character": "lily", "to": "victoria", "line": "Scooter scratched his nose.", "laugh": "laugh" },
@@ -110,14 +116,13 @@
         { "type": "say", "character": "marshall", "line": "One hundred dollars!", "delivery": "shout", "emotion": "angry" },
         { "type": "say", "character": "judy", "to": "guest2", "line": "Two hundred. And I’ll throw in a casserole." },
         { "type": "say", "character": "guest2", "to": "judy", "line": "Ma’am, we do not accept casseroles—", "interrupted": true, "emotion": "confused" },
-        { "type": "say", "character": "judy", "to": "guest2", "line": "It’s tuna.", "delivery": "slow", "emotion": "flirty", "laugh": "laugh" },
+        { "type": "say", "character": "judy", "to": "guest2", "line": "It’s tuna.", "delivery": "slow", "emotion": "flirty", "laugh": "laugh", "react": [{ "character": "marshall", "gesture": "spit_take" }] },
         { "type": "say", "character": "guest2", "line": "Sold, to the lady in the apron!", "delivery": "shout", "emotion": "excited", "gesture": "point", "laugh": "applause" },
         { "type": "say", "character": "marshall", "line": "No.", "delivery": "slow", "emotion": "sad", "laugh": "laugh" },
         { "type": "move", "character": "guest1", "to": "lily" },
         { "type": "say", "character": "guest1", "to": "lily", "line": "Lily, your basket got zero bids. I’m so sorry. I’m not, but it’s polite to say.", "delivery": "whisper", "emotion": "smug", "laugh": "ooh" },
         { "type": "say", "character": "lily", "to": "scooter", "line": "Zero? Scooter. Scooter, bid on my basket.", "emotion": "angry", "gesture": "point" },
-        { "type": "say", "character": "scooter", "line": "Five hundred dollars!", "delivery": "shout", "emotion": "excited", "laugh": "big" },
-        { "type": "act", "character": "lily", "gesture": "facepalm" }
+        { "type": "say", "character": "scooter", "line": "Five hundred dollars!", "delivery": "shout", "emotion": "excited", "laugh": "big", "react": [{ "character": "lily", "gesture": "facepalm" }] }
       ]
     },
     {
@@ -147,11 +152,12 @@
         { "type": "act", "character": "marshall", "to": "judy", "gesture": "hug" },
         { "type": "enter", "character": "ted", "to": "center" },
         { "type": "say", "character": "ted", "line": "Why is there a canoe in the stairwell?", "emotion": "confused", "laugh": "laugh" },
+        { "type": "act", "character": "ted", "gesture": "sit" },
         { "type": "say", "character": "lily", "to": "ted", "line": "Also, Scooter gave me my basket back. With a poem in it.", "emotion": "bored" },
         { "type": "say", "character": "ted", "to": "lily", "line": "Is it any good?" },
         { "type": "say", "character": "lily", "to": "ted", "line": "It rhymes Lily with really, really.", "delivery": "deadpan", "laugh": "big" },
         { "type": "narrate", "line": "Marshall kept that canoe for twenty years. He never once put it in the water.", "laugh": "chuckle" },
-        { "type": "say", "character": "luke", "line": "Can we have the canoe?", "emotion": "excited" },
+        { "type": "say", "character": "luke", "line": "Can we have the canoe?", "emotion": "excited", "chorus": ["penny"] },
         { "type": "narrate", "line": "Ask Uncle Marshall. He’ll say when you’re older.", "laugh": "laugh" }
       ]
     }

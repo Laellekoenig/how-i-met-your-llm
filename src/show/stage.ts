@@ -22,7 +22,7 @@ import { buildHospital } from '../world/sets/hospital';
 import { buildElevator } from '../world/sets/elevator';
 import { buildCanadianMall } from '../world/sets/canadianMall';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
-import { CHARACTER_IDS, KIDS, type CharacterId, type GuestStar, type LocationId, type Outfit, type TimeOfDay } from '../script/types';
+import { CHARACTER_IDS, KIDS, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 import { joinRoute, routeNodes } from './navigation';
 
@@ -36,7 +36,7 @@ export interface FrozenScene {
   outfits: Map<CharacterId, Outfit>;
   actors: {
     id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D;
-    emotion: Actor['emotion']; holdingGlass: boolean;
+    emotion: Actor['emotion']; holdingGlass: boolean; held: Prop | null;
   }[];
 }
 
@@ -55,8 +55,14 @@ export class Stage {
   private backgroundIds = new Set<CharacterId>();
   /** Who's in their work clothes. Everyone else is in their own. */
   private outfits = new Map<CharacterId, Outfit>();
-  /** Actors built for the outfits people aren't wearing right now, keyed `id:outfit`. */
+  /** This episode's and scene's costumes, worn over casual or work clothes. */
+  private costumes = new Map<CharacterId, Costume>();
+  /** What each actor in `actors` was built to wear (an outfit, plus any costume); casual if missing. */
+  private wearing = new Map<CharacterId, string>();
+  /** Actors built for the clothes people aren't wearing right now, keyed `id|clothes`. */
   private wardrobe = new Map<string, Actor>();
+  /** A freeze frame: nobody moves until it's lifted. */
+  frozen = false;
   /** The scene we cut away from while we're on the 2030 couch. */
   private paused: { set: StageSet; visible: CharacterId[] } | null = null;
   private time: TimeOfDay = 'night';
@@ -184,6 +190,7 @@ export class Stage {
         return {
           id, pos, facing: mark && (a.isWalking || mark.seat !== null) ? mark.facing : a.targetFacing,
           seat: mark?.seat ?? null, pose: mark?.pose, prop: mark?.prop, emotion: a.emotion, holdingGlass: a.holdingGlass,
+          held: a.prop,
         };
       }),
     };
@@ -202,6 +209,7 @@ export class Stage {
       a.place(s.pos, s.facing, s.seat, { pose: s.pose, prop: s.prop });
       a.setEmotion(s.emotion);
       a.holdingGlass = s.holdingGlass;
+      a.hold(s.held);
       a.root.visible = true;
     }
     this.syncExtras();
@@ -222,6 +230,7 @@ export class Stage {
       a.place(new THREE.Vector3(0, 0, 0), 0, null);
       a.emotion = 'neutral';
       a.holdingGlass = false;
+      a.hold(null);
     }
     this.occupancy.clear();
     this.actorMark.clear();
@@ -231,30 +240,52 @@ export class Stage {
   }
 
   /**
-   * Change someone into their work clothes or back into their own. Swaps in another actor (built the first time
-   * it's needed), so only call it before they're placed in a scene.
+   * Change someone into their work clothes or back into their own, with their costume (if any) on top. Swaps in
+   * another actor (built the first time it's needed), so only call it before they're placed in a scene.
    */
   dress(id: CharacterId, outfit: Outfit) {
-    if (!CHARACTERS[id].work) return;
-    const wearing = this.outfits.get(id) ?? 'casual';
-    if (wearing === outfit) return;
+    const costume = this.costumes.get(id);
+    if (!CHARACTERS[id].work) outfit = 'casual';
+    else if (outfit === 'casual') this.outfits.delete(id);
+    else this.outfits.set(id, outfit);
+    const clothes = costume ? `${outfit}:${costumeKey(costume)}` : outfit;
+    const wearing = this.wearing.get(id) ?? 'casual';
+    if (wearing === clothes) return;
     const old = this.actors[id];
-    let a = this.wardrobe.get(`${id}:${outfit}`);
+    let a = this.wardrobe.get(`${id}|${clothes}`);
     if (!a) {
-      a = new Actor(dressed(CHARACTERS[id], outfit));
+      a = new Actor(dressed(CHARACTERS[id], outfit, costume));
       this.scene.add(a.root);
     }
-    this.wardrobe.delete(`${id}:${outfit}`);
-    this.wardrobe.set(`${id}:${wearing}`, old);
+    this.wardrobe.delete(`${id}|${clothes}`);
+    this.wardrobe.set(`${id}|${wearing}`, old);
     old.root.visible = false;
+    old.hold(null);
     a.root.visible = false;
     a.place(new THREE.Vector3(0, 0, 0), 0, null);
     a.emotion = 'neutral';
     a.holdingGlass = a.talking = false;
     a.lookAt = null;
     this.actors[id] = a;
-    if (outfit === 'casual') this.outfits.delete(id);
-    else this.outfits.set(id, outfit);
+    if (clothes === 'casual') this.wearing.delete(id);
+    else this.wearing.set(id, clothes);
+  }
+
+  /**
+   * Costumes for the scenes ahead (the episode's, with the scene's over them). They go on at the next location
+   * change; actors built for costumes nobody wears any more are thrown away.
+   */
+  setWardrobe(costumes: Costume[] = []) {
+    this.costumes.clear();
+    for (const c of costumes) if (!isGuest(c.character) && !isKid(c.character)) this.costumes.set(c.character, c);
+    for (const [k, a] of this.wardrobe) {
+      const [id, clothes] = k.split('|') as [CharacterId, string];
+      const costume = this.costumes.get(id);
+      if (!clothes.includes(':') || (costume && clothes.endsWith(`:${costumeKey(costume)}`))) continue;
+      this.scene.remove(a.root);
+      a.root.traverse((o) => { if (o instanceof THREE.Mesh) o.geometry.dispose(); });
+      this.wardrobe.delete(k);
+    }
   }
 
   outfitOf(id: CharacterId): Outfit {
@@ -511,6 +542,37 @@ export class Stage {
     return best;
   }
 
+  /** Sit down in the nearest free seat they can get to. */
+  sitDown(id: CharacterId): Promise<void> {
+    const a = this.actors[id];
+    if (!this.onStage(id) || a.isSitting || this.current.seated) return Promise.resolve();
+    const from = this.actorNode.get(id) ?? this.nearestNode(a.position);
+    const doors = [this.current.door, ...Object.values(this.current.entrances ?? {}), ...(this.current.reserved ?? [])];
+    let best: string | undefined;
+    let bd = Infinity;
+    for (const [k, m] of Object.entries(this.current.marks)) {
+      if (m.seat === null || doors.includes(k) || !this.isFree(k, id) || !routeNodes(this.current, from, m.node)) continue;
+      const d = m.pos.distanceTo(a.position);
+      if (d < bd) {
+        bd = d;
+        best = k;
+      }
+    }
+    return best ? this.moveTo(id, best) : Promise.resolve();
+  }
+
+  /** Get up out of a seat and step into the aisle beside it (there's no standing up in a car). */
+  standUp(id: CharacterId): Promise<void> {
+    const a = this.actors[id];
+    if (!this.onStage(id) || !a.isSitting || this.current.seated) return Promise.resolve();
+    const m = this.current.marks[this.actorMark.get(id) ?? ''];
+    const node = m?.node ?? this.nearestNode(a.position);
+    const dest = (m?.approach ?? this.current.nodes[node]).clone();
+    this.occupy(id, null);
+    this.actorNode.set(id, node);
+    return a.walk([dest], { facing: a.facing, seat: null });
+  }
+
   private entrance(markName?: string) {
     const node = this.current.marks[markName ?? '']?.node;
     return this.current.entrances?.[node] ?? this.current.door;
@@ -539,6 +601,7 @@ export class Stage {
   }
 
   update(dt: number, t: number) {
+    if (this.frozen) return;
     if (this.strobe) {
       this.strobeDt += dt;
       if (this.strobeDt < this.strobe) return;
@@ -587,3 +650,5 @@ export class Stage {
     });
   }
 }
+
+const costumeKey = ({ character: _, ...look }: Costume) => JSON.stringify(look);

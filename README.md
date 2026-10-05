@@ -46,8 +46,10 @@ bun run episodes fmt [file…]       # canonical layout: one beat per line
 
 - **The script language** (`src/script/types.ts`): a scene is a cast placement plus a list of beats:
   `say`, `narrate` (Future Ted), `move`, `enter`, `exit`, `act` (gestures like `high_five`, `slap`, `suit_up`),
-  `laugh` (chuckle / laugh / big / ooh / aww / woo / applause / gasp), `pause` and `cutaway`.
-  A `say` can carry a `delivery` (whisper / shout / sing / deadpan / fast / slow) and be `interrupted`.
+  `hold` / `give` (props), `laugh` (chuckle / laugh / big / ooh / aww / woo / applause / gasp), `pause`, `freeze`,
+  `insert`, `cutaway` and `montage`. A `say` can carry a `delivery` (whisper / shout / sing / deadpan / fast / slow),
+  be `interrupted`, have a `chorus` saying it with them, and carry listener `react`ions; most beats take a `shot`.
+  See [Staging devices](#staging-devices).
 - **The kids** (`src/world/sets/future.ts`): every episode opens on Penny and Luke on the black Chesterfield in Ted's
   2030 living room while Future Ted narrates the cold open. Penny and Luke never appear in the story: any `say`/`act`
   beat of theirs hard-cuts to the couch (along with Future Ted's answer) and then straight back to the scene.
@@ -117,6 +119,39 @@ The four original episodes (S10E01–S10E04) each cast their own guest stars and
 | **The High Score** | Denise, a laser-tag referee | College, 1996; Canada, 1990 | subway, laser tag, Wesleyan dorm, Canadian mall, hospital, elevator |
 
 In dev mode, skip episodes to reach the others, or open `/?ep=S10E02`.
+
+## Staging devices
+
+The show's signature visual gags, all part of the episode file format (`bun run bible` documents them, `bun run episodes check` validates them):
+
+- **Inserts**: a full-screen card of the thing itself. `text` (a thread on someone's phone, theirs on the right),
+  `chart` (an easel chart in marker: bar, line or pie), `slides` (a slideshow slide), `sign` (a taped-up note) and
+  `playbook` (a page of the Playbook). Bubbles, bars and bullets come in one at a time; the owner (or Future Ted)
+  can read a `line` over it, and a `react` cuts back to the room.
+- **Group lines and reactions**: `chorus: [...]` on a `say` has everyone else in it say the line at once (Penny and
+  Luke can too, on the couch), captioned "Ted & Marshall" or "Everyone". `react` on a line or insert cuts to the listeners when it lands:
+  one face cheated toward the lens, a two-shot, the whole booth, or quick cuts face to face when they're spread
+  around the room. A reaction can be a gesture, so a whole table can do a spit take.
+- **Freeze frames**: Future Ted narrates over a held, slightly drained frame, optionally caught mid-gesture.
+- **Montages**: two to six one- or two-beat shots on any sets, each with a small yellow card ("Day 2"), over an
+  upbeat or tender music bed; then back to the scene exactly as it was.
+- **Props**: `hold` / `give` with a phone, ring box, envelope, beer, scotch, flowers, book, yellow umbrella,
+  pineapple, goat, gift, sword, briefcase, microphone or blue French horn (`src/world/props.ts`). Small ones are held
+  up in the hand, a briefcase or umbrella hangs at the side, big ones are cradled in both arms. Handing one over
+  walks over first if needed; props survive cutaways and montages.
+- **Camera intent**: `shot: closeup | two | push_in | wide` on a beat overrides the director's pick. A push-in starts
+  from a medium shot and dollies in for several seconds.
+- **Gestures**: on top of the originals, `kiss` (with someone, or blown), `phone_call` (held for the whole line),
+  `sit` / `stand` (into the nearest free seat, or up into the aisle), `lean_in`, `jaw_drop`, `fist_bump` and
+  `spit_take` (with a spray of droplets).
+- **Wardrobe**: `wardrobe` on an episode (all episode) or a scene (over the episode's), in the guest-star
+  vocabulary: top style and colors, tie, waistcoat, pants, shoes, boots, hair and extras. Costumes go over casual
+  or work clothes, so Ted's red cowboy boots stay on when he suits up at the lecture hall.
+
+The first four episodes use all of it: **The Understudy** a Playbook page, a group line, a jaw drop, a hand-off, Barney in
+sweatpants, a spit take and a freeze frame; **The Silent Auction** a text thread, a montage, a bar chart and the
+kids' line in unison; **The Correction** a push-in, a kiss in the limo, a sign, a phone call, a line chart and a fist
+bump; **The Guest Lecture** Ted's red boots, a slideshow, a fist bump, standing up and the room's reaction.
 
 ## Recurring cast and wardrobe references
 

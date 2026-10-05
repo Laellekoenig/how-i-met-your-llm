@@ -8,7 +8,7 @@ export const byCode = (a: EpisodeScript, b: EpisodeScript) => a.code.localeCompa
 export function episodeItems(ep: EpisodeScript, id: string): ShowItem[] {
   const meta: EpisodeMeta = { id, code: ep.code, title: ep.title, logline: ep.logline };
   return [
-    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch, guests: ep.guests },
+    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch, guests: ep.guests, wardrobe: ep.wardrobe },
     ...ep.scenes.map((scene, index) => ({ kind: 'scene' as const, episode: meta, index, scene })),
     { kind: 'episode-end', episode: meta },
   ];
