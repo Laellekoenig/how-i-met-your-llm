@@ -7,7 +7,6 @@ import { Overlay, Panel } from './ui/overlay';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
-import { initCasting } from './ui/casting';
 import { EPISODES } from './script/catalog';
 import { Syndication } from './script/episodes';
 
@@ -49,7 +48,6 @@ const bind = (id: string, fn: (on: boolean) => void) => {
   });
 };
 bind('opt-style', (on) => renderer.setStyle({ enabled: on }));
-initCasting($('casting'));
 const res = $<HTMLInputElement>('opt-res');
 res.addEventListener('input', () => {
   $('opt-res-v').textContent = `${res.value}p`;

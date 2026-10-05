@@ -18,8 +18,6 @@ const AMERICAN = {
 };
 const isAmerican = (v: SpeechSynthesisVoice) => /^en[-_]us$/i.test(v.lang);
 
-const OVERRIDES_KEY = 'himyllm.voices';
-
 export interface SpeakHandle {
   done: Promise<void>;
 }
@@ -47,57 +45,18 @@ export class Speech {
   /** Silent mode for automated testing: lines keep their timing but are never spoken. */
   muted = false;
   private voices: SpeechSynthesisVoice[] = [];
-  private cast = new Map<string, SpeechSynthesisVoice | null>();
   private shared: Record<'male' | 'female', SpeechSynthesisVoice | null> = { male: null, female: null };
-  private roles: [string, VoiceProfile][] = [];
-  private overrides: Record<string, string> = {};
   private keep: SpeechSynthesisUtterance[] = []; // Chrome GC bug workaround
   readonly supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
-  onVoicesChanged: (() => void) | null = null;
 
   constructor() {
-    try {
-      this.overrides = JSON.parse(localStorage.getItem(OVERRIDES_KEY) ?? '{}');
-    } catch {
-      this.overrides = {};
-    }
     if (!this.supported) return;
     const load = () => {
       this.voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('en'));
-      this.recast();
-      this.onVoicesChanged?.();
+      this.shared = { male: this.pick('male'), female: this.pick('female') };
     };
     load();
     speechSynthesis.addEventListener?.('voiceschanged', load);
-  }
-
-  /** Register speaking roles (character key + voice profile). */
-  setRoles(roles: [string, VoiceProfile][]) {
-    this.roles = roles;
-    this.recast();
-  }
-
-  get allVoices() {
-    return this.voices;
-  }
-
-  isNovelty(v: SpeechSynthesisVoice) {
-    return NOVELTY.test(v.name);
-  }
-
-  voiceName(key: string) {
-    return this.cast.get(key)?.name ?? null;
-  }
-
-  override(key: string) {
-    return this.overrides[key] ?? '';
-  }
-
-  setOverride(key: string, voiceName: string) {
-    if (voiceName) this.overrides[key] = voiceName;
-    else delete this.overrides[key];
-    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(this.overrides));
-    this.recast();
   }
 
   private gender(v: SpeechSynthesisVoice): 'male' | 'female' | null {
@@ -113,25 +72,15 @@ export class Speech {
 
   /** Best American voice of a gender (falls back to any English voice of that gender, then anything). */
   private pick(gender: 'male' | 'female'): SpeechSynthesisVoice | null {
-    const usable = this.voices.filter((v) => !this.isNovelty(v));
+    const usable = this.voices.filter((v) => !NOVELTY.test(v.name));
     const pool = usable.filter((v) => this.gender(v) === gender);
     const us = pool.filter(isAmerican);
     const cands = us.length ? us : pool.length ? pool : usable;
     return [...cands].sort((a, b) => this.score(b, AMERICAN[gender]) - this.score(a, AMERICAN[gender]))[0] ?? null;
   }
 
-  /** Every man shares one American voice and every woman another, unless manually overridden. */
-  private recast() {
-    this.cast.clear();
-    const shared = (this.shared = { male: this.pick('male'), female: this.pick('female') });
-    for (const [key, p] of this.roles) {
-      const forced = this.overrides[key] ? this.voices.find((v) => v.name === this.overrides[key]) : undefined;
-      this.cast.set(key, forced ?? shared[p.gender]);
-    }
-  }
-
   /** Speak a line. Resolves when finished (with a timeout fallback for flaky engines). */
-  speak(key: string, text: string, profile: VoiceProfile, onStart?: () => void, opts: SpeakOptions = {}): SpeakHandle {
+  speak(text: string, profile: VoiceProfile, onStart?: () => void, opts: SpeakOptions = {}): SpeakHandle {
     const d = opts.delivery ? DELIVERY[opts.delivery] : undefined;
     const rate = profile.rate * (d?.rate ?? 1);
     // a line that gets cut off stops early; without boundary events, we stop it on time
@@ -141,8 +90,8 @@ export class Speech {
       return { done: sleep(estimate * 1000) };
     }
     const u = new SpeechSynthesisUtterance(text.replace(/[-–—]+$/, ''));
-    // Guest stars change every episode, so they borrow the shared voice for their gender.
-    const v = this.cast.get(key) ?? this.shared[profile.gender];
+    // Every man shares one American voice and every woman another; pitch and rate set them apart.
+    const v = this.shared[profile.gender];
     if (v) u.voice = v;
     u.lang = v?.lang ?? 'en-US';
     // big pitch shifts make good voices sound warped; keep them subtle

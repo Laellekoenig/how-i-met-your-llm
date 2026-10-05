@@ -1,18 +1,18 @@
 import { describe, expect, test } from 'bun:test';
-import { roles } from '../src/ui/casting';
+import { CHARACTERS } from '../src/world/characters';
 import { validateEpisode } from '../src/script/validate';
 import { testStage } from './helpers/sets';
 import { EPISODES, rerun } from './helpers/episodes';
 import type { Beat, CharacterId } from '../src/script/types';
 
 describe('recurring guest dialogue', () => {
-  test('the catalog gives every recurring character a line, and each has a castable voice', () => {
+  test('the catalog gives every recurring character a line, and each has a voice', () => {
     const speakers = new Set<string>();
     const say = (beats: Beat[]): void => beats.forEach((b) => b.type === 'say' ? speakers.add(b.character) : b.type === 'cutaway' && say(b.beats));
     for (const { scenes } of EPISODES) for (const scene of scenes) say(scene.beats);
     for (const id of ['sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles']) {
       expect(speakers.has(id), id).toBe(true);
-      expect(roles().filter(([key]) => key === id)).toHaveLength(1);
+      expect(CHARACTERS[id as CharacterId].voice, id).toBeDefined();
     }
   });
 });

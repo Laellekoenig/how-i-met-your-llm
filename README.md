@@ -121,12 +121,12 @@ In dev mode, skip episodes to reach the others, or open `/?ep=S10E02`.
 ## Recurring cast and wardrobe references
 
 Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
-Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voice auditions and writer guidance.
+Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voices and writer guidance.
 They appear in S10E05–S10E07. See [their inspected references and wardrobe notes](docs/cast-reference.md).
 
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
-show bible, director and voice-casting panel. Each has a distinct procedural model,
+show bible and director. Each has a distinct procedural model,
 voice profile, caption color and show-bible entry. Between them, the Season 10 episodes
 give all eight a scene: Arthur and Quinn in **The Understudy**, Judy, Scooter and Victoria in **The Silent Auction**,
 Sandy and Kevin in **The Correction**, and Brad in **The Guest Lecture**.
