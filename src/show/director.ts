@@ -118,6 +118,11 @@ export class Director {
     return covered === 9;
   }
 
+  /** In a car the camera rides along inside the cabin. */
+  private inside(pos: THREE.Vector3) {
+    return this.stage.current.cameraBounds?.containsPoint(pos) ?? true;
+  }
+
   private clear(from: THREE.Vector3, to: THREE.Vector3, ignore: Actor[]) {
     const dir = to.clone().sub(from), distance = dir.length();
     if (distance < 0.3) return false;
@@ -164,14 +169,16 @@ export class Director {
     const candidates = [forward.clone().lerp(look, 0.35).normalize(),
       ...[0.65, -0.65, 1.1, -1.1].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
       ...[0.3, 0.65, 1].map(blend => look.clone().lerp(audience, blend).normalize())];
-    // A push-in starts from a medium shot further back and creeps in over several seconds.
-    for (const dist of pushIn ? [3.3, 2.8, 2.35] : [2.35, 1.65, 1.15]) for (const d of candidates) {
+    // A push-in starts from a medium shot further back and creeps in over several seconds; inside a car
+    // there's less room to back off.
+    const dists = pushIn ? [3.3, 2.8, 2.35] : this.stage.current.cameraBounds ? [2.35, 1.65, 1.15, 0.85, 0.6] : [2.35, 1.65, 1.15];
+    for (const dist of dists) for (const d of candidates) {
       if (d.lengthSq() < 0.1 || d.dot(forward) < 0.05) continue;
       const pos = head.clone().addScaledVector(d, dist);
       pos.y = head.y + 0.08;
       const target = head.clone().add(new THREE.Vector3(0, -0.16, 0));
-      const fov = pushIn ? 34 : dist < 1.5 ? 44 : 32;
-      if (this.covers({ pos, target, fov }, [a]) && this.hasBackdrop({ pos, target, fov })) {
+      const fov = pushIn ? 34 : dist < 0.7 ? 60 : dist < 1 ? 50 : dist < 1.5 ? 44 : 32;
+      if (this.inside(pos) && this.covers({ pos, target, fov }, [a]) && this.hasBackdrop({ pos, target, fov })) {
         this.cut({ kind: 'closeup', pos, target, fov, follow: a, followOffset: new THREE.Vector3(0, -0.16, 0),
           push: pushIn ? 0.32 : 0.02, pushFor: pushIn ? 6 : undefined, subject: id, subjects: [id] });
         return;
@@ -196,11 +203,16 @@ export class Director {
     perp.lerp(front, 0.45).normalize();
     const dist = Math.max(2.3, sep * 1.25 + 1.3);
     if (dist > (this.stage.current.maxTwoShotDistance ?? Infinity)) return this.closeup(a, b);
-    const pos = mid.clone().addScaledVector(perp, dist);
-    pos.y = mid.y + 0.1;
-    const target = mid.add(new THREE.Vector3(0, -0.2, 0));
-    if (!this.covers({ pos, target, fov: 42 }, [A, B]) || !this.hasBackdrop({ pos, target, fov: 42 })) return this.closeup(a, b);
-    this.cut({ kind: 'two', pos, target, fov: 42, push: 0.03, subject: a, subjects: [a, b] });
+    const target = mid.clone().add(new THREE.Vector3(0, -0.2, 0));
+    // In a car, come in closer on a wider lens rather than leave the cabin.
+    const tries: [number, number][] = this.stage.current.cameraBounds ? [[dist, 42], [1.6, 52], [1.2, 60]] : [[dist, 42]];
+    for (const [d, fov] of tries) {
+      const pos = mid.clone().addScaledVector(perp, d);
+      pos.y = mid.y + 0.1;
+      if (this.inside(pos) && this.covers({ pos, target, fov }, [A, B]) && this.hasBackdrop({ pos, target, fov }))
+        return this.cut({ kind: 'two', pos, target, fov, push: 0.03, subject: a, subjects: [a, b] });
+    }
+    this.closeup(a, b);
   }
 
   /** Over the listener's shoulder onto the speaker. */
@@ -217,7 +229,7 @@ export class Director {
     pos.y = hl.y + 0.05;
     const target = hs.clone().add(new THREE.Vector3(0, -0.08, 0));
     // Validate reverse angles against the current walls and furniture too.
-    if (!this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
+    if (!this.inside(pos) || !this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
     this.cut({ kind: 'ots', pos, target, fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker, subjects: [speaker] });
   }
 
@@ -343,7 +355,7 @@ export class Director {
         const displacement = root.clone().sub(s.followRoot);
         if (displacement.lengthSq() > 0.000001) {
           const moved = s.pos.clone().add(displacement);
-          if (!this.clear(moved, head, [s.follow]) || !this.clear(moved, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [s.follow])) {
+          if (!this.inside(moved) || !this.clear(moved, head, [s.follow]) || !this.clear(moved, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [s.follow])) {
             this.closeup(s.subject!);
             return;
           }
