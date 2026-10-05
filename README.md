@@ -1,9 +1,10 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform pre-written episodes, written by AI agents, on twelve sets (MacLaren's, the apartment,
+Low-poly puppets perform pre-written episodes, written by AI agents, on eighteen sets (MacLaren's, the apartment,
 Barney's place, the roof, Barney's office, a generic office, Metro News One, a neighborhood store, a restaurant,
-Ted's lecture hall, Barney's limo and a cab), framed by Future Ted telling
+Ted's lecture hall, Barney's limo, a cab, the subway, a laser-tag arena, a Wesleyan dorm, a hospital waiting room,
+an elevator and a Canadian mall), framed by Future Ted telling
 the story to his bored kids on the couch in 2030, with browser TTS voices,
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
@@ -102,17 +103,18 @@ Episodes use all of these through the episode file format (see `bun run bible`):
   mid-word and the next speaker jumps straight in.
 
 The four original episodes (S10E01–S10E04) each cast their own guest stars and cut away at least once. Three more
-(S10E05–S10E07) feature the expanded recurring cast.
+(S10E05–S10E07) feature the expanded recurring cast. **The High Score** (S10E08) visits the six new city and period sets.
 
 | Episode | Guest stars | Cutaways | Sets |
 | --- | --- | --- | --- |
 | **The Understudy** | Gordon, the actor Barney hires to be Barney | How Barney imagined it (Barney's office) | MacLaren's, Barney's office |
 | **The Silent Auction** | Delphine, the PTA president; Rusty, the auctioneer | How Marshall imagined it; St. Cloud, 1985 | store, restaurant, apartment |
 | **The Correction** | Margo, the producer; Hector, the silent camera operator | How Kevin pictured it (lecture hall) | Metro News One, Barney's limo (with a rewind) |
-| **The Guest Lecture** | Ingrid Solberg, Ted's hero; Wade, his keenest student | Wesleyan, 1997 | roof, lecture hall, limo |
+| **The Guest Lecture** | Ingrid Solberg, Ted's hero; Wade, his keenest student | College, 1996 (Wesleyan dorm) | roof, lecture hall, limo |
 | **The Family Fine Print** | Mickey, Loretta and Virginia | Earlier that afternoon at Barney's | apartment, restaurant |
 | **The Committee** | Stella, Zoey and Nora | Ted imagines a seating lecture | restaurant, MacLaren's |
 | **The Reunion Tape** | Hammond, Punchy and Robin Sparkles | Canada, 1993 — a retail promotion | lecture hall, MacLaren's, store |
+| **The High Score** | Denise, a laser-tag referee | College, 1996; Canada, 1990 | subway, laser tag, Wesleyan dorm, Canadian mall, hospital, elevator |
 
 In dev mode, skip episodes to reach the others, or open `/?ep=S10E02`.
 
@@ -163,3 +165,36 @@ The two show-specific interiors use these online visual references:
 
 These are original procedural interpretations. Reference images are not bundled or fetched by the app;
 the store, restaurant, and destination exteriors are generic original designs.
+
+## City interiors and period flashbacks
+
+Six more procedural sets are available in the show bible, episode validator and player:
+
+| Location ID | Set details |
+| --- | --- |
+| `subway` | NYC subway car: orange/yellow molded benches, steel grab poles, route map and sliding doors. |
+| `laser_tag` | Blacklight arena: cyan/pink bases, low cover, barrels, vest rack and scoreboard. |
+| `wesleyan_dorm` | **College, 1996**: Wesleyan bunks, plaid blankets, CRT computer, cassette stereo, posters, records and pizza. |
+| `hospital` | Waiting room: teal chairs, magazines, reception, ward door and coffee machine. |
+| `elevator` | Wood-paneled cabin: steel doors, floor buttons, indicator and handrails. |
+| `canadian_mall` | **Canada, 1990**: pastel storefronts, record shop, tiled atrium, planters, Canadian flag and Robin Sparkles performance dais. |
+
+All have named marks, connected walking routes and authored wide shots, with one-sided reverse backdrops
+for dialogue coverage. Their master cameras sit near eye level with tighter framing; the subway adds
+bench-and-aisle group angles, and the elevator has a compact cabin. Generated two-shots have distance
+limits so conversations across a room cut to singles instead of shrinking the actors into the set.
+These interiors default to direct cuts instead of an unrelated Manhattan exterior.
+The eighth episode, **The High Score** (S10E08), visits the subway, arena, hospital and elevator and cuts away
+to both period sets. **The Guest Lecture** now uses the actual Wesleyan dorm for its college memory.
+The mall flashback uses the `robin_sparkles` persona and wardrobe from the expanded cast, returning to `robin`
+after the cutaway. The mall follows the requested 1990 art direction.
+
+Visual references used for the original geometry (no reference photos are loaded by the app):
+
+- [Ted and Marshall's college gaming still](https://whatculture.com/tv/how-i-met-your-mother-how-well-do-you-know-ted-and-marshalls-friendship?page=4): metal bunks, plaid bedding and student-room clutter.
+- [College dorm still with Karen](https://www.looper.com/2037563/how-i-met-your-mother-worst-characters-ranked/): wall posters and the lower bunk as seating.
+- [CBS's Robin Sparkles video](https://www.youtube.com/watch?v=9mJAsgIIfNM) and [Pamela Fryman's scene gallery](https://www.tvline.com/gallery/farewell-himym-director-pamela-fryman-relives-robin-sparkles-stinging-slaps-and-more/): pastel shops, tiled atrium and performance area.
+- [R62 subway interior](https://commons.wikimedia.org/wiki/File:Interior_of_R62_Subway.jpg): orange/yellow seats, metal handrails, maps and signage.
+- [“Zip, Zip, Zip” laser-tag scene](https://www.imdb.com/title/tt0606119/): fluorescent arena colors and industrial barrels.
+
+The hospital and elevator are original generic interiors.

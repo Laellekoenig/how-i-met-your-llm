@@ -203,8 +203,10 @@ describe('cutaway playback', () => {
     expect(inStore.slice(1, 7)).toEqual(['lily', 'marshall', 'guest1', 'lily', 'guest1', 'scooter']);
     expect(spoken.find((s) => s.who === 'lily' && s.cutOff)).toBeDefined();
     expect(spoken.filter((s) => s.set === 'store' && s.memory === 1).map((s) => s.who)).toEqual(['marshall', 'judy', 'marshall', 'judy']);
-    expect(labels).toContainEqual(['How Marshall imagined it', 'imagined']);
-    expect(labels).toContainEqual(['St. Cloud, 1985', 'flashback']);
+    expect(labels).toEqual([
+      ['How Marshall imagined it', 'imagined'],
+      ['St. Cloud, 1985', 'flashback'],
+    ]);
     // back by the produce, on the same spot, with the auctioneer (only imagined there) gone
     expect(restored).toMatchObject({ set: 'store', mark: 'produce', visible: true, guestVisible: false });
     expect(restored!.marshall.distanceTo(marshallBefore!)).toBeLessThan(1e-6);

@@ -67,10 +67,10 @@
         {
           "type": "cutaway",
           "style": "flashback",
-          "label": "Wesleyan, 1997",
-          "location": "apartment",
+          "label": "College, 1996",
+          "location": "wesleyan_dorm",
           "time": "night",
-          "cast": [{ "character": "ted", "mark": "desk" }, { "character": "marshall", "mark": "couch_center" }],
+          "cast": [{ "character": "ted", "mark": "desk" }, { "character": "marshall", "mark": "bed_right" }],
           "beats": [
             { "type": "say", "character": "ted", "line": "Dear Ms. Solberg. Your buildings make me feel the way a cathedral feels.", "delivery": "slow", "emotion": "happy" },
             { "type": "say", "character": "marshall", "to": "ted", "line": "Ted, buildings don’t have feelings.", "emotion": "confused" },
