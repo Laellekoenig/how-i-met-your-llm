@@ -1,7 +1,7 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on eighteen sets (MacLaren's, the apartment,
+Low-poly puppets perform pre-written episodes, written by AI agents, on eighteen sets (MacLaren's, the apartment,
 Barney's place, the roof, Barney's office, a generic office, Metro News One, a neighborhood store, a restaurant,
 Ted's lecture hall, Barney's limo, a cab, the subway, a laser-tag arena, a Wesleyan dorm, a hospital waiting room,
 an elevator and a Canadian mall), framed by Future Ted telling
@@ -18,11 +18,29 @@ with no controls. Browsers may hold the sound back until you first click or pres
 Add `mute` (`/?mute`, `/?dev&mute`) to play everything silently. Automated browsers (`navigator.webdriver`) and
 the T3 Code preview browser are muted automatically, so agents testing the show stay quiet; `?sound` overrides that.
 
-With no API key it plays eight hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
-pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is
-remembered, regular mode starts the writers on its own when the page loads.
+Every episode is a JSON file in `episodes/`; they air in code order, back to back, on a loop. Open `/?ep=S10E03`
+to start at a particular episode.
 
 Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `→` skip scene.
+
+## Writing episodes
+
+Episodes are written ahead of time by agents, not live. In Claude Code, run `/write-episodes 3` (or
+`/write-episodes Barney gets banned from Costco`). It pitches premises, then launches one **episode-writer** agent per
+episode in parallel ([`.claude/agents/episode-writer.md`](.claude/agents/episode-writer.md), which holds the
+story and joke craft guide), and reviews what they write. You can also ask for the `episode-writer` agent directly.
+
+The writers' tools, which work just as well by hand:
+
+```sh
+bun run bible                      # the show bible: characters, every set's marks, the episode file format
+bun run episodes list              # what has aired, and the next free code
+bun run episodes check [file…]     # validate: staging, marks, vocabulary, line length; plus craft warnings
+bun run episodes read <file>       # the episode as a screenplay, with laugh counts, for table reads
+bun run episodes fmt [file…]       # canonical layout: one beat per line
+```
+
+`bun test` validates every episode and checks camera coverage for each of its scenes.
 
 ## How it works
 
@@ -44,11 +62,11 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
   reprise of the original theme. Fictional crew names echo the show's billing; the creator aliases match the opening.
   There is no episode title, number or closing slogan. The cards pause and skip with playback.
   See [the closing-credit references](docs/closing-credits-reference.md).
-- **The writers' room** (`src/llm/`): two tool calls. `plan_episode` pitches a title, logline, Future Ted cold open and
-  3–4 scene outlines; `write_scene` stages one scene at a time with the episode so far as context. The system prompt
-  (`prompts.ts`) is the show bible: characters, catchphrases, every set's marks, and the stagecraft vocabulary.
-  LLM output is coerced into valid beats by `normalize.ts`. The writer stays ~2 scenes ahead of playback, so spend is
-  bounded by how fast the show airs. Recent episode titles are kept in localStorage to avoid repeats.
+- **The episodes** (`episodes/`, `src/script/`): each file holds a title, logline, Future Ted cold open, the kids'
+  reaction, guest stars and 3–4 staged scenes. The show bible (`bible.ts`) holds the characters, catchphrases, every
+  set's marks and the stagecraft vocabulary. The validator (`validate.ts`) replays each scene's blocking to check that
+  everyone who speaks is on stage, marks exist and aren't double-booked, and that nobody slides through a limo partition.
+  The app bundles the files at build time (`catalog.ts`).
 - **The stage** (`src/world/`, `src/show/`): procedural low-poly characters (no model files) with walk/sit/talk
   animation (including sitting cross-legged or slouched), facial expressions and gestures; sets with named marks and a tiny nav graph; a director that cuts between
   wides, close-ups, two-shots and over-the-shoulders while avoiding occluded angles. The limo and the cab are `seated`
@@ -57,7 +75,7 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
   dithering, chromatic aberration, scanlines, grain and vignette. Toggle/tune under *picture & sound*.
 - **Scene transitions**: quick cuts, moving day/night Manhattan skyline shots, destination exteriors with passing
   cabs, and an optional short rewind cue for narrated flashbacks. An opening Future Ted line can play over the city.
-  Both the episode planner and scene writer can choose `cut`, `skyline`, `exterior`, or `rewind`; unannotated scripts
+  Each scene can choose `cut`, `skyline`, `exterior`, or `rewind`; unannotated scenes
   choose automatically from changes in time and location. Transitions pause and skip with playback; reduced-motion
   preferences disable camera drift and the rewind blur. All scenery and sounds are procedural.
   The pacing and musical punctuation draw on [Pamela Fryman's DGA interview](https://www.dga.org/craft/dgaq/issues/1001-spring-2010/profile-pamela-fryman)
@@ -67,16 +85,13 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
   applause, slaps, the guitar stings (Karplus–Strong) and bar ambience are synthesized too. Voices use the browser's
   speech synthesis; Chrome/Edge on macOS or Windows have the best voice selection.
 
-Your OpenRouter key is only sent to OpenRouter, directly from your browser, and is stored in localStorage only if
-"remember key" is checked.
-
-Debug handle in the console: `himyllm` (`stage`, `director`, `player`, `writer`, …).
+Debug handle in the console: `himyllm` (`stage`, `director`, `player`, `audio`, …).
 
 ## Guest stars, cutaways and delivery
 
-Everything here is written by the model through the same two tool calls, and is coerced by `normalize.ts`:
+Episodes use all of these through the episode file format (see `bun run bible`):
 
-- **Guest stars**: `plan_episode` can cast up to three one-off characters (Ted's date, a mark, a bouncer) in plain
+- **Guest stars**: an episode can cast up to three one-off characters (Ted's date, a mark, a bouncer) in plain
   words: gender, height, build, skin, hair, clothes, accessories, voice pitch and pace. They take the slots `guest1`–`guest3`
   for that episode only (`src/world/guests.ts` turns the description into a procedural look and voice); scenes can
   also refer to them by name.
@@ -87,9 +102,10 @@ Everything here is written by the model through the same two tool calls, and is 
   caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
   mid-word and the next speaker jumps straight in.
 
-The original four offline reruns each cast one-off guests and cut away at least once. Three more feature the expanded recurring cast, and **The High Score** visits the six new city and period sets.
+The four original episodes (S10E01–S10E04) each cast their own guest stars and cut away at least once. Three more
+(S10E05–S10E07) feature the expanded recurring cast. **The High Score** (S10E08) visits the six new city and period sets.
 
-| Rerun | Guest stars | Cutaways | Sets |
+| Episode | Guest stars | Cutaways | Sets |
 | --- | --- | --- | --- |
 | **The Understudy** | Gordon, the actor Barney hires to be Barney | How Barney imagined it (Barney's office) | MacLaren's, Barney's office |
 | **The Silent Auction** | Delphine, the PTA president; Rusty, the auctioneer | How Marshall imagined it; St. Cloud, 1985 | store, restaurant, apartment |
@@ -100,18 +116,18 @@ The original four offline reruns each cast one-off guests and cut away at least 
 | **The Reunion Tape** | Hammond, Punchy and Robin Sparkles | Canada, 1993 — a retail promotion | lecture hall, MacLaren's, store |
 | **The High Score** | Denise, a laser-tag referee | College, 1996; Canada, 1990 | subway, laser tag, Wesleyan dorm, Canadian mall, hospital, elevator |
 
-In dev mode, skip episodes from the first rerun to reach the others.
+In dev mode, skip episodes to reach the others, or open `/?ep=S10E02`.
 
 ## Recurring cast and wardrobe references
 
 Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
 Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voice auditions and writer guidance.
-They appear in three additional offline reruns. See [their inspected references and wardrobe notes](docs/cast-reference.md).
+They appear in S10E05–S10E07. See [their inspected references and wardrobe notes](docs/cast-reference.md).
 
 
 Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter are available to the
-episode planner, scene writer, director and voice-casting panel. Each has a distinct procedural model,
-voice profile, caption color and show-bible entry. Between them, the offline reruns
+show bible, director and voice-casting panel. Each has a distinct procedural model,
+voice profile, caption color and show-bible entry. Between them, the Season 10 episodes
 give all eight a scene: Arthur and Quinn in **The Understudy**, Judy, Scooter and Victoria in **The Silent Auction**,
 Sandy and Kevin in **The Correction**, and Brad in **The Guest Lecture**.
 
@@ -131,9 +147,9 @@ proportions are artistic approximations; voices use browser TTS. No photographs 
 
 ## Public sets and visual references
 
-`metro_news_one`, `store`, `restaurant`, and `lecture_hall` are available to the episode planner and scene writer,
+`metro_news_one`, `store`, `restaurant`, and `lecture_hall` are available to every episode,
 with named marks, navigation, camera coverage, background occupants, day/night lighting, and their own exteriors.
-The offline reruns visit all four: **The Silent Auction** the store and restaurant, **The Correction** Metro News One
+The Season 10 episodes visit all four: **The Silent Auction** the store and restaurant, **The Correction** Metro News One
 (and the lecture hall in a cutaway), and **The Guest Lecture** the lecture hall.
 
 The two show-specific interiors use these online visual references:
@@ -152,7 +168,7 @@ the store, restaurant, and destination exteriors are generic original designs.
 
 ## City interiors and period flashbacks
 
-Six more procedural sets are available to the planner, writer, normalizer and player:
+Six more procedural sets are available in the show bible, episode validator and player:
 
 | Location ID | Set details |
 | --- | --- |
@@ -168,7 +184,7 @@ for dialogue coverage. Their master cameras sit near eye level with tighter fram
 bench-and-aisle group angles, and the elevator has a compact cabin. Generated two-shots have distance
 limits so conversations across a room cut to singles instead of shrinking the actors into the set.
 These interiors default to direct cuts instead of an unrelated Manhattan exterior.
-The eighth offline rerun, **The High Score**, visits the subway, arena, hospital and elevator and cuts away
+The eighth episode, **The High Score** (S10E08), visits the subway, arena, hospital and elevator and cuts away
 to both period sets. **The Guest Lecture** now uses the actual Wesleyan dorm for its college memory.
 The mall flashback uses the `robin_sparkles` persona and wardrobe from the expanded cast, returning to `robin`
 after the cutaway. The mall follows the requested 1990 art direction.

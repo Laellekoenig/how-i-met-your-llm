@@ -1,0 +1,64 @@
+{
+  "code": "S10E05",
+  "title": "The Family Fine Print",
+  "logline": "Mickey invents a game about family secrets. The parents turn out to be considerably better at it.",
+  "coldOpen": "Kids, every family has a story it tells at dinner. Ours needed a fact checker and a later time slot.",
+  "scenes": [
+    {
+      "location": "apartment",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [{ "character": "mickey", "mark": "center" }, { "character": "lily", "mark": "couch_left" }, { "character": "marshall", "mark": "couch_right" }],
+      "beats": [
+        { "type": "say", "character": "mickey", "line": "My new board game is called Family Fine Print. Every player gets a secret.", "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Is yours that you borrowed our rent money to print it?", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "You are already very good at this.", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "How do you win?", "gesture": "think" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "You convince everybody your version happened.", "emotion": "smug" },
+        { "type": "narrate", "line": "Barney had been playing that game with his mother for years." },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "Earlier that afternoon",
+          "location": "barneys",
+          "time": "day",
+          "cast": [{ "character": "loretta", "mark": "couch_left" }, { "character": "barney", "mark": "couch_right" }],
+          "beats": [
+            { "type": "say", "character": "barney", "to": "loretta", "line": "Mom, was Dad really the first man to water-ski across the Atlantic?", "emotion": "nervous" },
+            { "type": "say", "character": "loretta", "to": "barney", "line": "Of course, sweetheart. Unless I told you he was afraid of water.", "emotion": "happy" },
+            { "type": "say", "character": "barney", "to": "loretta", "line": "You said both.", "emotion": "confused" },
+            { "type": "say", "character": "loretta", "to": "barney", "line": "Then imagine how brave he was.", "emotion": "smug", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Dad, I do not want another pitch. I want you to come to dinner.", "emotion": "sad" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "No investors?", "emotion": "confused" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Just your daughter." },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Best offer I have had all year.", "emotion": "happy", "laugh": "aww" }
+      ]
+    },
+    {
+      "location": "restaurant",
+      "time": "night",
+      "transition": "exterior",
+      "cast": [
+        { "character": "virginia", "mark": "booth_left" },
+        { "character": "ted", "mark": "booth_middle" },
+        { "character": "mickey", "mark": "booth_right" },
+        { "character": "lily", "mark": "booth_end_right" }
+      ],
+      "beats": [
+        { "type": "say", "character": "ted", "to": "virginia", "line": "Mom, we are having a nice, ordinary family dinner.", "emotion": "happy" },
+        { "type": "say", "character": "virginia", "to": "ted", "line": "Lovely. My new boyfriend owns a hot-air balloon.", "emotion": "happy" },
+        { "type": "say", "character": "ted", "to": "virginia", "line": "That sounds perfectly normal." },
+        { "type": "say", "character": "virginia", "to": "ted", "line": "We have been banned from three counties.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "act", "character": "ted", "gesture": "facepalm" },
+        { "type": "say", "character": "mickey", "to": "virginia", "line": "I had that exact card printed.", "emotion": "surprised", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Dad. Dinner.", "emotion": "angry" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Right. Lily, how was your day?", "emotion": "happy" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "You really want to know?", "emotion": "surprised" },
+        { "type": "say", "character": "virginia", "line": "I want to know if this restaurant validates balloon parking.", "emotion": "confused", "laugh": "big" },
+        { "type": "narrate", "line": "For once, Lily had the least embarrassing parent at the table." }
+      ]
+    }
+  ]
+}

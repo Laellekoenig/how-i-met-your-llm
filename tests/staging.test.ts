@@ -6,7 +6,7 @@ import { routeNodes } from '../src/show/navigation';
 import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
-import { RERUNS } from '../src/script/samples';
+import { EPISODES } from './helpers/episodes';
 import type { CutawayBeat } from '../src/script/types';
 
 const stage = testStage();
@@ -134,9 +134,9 @@ describe('current set navigation', () => {
   });
 });
 
-const rerunScenes = RERUNS.flatMap((ep) => ep.scenes.flatMap((scene, i) => [
-  { ...scene, guests: ep.guests, label: `${ep.meta.title} ${i + 1}: ${scene.location}` },
-  ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, label: `${ep.meta.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
+const rerunScenes = EPISODES.flatMap((ep) => ep.scenes.flatMap((scene, i) => [
+  { ...scene, guests: ep.guests, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` },
+  ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, label: `${ep.code} ${ep.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
 ]));
 
 describe('camera coverage on the current sets', () => {
@@ -204,7 +204,7 @@ describe('camera coverage on the current sets', () => {
 
   test('subway and elevator group coverage keeps people large enough in the picture', () => {
     for (const [location, minimumHeight] of [['subway', 0.25], ['elevator', 0.30]] as const) {
-      const scene = RERUNS.flatMap(ep => ep.scenes).find(s => s.location === location)!;
+      const scene = EPISODES.flatMap(ep => ep.scenes).find(s => s.location === location)!;
       stage.setLocation(location, 'day');
       for (const c of scene.cast) stage.place(c.character, c.mark);
       director.coverage(stage.castIds());

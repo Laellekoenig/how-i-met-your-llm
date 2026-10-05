@@ -1,0 +1,62 @@
+{
+  "code": "S10E07",
+  "title": "The Reunion Tape",
+  "logline": "Punchy interrupts Ted’s guest speaker, then produces a tape Robin thought had disappeared.",
+  "coldOpen": "Kids, your old friends remember who you were. Unfortunately, some of them keep backups.",
+  "scenes": [
+    {
+      "location": "lecture_hall",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [{ "character": "hammond", "mark": "lectern" }, { "character": "ted", "mark": "demonstration" }, { "character": "punchy", "mark": "student_1_3" }],
+      "beats": [
+        { "type": "say", "character": "hammond", "line": "My latest building makes a statement.", "emotion": "smug", "gesture": "hands_up" },
+        { "type": "say", "character": "ted", "to": "hammond", "line": "The planning commission called it an apology waiting to happen.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "punchy", "to": "ted", "line": "Schmosby! Same face you made when our science volcano clogged!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "punchy", "line": "Punchy, why are you wearing your wedding suit?", "emotion": "confused" },
+        { "type": "say", "character": "punchy", "to": "ted", "line": "Anniversary photos. Kelly said do something classy first. So I came to school.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "hammond", "to": "ted", "line": "Mosby, control your student.", "emotion": "angry" },
+        { "type": "say", "character": "ted", "to": "hammond", "line": "He is thirty-two." },
+        { "type": "say", "character": "punchy", "to": "ted", "line": "And our volcano ruled!", "delivery": "shout", "gesture": "hands_up" },
+        { "type": "say", "character": "ted", "to": "punchy", "line": "It totally ruled!", "delivery": "shout", "gesture": "thumbs_up", "laugh": "laugh" },
+        { "type": "say", "character": "hammond", "to": "ted", "line": "Finally. A design discussion at your level.", "emotion": "smug", "laugh": "big" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "exterior",
+      "cast": [
+        { "character": "robin", "mark": "booth_left_back" },
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "barney", "mark": "booth_right_front" },
+        { "character": "punchy", "mark": "booth_side" }
+      ],
+      "beats": [
+        { "type": "say", "character": "punchy", "line": "Found an old tape after the photo shoot. Canadian shopping-channel clearance bin.", "emotion": "excited" },
+        { "type": "say", "character": "robin", "to": "punchy", "line": "I would like to buy the tape. And the bin. And your memory.", "delivery": "fast", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Sparkles?", "emotion": "excited" },
+        { "type": "narrate", "line": "In 1993, a Canadian retailer hired Robin Sparkles for a very small promotion." },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "Canada, 1993 — retail promotion",
+          "location": "store",
+          "time": "day",
+          "cast": [{ "character": "robin_sparkles", "mark": "center" }],
+          "beats": [
+            { "type": "say", "character": "robin_sparkles", "line": "Hello, shoppers! Your receipt is also your backstage pass!", "delivery": "shout", "emotion": "excited", "gesture": "wave" },
+            { "type": "act", "character": "robin_sparkles", "gesture": "dance" },
+            { "type": "say", "character": "robin_sparkles", "line": "Buy two batteries, power up your dreams!", "delivery": "sing", "emotion": "happy", "laugh": "laugh" },
+            { "type": "say", "character": "robin_sparkles", "line": "The dreams are not included. My manager was very clear.", "emotion": "nervous", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "robin", "line": "I was paid in batteries. They expired before my career did.", "emotion": "bored", "laugh": "laugh" },
+        { "type": "say", "character": "punchy", "to": "robin", "line": "I thought it was great.", "emotion": "happy" },
+        { "type": "say", "character": "ted", "to": "punchy", "line": "That is actually sweet, Punchy." },
+        { "type": "say", "character": "punchy", "to": "ted", "line": "Recorded it over your volcano presentation.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "punchy", "line": "Dude!", "delivery": "shout", "emotion": "angry", "laugh": "big" }
+      ]
+    }
+  ]
+}
