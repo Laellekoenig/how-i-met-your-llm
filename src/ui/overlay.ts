@@ -6,7 +6,6 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 /** On-screen graphics: captions, title cards, cutaway cards, standby. */
 export class Overlay {
-  captionsEnabled = true;
   private caption = $('caption');
   private capName = $('caption-name');
   private capText = $('caption-text');
@@ -19,7 +18,6 @@ export class Overlay {
   private yearEl = $('year');
 
   showCaption(name: string, color: string, text: string, narration = false, delivery?: Delivery) {
-    if (!this.captionsEnabled) return;
     this.caption.className = '';
     this.caption.classList.toggle('narration', narration);
     if (delivery) this.caption.classList.add(delivery);

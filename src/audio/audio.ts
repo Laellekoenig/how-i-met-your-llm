@@ -25,8 +25,6 @@ export class AudioEngine {
   private clapBuf!: AudioBuffer;
   private ambNodes: AudioNode[] = [];
   private ambTimer: number | null = null;
-  laughsEnabled = true;
-  musicEnabled = true;
   volume = 0.8;
   /** Silent mode for automated testing: everything still runs, nothing reaches the speakers. */
   muted = false;
@@ -239,7 +237,7 @@ export class AudioEngine {
 
   /** Plays a laugh-track reaction. Returns its duration in seconds. */
   laugh(kind: LaughKind): number {
-    if (!this.ctx || !this.laughsEnabled) return 0;
+    if (!this.ctx) return 0;
     const t0 = this.ctx.currentTime + 0.05;
     const crowd = (n: number, durA: number, durB: number, gain: number, spread: number, vowelSet: Vowel[], pulse: [number, number] | null, glide = 0) => {
       let end = t0;
@@ -556,7 +554,7 @@ export class AudioEngine {
 
   /** Original, short descending tape-like zip to punctuate an intentional flashback. */
   rewind() {
-    if (!this.ctx || !this.musicEnabled) return;
+    if (!this.ctx) return;
     const ctx = this.ctx;
     const duration = 0.5;
     const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
@@ -572,7 +570,7 @@ export class AudioEngine {
 
   /** A bright harp glissando into someone's imagination (or back down out of it). Returns duration. */
   dream(into = true) {
-    if (!this.ctx || !this.musicEnabled) return 0;
+    if (!this.ctx) return 0;
     const ctx = this.ctx;
     const out = this.cueOutput();
     const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -586,7 +584,7 @@ export class AudioEngine {
 
   /** Soft fingerpicked chords under a sung line. */
   serenade(seconds: number) {
-    if (!this.ctx || !this.musicEnabled) return;
+    if (!this.ctx) return;
     const ctx = this.ctx;
     const out = this.cueOutput();
     const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -606,7 +604,7 @@ export class AudioEngine {
   theme(): { beat: number; duration: number } {
     const beat = TITLE_BEAT;
     const duration = TITLE_BEATS * beat + TITLE_TAIL;
-    if (!this.ctx || !this.musicEnabled) return { beat, duration };
+    if (!this.ctx) return { beat, duration };
     const ctx = this.ctx;
     const out = this.cueOutput();
     const gtr = this.guitarOut(out);
@@ -687,7 +685,7 @@ export class AudioEngine {
 
   /** Upbeat jangly guitar transition riff. Returns duration. */
   sting(variant: 'transition' | 'outro' = 'transition') {
-    if (!this.ctx || !this.musicEnabled) return 0;
+    if (!this.ctx) return 0;
     const ctx = this.ctx;
     const out = this.guitarOut();
     const t0 = ctx.currentTime + 0.05;
