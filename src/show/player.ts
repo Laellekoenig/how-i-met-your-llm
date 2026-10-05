@@ -9,7 +9,7 @@ import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type CutawayBe
 import { sleep, clamp, pick } from '../util';
 import { sceneTransition } from './transitions';
 import { BURSTS, GANG, HUDDLE_AT, TITLE_TAIL, type Burst } from './mainTitles';
-import { openingCredits, type CreditCard } from './credits';
+import { openingCredits, closingCredits, type CreditCard } from './credits';
 
 export interface ContentSource {
   next(onWaiting: (msg: string) => void): Promise<ShowItem>;
@@ -36,7 +36,7 @@ const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_ID
 /** Lines and reactions from Penny or Luke: these happen on the couch in 2030. */
 const isKidBeat = (b: Beat) => (b.type === 'say' || b.type === 'act') && isKid(b.character);
 
-/** Plays show items: title cards, scenes beat by beat, end cards. */
+/** Plays show items: main titles, scenes beat by beat, closing credits. */
 export class Player {
   paused = false;
   private skipLevel: 'none' | 'scene' | 'episode' = 'none';
@@ -45,6 +45,7 @@ export class Player {
   private previousScene: Scene | null = null;
   /** Opening credits still to show over the first scenes of this episode. */
   private credits: CreditCard[] = [];
+  private billing: ReturnType<typeof openingCredits> | null = null;
   private rollingCredits = false;
   onItem: ((item: ShowItem) => void) | null = null;
 
@@ -138,7 +139,7 @@ export class Player {
     this.overlay.hideLocation();
     this.overlay.year(false);
     audio.ambience('none');
-    const credits = openingCredits();
+    const credits = this.billing ??= openingCredits();
     this.credits = credits.cast;
     try {
       st.setLocation('maclarens', 'night');
@@ -227,6 +228,32 @@ export class Player {
     }
   }
 
+  /** Brief, static crew cards on black, cut to the theme reprise with the playback clock. */
+  private async endCredits() {
+    this.credits = [];
+    this.overlay.hideCaption();
+    this.overlay.hideLocation();
+    this.overlay.hideCards();
+    this.overlay.year(false);
+    audio.ambience('none');
+    this.renderer.fade = 0;
+    const pages = closingCredits((this.billing ?? openingCredits()).creators);
+    try {
+      const { duration } = audio.theme();
+      let current = -1;
+      await this.animate(duration, (u) => {
+        const index = Math.min(pages.length - 1, Math.floor(u * pages.length));
+        if (index !== current) {
+          this.overlay.closingCredit(pages[index]);
+          current = index;
+        }
+      });
+    } finally {
+      this.overlay.closingCredit(null);
+      audio.stopSting();
+    }
+  }
+
   private cleanup() {
     speech.cancel();
     this.overlay.hideCaption();
@@ -250,6 +277,8 @@ export class Player {
         // Kids, ... : every episode opens on Penny and Luke on the couch in 2030, then the titles
         this.currentEpisode = item.episode.id;
         this.previousScene = null;
+        this.billing = openingCredits();
+        this.credits = [];
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
         this.stage.castGuests(item.guests);
         for (const g of item.guests ?? []) this.panel.line('stage', `Guest star: ${g.name}${g.role ? ` (${g.role})` : ''}.`);
@@ -274,13 +303,7 @@ export class Player {
         await this.playScene(item.scene, item.index);
         break;
       case 'episode-end': {
-        this.credits = [];
-        this.overlay.hideCaption();
-        const d = audio.sting('outro');
-        audio.laugh('applause');
-        await this.fade(0.3, 0.6);
-        await this.race(this.overlay.end(item.episode, Math.max(3.5, d)));
-        this.renderer.fade = 0;
+        await this.endCredits();
         break;
       }
     }

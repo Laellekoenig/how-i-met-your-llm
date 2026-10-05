@@ -157,18 +157,27 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 #caption.sing #caption-text::before { content: '\266A  '; }
 #caption.sing #caption-text::after { content: '  \266A'; }
 
-#end-card {
+#closing-credits {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.6cqh;
-  background: radial-gradient(ellipse at center, rgba(30, 18, 10, 0.88), rgba(0, 0, 0, 0.97));
-  animation: cardIn 0.6s ease-out;
+  gap: 7cqh;
+  padding: 8cqh 7cqw;
+  background: #000;
+  color: #fff;
+  font-family: 'Caprasimo', 'Cooper Black', Georgia, serif;
+  font-size: 3.2cqw;
+  line-height: 1.12;
+  text-align: center;
+  text-transform: lowercase;
+  pointer-events: none;
 }
-@keyframes cardIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+.closing-credit { max-width: 100%; }
+.closing-credit small { display: block; font-size: 0.7em; margin-bottom: 0.12em; }
+.closing-credit span { display: block; white-space: pre-line; }
 
 .logo {
   font-family: var(--hand);
@@ -249,8 +258,6 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 }
 #credit.creators small { font-size: 0.56em; margin-left: -1.2em; margin-bottom: 0.1em; }
 #credit small { display: block; font-size: 0.55em; letter-spacing: 0.04em; opacity: 0.9; }
-.end-text { font-family: var(--hand); font-size: clamp(20px, 5.6cqw, 52px); color: #fff; }
-#end-sub { color: var(--dim); letter-spacing: 0.2em; font-size: clamp(10px, 1.5cqw, 14px); text-transform: uppercase; }
 
 #standby { position: absolute; inset: 0; background: #111; }
 #standby .bars { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); filter: saturate(0.85) contrast(1.05); }

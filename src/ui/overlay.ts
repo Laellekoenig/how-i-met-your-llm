@@ -1,6 +1,6 @@
 import type { CutawayStyle, Delivery, EpisodeMeta } from '../script/types';
-import { sleep } from '../util';
 import type { PhotoMotion } from '../show/mainTitles';
+import type { CreditCard } from '../show/credits';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -12,7 +12,7 @@ export class Overlay {
   private capText = $('caption-text');
   private titleCard = $('title-card');
   private creditEl = $('credit');
-  private endCard = $('end-card');
+  private closingCredits = $('closing-credits');
   private standbyEl = $('standby');
   private standbyMsg = $('standby-msg');
   private loc = $('loc-label');
@@ -96,16 +96,27 @@ export class Overlay {
     this.creditEl.style.animation = '';
   }
 
-  async end(ep: EpisodeMeta, seconds: number) {
-    $('end-sub').textContent = `${ep.code} · ${ep.title}`;
-    this.endCard.classList.remove('hidden');
-    await sleep(seconds * 1000);
-    this.endCard.classList.add('hidden');
+  /** Static cards: the player owns their timing, pause and skip behavior. */
+  closingCredit(cards: CreditCard[] | null) {
+    this.closingCredits.classList.toggle('hidden', !cards);
+    this.closingCredits.replaceChildren(...(cards ?? []).map((card) => {
+      const group = document.createElement('div');
+      group.className = 'closing-credit';
+      if (card.label) {
+        const label = document.createElement('small');
+        label.textContent = card.label;
+        group.append(label);
+      }
+      const name = document.createElement('span');
+      name.textContent = card.name;
+      group.append(name);
+      return group;
+    }));
   }
 
   hideCards() {
     this.titleCard.classList.add('hidden');
-    this.endCard.classList.add('hidden');
+    this.closingCredit(null);
     this.creditEl.classList.add('hidden');
   }
 

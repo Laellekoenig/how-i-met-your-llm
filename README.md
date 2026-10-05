@@ -38,6 +38,10 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
   bundled. Pausing freezes the edit, skipping clears the photos and music, and reduced motion uses stationary cuts.
   Made-up cast names (`src/show/credits.ts`), each a sound-alike of the original billing, roll over the first scene.
   See [the visual references](docs/intro-reference.md).
+- **Closing credits** (`src/show/credits.ts`): four short, lowercase white-on-black crew cards over a twelve-second
+  reprise of the original theme. Fictional crew names echo the show's billing; the creator aliases match the opening.
+  There is no episode title, number or closing slogan. The cards pause and skip with playback.
+  See [the closing-credit references](docs/closing-credits-reference.md).
 - **The writers' room** (`src/llm/`): two tool calls. `plan_episode` pitches a title, logline, Future Ted cold open and
   3–4 scene outlines; `write_scene` stages one scene at a time with the episode so far as context. The system prompt
   (`prompts.ts`) is the show bible: characters, catchphrases, every set's marks, and the stagecraft vocabulary.
