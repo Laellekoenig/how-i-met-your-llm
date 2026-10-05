@@ -61,7 +61,7 @@ describe('main titles', () => {
   test('the cold open cuts to the montage and the show name only, then credits roll over the first scene', async () => {
     const { stage, director, renderer, overlay, shown } = rig();
     spies.push(spyOn(speech, 'speak').mockImplementation((_k, _t, _p, onStart) => { onStart?.(); return { done: Promise.resolve() }; }));
-    const episode = { id: 'titles', code: 'S09E99', title: 'The Titles', logline: '', source: 'sample' as const };
+    const episode = { id: 'titles', code: 'S09E99', title: 'The Titles', logline: '' };
     const items: ShowItem[] = [
       { kind: 'episode-start', episode, coldOpen: 'Kids, this is the story.' },
       { kind: 'scene', episode, index: 0, scene: { location: 'maclarens', time: 'night', transition: 'cut', cast: [{ character: 'ted', mark: 'booth_end' }], beats: [{ type: 'pause', seconds: 4 }] } },

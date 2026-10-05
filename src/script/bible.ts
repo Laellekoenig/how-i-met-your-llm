@@ -1,17 +1,32 @@
 import {
   CHARACTER_IDS, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS,
-  LAUGHS, OUTFITS, SCENE_LOCATION_IDS, TRANSITIONS, KIDS, isKid,
-} from '../script/types';
-import type { Tool } from './openrouter';
+  LAUGHS, OUTFITS, SCENE_LOCATION_IDS, TRANSITIONS, isGuest, isKid,
+} from './types';
 import type { StageSet } from '../world/sets/common';
 
+/**
+ * The show bible: who the characters are, every set's marks, and the stagecraft vocabulary of an episode file.
+ * `bun run bible` prints it for whoever is writing episodes. Marks come from the sets themselves, so it never
+ * goes stale.
+ */
 export function showBible(sets: Record<string, StageSet>) {
   const marks = Object.values(sets)
     .filter((s) => (SCENE_LOCATION_IDS as readonly string[]).includes(s.id))
-    .map((s) => `### ${s.id} — ${s.name}\n` + Object.entries(s.marks).map(([k, m]) => `- ${k}: ${m.hint}${m.seat !== null ? ' (seat)' : ''}`).join('\n'))
+    .map((s) => {
+      const doors = new Set([s.door, ...Object.values(s.entrances ?? {})]);
+      const notes = (k: string, seat: boolean) => [seat && 'seat', doors.has(k) && 'door', s.reserved?.includes(k) && 'only if the script puts someone here'].filter(Boolean);
+      const extras = s.background.length ? `\nIn the background: ${s.background.map((b) => `${b.character} at ${b.mark}`).join(', ')}.` : '';
+      return `### ${s.id} — ${s.name}${s.seated ? ' (everyone is seated)' : ''}${extras}\n`
+        + Object.entries(s.marks).map(([k, m]) => {
+          const n = notes(k, m.seat !== null);
+          return `- ${k}: ${m.hint}${n.length ? ` (${n.join(', ')})` : ''}`;
+        }).join('\n');
+    })
     .join('\n\n');
 
-  return `You are the head writer of "How I Met Your LLM": an endless, AI-generated continuation of the sitcom How I Met Your Mother, performed live by low-poly 3D puppets with text-to-speech voices and a laugh track. New scenes air the moment you finish them.
+  return `# How I Met Your LLM — show bible
+
+"How I Met Your LLM" is an endless continuation of the sitcom How I Met Your Mother, performed by low-poly 3D puppets with text-to-speech voices, a synthesized laugh track and multi-camera sitcom coverage. Every episode is a pre-written JSON file in episodes/. This is everything the stage can perform.
 
 # Tone
 Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate bits, running gags, callbacks, friends roasting each other, Barney's absurd schemes, Marshall's big-hearted sincerity, Lily's meddling, Robin's dry Canadian deadpan, Ted's romantic over-thinking. Future Ted (the narrator, Ted in 2030 telling his kids the story) frames episodes with "Kids, ..." and drops wry asides. The timeline is loose and dreamy: it's an endless show.
@@ -53,13 +68,13 @@ Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate 
 Use only a few supporting characters per episode, chosen for the story. Do not parade the whole roster through each scene. Establish romantic status in context; the loose timeline does not make every ex a current partner at once.
 
 # Guest stars
-HIMYM runs on one-off characters: Ted's date of the week, the woman Barney is running a play on, a bouncer, a rival architect, a client, a game-show host. Each episode can cast up to 3 guest stars in plan_episode.guests. They take the ids guest1, guest2 and guest3, in the order you list them; always refer to them by those ids in scenes (cast, character, to). Describe how they look (gender, height, build, skin, hair, clothes, accessories) and sound (voice pitch and pace) so they read instantly on screen, and give each one a specific comic hook in their role. Invent new names (not anyone above). A guest is never the kids' mother.
+HIMYM runs on one-off characters: Ted's date of the week, the woman Barney is running a play on, a bouncer, a rival architect, a client, a game-show host. Each episode can cast up to 3 guest stars in "guests". They take the ids guest1, guest2 and guest3, in the order listed; always refer to them by those ids in scenes (cast, character, to). Describe how they look and sound so they read instantly on screen (see the guest fields below), and give each one a specific comic hook in their role. Invent new names (not anyone above). A guest is never the kids' mother.
 
 # The kids (2030)
 Future Ted is telling this whole story to his two teenagers, who sit on the couch in his living room in 2030, facing him. They are never in the story itself.
 - penny — Penny Mosby, Ted's daughter, about 15. Sharp and sarcastic, sees straight through Dad's stories: notices when Mom hasn't shown up yet, when he's sanitizing ("So... you were all 'eating sandwiches'?"), or when it's suspiciously about Aunt Robin again.
 - luke — Luke Mosby, Ted's son, about 13. Slumped, bored, deadpan; groans at long tangents and perks up for slaps, fights and anything gross.
-Any say or act beat by penny or luke cuts away to them on the couch for that moment; Future Ted narrate beats right after their line are his answer from the couch; then it cuts back to the story. Use them sparingly, as quick reaction buttons (0-2 cutaways per episode): a groan ("Dad!"), being grossed out, a pointed question, a deadpan one-liner. Never put them in a scene's cast and never move/enter/exit them.
+Any say or act beat by penny or luke in a scene cuts away to them on the couch for that moment; Future Ted narrate beats right after their line are his answer from the couch; then it cuts back to the story. Use them sparingly, as quick reaction buttons (0-2 per episode): a groan ("Dad!"), being grossed out, a pointed question, a deadpan one-liner. Never put them in a scene's cast and never move/enter/exit them. An episode's "couch" can also hold the kids' reaction to the cold open (about half of episodes).
 
 # Sets and marks (where characters can stand or sit)
 ${marks}
@@ -79,13 +94,8 @@ Spread scenes around: MacLaren's and the apartment are home base, but use the ot
 Work clothes: Ted wears a suit and tie at office and lecture_hall, Marshall at office and barneys_office (GNB); everywhere else they're in their own clothes. A cast entry's "outfit" overrides that: "work" for Marshall still in his suit at MacLaren's after a day at the firm, "casual" for Ted just dropping by Marshall's office.
 In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car. Keep movement within one compartment; changing between the passenger cabin and the front/driver compartment requires getting out and back in through its own door. Door marks are entrances, not seats for dialogue.
 
-# Stagecraft vocabulary
-emotions: ${EMOTIONS.join(', ')}
-gestures: ${GESTURES.join(', ')}
-laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (huge laugh + applause), ooh (scandal/burn), aww (sweet moment), woo (crowd cheers, e.g. Barney's entrance), applause, gasp.
-
 # Scene transitions
-Choose the incoming transition for each scene. Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
+Choose the incoming transition for each scene ("transition"; leave it out to choose automatically from changes in time and place). Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
 - cut: straight into the scene on a short guitar sting. Best for immediate continuations and punchline reveals.
 - skyline: a brief day/night New York skyline shot with a guitar sting. Good after the titles or for time passing.
 - exterior: the outside of the destination building (or street traffic for a cab/limo), then cut inside. Good for a new location.
@@ -94,8 +104,8 @@ An opening narrate beat plays over skyline/exterior footage before we cut inside
 
 # Cutaways
 A cutaway beat leaves the scene for a short sequence on any set, then the show cuts back to exactly where it left off. It's how HIMYM visualizes a joke:
-- style "imagined": a fantasy or hypothetical. How Barney pictures his play going, Ted's version of what he should have said, Marshall imagining the worst case, a character's lie as they tell it.
-- style "flashback": something that really happened earlier ("Three years earlier", "College, 1998"). Future Ted can set it up with a narrate beat right before.
+- style "imagined": a fantasy or hypothetical. How Barney pictures his play going, Ted's version of what he should have said, Marshall imagining the worst case, a character's lie as they tell it. Plays with a dreamy haze and a harp run.
+- style "flashback": something that really happened earlier ("Three years earlier", "College, 1998"). Future Ted can set it up with a narrate beat right before. Plays in faded sepia.
 Give it a short label for the on-screen card ("How Barney imagined it", "Wesleyan, 1996"), a location and time, its own cast and marks (marks must exist at the cutaway's location), and 3-10 beats. Characters can be in both the scene and the cutaway (Barney imagining himself). Put the setup line just before the cutaway and land the punchline right after it, back in the scene. Use at most one or two per episode, never inside another cutaway, and never cut away to the 2030 couch (that happens on its own when the kids speak).
 
 # Delivery
@@ -103,161 +113,61 @@ Most lines need no delivery. Use it when the performance is the joke:
 - delivery on a say beat: ${DELIVERIES.join(', ')}. whisper for secrets and being overheard, shout for outbursts across the room, sing for a few words of made-up lyrics (never real songs), deadpan for dry understatement, fast for panicked rambling, slow for melodrama.
 - interrupted: true when the next speaker cuts this line off. Write the line only up to where it's cut, ending with "—", and make the very next beat the interruption.
 
-# Writing rules
-- Write for performance: short spoken lines (mostly under 18 words, never over 35). No stage directions inside lines (no parentheses or asterisks); use beats for action.
-- Every scene needs a clear comic idea that escalates and lands a button (final joke) at the end.
-- Attach a laugh to real punchlines via the "laugh" field on that line (roughly every 2-4 lines; vary the kind). Don't laugh at setups.
-- Use "to" on lines so characters look at who they're talking to. Keep it visual: some move/enter/exit beats and gestures (but not on every line).
-- Characters must be in the scene's cast or enter before acting (except penny and luke, who are always on their couch in 2030). Marks must exist in that scene's location. Seats hold one person.
-- Future Ted "narrate" beats: at most 2 per scene; they're great for cold opens, flashback jokes ("Now, kids, ...") and buttons.
-- Original jokes and plots. Don't retell existing HIMYM episodes or recite long quotes; catchphrases are fine in moderation.
-- PG-13: innuendo OK, nothing explicit, no slurs, no real-world politics.`;
+# Stagecraft vocabulary
+characters: ${CHARACTER_IDS.filter((c) => !isGuest(c) && !isKid(c)).join(', ')}; guest1-guest3 (this episode's guests); penny, luke (couch only)
+emotions: ${EMOTIONS.join(', ')}
+gestures: ${GESTURES.join(', ')}
+laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (huge laugh + applause), ooh (scandal/burn), aww (sweet moment), woo (crowd cheers, e.g. Barney's entrance), applause, gasp.
+
+# Episode file format
+One JSON file per episode: episodes/<code>-<slug>.json, e.g. episodes/s11e03-the-slap-bet-inflation.json. Episodes air in code order, then loop.
+
+{
+  "code": "S11E03",                 // unique; season 11 onward is new material
+  "title": "The Slap Bet Inflation",
+  "logline": "One or two sentences: the premise.",
+  "coldOpen": "Kids, ...",          // Future Ted over the kids on the couch, 1-3 sentences
+  "couch": [ ...beats ],            // optional: penny/luke "say" beats and Future Ted "narrate" answers
+  "guests": [ ...guest stars ],     // optional, up to 3: guest1, guest2, guest3 in order
+  "scenes": [ ...3-4 scenes ]
 }
 
-const loc = { type: 'string', enum: [...SCENE_LOCATION_IDS] };
-const transition = { type: 'string', enum: [...TRANSITIONS], description: 'How this scene begins: cut (usual), skyline (time passing/opening), exterior (new location), rewind (explicit flashback only).' };
-const charEnum = { type: 'string', enum: [...CHARACTER_IDS], description: 'Character id. Guest stars are guest1/guest2/guest3, in the order planned.' };
-/** People who can be in a scene (the kids are only ever on the couch). */
-const storyCharEnum = { type: 'string', enum: CHARACTER_IDS.filter((c) => !isKid(c)) };
+A guest star (every field required except under/tie/vest):
+{ "id": "guest1", "name": "Elodie", "role": "Ted's date, a sommelier who whispers everything",
+  "gender": "female|male", "height": "short|average|tall", "build": "slim|average|broad",
+  "skin": "${GUEST_SKIN.join('|')}", "hair": "${GUEST_HAIR.join('|')}",
+  "hairStyle": "${GUEST_HAIR_STYLES.join('|')}",
+  "topStyle": "${GUEST_TOPS.join('|')}",
+  "top": <color>, "pants": <color>, "under": <color, shirt under a jacket>, "tie": <color>, "vest": <color, waistcoat>,
+  "extras": [${GUEST_EXTRAS.map((x) => `"${x}"`).join(', ')}],
+  "voice": { "pitch": "low|medium|high", "pace": "slow|normal|fast" } }
+Colors: ${GUEST_COLORS.join(', ')}, or "#rrggbb". "denim" pants are jeans; pants are ignored under a dress.
 
-export const PLAN_TOOL: Tool = {
-  type: 'function',
-  function: {
-    name: 'plan_episode',
-    description: 'Pitch and outline a new episode.',
-    parameters: {
-      type: 'object',
-      properties: {
-        title: { type: 'string', description: 'Episode title in the show\'s style, e.g. "The Slap Bet Inflation".' },
-        logline: { type: 'string', description: 'One or two sentence premise.' },
-        cold_open: { type: 'string', description: 'Future Ted narration that opens the episode over the kids on the couch in 2030, starting with "Kids, ...". 1-3 sentences.' },
-        guests: {
-          type: 'array',
-          maxItems: 3,
-          description: 'Optional one-off guest stars for this episode. They become guest1, guest2, guest3 in this order; use those ids in the scenes.',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string', description: 'A new name, e.g. "Elodie".' },
-              role: { type: 'string', description: 'Who they are and their comic hook, e.g. "Ted\'s date, a sommelier who whispers everything".' },
-              gender: { type: 'string', enum: ['female', 'male'] },
-              height: { type: 'string', enum: ['short', 'average', 'tall'] },
-              build: { type: 'string', enum: ['slim', 'average', 'broad'] },
-              skin: { type: 'string', enum: [...GUEST_SKIN] },
-              hair: { type: 'string', enum: [...GUEST_HAIR] },
-              hair_style: { type: 'string', enum: [...GUEST_HAIR_STYLES] },
-              top: { type: 'string', enum: [...GUEST_COLORS], description: 'Color of the outermost top (jacket, sweater, dress...).' },
-              top_style: { type: 'string', enum: [...GUEST_TOPS] },
-              under: { type: 'string', enum: [...GUEST_COLORS], description: 'Optional shirt color under a suit, blazer, cardigan, leather jacket or hoodie.' },
-              tie: { type: 'string', enum: [...GUEST_COLORS], description: 'Optional tie color (worn with a suit or shirt).' },
-              vest: { type: 'string', enum: [...GUEST_COLORS], description: 'Optional waistcoat color (over a suit or shirt), e.g. a waiter.' },
-              pants: { type: 'string', enum: [...GUEST_COLORS], description: 'Pants color (denim = jeans). Ignored for a dress.' },
-              extras: { type: 'array', items: { type: 'string', enum: [...GUEST_EXTRAS] } },
-              voice: {
-                type: 'object',
-                properties: { pitch: { type: 'string', enum: ['low', 'medium', 'high'] }, pace: { type: 'string', enum: ['slow', 'normal', 'fast'] } },
-              },
-            },
-            required: ['name', 'role', 'gender', 'top_style', 'top'],
-          },
-        },
-        kids_reaction: {
-          type: 'array',
-          maxItems: 3,
-          description: 'Optional (about half of episodes): right after the cold open, Penny and/or Luke react from the couch, and Future Ted may answer. Short and dry.',
-          items: {
-            type: 'object',
-            properties: {
-              speaker: { type: 'string', enum: [...KIDS, 'future_ted'] },
-              line: { type: 'string' },
-              emotion: { type: 'string', enum: [...EMOTIONS] },
-            },
-            required: ['speaker', 'line'],
-          },
-        },
-        scenes: {
-          type: 'array',
-          minItems: 3,
-          maxItems: 4,
-          items: {
-            type: 'object',
-            properties: {
-              location: loc,
-              time: { type: 'string', enum: ['day', 'night'] },
-              transition,
-              summary: { type: 'string', description: 'What happens, the comic bit, and how the scene ends. 2-4 sentences.' },
-              characters: { type: 'array', items: storyCharEnum },
-            },
-            required: ['location', 'time', 'summary', 'characters'],
-          },
-        },
-      },
-      required: ['title', 'logline', 'cold_open', 'scenes'],
-    },
-  },
-};
+A scene:
+{ "location": "${SCENE_LOCATION_IDS.join('|')}", "time": "day|night",
+  "transition": "${TRANSITIONS.join('|')}",   // optional
+  "summary": "Writers' note: what happens and how it ends.",   // optional, not shown
+  "cast": [ { "character": "ted", "mark": "booth_end", "outfit": "${OUTFITS.join('|')}" } ],   // outfit optional
+  "beats": [ ...beats, in order ] }
 
-const castSchema = (description: string) => ({
-  type: 'array',
-  description,
-  items: {
-    type: 'object',
-    properties: {
-      character: storyCharEnum,
-      mark: { type: 'string', description: 'A mark from this location.' },
-      outfit: { type: 'string', enum: [...OUTFITS], description: 'Optional. Leave out to dress for the location (work clothes at their own workplace).' },
-    },
-    required: ['character', 'mark'],
-  },
-});
+Beats (optional fields in brackets):
+{ "type": "say", "character": "barney", ["to": "ted"], "line": "...", ["delivery": "${DELIVERIES.join('|')}"], ["interrupted": true], ["emotion": ...], ["gesture": ...], ["laugh": ...] }
+{ "type": "narrate", "line": "Kids, ...", ["laugh": ...] }          // Future Ted voice-over
+{ "type": "move", "character": "ted", "to": <mark or character id> }
+{ "type": "enter", "character": "robin", ["to": <mark or character id>] }   // through the door
+{ "type": "exit", "character": "robin" }
+{ "type": "act", "character": "marshall", "gesture": "slap", ["to": "barney"], ["emotion": ...] }
+{ "type": "laugh", "laugh": "applause" }                              // a standalone laugh-track reaction
+{ "type": "pause", "seconds": 1.5 }                                    // up to 5
+{ "type": "cutaway", "style": "${CUTAWAY_STYLES.join('|')}", "label": "How Barney imagined it", "location": "barneys_office", "time": "day",
+  "cast": [ ...cast at that location ], "beats": [ ...3-10 beats, no cutaways ] }
 
-/** One beat. Top-level beats can also be a cutaway, whose own beats can't. */
-function beatItem(top: boolean): Record<string, unknown> {
-  const types = ['say', 'narrate', 'move', 'enter', 'exit', 'act', 'laugh', 'pause', ...(top ? ['cutaway'] : [])];
-  return {
-    type: 'object',
-    properties: {
-      type: { type: 'string', enum: types },
-      character: charEnum,
-      line: { type: 'string', description: 'say/narrate: the spoken words.' },
-      to: { type: 'string', description: 'say/act: character id being addressed. move/enter: destination mark or character id.' },
-      emotion: { type: 'string', enum: [...EMOTIONS] },
-      gesture: { type: 'string', enum: [...GESTURES] },
-      laugh: { type: 'string', enum: [...LAUGHS], description: 'say/narrate/laugh: laugh-track reaction after this beat.' },
-      delivery: { type: 'string', enum: [...DELIVERIES], description: 'say: optional performance. Leave out for normal lines.' },
-      interrupted: { type: 'boolean', description: 'say: the next beat cuts this line off. End the line with "—".' },
-      seconds: { type: 'number' },
-      ...(top ? {
-        style: { type: 'string', enum: [...CUTAWAY_STYLES], description: 'cutaway: imagined (fantasy/hypothetical) or flashback (a real memory).' },
-        label: { type: 'string', description: 'cutaway: short on-screen card, e.g. "How Barney imagined it".' },
-        location: { ...loc, description: 'cutaway: where the cutaway takes place.' },
-        time: { type: 'string', enum: ['day', 'night'], description: 'cutaway: time of day there.' },
-        cast: castSchema('cutaway: who is there when it opens, at marks of the cutaway location.'),
-        beats: { type: 'array', description: 'cutaway: 3-10 beats played there (no nested cutaways).', items: beatItem(false) },
-      } : {}),
-    },
-    required: ['type'],
-  };
+Staging rules (\`bun run episodes check\` enforces them):
+- Everyone who speaks, acts, moves or exits is on stage: in the scene's cast, or brought on with "enter". Exited characters are gone until they enter again.
+- Marks belong to the scene's (or cutaway's) location. One person per mark.
+- "to" on say/act is the character being addressed or gestured at; use it on most lines so people look at each other.
+- Lines are spoken aloud by text-to-speech: no stage directions, parentheses or asterisks in them. Mostly under 18 words, never over 35.
+- Put a "laugh" on real punchlines (roughly every 2-4 lines, varying the kind), never on setups. A laugh on a narrate beat works too.
+- At most 2 narrate beats per scene. The final scene ends with a Future Ted narrate button.
+- PG-13: innuendo OK, nothing explicit, no slurs, no real-world politics. Original jokes and plots; catchphrases in moderation.`;
 }
-
-export const SCENE_TOOL: Tool = {
-  type: 'function',
-  function: {
-    name: 'write_scene',
-    description: 'Write one fully staged scene as a list of beats, in order.',
-    parameters: {
-      type: 'object',
-      properties: {
-        transition,
-        cast: castSchema('Who is on stage when the scene opens, and where. Characters arriving later use an "enter" beat instead.'),
-        beats: {
-          type: 'array',
-          minItems: 10,
-          description: 'say: a line of dialogue. narrate: Future Ted voice-over. move: walk to a mark or next to a character. enter/exit: arrive through / leave by the door. act: a gesture. laugh: standalone laugh-track reaction. pause: a beat of silence. cutaway: an imagined or flashback sequence somewhere else, then back here. A say/act by penny or luke cuts away to the kids on the couch in 2030.',
-          items: beatItem(true),
-        },
-      },
-      required: ['cast', 'beats'],
-    },
-  },
-};

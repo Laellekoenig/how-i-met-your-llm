@@ -1,0 +1,159 @@
+{
+  "code": "S10E02",
+  "title": "The Silent Auction",
+  "logline": "Lily’s school auction pits Marshall against his own mother for a canoe, under an auctioneer who talks faster than anyone can bid.",
+  "coldOpen": "Kids, every spring your Aunt Lily’s school held a silent auction. In 2010 it was neither silent, nor technically an auction.",
+  "couch": [
+    { "type": "say", "character": "penny", "line": "So what was it?", "emotion": "confused" },
+    { "type": "narrate", "line": "A hostage situation. With a canoe.", "laugh": "laugh" }
+  ],
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Delphine",
+      "role": "the PTA president, who runs the school auction like a military operation and ranks every gift basket",
+      "gender": "female",
+      "height": "tall",
+      "build": "slim",
+      "skin": "fair",
+      "hair": "blonde",
+      "hairStyle": "updo",
+      "top": "pink",
+      "topStyle": "cardigan",
+      "under": "white",
+      "pants": "navy",
+      "extras": ["glasses", "earrings"],
+      "voice": { "pitch": "high", "pace": "fast" }
+    },
+    {
+      "id": "guest2",
+      "name": "Rusty",
+      "role": "a professional auctioneer who cannot slow down, even to order coffee",
+      "gender": "male",
+      "height": "short",
+      "build": "broad",
+      "skin": "tan",
+      "hair": "gray",
+      "hairStyle": "receding",
+      "top": "mustard",
+      "topStyle": "blazer",
+      "under": "white",
+      "tie": "red",
+      "pants": "brown",
+      "extras": ["mustache"],
+      "voice": { "pitch": "medium", "pace": "fast" }
+    }
+  ],
+  "scenes": [
+    {
+      "location": "store",
+      "time": "day",
+      "transition": "exterior",
+      "cast": [{ "character": "lily", "mark": "shelves" }, { "character": "marshall", "mark": "produce" }, { "character": "scooter", "mark": "queue" }],
+      "beats": [
+        { "type": "narrate", "line": "It started, like most of Lily’s wars, in the snack aisle." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Marshall, this basket has to win. Last year Delphine’s basket had a spa voucher.", "emotion": "nervous" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, it’s a school auction. Nobody’s keeping score.", "emotion": "happy" },
+        { "type": "enter", "character": "guest1", "to": "lily" },
+        { "type": "say", "character": "guest1", "to": "lily", "line": "I’m keeping score! Your basket is currently ranked fourteenth. Out of fourteen.", "delivery": "fast", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "guest1", "line": "It has artisanal jam.", "emotion": "angry" },
+        { "type": "say", "character": "guest1", "to": "lily", "line": "It has a jam. Singular.", "emotion": "smug", "laugh": "ooh" },
+        { "type": "say", "character": "scooter", "to": "lily", "line": "Lily! I’ll bid on your basket. Whatever it costs.", "emotion": "excited", "gesture": "wave" },
+        { "type": "say", "character": "lily", "to": "scooter", "line": "Scooter, why are you—", "interrupted": true, "emotion": "confused" },
+        { "type": "say", "character": "scooter", "to": "lily", "line": "I volunteer at every school event you go to. It’s a coincidence. Every time.", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Oh, and this year’s grand prize is a canoe.", "emotion": "smug" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "A canoe?", "emotion": "excited", "laugh": "ooh" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Oh no. I know that face.", "emotion": "nervous" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "label": "How Marshall imagined it",
+          "location": "restaurant",
+          "time": "night",
+          "cast": [{ "character": "marshall", "mark": "booth_middle" }, { "character": "guest2", "mark": "host" }],
+          "beats": [
+            { "type": "say", "character": "guest2", "to": "marshall", "line": "Sold! To the gentle giant from Saint Cloud, Minnesota!", "delivery": "shout", "emotion": "excited", "gesture": "point" },
+            { "type": "say", "character": "marshall", "line": "Paddle, paddle, my canoe and me, paddling home to Minnesota!", "delivery": "sing", "emotion": "happy", "gesture": "dance", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lily, that canoe is going to be mine.", "emotion": "excited", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "lily", "line": "Bidding starts at eight. Don’t worry, fourteenth is still a place.", "emotion": "smug" },
+        { "type": "exit", "character": "guest1" },
+        { "type": "say", "character": "lily", "line": "I am going to bury her in jam.", "delivery": "whisper", "emotion": "angry", "laugh": "big" }
+      ]
+    },
+    {
+      "location": "restaurant",
+      "time": "night",
+      "transition": "exterior",
+      "cast": [
+        { "character": "guest2", "mark": "host" },
+        { "character": "guest1", "mark": "service" },
+        { "character": "lily", "mark": "booth_left" },
+        { "character": "marshall", "mark": "booth_middle" },
+        { "character": "judy", "mark": "booth_right" },
+        { "character": "victoria", "mark": "booth_end_left" },
+        { "character": "scooter", "mark": "booth_end_right" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "That night, the auction took over the back room of a bistro on Amsterdam." },
+        { "type": "say", "character": "guest2", "line": "Welcome, folks! Lot one, a cake from Victoria’s bakery, do I hear twenty, twenty-five, sold!", "delivery": "fast", "emotion": "excited", "gesture": "point", "laugh": "laugh" },
+        { "type": "say", "character": "victoria", "to": "lily", "line": "Did anybody bid? I didn’t see anybody bid.", "emotion": "confused" },
+        { "type": "say", "character": "lily", "to": "victoria", "line": "Scooter scratched his nose.", "laugh": "laugh" },
+        { "type": "say", "character": "scooter", "to": "victoria", "line": "Worth it. It’s shaped like a heart.", "emotion": "happy" },
+        { "type": "say", "character": "victoria", "to": "scooter", "line": "It’s shaped like a canoe. That’s the theme.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "guest2", "line": "Lot fourteen, the grand prize, one canoe, do I hear fifty?", "delivery": "fast", "emotion": "excited" },
+        { "type": "say", "character": "marshall", "line": "Fifty!", "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "judy", "line": "Seventy-five.", "emotion": "smug", "gesture": "hands_up" },
+        { "type": "say", "character": "marshall", "to": "judy", "line": "Mom?", "emotion": "surprised", "laugh": "ooh" },
+        { "type": "say", "character": "judy", "to": "marshall", "line": "Your father has wanted a canoe since 1974, Marshall. Sit down.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "line": "One hundred dollars!", "delivery": "shout", "emotion": "angry" },
+        { "type": "say", "character": "judy", "to": "guest2", "line": "Two hundred. And I’ll throw in a casserole." },
+        { "type": "say", "character": "guest2", "to": "judy", "line": "Ma’am, we do not accept casseroles—", "interrupted": true, "emotion": "confused" },
+        { "type": "say", "character": "judy", "to": "guest2", "line": "It’s tuna.", "delivery": "slow", "emotion": "flirty", "laugh": "laugh" },
+        { "type": "say", "character": "guest2", "line": "Sold, to the lady in the apron!", "delivery": "shout", "emotion": "excited", "gesture": "point", "laugh": "applause" },
+        { "type": "say", "character": "marshall", "line": "No.", "delivery": "slow", "emotion": "sad", "laugh": "laugh" },
+        { "type": "move", "character": "guest1", "to": "lily" },
+        { "type": "say", "character": "guest1", "to": "lily", "line": "Lily, your basket got zero bids. I’m so sorry. I’m not, but it’s polite to say.", "delivery": "whisper", "emotion": "smug", "laugh": "ooh" },
+        { "type": "say", "character": "lily", "to": "scooter", "line": "Zero? Scooter. Scooter, bid on my basket.", "emotion": "angry", "gesture": "point" },
+        { "type": "say", "character": "scooter", "line": "Five hundred dollars!", "delivery": "shout", "emotion": "excited", "laugh": "big" },
+        { "type": "act", "character": "lily", "gesture": "facepalm" }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "cast": [{ "character": "marshall", "mark": "couch_left" }, { "character": "lily", "mark": "couch_center" }, { "character": "judy", "mark": "armchair" }],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "lily", "line": "I can’t believe my own mother outbid me for a canoe.", "emotion": "sad" },
+        { "type": "say", "character": "judy", "to": "marshall", "line": "Marshall, honey. I didn’t buy it for your father.", "emotion": "happy" },
+        { "type": "narrate", "line": "Kids, a mother never forgets what her son asked for." },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "St. Cloud, 1985",
+          "location": "store",
+          "time": "day",
+          "cast": [{ "character": "judy", "mark": "checkout" }, { "character": "marshall", "mark": "queue" }],
+          "beats": [
+            { "type": "say", "character": "marshall", "to": "judy", "line": "Mom, can I have the canoe in the window?", "emotion": "excited", "gesture": "point" },
+            { "type": "say", "character": "judy", "to": "marshall", "line": "When you’re older." },
+            { "type": "say", "character": "marshall", "to": "judy", "line": "How much older?", "emotion": "nervous" },
+            { "type": "say", "character": "judy", "to": "marshall", "line": "I’ll know.", "delivery": "deadpan", "emotion": "smug", "laugh": "laugh" }
+          ]
+        },
+        { "type": "say", "character": "judy", "to": "marshall", "line": "You’re older.", "emotion": "happy", "laugh": "aww" },
+        { "type": "act", "character": "marshall", "to": "judy", "gesture": "hug" },
+        { "type": "enter", "character": "ted", "to": "center" },
+        { "type": "say", "character": "ted", "line": "Why is there a canoe in the stairwell?", "emotion": "confused", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Also, Scooter gave me my basket back. With a poem in it.", "emotion": "bored" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Is it any good?" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "It rhymes Lily with really, really.", "delivery": "deadpan", "laugh": "big" },
+        { "type": "narrate", "line": "Marshall kept that canoe for twenty years. He never once put it in the water.", "laugh": "chuckle" },
+        { "type": "say", "character": "luke", "line": "Can we have the canoe?", "emotion": "excited" },
+        { "type": "narrate", "line": "Ask Uncle Marshall. He’ll say when you’re older.", "laugh": "laugh" }
+      ]
+    }
+  ]
+}
