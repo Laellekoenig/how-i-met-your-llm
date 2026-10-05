@@ -1,6 +1,6 @@
 // The script language shared by the LLM, the sample episodes and the player.
 
-export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit'] as const;
+export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
 export const LOCATION_IDS = ['maclarens', 'apartment', 'barneys'] as const;

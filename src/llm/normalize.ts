@@ -15,6 +15,9 @@ const CHAR_ALIASES: Record<string, CharacterId> = {
   'ted mosby': 'ted', mosby: 'ted', 'marshall eriksen': 'marshall', marshmallow: 'marshall', 'lily aldrin': 'lily', lilypad: 'lily',
   'robin scherbatsky': 'robin', scherbatsky: 'robin', 'barney stinson': 'barney', stinson: 'barney', 'wendy the waitress': 'wendy',
   'carl the bartender': 'carl', bartender: 'carl', waitress: 'wendy',
+  'the captain': 'captain', 'george van smoot': 'captain', 'van smoot': 'captain', 'marvin eriksen': 'marvin', 'marvin sr': 'marvin',
+  'marvin sr.': 'marvin', 'marvin eriksen sr.': 'marvin', 'mr. eriksen': 'marvin', "marshall's dad": 'marvin',
+  'james stinson': 'james', "barney's brother": 'james',
 };
 
 export function asChar(v: unknown): CharacterId | undefined {

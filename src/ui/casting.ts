@@ -3,7 +3,7 @@ import { CHARACTERS, FUTURE_TED_VOICE, type VoiceProfile } from '../world/charac
 import type { CharacterId } from '../script/types';
 
 // Casting priority: earlier roles get first pick of the good voices.
-const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'wendy', 'ranjit', 'carl'];
+const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'wendy', 'ranjit', 'carl', 'patrice', 'captain', 'marvin', 'james'];
 
 const SAMPLES: Record<string, string> = {
   'future-ted': 'Kids, I want to tell you an incredible story.',
@@ -15,6 +15,10 @@ const SAMPLES: Record<string, string> = {
   wendy: 'Another round for the booth?',
   ranjit: 'Hello! Where to tonight?',
   carl: "You guys gonna order something or just talk?",
+  patrice: 'Robin! I baked you cookies! They spell out BFF!',
+  captain: 'A man chooses his own name. Stepping off!',
+  marvin: "Son, I built you a canoe. Don't tell your mother.",
+  james: "Little brother, I invented suiting up. You just made it a catchphrase.",
 };
 
 export function roles(): [string, VoiceProfile][] {

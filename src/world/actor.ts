@@ -284,7 +284,11 @@ export class Actor {
         shell(0.015, -0.22 * tl, 0.98 * tl, open, topDS);
         lapels(0.015, open, 0.4 * tl, 0.3, toon(shade(L.top, 0.78), { side: DS }));
         add(this.spine, collar(0.6, 0.017, 0.012 * s, topDS, 0.02));
-        buttons([0.3 * tl, 0.38 * tl], 0.02, toon('#2a1a12'), 0.3);
+        if (L.extras?.includes('brass')) {
+          // double-breasted yachting blazer: two rows of gold buttons
+          const brass = toon('#d4a83a', { emissive: '#3a2a08', emissiveIntensity: 0.5 });
+          for (const a of [0.3, -0.3]) buttons([0.2 * tl, 0.3 * tl, 0.4 * tl], 0.02, brass, a);
+        } else buttons([0.3 * tl, 0.38 * tl], 0.02, toon('#2a1a12'), 0.3);
         break;
       }
       case 'leather': {
@@ -495,6 +499,25 @@ export class Actor {
     if (L.extras?.includes('mustache')) add(mesh(ellipsoid(0.1 * hh, 0.026 * hh, 0.03 * hh, 10, 6), beard, 0, fy(0.3), fz(0, fy(0.3)) + 0.008 * hh));
     if (L.extras?.includes('goatee')) add(mesh(ellipsoid(0.07 * hh, 0.07 * hh, 0.04 * hh, 10, 6), beard, 0, fy(0.09), fz(0, fy(0.09))));
 
+    // glasses: thin frames in front of the eyes, temples back to the ears
+    if (L.extras?.includes('glasses')) {
+      const frame = toon('#5a4a3a');
+      const rimR = 0.08 * hh, gz = ez + 0.034 * hh;
+      const bar = (a: THREE.Vector3, b: THREE.Vector3) => {
+        const m = add(mesh(cyl(0.007 * hh, 0.007 * hh, a.distanceTo(b), 5), frame, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2));
+        m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      };
+      for (const sg of [1, -1]) {
+        const rim = add(mesh(new THREE.TorusGeometry(rimR, 0.008 * hh, 4, 16), frame, sg * ex, ey, gz));
+        rim.rotation.y = sg * 0.3;
+        rim.scale.y = 0.8;
+        const ear = head.at(fy(0.5));
+        const hinge = new THREE.Vector3(sg * (ex + rimR * Math.cos(0.3)), ey + 0.01 * hh, gz - rimR * Math.sin(0.3));
+        bar(hinge, new THREE.Vector3(sg * (ear.rx + 0.01 * hh), fy(0.5), ear.zc - 0.04 * hh));
+      }
+      bar(new THREE.Vector3(-(ex - rimR * 0.95), ey + 0.02 * hh, gz + 0.02 * hh), new THREE.Vector3(ex - rimR * 0.95, ey + 0.02 * hh, gz + 0.02 * hh));
+    }
+
     // hair
     const parts = buildHairGeometry(L.hairStyle, { head, hh: hy, mat: hairMat, neckBase: -0.02 * L.height });
     for (const g of parts.head) add(mesh(g, hairMat), true);
@@ -510,6 +533,19 @@ export class Actor {
       add(mesh(cap.geometry({ seg: 18, rows: 8 }), capMat), true);
       const brim = add(mesh(ellipsoid(r.rx * 0.9, 0.014 * hh, 0.22 * hh, 12, 4), capMat, 0, fy(0.79), r.zc + r.rz + 0.1 * hh));
       brim.rotation.x = 0.12;
+    }
+    if (L.extras?.includes('captainhat')) {
+      // white-topped yachting cap: navy band, crown flaring out over it, black visor and a gold badge
+      const r = head.at(fy(0.85));
+      const p = (f: number, k: number): number[] => [fy(f), r.rx * k + 0.06 * hh, r.rz * k + 0.06 * hh, r.zc];
+      const band = new Profile([p(0.76, 1), p(0.9, 1)]);
+      add(mesh(band.geometry({ seg: 18, rows: 2 }), toon('#141a2c', { side: THREE.DoubleSide })), true);
+      const crown = new Profile([p(0.88, 1), p(0.97, 1.12), p(1.04, 1.16), p(1.08, 1.1), [fy(1.1), 0, 0, r.zc]]);
+      add(mesh(crown.geometry({ seg: 18, rows: 8 }), toon('#f2f0ea')), true);
+      const front = r.zc + r.rz + 0.06 * hh;
+      const visor = add(mesh(ellipsoid(r.rx * 0.85, 0.014 * hh, 0.2 * hh, 12, 4), toon('#101014'), 0, fy(0.78), front + 0.06 * hh));
+      visor.rotation.x = 0.28;
+      add(mesh(ellipsoid(0.05 * hh, 0.035 * hh, 0.012 * hh, 8, 4), toon('#d4a83a', { emissive: '#3a2a08', emissiveIntensity: 0.5 }), 0, fy(0.84), front + 0.006 * hh));
     }
   }
 

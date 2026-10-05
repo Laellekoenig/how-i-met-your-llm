@@ -23,6 +23,10 @@ Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate 
 - wendy — Wendy the Waitress at MacLaren's. Chipper, overhears everything.
 - carl — Carl the bartender at MacLaren's. Gruff, few words. He's always behind the bar at MacLaren's.
 - ranjit — Ranjit, Barney's driver (limo/cab). Cheerful, says "Hello!", often gets dragged into schemes.
+- patrice — Patrice, Robin's relentlessly sweet, bubbly coworker at World Wide News. Bakes cookies, plans "BFF fun days", chimes in with unsolicited support; Robin can't stand her and snaps "Nobody asked you, Patrice!" (Patrice is never fazed).
+- captain — George Van Smoot, "The Captain". Intimidating old-money boating fanatic in full nautical dress; unblinking stare, long unsettling pauses, sailing metaphors for everything, calls his yacht "she", announces "Stepping off!" before walking away. Lily is his art consultant.
+- marvin — Marvin Eriksen Sr., Marshall's huge, jovial dad visiting from St. Cloud, Minnesota. Loves woodworking, fishing, casseroles and tall tales; teases Marshall, overshares with Lily, calls everyone "son". Marshall's best friend.
+- james — James Stinson, Barney's older brother: gay, Black, and just as suave, suited-up and smooth-talking as Barney (the Stinson charm works on men). Now a proud family man with husband Tom and their kids, which baffles Barney; the brothers still compete at everything, including laser tag.
 
 # Sets and marks (where characters can stand or sit)
 ${marks}

@@ -25,7 +25,7 @@ export interface Look {
   boots?: boolean;
   eyes?: string;
   face?: { jaw?: number; long?: number; nose?: number; brow?: number };
-  extras?: ('cap' | 'mustache' | 'goatee' | 'apron' | 'stubble' | 'pocketsquare' | 'headband')[];
+  extras?: ('cap' | 'mustache' | 'goatee' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass')[];
 }
 
 export interface VoiceProfile {
@@ -162,6 +162,66 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 1.04, long: 1.05, nose: 1.2, brow: 1.15 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.06, prefer: ['Rishi', 'Prabhat', 'Ravi'] },
+  },
+  patrice: {
+    id: 'patrice',
+    name: 'Patrice',
+    color: '#7fe0d0',
+    main: false,
+    look: {
+      // Ellen D. Williams: dark shoulder-length hair with bangs, open red cardigan over a blue print blouse, dark slacks
+      height: 1.58, build: 1.2, female: true,
+      skin: '#d6a47c', hair: '#24160f', hairStyle: 'bob', eyes: '#2a1a12',
+      top: '#a52a3c', topStyle: 'cardigan', under: '#2d5fa6',
+      pants: '#34343c', shoes: '#1c1a1a',
+      face: { jaw: 1.06, long: 0.95, nose: 0.95 },
+    },
+    voice: { gender: 'female', pitch: 1.15, rate: 1.12, prefer: ['Michelle', 'Ava', 'Allison', 'Karen', 'Moira', 'Samantha'] },
+  },
+  captain: {
+    id: 'captain',
+    name: 'The Captain',
+    color: '#f26d6d',
+    main: false,
+    look: {
+      // Kyle MacLachlan: swept-back silver hair, captain's cap, navy brass-button blazer, red trousers, boat shoes
+      height: 1.78, build: 1.0, female: false,
+      skin: '#e2ae88', hair: '#bdb9b2', hairStyle: 'slick', eyes: '#3a4a5a',
+      top: '#1c2442', topStyle: 'blazer', under: '#f4f4f0', extras: ['captainhat', 'brass'],
+      pants: '#b0332c', shoes: '#7a5032',
+      face: { jaw: 1.1, long: 1.04, nose: 1.05, brow: 1.15 },
+    },
+    voice: { gender: 'male', pitch: 0.88, rate: 0.94, prefer: ['Guy', 'Roger', 'Lee', 'Gordon', 'Fred'] },
+  },
+  marvin: {
+    id: 'marvin',
+    name: 'Marvin Sr.',
+    color: '#ff9f5a',
+    main: false,
+    look: {
+      // Bill Fagerbakke: huge Minnesotan dad; thinning strawberry-blond hair, glasses, red-and-green plaid flannel, jeans
+      height: 1.96, build: 1.24, female: false,
+      skin: '#f0c2a0', hair: '#c49a6c', hairStyle: 'receding', eyes: '#4a5a6a',
+      top: '#9a2626', topStyle: 'flannel', plaid: ['#1d4a2a', '#e4dcc0'], under: '#e8e2d6', extras: ['glasses'],
+      pants: '#34425e', jeans: true, shoes: '#5a3a22',
+      face: { long: 1.06, jaw: 1.08, nose: 1.1, brow: 1.1 },
+    },
+    voice: { gender: 'male', pitch: 0.9, rate: 0.98, prefer: ['Tom', 'Eric', 'Christopher', 'Alex', 'Gordon'] },
+  },
+  james: {
+    id: 'james',
+    name: 'James',
+    color: '#d6ff7f',
+    main: false,
+    look: {
+      // Wayne Brady: close-cropped hair, clean-shaven; as suited-up as his brother: slim navy suit, lavender shirt, purple tie
+      height: 1.78, build: 1.02, female: false,
+      skin: '#6e4632', hair: '#141010', hairStyle: 'buzz', eyes: '#2a1810',
+      top: '#26304a', topStyle: 'suit', under: '#c9b8e0', tie: '#5a2a6a',
+      pants: '#26304a', shoes: '#141414', extras: ['pocketsquare'],
+      face: { jaw: 1.04, long: 1.02, nose: 1.1 },
+    },
+    voice: { gender: 'male', pitch: 1.04, rate: 1.1, prefer: ['Jason', 'Tony', 'Andrew', 'Guy', 'Eric'] },
   },
 };
 
