@@ -1,14 +1,21 @@
 import type { VoiceProfile } from '../world/characters';
 import { sleep } from '../util';
 
-// Browser speech synthesis with per-character voice casting.
+// Browser speech synthesis: one shared American voice per gender.
 
-const FEMALE = /samantha|karen|moira|tessa|victoria|allison|ava|susan|zoe|kate|serena|fiona|veena|nicky|aria|jenny|michelle|emma|libby|sonia|natasha|clara|female|kathy|shelley|sandy|flo|grandma|joanna|salli|kimberly|ivy|kendra|amy|nora|catherine|hazel|zira|heera|martha|ellen/i;
+const FEMALE = /^google us english$|samantha|karen|moira|tessa|victoria|allison|ava|susan|zoe|kate|serena|fiona|veena|nicky|aria|jenny|michelle|emma|libby|sonia|natasha|clara|female|kathy|shelley|sandy|flo|grandma|joanna|salli|kimberly|ivy|kendra|amy|nora|catherine|hazel|zira|heera|martha|ellen/i;
 const MALE = /alex|daniel|fred|aaron|arthur|gordon|rishi|tom|oliver|lee|guy|ryan|eric|christopher|roger|steffan|andrew|brian|davis|jason|tony|thomas|male|ralph|reed|rocko|eddy|grandpa|albert|bruce|junior|evan|nathan|matthew|joey|justin|george|james|william|liam|david|mark|ravi|prabhat/i;
 
 // macOS novelty voices and the robotic "Eloquence" voices. Never auto-cast these.
 const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|pipe organ|superstar|trinoids|whisper|wobble|zarvox|deranged|hysterical|junior|ralph|fred|kathy|grandpa|grandma|eddy|flo|reed|rocko|sandy|shelley)\b/i;
 const NATURAL = /natural|neural|premium|enhanced|online|siri/i;
+
+// Shared cast voices, best first. Only American (en-US) voices are considered when any exist.
+const AMERICAN = {
+  male: ['Andrew', 'Christopher', 'Guy', 'Eric', 'Brian', 'Roger', 'Steffan', 'Evan', 'Nathan', 'Aaron', 'Tom', 'Alex'],
+  female: ['Ava', 'Jenny', 'Aria', 'Emma', 'Michelle', 'Allison', 'Samantha', 'Susan', 'Zoe', 'Google US English', 'Nicky'],
+};
+const isAmerican = (v: SpeechSynthesisVoice) => /^en[-_]us$/i.test(v.lang);
 
 const OVERRIDES_KEY = 'himyllm.voices';
 
@@ -42,7 +49,7 @@ export class Speech {
     speechSynthesis.addEventListener?.('voiceschanged', load);
   }
 
-  /** Register speaking roles in casting priority order (earlier roles get the best voices). */
+  /** Register speaking roles (character key + voice profile). */
   setRoles(roles: [string, VoiceProfile][]) {
     this.roles = roles;
     this.recast();
@@ -77,46 +84,27 @@ export class Speech {
     return null;
   }
 
-  private score(v: SpeechSynthesisVoice) {
-    return (NATURAL.test(v.name) ? 4 : 0) + (v.localService ? 0 : 1) + (v.lang === 'en-US' ? 0.5 : 0);
+  private score(v: SpeechSynthesisVoice, prefer: string[]) {
+    const i = prefer.findIndex((p) => v.name.toLowerCase().includes(p.toLowerCase()));
+    return (NATURAL.test(v.name) ? 4 : 0) + (v.localService ? 0 : 1) + (i < 0 ? 0 : 2 * (1 - i / prefer.length));
   }
 
-  /** Assign every role a voice: manual overrides first, then preferences, then best remaining same-gender voice. */
+  /** Best American voice of a gender (falls back to any English voice of that gender, then anything). */
+  private pick(gender: 'male' | 'female'): SpeechSynthesisVoice | null {
+    const usable = this.voices.filter((v) => !this.isNovelty(v));
+    const pool = usable.filter((v) => this.gender(v) === gender);
+    const us = pool.filter(isAmerican);
+    const cands = us.length ? us : pool.length ? pool : usable;
+    return [...cands].sort((a, b) => this.score(b, AMERICAN[gender]) - this.score(a, AMERICAN[gender]))[0] ?? null;
+  }
+
+  /** Every man shares one American voice and every woman another, unless manually overridden. */
   private recast() {
     this.cast.clear();
-    const usable = this.voices.filter((v) => !this.isNovelty(v));
-    const uses = new Map<string, number>();
-    const mainUse = new Set<string>();
-    const MAIN = new Set(['ted', 'marshall', 'lily', 'robin', 'barney']);
-    const claim = (key: string, v: SpeechSynthesisVoice | null) => {
-      this.cast.set(key, v);
-      if (!v) return;
-      uses.set(v.name, (uses.get(v.name) ?? 0) + 1);
-      if (MAIN.has(key)) mainUse.add(v.name);
-    };
-    // pass 1: manual overrides, then each role's own preferred voices (e.g. Ranjit keeps Rishi)
+    const shared = { male: this.pick('male'), female: this.pick('female') };
     for (const [key, p] of this.roles) {
       const forced = this.overrides[key] ? this.voices.find((v) => v.name === this.overrides[key]) : undefined;
-      if (forced) {
-        claim(key, forced);
-        continue;
-      }
-      for (const pref of p.prefer) {
-        const m = usable.filter((v) => v.name.toLowerCase().includes(pref.toLowerCase()) && !uses.has(v.name)).sort((a, b) => this.score(b) - this.score(a));
-        if (m.length) {
-          claim(key, m[0]);
-          break;
-        }
-      }
-    }
-    // pass 2: everyone else gets the least-shared decent voice of their gender
-    // (reusing a good voice beats falling back to a robotic one; avoid doubling up the main cast)
-    for (const [key, p] of this.roles) {
-      if (this.cast.has(key)) continue;
-      const pool = usable.filter((v) => this.gender(v) === p.gender);
-      const cands = pool.length ? pool : usable;
-      const cost = (v: SpeechSynthesisVoice) => (uses.get(v.name) ?? 0) * 10 + (MAIN.has(key) && mainUse.has(v.name) ? 6 : 0) - this.score(v);
-      claim(key, [...cands].sort((a, b) => cost(a) - cost(b))[0] ?? null);
+      this.cast.set(key, forced ?? shared[p.gender]);
     }
   }
 

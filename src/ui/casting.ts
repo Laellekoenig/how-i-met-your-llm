@@ -2,7 +2,7 @@ import { speech } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, type VoiceProfile } from '../world/characters';
 import type { CharacterId } from '../script/types';
 
-// Casting priority: earlier roles get first pick of the good voices.
+// Settings order.
 const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'wendy', 'ranjit', 'carl', 'patrice', 'captain', 'marvin', 'james'];
 
 const SAMPLES: Record<string, string> = {

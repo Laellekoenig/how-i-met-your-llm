@@ -32,7 +32,6 @@ export interface VoiceProfile {
   gender: 'male' | 'female';
   pitch: number;
   rate: number;
-  prefer: string[]; // preferred voice name fragments, in order
 }
 
 export interface CharacterDef {
@@ -58,7 +57,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#2b3448', jeans: true, shoes: '#4a2e1c',
       face: { long: 1.03, jaw: 0.97, nose: 1.05 },
     },
-    voice: { gender: 'male', pitch: 1.0, rate: 1.02, prefer: ['Andrew', 'Guy', 'Aaron', 'Evan', 'Nathan', 'Alex', 'Tom', 'Google UK English Male', 'Daniel'] },
+    voice: { gender: 'male', pitch: 1.0, rate: 1.02 },
   },
   marshall: {
     id: 'marshall',
@@ -73,7 +72,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#a8916a', shoes: '#4a3424',
       face: { long: 1.07, jaw: 1.1, nose: 1.1, brow: 1.2 },
     },
-    voice: { gender: 'male', pitch: 0.92, rate: 1.0, prefer: ['Christopher', 'Eric', 'Roger', 'Tom', 'Alex', 'Gordon'] },
+    voice: { gender: 'male', pitch: 0.92, rate: 1.0 },
   },
   lily: {
     id: 'lily',
@@ -88,7 +87,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#3a2f3d', legs: '#3a2f3d', shoes: '#a3263a',
       face: { jaw: 0.9, long: 0.97, nose: 0.85 },
     },
-    voice: { gender: 'female', pitch: 1.08, rate: 1.05, prefer: ['Jenny', 'Aria', 'Samantha', 'Ava', 'Allison', 'Google US English', 'Nicky'] },
+    voice: { gender: 'female', pitch: 1.08, rate: 1.05 },
   },
   robin: {
     id: 'robin',
@@ -103,7 +102,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#252c3e', jeans: true, shoes: '#2a1c14', boots: true,
       face: { jaw: 0.95, long: 1.02, nose: 0.9 },
     },
-    voice: { gender: 'female', pitch: 0.96, rate: 1.02, prefer: ['Clara', 'Michelle', 'Karen', 'Susan', 'Zoe', 'Google UK English Female', 'Catherine', 'Victoria'] },
+    voice: { gender: 'female', pitch: 0.96, rate: 1.02 },
   },
   barney: {
     id: 'barney',
@@ -118,7 +117,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#3a3e47', shoes: '#141414', extras: ['pocketsquare'],
       face: { jaw: 1.0, long: 0.98, nose: 0.95 },
     },
-    voice: { gender: 'male', pitch: 1.04, rate: 1.12, prefer: ['Brian', 'Ryan', 'Christopher', 'Oliver', 'Arthur', 'Daniel', 'Google UK English Male'] },
+    voice: { gender: 'male', pitch: 1.04, rate: 1.12 },
   },
   wendy: {
     id: 'wendy',
@@ -132,7 +131,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       top: '#1d1d22', topStyle: 'tee', pants: '#2c3a55', jeans: true, shoes: '#222', extras: ['apron'],
       face: { jaw: 0.92, nose: 0.9 },
     },
-    voice: { gender: 'female', pitch: 1.12, rate: 1.08, prefer: ['Ava', 'Emma', 'Allison', 'Tessa', 'Moira', 'Nicky', 'Samantha'] },
+    voice: { gender: 'female', pitch: 1.12, rate: 1.08 },
   },
   carl: {
     id: 'carl',
@@ -146,7 +145,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       top: '#1f1f24', topStyle: 'shirt', pants: '#1c1c20', shoes: '#111',
       face: { jaw: 1.05, long: 1.02 },
     },
-    voice: { gender: 'male', pitch: 0.88, rate: 0.95, prefer: ['Roger', 'Gordon', 'Lee', 'Eric'] },
+    voice: { gender: 'male', pitch: 0.88, rate: 0.95 },
   },
   ranjit: {
     id: 'ranjit',
@@ -161,7 +160,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#18181c', shoes: '#0d0d0d',
       face: { jaw: 1.04, long: 1.05, nose: 1.2, brow: 1.15 },
     },
-    voice: { gender: 'male', pitch: 1.04, rate: 1.06, prefer: ['Rishi', 'Prabhat', 'Ravi'] },
+    voice: { gender: 'male', pitch: 1.04, rate: 1.06 },
   },
   patrice: {
     id: 'patrice',
@@ -176,7 +175,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#34343c', shoes: '#1c1a1a',
       face: { jaw: 1.06, long: 0.95, nose: 0.95 },
     },
-    voice: { gender: 'female', pitch: 1.15, rate: 1.12, prefer: ['Michelle', 'Ava', 'Allison', 'Karen', 'Moira', 'Samantha'] },
+    voice: { gender: 'female', pitch: 1.15, rate: 1.12 },
   },
   captain: {
     id: 'captain',
@@ -191,7 +190,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#b0332c', shoes: '#7a5032',
       face: { jaw: 1.1, long: 1.04, nose: 1.05, brow: 1.15 },
     },
-    voice: { gender: 'male', pitch: 0.88, rate: 0.94, prefer: ['Guy', 'Roger', 'Lee', 'Gordon', 'Fred'] },
+    voice: { gender: 'male', pitch: 0.88, rate: 0.94 },
   },
   marvin: {
     id: 'marvin',
@@ -206,7 +205,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#34425e', jeans: true, shoes: '#5a3a22',
       face: { long: 1.06, jaw: 1.08, nose: 1.1, brow: 1.1 },
     },
-    voice: { gender: 'male', pitch: 0.9, rate: 0.98, prefer: ['Tom', 'Eric', 'Christopher', 'Alex', 'Gordon'] },
+    voice: { gender: 'male', pitch: 0.9, rate: 0.98 },
   },
   james: {
     id: 'james',
@@ -221,7 +220,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#26304a', shoes: '#141414', extras: ['pocketsquare'],
       face: { jaw: 1.04, long: 1.02, nose: 1.1 },
     },
-    voice: { gender: 'male', pitch: 1.04, rate: 1.1, prefer: ['Jason', 'Tony', 'Andrew', 'Guy', 'Eric'] },
+    voice: { gender: 'male', pitch: 1.04, rate: 1.1 },
   },
 };
 
@@ -229,7 +228,6 @@ export const FUTURE_TED_VOICE: VoiceProfile = {
   gender: 'male',
   pitch: 0.94,
   rate: 0.96,
-  prefer: ['Davis', 'Steffan', 'Roger', 'Gordon', 'Lee', 'Alex', 'Daniel'],
 };
 
 export function charName(id: string) {
