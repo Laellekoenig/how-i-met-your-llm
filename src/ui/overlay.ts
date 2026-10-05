@@ -1,4 +1,4 @@
-import type { EpisodeMeta } from '../script/types';
+import type { CutawayStyle, Delivery, EpisodeMeta } from '../script/types';
 import { sleep } from '../util';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -16,9 +16,11 @@ export class Overlay {
   private loc = $('loc-label');
   private onair = $('onair');
 
-  showCaption(name: string, color: string, text: string, narration = false) {
+  showCaption(name: string, color: string, text: string, narration = false, delivery?: Delivery) {
     if (!this.captionsEnabled) return;
+    this.caption.className = '';
     this.caption.classList.toggle('narration', narration);
+    if (delivery) this.caption.classList.add(delivery);
     this.capName.textContent = name;
     this.capName.style.color = narration ? '' : color;
     this.capText.textContent = text;
@@ -49,7 +51,9 @@ export class Overlay {
     this.endCard.classList.add('hidden');
   }
 
-  location(text: string) {
+  /** The location label; a cutaway gets its own styled card instead. */
+  location(text: string, cutaway?: CutawayStyle) {
+    this.loc.className = cutaway ? `cutaway ${cutaway}` : '';
     this.loc.textContent = text;
     this.loc.classList.remove('hidden');
     // restart the CSS animation

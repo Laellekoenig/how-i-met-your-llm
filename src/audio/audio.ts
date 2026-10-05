@@ -546,6 +546,35 @@ export class AudioEngine {
     this.note(buf, ctx.currentTime, 0.28, this.cueOutput());
   }
 
+  /** A bright harp glissando into someone's imagination (or back down out of it). Returns duration. */
+  dream(into = true) {
+    if (!this.ctx || !this.musicEnabled) return 0;
+    const ctx = this.ctx;
+    const out = this.cueOutput();
+    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
+    // E major pentatonic over two octaves, clean (no drive): it's a different sound from the guitar
+    const run = [64, 66, 68, 71, 73, 76, 78, 80, 83, 85, 88];
+    const notes = into ? run : [...run].reverse();
+    const t0 = ctx.currentTime + 0.02;
+    notes.forEach((m, i) => this.note(this.pluck(hz(m), 1.4, 0.65), t0 + i * 0.045, 0.22, out));
+    return notes.length * 0.045 + 0.5;
+  }
+
+  /** Soft fingerpicked chords under a sung line. */
+  serenade(seconds: number) {
+    if (!this.ctx || !this.musicEnabled) return;
+    const ctx = this.ctx;
+    const out = this.cueOutput();
+    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
+    const chords = [[52, 59, 64, 68], [57, 64, 69, 73], [59, 66, 71, 75], [52, 59, 64, 68]];
+    const step = 0.24;
+    const t0 = ctx.currentTime + 0.03;
+    for (let i = 0; i * step < seconds; i++) {
+      const chord = chords[Math.floor(i / 4) % chords.length];
+      this.note(this.pluck(hz(chord[[0, 2, 1, 3][i % 4]]), 1.2, 0.3), t0 + i * step, 0.16, out);
+    }
+  }
+
   /** Upbeat jangly guitar transition riff. Returns duration. */
   sting(variant: 'intro' | 'transition' | 'outro' = 'transition') {
     if (!this.ctx || !this.musicEnabled) return 0;

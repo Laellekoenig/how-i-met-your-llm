@@ -1,9 +1,13 @@
-import type { Beat, CharacterId, Emotion, Gesture, LaughKind, Scene, ShowItem, EpisodeMeta } from './types';
+import type { Beat, CastPlacement, CharacterId, CutawayStyle, Delivery, Emotion, Gesture, GuestStar, LaughKind, Scene, SceneLocationId, ShowItem, EpisodeMeta, TimeOfDay } from './types';
 
 // Hand-written "reruns" that play when no LLM is connected (and as filler).
 
-type SayOpts = { e?: Emotion; to?: CharacterId; g?: Gesture; l?: LaughKind };
-const say = (character: CharacterId, line: string, o: SayOpts = {}): Beat => ({ type: 'say', character, line, emotion: o.e, to: o.to, gesture: o.g, laugh: o.l });
+type SayOpts = { e?: Emotion; to?: CharacterId; g?: Gesture; l?: LaughKind; d?: Delivery; cut?: boolean };
+const say = (character: CharacterId, line: string, o: SayOpts = {}): Beat => ({
+  type: 'say', character, line, emotion: o.e, to: o.to, gesture: o.g, laugh: o.l, ...(o.d ? { delivery: o.d } : {}), ...(o.cut ? { interrupted: true } : {}),
+});
+const cutaway = (style: CutawayStyle, label: string, location: SceneLocationId, time: TimeOfDay, cast: CastPlacement[], beats: Beat[]): Beat =>
+  ({ type: 'cutaway', style, label, location, time, cast, beats });
 const narr = (line: string, laugh?: LaughKind): Beat => ({ type: 'narrate', line, laugh });
 const move = (character: CharacterId, to: string): Beat => ({ type: 'move', character, to });
 const enter = (character: CharacterId, to?: string): Beat => ({ type: 'enter', character, to });
@@ -15,6 +19,7 @@ interface SampleEpisode {
   meta: Omit<EpisodeMeta, 'id' | 'source'>;
   coldOpen: string;
   couch?: Beat[]; // the kids' reaction to the cold open
+  guests?: GuestStar[];
   scenes: Scene[];
 }
 
@@ -335,14 +340,108 @@ export const GUEST_EPISODE: SampleEpisode = {
 };
 EPISODES.push(GUEST_EPISODE);
 
+/** Guest stars, an imagined cutaway, a flashback, and lines that get whispered, shouted, sung and cut off. */
+export const GUEST_STAR_EPISODE: SampleEpisode = {
+  meta: { code: 'S10E05', title: 'The Whisperer', logline: "Ted's new girlfriend whispers everything, and after three dates he still hasn't heard a word she's said." },
+  coldOpen: "Kids, in the spring of 2009, I dated a woman for three weeks without hearing a single thing she said.",
+  couch: [say('penny', 'So, your ideal relationship.', { e: 'smug' }), narr('Very funny.', 'chuckle')],
+  guests: [
+    {
+      id: 'guest1', name: 'Nora', role: "Ted's new girlfriend, a sommelier who whispers everything", gender: 'female', height: 'average', build: 'slim',
+      skin: 'olive', hair: 'black', hairStyle: 'bob', top: 'burgundy', topStyle: 'dress', pants: 'burgundy', extras: ['earrings'],
+      voice: { pitch: 'medium', pace: 'slow' },
+    },
+    {
+      id: 'guest2', name: 'Dmitri', role: 'a waiter who announces every dish like a title fight', gender: 'male', height: 'tall', build: 'broad',
+      skin: 'light', hair: 'dark_brown', hairStyle: 'slick', top: 'white', topStyle: 'shirt', vest: 'black', tie: 'black', pants: 'black',
+      extras: ['mustache'], voice: { pitch: 'low', pace: 'normal' },
+    },
+  ],
+  scenes: [
+    {
+      location: 'maclarens', time: 'night', transition: 'skyline',
+      cast: [
+        { character: 'ted', mark: 'booth_end' }, { character: 'marshall', mark: 'booth_left_back' },
+        { character: 'lily', mark: 'booth_left_front' }, { character: 'robin', mark: 'booth_right_back' }, { character: 'barney', mark: 'booth_right_front' },
+      ],
+      beats: [
+        say('ted', "Nora is perfect. She's a sommelier, she's funny. I think. I can't actually hear her.", { e: 'confused', l: 'laugh' }),
+        say('marshall', "What do you mean you can't hear her?", { to: 'ted', e: 'confused' }),
+        say('ted', 'She whispers. Everything. She whispered bless you to a man across the street.', { to: 'marshall', l: 'laugh' }),
+        say('robin', "So you've just been nodding. For three weeks.", { to: 'ted', e: 'smug' }),
+        say('ted', "I've agreed to at least two things I'm worried about.", { e: 'nervous', l: 'laugh' }),
+        say('barney', "Amateur. A whisperer is the easiest close in the Playbook. Here's how I'd do it.", { to: 'ted', g: 'suit_up' }),
+        cutaway('imagined', 'How Barney imagined it', 'restaurant', 'night', [{ character: 'barney', mark: 'table_2_left' }, { character: 'guest1', mark: 'table_2_right' }], [
+          say('guest1', "It's so loud in here.", { to: 'barney', e: 'flirty', d: 'whisper' }),
+          say('barney', "Then let's go somewhere quieter. My place. Or a library, after hours.", { to: 'guest1', e: 'flirty', d: 'whisper' }),
+          say('guest1', "That's the smoothest thing I've ever almost heard.", { to: 'barney', e: 'happy', d: 'whisper', l: 'laugh' }),
+          say('barney', 'Whisper to me, baby, I am suited for the night.', { e: 'smug', d: 'sing', l: 'big' }),
+        ]),
+        say('lily', 'You sang. In your own fantasy. To yourself.', { to: 'barney', e: 'bored', l: 'laugh' }),
+        say('barney', "It's called confidence, Lily. I had backup dancers. You didn't see them because of the budget.", { to: 'lily', e: 'smug', l: 'laugh' }),
+        say('ted', "Okay. Tomorrow night I'm going to lean in and very politely ask her to—", { e: 'nervous', cut: true }),
+        say('marshall', 'Speak up!', { to: 'ted', e: 'excited', d: 'shout', l: 'laugh' }),
+        say('ted', 'Not like that.', { to: 'marshall', e: 'bored', l: 'chuckle' }),
+      ],
+    },
+    {
+      location: 'restaurant', time: 'night', transition: 'exterior',
+      cast: [{ character: 'ted', mark: 'table_2_left' }, { character: 'guest1', mark: 'table_2_right' }],
+      beats: [
+        narr('The next night, I had a plan.'),
+        say('ted', 'Nora, I want to hear everything about you. Literally. Could you maybe—', { to: 'guest1', e: 'nervous', cut: true }),
+        enter('guest2', 'center'),
+        move('guest2', 'ted'),
+        say('guest2', 'Tonight! In the red corner! Duck confit with a cherry reduction!', { to: 'ted', e: 'excited', d: 'shout', g: 'hands_up', l: 'big' }),
+        say('guest1', 'He does this every time.', { to: 'ted', d: 'whisper' }),
+        say('ted', 'What?', { to: 'guest1', e: 'confused' }),
+        say('guest2', 'And in the blue corner! Your bread basket!', { e: 'excited', d: 'shout', l: 'laugh' }),
+        exit('guest2'),
+        act('ted', 'facepalm'),
+        say('ted', "Nora, I have to be honest. I haven't heard a word you've said in three weeks.", { to: 'guest1', e: 'sad' }),
+        say('guest1', "Oh, thank God. I only whisper because you say 'actually' every time I talk.", { to: 'ted', e: 'happy', l: 'big' }),
+        say('ted', "Actually, that's not—", { to: 'guest1', e: 'surprised', cut: true }),
+        say('guest1', 'There it is.', { to: 'ted', e: 'smug', d: 'whisper', l: 'laugh' }),
+        narr("And kids, she wasn't the first."),
+        cutaway('flashback', 'Our dorm, 1996', 'apartment', 'night', [{ character: 'marshall', mark: 'couch_center' }, { character: 'ted', mark: 'armchair' }], [
+          say('marshall', 'Ted, can I tell you something?', { to: 'ted', e: 'nervous' }),
+          say('ted', "Actually, it's may I.", { to: 'marshall', e: 'smug', g: 'point' }),
+          say('marshall', 'And that is why I will be whispering for the next four years.', { to: 'ted', e: 'bored', d: 'deadpan', l: 'laugh' }),
+        ]),
+        say('guest1', 'Should we get the check?', { to: 'ted', d: 'whisper' }),
+        say('ted', 'Yes. Actually, yes.', { to: 'guest1', e: 'sad', l: 'laugh' }),
+      ],
+    },
+    {
+      location: 'apartment', time: 'night', transition: 'exterior',
+      cast: [{ character: 'marshall', mark: 'couch_left' }, { character: 'lily', mark: 'couch_center' }, { character: 'ted', mark: 'armchair' }],
+      beats: [
+        say('ted', "Do I really say 'actually' that much?", { to: 'marshall', e: 'nervous' }),
+        say('marshall', "No. Well, yes. Constantly. But in an endearing way that also makes me want to whisper.", { to: 'ted', d: 'fast', l: 'laugh' }),
+        say('lily', 'We all whisper around you, Ted. We have since 2005.', { to: 'ted', e: 'smug' }),
+        say('ted', 'Actually—', { e: 'sad', cut: true }),
+        act('marshall', 'shake_head'),
+        say('lily', 'There it is.', { to: 'marshall', d: 'whisper', l: 'big' }),
+        narr("And that's how I stopped saying 'actually'. Mostly.", 'laugh'),
+        say('luke', 'You said it twice at breakfast.', { e: 'bored' }),
+        narr('Actually, it was once.', 'big'),
+      ],
+    },
+  ],
+};
+EPISODES.push(GUEST_STAR_EPISODE);
+
 let counter = 0;
+
+/** How many reruns there are before they repeat. */
+export const sampleCount = () => EPISODES.length;
 
 /** Items for one sample episode, cycling through the reruns. */
 export function sampleEpisode(): ShowItem[] {
   const ep = EPISODES[counter++ % EPISODES.length];
   const meta: EpisodeMeta = { ...ep.meta, id: `sample-${counter}`, source: 'sample' };
   return [
-    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch },
+    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch, guests: ep.guests },
     ...ep.scenes.map((scene, index) => ({ kind: 'scene' as const, episode: meta, index, scene })),
     { kind: 'episode-end', episode: meta },
   ];

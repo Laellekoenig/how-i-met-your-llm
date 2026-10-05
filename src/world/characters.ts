@@ -1,4 +1,5 @@
-import type { CharacterId } from '../script/types';
+import { GUEST_IDS, type CharacterId, type GuestStar } from '../script/types';
+import { guestDef, placeholderGuest } from './guests';
 
 export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress';
@@ -361,7 +362,23 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     },
     voice: { gender: 'male', pitch: 1.18, rate: 1.06 },
   },
+  // One-off guest stars, recast by every episode that has them (see setGuests).
+  guest1: guestDef(placeholderGuest('guest1')),
+  guest2: guestDef(placeholderGuest('guest2')),
+  guest3: guestDef(placeholderGuest('guest3')),
 };
+
+/** Cast this episode's guest stars into their slots (unused slots go back to the placeholder). Returns the slots that changed. */
+export function setGuests(guests: GuestStar[] = []) {
+  const changed: CharacterId[] = [];
+  for (const id of GUEST_IDS) {
+    const def = guestDef(guests.find((g) => g.id === id) ?? placeholderGuest(id));
+    if (JSON.stringify(def) === JSON.stringify(CHARACTERS[id])) continue;
+    CHARACTERS[id] = def;
+    changed.push(id);
+  }
+  return changed;
+}
 
 export const FUTURE_TED_VOICE: VoiceProfile = {
   gender: 'male',

@@ -105,6 +105,13 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   animation: fadeinout 3.6s forwards;
 }
 @keyframes fadeinout { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+/* cutaway cards: a fantasy gets a dreamy serif, a memory a faded typewriter tag */
+#loc-label.cutaway { padding: 0.35em 0.8em; letter-spacing: 0.12em; text-shadow: none; }
+#loc-label.imagined {
+  font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; text-transform: none; letter-spacing: 0.04em;
+  color: #4a3a58; background: rgba(255, 246, 252, 0.88); border-radius: 999px; box-shadow: 0 0 18px rgba(255, 230, 250, 0.9);
+}
+#loc-label.flashback { color: #f4e6c8; background: rgba(40, 26, 12, 0.78); border: 1px solid rgba(244, 230, 200, 0.5); }
 
 #caption {
   position: absolute;
@@ -124,6 +131,13 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 #caption.narration { font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-weight: 400; }
 #caption.narration #caption-text { background: rgba(10, 6, 3, 0.62); padding: 4px 12px; box-decoration-break: clone; -webkit-box-decoration-break: clone; text-shadow: none; }
 #caption.narration #caption-name { font-family: var(--mono); font-style: normal; color: var(--umbrella); }
+/* delivery */
+#caption.whisper #caption-text { font-style: italic; font-weight: 400; font-size: 0.86em; opacity: 0.88; }
+#caption.whisper #caption-text::before { content: '(whispering) '; font-size: 0.8em; opacity: 0.75; }
+#caption.shout #caption-text { text-transform: uppercase; font-size: 1.16em; font-weight: 800; letter-spacing: 0.02em; }
+#caption.sing #caption-text { font-style: italic; }
+#caption.sing #caption-text::before { content: '\266A  '; }
+#caption.sing #caption-text::after { content: '  \266A'; }
 
 #title-card, #end-card {
   position: absolute;

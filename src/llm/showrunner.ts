@@ -1,8 +1,8 @@
 import { chat, type ChatMessage } from './openrouter';
 import { showBible, PLAN_TOOL, SCENE_TOOL } from './prompts';
-import { normalizeScene, asChar, asLocation, asTime, asTransition } from './normalize';
+import { normalizeScene, normalizeGuests, asChar, asLocation, asTime, asTransition, type Casting } from './normalize';
 import type { StageSet } from '../world/sets/common';
-import { EMOTIONS, isKid, type Beat, type EpisodeMeta, type Emotion, type Scene, type ShowItem, type LocationId, type TimeOfDay, type CharacterId, type Transition } from '../script/types';
+import { EMOTIONS, isKid, type Beat, type EpisodeMeta, type Emotion, type GuestStar, type Scene, type ShowItem, type LocationId, type TimeOfDay, type CharacterId, type Transition } from '../script/types';
 import { charName } from '../world/characters';
 import { sampleEpisode } from '../script/samples';
 import { sleep, uid, pick } from '../util';
@@ -20,6 +20,7 @@ interface Plan {
   meta: EpisodeMeta;
   coldOpen: string;
   couch: Beat[]; // the kids' reaction to the cold open
+  guests: GuestStar[];
   scenes: PlannedScene[];
 }
 
@@ -90,7 +91,7 @@ export class Showrunner {
         if (!this.running) break;
         const plan = await this.plan();
         if (!this.running) break;
-        this.queue.push({ kind: 'episode-start', episode: plan.meta, coldOpen: plan.coldOpen, couch: plan.couch });
+        this.queue.push({ kind: 'episode-start', episode: plan.meta, coldOpen: plan.coldOpen, couch: plan.couch, guests: plan.guests });
         const written: Scene[] = [];
         for (let i = 0; i < plan.scenes.length; i++) {
           while (this.running && this.bufferedScenes() >= 2 && !this.abandoned.has(plan.meta.id)) {
@@ -187,19 +188,22 @@ export class Showrunner {
     const pitch = this.suggestions.shift();
     const user = [
       'Pitch and outline the next episode. Use 3 or 4 scenes; vary the sets; give every main character something to do; build to a satisfying, funny ending with a Future Ted button.',
+      'Cast up to 3 guest stars if the story needs new faces (a date, a mark, a rival, a boss): give each a vivid look and a comic hook, and put their ids in the scenes that need them. Plan where an imagined cutaway or flashback would land a joke, if one would.',
       past.length ? `Recent episodes (don't repeat these premises):\n${past.slice(-12).map((p) => `- ${p.title}: ${p.logline}`).join('\n')}` : '',
       pitch ? `A viewer pitched this idea — build the episode around it: "${pitch}"` : `Some random inspiration (optional): ${pick(INSPIRATION)}.`,
     ]
       .filter(Boolean)
       .join('\n\n');
     const args = await this.call([{ role: 'system', content: showBible(this.sets) }, { role: 'user', content: user }], PLAN_TOOL, 2500);
+    const guests = normalizeGuests(args.guests);
+    const casting: Casting = { guests };
     const rawScenes = Array.isArray(args.scenes) ? args.scenes : [];
     const scenes: PlannedScene[] = rawScenes.slice(0, 4).map((s: Record<string, unknown>) => ({
       location: asLocation(s.location),
       time: asTime(s.time),
       transition: asTransition(s.transition),
       summary: String(s.summary ?? ''),
-      characters: (Array.isArray(s.characters) ? s.characters : []).map(asChar).filter((c): c is CharacterId => !!c && !isKid(c)),
+      characters: (Array.isArray(s.characters) ? s.characters : []).map((c: unknown) => asChar(c, casting)).filter((c): c is CharacterId => !!c && !isKid(c)),
     }));
     if (!scenes.length) throw new Error('episode plan had no scenes');
     const meta: EpisodeMeta = {
@@ -209,8 +213,9 @@ export class Showrunner {
       code: this.nextCode(),
       source: 'llm',
     };
-    this.ev.log(`☂ Pitched ${meta.code} “${meta.title}” — ${meta.logline}${pitch ? ' (viewer pitch)' : ''}`);
-    return { meta, coldOpen: String(args.cold_open ?? ''), couch: kidsReaction(args.kids_reaction), scenes };
+    const cameos = guests.length ? ` · guest stars: ${guests.map((g) => g.name).join(', ')}` : '';
+    this.ev.log(`☂ Pitched ${meta.code} “${meta.title}” — ${meta.logline}${pitch ? ' (viewer pitch)' : ''}${cameos}`);
+    return { meta, coldOpen: String(args.cold_open ?? ''), couch: kidsReaction(args.kids_reaction), guests, scenes };
   }
 
   private async writeScene(plan: Plan, index: number, previous: Scene[]): Promise<Scene> {
@@ -218,26 +223,32 @@ export class Showrunner {
     const set = this.sets[ps.location];
     this.ev.status(`writing scene ${index + 1}/${plan.scenes.length} (${set.name})…`, 'busy');
     const outline = plan.scenes.map((s, i) => `${i + 1}. [${s.location}, ${s.time}, ${s.transition ?? 'automatic transition'}] ${s.summary}${i === index ? '   ← WRITE THIS ONE' : ''}`).join('\n');
+    const name = (id: string) => plan.guests.find((g) => g.id === id)?.name ?? charName(id);
     const recap = previous
-      .map((s, i) => `--- Scene ${i + 1} (${s.location}) ---\n` + s.beats.map(beatText).filter(Boolean).slice(-40).join('\n'))
+      .map((s, i) => `--- Scene ${i + 1} (${s.location}) ---\n` + s.beats.flatMap((b) => beatText(b, name)).slice(-40).join('\n'))
       .join('\n');
+    const guests = plan.guests.length
+      ? `Guest stars this episode (use these ids for them in cast, character and to):\n${plan.guests.map((g) => `- ${g.id} = ${g.name}${g.role ? `: ${g.role}` : ''}`).join('\n')}`
+      : '';
     const last = index === plan.scenes.length - 1;
     const user = [
       `Episode ${plan.meta.code}: "${plan.meta.title}" — ${plan.meta.logline}`,
       `Cold open (already aired): ${plan.coldOpen}`,
       `Outline:\n${outline}`,
+      guests,
       recap ? `What has aired so far this episode:\n${recap}` : '',
-      `Now write scene ${index + 1} at ${set.name} (${ps.location}), ${ps.time}. Characters: ${ps.characters.map(charName).join(', ') || 'your choice'}. Valid marks here: ${Object.keys(set.marks).join(', ')}.`,
+      `Now write scene ${index + 1} at ${set.name} (${ps.location}), ${ps.time}. Characters: ${ps.characters.map((c) => `${name(c)} (${c})`).join(', ') || 'your choice'}. Valid marks here: ${Object.keys(set.marks).join(', ')}.`,
       `Aim for 16-30 beats. Lines short and punchy. ${last ? 'This is the final scene: pay off the episode and end with a Future Ted narration button (a reaction from the kids on the couch can top it), then a laugh or aww.' : 'End on a strong button joke.'}`,
     ]
       .filter(Boolean)
       .join('\n\n');
     const args = await this.call([{ role: 'system', content: showBible(this.sets) }, { role: 'user', content: user }], SCENE_TOOL, 6000);
-    const scene = normalizeScene(args, ps.location, ps.time, ps.summary);
+    const scene = normalizeScene(args, ps.location, ps.time, ps.summary, { guests: plan.guests });
     scene.transition ??= ps.transition;
     if (scene.beats.length < 4) throw new Error(`scene ${index + 1} came back nearly empty`);
     const lines = scene.beats.filter((b) => b.type === 'say').length;
-    this.ev.log(`✎ Scene ${index + 1}/${plan.scenes.length} at ${set.name}: ${scene.beats.length} beats, ${lines} lines`);
+    const cutaways = scene.beats.filter((b) => b.type === 'cutaway').length;
+    this.ev.log(`✎ Scene ${index + 1}/${plan.scenes.length} at ${set.name}: ${scene.beats.length} beats, ${lines} lines${cutaways ? `, ${cutaways} cutaway${cutaways > 1 ? 's' : ''}` : ''}`);
     return scene;
   }
 }
@@ -255,13 +266,14 @@ function kidsReaction(raw: unknown): Beat[] {
   return out;
 }
 
-function beatText(b: Scene['beats'][number]) {
+function beatText(b: Beat, name: (id: string) => string): string[] {
   switch (b.type) {
-    case 'say': return `${charName(b.character).toUpperCase()}: ${b.line}`;
-    case 'narrate': return `FUTURE TED: ${b.line}`;
-    case 'enter': return `(${charName(b.character)} enters)`;
-    case 'exit': return `(${charName(b.character)} leaves)`;
-    default: return '';
+    case 'say': return [`${name(b.character).toUpperCase()}${b.delivery ? ` (${b.delivery})` : ''}: ${b.line}`];
+    case 'narrate': return [`FUTURE TED: ${b.line}`];
+    case 'enter': return [`(${name(b.character)} enters)`];
+    case 'exit': return [`(${name(b.character)} leaves)`];
+    case 'cutaway': return [`[${b.style} cutaway at ${b.location}${b.label ? `: ${b.label}` : ''}]`, ...b.beats.flatMap((x) => beatText(x, name)), '[back to the scene]'];
+    default: return [];
   }
 }
 

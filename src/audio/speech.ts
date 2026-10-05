@@ -1,4 +1,5 @@
 import type { VoiceProfile } from '../world/characters';
+import type { Delivery } from '../script/types';
 import { sleep } from '../util';
 
 // Browser speech synthesis: one shared American voice per gender.
@@ -23,10 +24,30 @@ export interface SpeakHandle {
   done: Promise<void>;
 }
 
+export interface SpeakOptions {
+  delivery?: Delivery;
+  /** Stop mid-word as the last word starts, as if someone talked over it. */
+  cutOff?: boolean;
+}
+
+/** How each delivery bends the voice. Pitch stays near 1: big shifts make good voices sound warped. */
+const DELIVERY: Record<Delivery, { rate: number; pitch: number; volume: number; maxPitch?: number }> = {
+  whisper: { rate: 0.9, pitch: -0.04, volume: 0.45 },
+  shout: { rate: 1.08, pitch: 0.14, volume: 1, maxPitch: 1.34 },
+  sing: { rate: 0.82, pitch: 0.16, volume: 0.95, maxPitch: 1.36 },
+  deadpan: { rate: 0.9, pitch: -0.07, volume: 0.9 },
+  fast: { rate: 1.32, pitch: 0.03, volume: 1 },
+  slow: { rate: 0.76, pitch: -0.03, volume: 1 },
+};
+
+/** Words spoken per second scale with this, so captions and timeouts stay honest. */
+export const deliveryRate = (d?: Delivery) => (d ? DELIVERY[d].rate : 1);
+
 export class Speech {
   enabled = true;
   private voices: SpeechSynthesisVoice[] = [];
   private cast = new Map<string, SpeechSynthesisVoice | null>();
+  private shared: Record<'male' | 'female', SpeechSynthesisVoice | null> = { male: null, female: null };
   private roles: [string, VoiceProfile][] = [];
   private overrides: Record<string, string> = {};
   private keep: SpeechSynthesisUtterance[] = []; // Chrome GC bug workaround
@@ -101,7 +122,7 @@ export class Speech {
   /** Every man shares one American voice and every woman another, unless manually overridden. */
   private recast() {
     this.cast.clear();
-    const shared = { male: this.pick('male'), female: this.pick('female') };
+    const shared = (this.shared = { male: this.pick('male'), female: this.pick('female') });
     for (const [key, p] of this.roles) {
       const forced = this.overrides[key] ? this.voices.find((v) => v.name === this.overrides[key]) : undefined;
       this.cast.set(key, forced ?? shared[p.gender]);
@@ -109,19 +130,24 @@ export class Speech {
   }
 
   /** Speak a line. Resolves when finished (with a timeout fallback for flaky engines). */
-  speak(key: string, text: string, profile: VoiceProfile, onStart?: () => void): SpeakHandle {
-    const estimate = estimateDuration(text, profile.rate);
+  speak(key: string, text: string, profile: VoiceProfile, onStart?: () => void, opts: SpeakOptions = {}): SpeakHandle {
+    const d = opts.delivery ? DELIVERY[opts.delivery] : undefined;
+    const rate = profile.rate * (d?.rate ?? 1);
+    // a line that gets cut off stops early; without boundary events, we stop it on time
+    const estimate = estimateDuration(text, rate) * (opts.cutOff ? 0.88 : 1);
     if (!this.enabled || !this.supported || !this.voices.length) {
       onStart?.();
       return { done: sleep(estimate * 1000) };
     }
-    const u = new SpeechSynthesisUtterance(text);
-    const v = this.cast.has(key) ? this.cast.get(key) : null;
+    const u = new SpeechSynthesisUtterance(text.replace(/[-–—]+$/, ''));
+    // Guest stars change every episode, so they borrow the shared voice for their gender.
+    const v = this.cast.get(key) ?? this.shared[profile.gender];
     if (v) u.voice = v;
     u.lang = v?.lang ?? 'en-US';
     // big pitch shifts make good voices sound warped; keep them subtle
-    u.pitch = Math.min(1.2, Math.max(0.85, profile.pitch));
-    u.rate = profile.rate;
+    u.pitch = Math.min(d?.maxPitch ?? 1.2, Math.max(0.8, profile.pitch + (d?.pitch ?? 0)));
+    u.rate = rate;
+    u.volume = d?.volume ?? 1;
     this.keep.push(u);
     const done = new Promise<void>((resolve) => {
       let finished = false;
@@ -147,6 +173,17 @@ export class Speech {
           setTimeout(finish, estimate * 1000);
         }
       }, 1200);
+      if (opts.cutOff) {
+        // never cancel whoever speaks next
+        const cut = () => {
+          if (!finished) speechSynthesis.cancel();
+        };
+        const lastWord = u.text.trimEnd().search(/\S+$/);
+        u.onboundary = (e) => {
+          if (e.name === 'word' && e.charIndex >= lastWord) setTimeout(cut, 140);
+        };
+        u.addEventListener('start', () => setTimeout(cut, estimate * 1000 + 400));
+      }
       setTimeout(finish, estimate * 2600 + 3000);
     });
     speechSynthesis.speak(u);

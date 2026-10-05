@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Actor } from '../world/actor';
-import { CHARACTERS, type CharacterDef } from '../world/characters';
+import { CHARACTERS, setGuests, type CharacterDef } from '../world/characters';
 import type { StageSet, Mark } from '../world/sets/common';
 import { buildMaclarens } from '../world/sets/maclarens';
 import { buildApartment } from '../world/sets/apartment';
@@ -16,9 +16,22 @@ import { buildStore } from '../world/sets/store';
 import { buildRestaurant } from '../world/sets/restaurant';
 import { buildLectureHall } from '../world/sets/lectureHall';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
-import { CHARACTER_IDS, KIDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
+import { CHARACTER_IDS, KIDS, type CharacterId, type GuestStar, type LocationId, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 import { joinRoute, routeNodes } from './navigation';
+
+export interface FrozenScene {
+  set: StageSet;
+  time: TimeOfDay;
+  occupancy: Map<string, CharacterId>;
+  actorMark: Map<CharacterId, string>;
+  actorNode: Map<CharacterId, string>;
+  background: Set<CharacterId>;
+  actors: {
+    id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D;
+    emotion: Actor['emotion']; holdingGlass: boolean;
+  }[];
+}
 
 /** Owns the sets and actors; knows how to place and move people around. */
 export class Stage {
@@ -35,6 +48,7 @@ export class Stage {
   private backgroundIds = new Set<CharacterId>();
   /** The scene we cut away from while we're on the 2030 couch. */
   private paused: { set: StageSet; visible: CharacterId[] } | null = null;
+  private time: TimeOfDay = 'night';
   private establishing: Establishing | null = null;
   private establishingCast: CharacterId[] | null = null;
 
@@ -121,6 +135,60 @@ export class Stage {
     }
   }
 
+  /** Rebuild the guest-star slots this episode recasts. Call between scenes, never mid-scene. */
+  castGuests(guests: GuestStar[] = []) {
+    for (const id of setGuests(guests)) {
+      const old = this.actors[id];
+      this.scene.remove(old.root);
+      old.root.traverse((o) => { if (o instanceof THREE.Mesh) o.geometry.dispose(); });
+      const a = new Actor(CHARACTERS[id]);
+      a.root.visible = false;
+      this.scene.add(a.root);
+      this.actors[id] = a;
+    }
+  }
+
+  /**
+   * Remember the scene exactly as it is, to come back to after a cutaway that may reuse the same people.
+   * Anyone still walking is put where they were headed.
+   */
+  freeze(): FrozenScene {
+    return {
+      set: this.current,
+      time: this.time,
+      occupancy: new Map(this.occupancy),
+      actorMark: new Map(this.actorMark),
+      actorNode: new Map(this.actorNode),
+      background: new Set(this.backgroundIds),
+      actors: this.onStageIds().map((id) => {
+        const a = this.actors[id];
+        const mark = this.current.marks[this.actorMark.get(id) ?? ''];
+        const pos = a.isWalking ? (a.remainingPath.at(-1) ?? a.position.clone()) : a.position.clone();
+        return {
+          id, pos, facing: mark && (a.isWalking || mark.seat !== null) ? mark.facing : a.targetFacing,
+          seat: mark?.seat ?? null, pose: mark?.pose, prop: mark?.prop, emotion: a.emotion, holdingGlass: a.holdingGlass,
+        };
+      }),
+    };
+  }
+
+  /** Back from a cutaway to the frozen scene. */
+  thaw(f: FrozenScene) {
+    this.setLocation(f.set.id, f.time);
+    for (const [k, v] of f.occupancy) this.occupancy.set(k, v);
+    for (const [k, v] of f.actorMark) this.actorMark.set(k, v);
+    for (const [k, v] of f.actorNode) this.actorNode.set(k, v);
+    for (const id of f.background) this.backgroundIds.add(id);
+    for (const s of f.actors) {
+      const a = this.actors[s.id];
+      a.place(s.pos, s.facing, s.seat, { pose: s.pose, prop: s.prop });
+      a.setEmotion(s.emotion);
+      a.holdingGlass = s.holdingGlass;
+      a.root.visible = true;
+    }
+    this.syncExtras();
+  }
+
   setLocation(id: LocationId, time: TimeOfDay) {
     this.sceneVersion++;
     this.endEstablishing();
@@ -129,6 +197,7 @@ export class Stage {
     this.current = this.sets[id] ?? this.sets.maclarens;
     this.current.group.visible = true;
     this.current.setTime(time);
+    this.time = time;
     for (const a of Object.values(this.actors)) {
       a.root.visible = false;
       a.place(new THREE.Vector3(0, 0, 0), 0, null);

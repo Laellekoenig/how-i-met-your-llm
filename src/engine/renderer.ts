@@ -40,7 +40,7 @@ uniform vec2 screenRes;
 uniform float cameraNear;
 uniform float cameraFar;
 uniform float time;
-uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind;
+uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory;
 varying vec2 vUv;
 
 float linDepth(vec2 uv) {
@@ -75,6 +75,8 @@ void main() {
   vec2 px = 1.0 / lowRes;
   vec2 cell = floor(vUv * lowRes);
   vec2 uv = mix(vUv, (cell + 0.5) * px, uStylize);
+  // the wavy dissolve into (and out of) somebody's imagination
+  if (uRipple > 0.0) uv.x = clamp(uv.x + sin(uv.y * 38.0 + time * 9.0) * 0.012 * uRipple, 0.001, 0.999);
 
   // chromatic aberration grows toward the edges
   vec2 dir = (uv - 0.5);
@@ -94,6 +96,16 @@ void main() {
     col = mix(col, smear / 9.0, uRewind);
   }
 
+  // imagined: a soft bloom, as if remembered through a smudged lens
+  if (uDream > 0.0) {
+    vec3 soft = vec3(0.0);
+    for (int i = 0; i < 8; i++) {
+      float a = float(i) * 0.785398;
+      soft += texture2D(tColor, clamp(uv + vec2(cos(a), sin(a)) * px * 2.5, vec2(0.001), vec2(0.999))).rgb;
+    }
+    col = mix(col, max(col, soft / 8.0) * 1.12 + 0.015, uDream * 0.7);
+  }
+
   // tone map + grade (scene is rendered linear)
   col = aces(col * 1.05);
   col = toSRGB(col);
@@ -101,6 +113,20 @@ void main() {
   col = mix(vec3(luma), col, 1.0 + 0.15 * uStylize);
   col = (col - 0.5) * (1.0 + 0.08 * uStylize) + 0.5;
   col += uWarmth * uStylize * vec3(0.05, 0.015, -0.04);
+
+  // the cutaway grades: a pastel haze with glowing edges for a fantasy, faded warm film for a memory
+  vec2 cv = vUv - 0.5;
+  if (uDream > 0.0) {
+    float l = dot(col, vec3(0.299, 0.587, 0.114));
+    col = mix(col, mix(vec3(l), col, 0.75) * 0.9 + vec3(0.1, 0.08, 0.12), uDream * 0.65);
+    col = mix(col, vec3(1.0, 0.95, 0.98), uDream * smoothstep(0.12, 0.42, dot(cv, cv)) * 0.7);
+  }
+  if (uMemory > 0.0) {
+    float l = dot(col, vec3(0.299, 0.587, 0.114));
+    vec3 sepia = vec3(l * 1.1 + 0.05, l * 0.94 + 0.03, l * 0.72 + 0.01);
+    col = mix(col, mix(sepia, col, 0.12), uMemory * 0.9);
+    col = mix(col, col * 0.45, uMemory * smoothstep(0.08, 0.4, dot(cv, cv)));
+  }
 
   // depth-based ink outlines
   if (uOutline > 0.0 && uStylize > 0.5) {
@@ -140,6 +166,12 @@ export class Renderer {
   style: StyleSettings = { ...DEFAULT_STYLE };
   fade = 1;
   rewind = 0;
+  /** Imagined-cutaway look (0..1). */
+  dream = 0;
+  /** The wavy dissolve in and out of an imagined cutaway (0..1). */
+  ripple = 0;
+  /** Flashback look (0..1). */
+  memory = 0;
   private rt: THREE.WebGLRenderTarget;
   private post: THREE.ShaderMaterial;
   private postScene = new THREE.Scene();
@@ -176,6 +208,7 @@ export class Renderer {
         uOutline: { value: 0 }, uDither: { value: 0 }, uLevels: { value: 8 }, uScan: { value: 0 },
         uVignette: { value: 0 }, uGrain: { value: 0 }, uAberr: { value: 0 }, uWarmth: { value: 0 },
         uStylize: { value: 1 }, uFade: { value: 1 }, uRewind: { value: 0 },
+        uDream: { value: 0 }, uRipple: { value: 0 }, uMemory: { value: 0 },
       },
       depthTest: false,
       depthWrite: false,
@@ -235,6 +268,9 @@ export class Renderer {
     u.uWarmth.value = s.warmth;
     u.uFade.value = this.fade;
     u.uRewind.value = this.rewind;
+    u.uDream.value = this.dream;
+    u.uRipple.value = this.ripple;
+    u.uMemory.value = this.memory;
     u.cameraNear.value = this.camera.near;
     u.cameraFar.value = this.camera.far;
 

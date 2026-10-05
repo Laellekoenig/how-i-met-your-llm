@@ -40,7 +40,7 @@ function playback(incoming: Scene) {
     resume(shot: { kind: string }) { this.current = shot; },
     coverage() { this.current = { kind: 'wide' }; },
   };
-  const renderer = { fade: 1, rewind: 0 };
+  const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 };
   const overlay = { hideCaption() {}, hideCards() {}, standby() {}, location() {}, hideLocation() {}, showCaption() {} };
   const episode = { id: 'test', code: 'S1E1', title: 'Test', logline: '', source: 'sample' as const };
   const item: ShowItem = { kind: 'scene', episode, index: 1, scene: incoming };
@@ -105,7 +105,7 @@ describe('transition playback', () => {
     expect(p.stage.outside).toBe(false);
     expect(p.stage.current.id).toBe('apartment');
     expect(p.director.current.kind).toBe('wide');
-    expect(p.renderer).toEqual({ fade: 1, rewind: 0 });
+    expect(p.renderer).toEqual({ fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 });
     expect(stop).toHaveBeenCalled();
   });
 

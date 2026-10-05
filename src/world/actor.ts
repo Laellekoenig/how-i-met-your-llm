@@ -89,6 +89,8 @@ export class Actor {
   private walkPhase = 0;
   private walking = 0; // blend
   talking = false;
+  /** How big the talking is: under 1 for a whisper, over 1 for a shout. */
+  talkLevel = 1;
   private talkEnv = 0;
   emotion: Emotion = 'neutral';
   private face: Face = { ...FACES.neutral };
@@ -350,9 +352,14 @@ export class Actor {
         }
         break;
       case 'shirt':
-        add(this.spine, placket(0.86 * tl, 0.99 * tl, (y) => 0.2 * ramp(0.86 * tl, 0.99 * tl, y), 0.002, skin), false);
-        add(this.spine, collar(0.28, 0.005, 0.022 * s, topDS));
-        buttons([0.15, 0.32, 0.5, 0.68].map((y) => y * tl), 0.004, toon(shade(L.top, 1.6)));
+        // buttoned to the top under a tie, open-necked without one; a waistcoat goes over it (waiters, bartenders)
+        if (L.tie) tie();
+        else add(this.spine, placket(0.86 * tl, 0.99 * tl, (y) => 0.2 * ramp(0.86 * tl, 0.99 * tl, y), 0.002, skin), false);
+        add(this.spine, collar(L.tie ? 0.24 : 0.28, 0.005, 0.022 * s, topDS));
+        if (L.vest) {
+          shell(0.008, -0.07 * tl, 0.97 * tl, (y) => 0.03 + 0.4 * smoothstep(0.55 * tl, 0.97 * tl, y), toon(L.vest, { side: DS }));
+          buttons([0.12 * tl, 0.25 * tl, 0.38 * tl, 0.5 * tl], 0.011, dark);
+        } else buttons([0.15, 0.32, 0.5, 0.68].map((y) => y * tl), 0.004, toon(shade(L.top, 1.6)));
         break;
       case 'sweater':
         if (L.neckline === 'v') {
@@ -684,6 +691,7 @@ export class Actor {
     this.gesture = null;
     this.lookAt = null;
     this.talking = false;
+    this.talkLevel = 1;
     this.walking = 0;
     this.update(0, 0, true);
     this.root.updateWorldMatrix(true, true);
@@ -862,9 +870,12 @@ export class Actor {
     let mouth = f.mouthBase;
     if (this.talkEnv > 0.01) {
       const flap = Math.max(0, noise1(t * 13 + s)) * 0.8 + Math.max(0, Math.sin(t * 21 + s)) * 0.45;
-      mouth = Math.max(mouth, flap * this.talkEnv);
-      target.head[0] += noise1(t * 2.7 + s) * 0.08 * this.talkEnv;
-      target.head[2] += noise1(t * 1.9 + s * 3) * 0.06 * this.talkEnv;
+      const level = this.talkLevel;
+      mouth = Math.max(mouth, Math.min(1.25, flap * level) * this.talkEnv);
+      target.head[0] += noise1(t * 2.7 + s) * 0.08 * level * this.talkEnv;
+      target.head[2] += noise1(t * 1.9 + s * 3) * 0.06 * level * this.talkEnv;
+      // shouting leans in, whispering hunches toward the listener
+      target.spine[0] += (level > 1 ? 0.1 * (level - 1) : 0.12 * (1 - level)) * this.talkEnv;
       // conversational hand accents
       this.accent.t -= dt;
       if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving) {

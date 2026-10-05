@@ -1,4 +1,7 @@
-import { CHARACTER_IDS, EMOTIONS, GESTURES, LAUGHS, SCENE_LOCATION_IDS, TRANSITIONS, KIDS, isKid } from '../script/types';
+import {
+  CHARACTER_IDS, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS,
+  LAUGHS, SCENE_LOCATION_IDS, TRANSITIONS, KIDS, isKid,
+} from '../script/types';
 import type { Tool } from './openrouter';
 import type { StageSet } from '../world/sets/common';
 
@@ -39,6 +42,9 @@ Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate 
 
 Use only a few supporting characters per episode, chosen for the story. Do not parade the whole roster through each scene. Establish romantic status in context; the loose timeline does not make every ex a current partner at once.
 
+# Guest stars
+HIMYM runs on one-off characters: Ted's date of the week, the woman Barney is running a play on, a bouncer, a rival architect, a client, a game-show host. Each episode can cast up to 3 guest stars in plan_episode.guests. They take the ids guest1, guest2 and guest3, in the order you list them; always refer to them by those ids in scenes (cast, character, to). Describe how they look (gender, height, build, skin, hair, clothes, accessories) and sound (voice pitch and pace) so they read instantly on screen, and give each one a specific comic hook in their role. Invent new names (not anyone above). A guest is never the kids' mother.
+
 # The kids (2030)
 Future Ted is telling this whole story to his two teenagers, who sit on the couch in his living room in 2030, facing him. They are never in the story itself.
 - penny — Penny Mosby, Ted's daughter, about 15. Sharp and sarcastic, sees straight through Dad's stories: notices when Mom hasn't shown up yet, when he's sanitizing ("So... you were all 'eating sandwiches'?"), or when it's suspiciously about Aunt Robin again.
@@ -75,6 +81,17 @@ Choose the incoming transition for each scene. Most connections should be quick 
 - rewind: a half-second blurred jump with a descending sound cue. ONLY for an actual flashback or a "let me back up" correction, never an ordinary location change. Start with a short narrate beat making the time jump explicit; use cut when returning to the present.
 An opening narrate beat plays over skyline/exterior footage before we cut inside. Keep it to one short sentence. No dialogue or character action happens outside. The kids' couch cutaways always remain straight cuts.
 
+# Cutaways
+A cutaway beat leaves the scene for a short sequence on any set, then the show cuts back to exactly where it left off. It's how HIMYM visualizes a joke:
+- style "imagined": a fantasy or hypothetical. How Barney pictures his play going, Ted's version of what he should have said, Marshall imagining the worst case, a character's lie as they tell it.
+- style "flashback": something that really happened earlier ("Three years earlier", "College, 1998"). Future Ted can set it up with a narrate beat right before.
+Give it a short label for the on-screen card ("How Barney imagined it", "Wesleyan, 1996"), a location and time, its own cast and marks (marks must exist at the cutaway's location), and 3-10 beats. Characters can be in both the scene and the cutaway (Barney imagining himself). Put the setup line just before the cutaway and land the punchline right after it, back in the scene. Use at most one or two per episode, never inside another cutaway, and never cut away to the 2030 couch (that happens on its own when the kids speak).
+
+# Delivery
+Most lines need no delivery. Use it when the performance is the joke:
+- delivery on a say beat: ${DELIVERIES.join(', ')}. whisper for secrets and being overheard, shout for outbursts across the room, sing for a few words of made-up lyrics (never real songs), deadpan for dry understatement, fast for panicked rambling, slow for melodrama.
+- interrupted: true when the next speaker cuts this line off. Write the line only up to where it's cut, ending with "—", and make the very next beat the interruption.
+
 # Writing rules
 - Write for performance: short spoken lines (mostly under 18 words, never over 35). No stage directions inside lines (no parentheses or asterisks); use beats for action.
 - Every scene needs a clear comic idea that escalates and lands a button (final joke) at the end.
@@ -88,7 +105,7 @@ An opening narrate beat plays over skyline/exterior footage before we cut inside
 
 const loc = { type: 'string', enum: [...SCENE_LOCATION_IDS] };
 const transition = { type: 'string', enum: [...TRANSITIONS], description: 'How this scene begins: cut (usual), skyline (time passing/opening), exterior (new location), rewind (explicit flashback only).' };
-const charEnum = { type: 'string', enum: [...CHARACTER_IDS] };
+const charEnum = { type: 'string', enum: [...CHARACTER_IDS], description: 'Character id. Guest stars are guest1/guest2/guest3, in the order planned.' };
 /** People who can be in a scene (the kids are only ever on the couch). */
 const storyCharEnum = { type: 'string', enum: CHARACTER_IDS.filter((c) => !isKid(c)) };
 
@@ -103,6 +120,36 @@ export const PLAN_TOOL: Tool = {
         title: { type: 'string', description: 'Episode title in the show\'s style, e.g. "The Slap Bet Inflation".' },
         logline: { type: 'string', description: 'One or two sentence premise.' },
         cold_open: { type: 'string', description: 'Future Ted narration that opens the episode over the kids on the couch in 2030, starting with "Kids, ...". 1-3 sentences.' },
+        guests: {
+          type: 'array',
+          maxItems: 3,
+          description: 'Optional one-off guest stars for this episode. They become guest1, guest2, guest3 in this order; use those ids in the scenes.',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'A new name, e.g. "Nora".' },
+              role: { type: 'string', description: 'Who they are and their comic hook, e.g. "Ted\'s date, a sommelier who whispers everything".' },
+              gender: { type: 'string', enum: ['female', 'male'] },
+              height: { type: 'string', enum: ['short', 'average', 'tall'] },
+              build: { type: 'string', enum: ['slim', 'average', 'broad'] },
+              skin: { type: 'string', enum: [...GUEST_SKIN] },
+              hair: { type: 'string', enum: [...GUEST_HAIR] },
+              hair_style: { type: 'string', enum: [...GUEST_HAIR_STYLES] },
+              top: { type: 'string', enum: [...GUEST_COLORS], description: 'Color of the outermost top (jacket, sweater, dress...).' },
+              top_style: { type: 'string', enum: [...GUEST_TOPS] },
+              under: { type: 'string', enum: [...GUEST_COLORS], description: 'Optional shirt color under a suit, blazer, cardigan, leather jacket or hoodie.' },
+              tie: { type: 'string', enum: [...GUEST_COLORS], description: 'Optional tie color (worn with a suit or shirt).' },
+              vest: { type: 'string', enum: [...GUEST_COLORS], description: 'Optional waistcoat color (over a suit or shirt), e.g. a waiter.' },
+              pants: { type: 'string', enum: [...GUEST_COLORS], description: 'Pants color (denim = jeans). Ignored for a dress.' },
+              extras: { type: 'array', items: { type: 'string', enum: [...GUEST_EXTRAS] } },
+              voice: {
+                type: 'object',
+                properties: { pitch: { type: 'string', enum: ['low', 'medium', 'high'] }, pace: { type: 'string', enum: ['slow', 'normal', 'fast'] } },
+              },
+            },
+            required: ['name', 'role', 'gender', 'top_style', 'top'],
+          },
+        },
         kids_reaction: {
           type: 'array',
           maxItems: 3,
@@ -139,6 +186,45 @@ export const PLAN_TOOL: Tool = {
   },
 };
 
+const castSchema = (description: string) => ({
+  type: 'array',
+  description,
+  items: {
+    type: 'object',
+    properties: { character: storyCharEnum, mark: { type: 'string', description: 'A mark from this location.' } },
+    required: ['character', 'mark'],
+  },
+});
+
+/** One beat. Top-level beats can also be a cutaway, whose own beats can't. */
+function beatItem(top: boolean): Record<string, unknown> {
+  const types = ['say', 'narrate', 'move', 'enter', 'exit', 'act', 'laugh', 'pause', ...(top ? ['cutaway'] : [])];
+  return {
+    type: 'object',
+    properties: {
+      type: { type: 'string', enum: types },
+      character: charEnum,
+      line: { type: 'string', description: 'say/narrate: the spoken words.' },
+      to: { type: 'string', description: 'say/act: character id being addressed. move/enter: destination mark or character id.' },
+      emotion: { type: 'string', enum: [...EMOTIONS] },
+      gesture: { type: 'string', enum: [...GESTURES] },
+      laugh: { type: 'string', enum: [...LAUGHS], description: 'say/narrate/laugh: laugh-track reaction after this beat.' },
+      delivery: { type: 'string', enum: [...DELIVERIES], description: 'say: optional performance. Leave out for normal lines.' },
+      interrupted: { type: 'boolean', description: 'say: the next beat cuts this line off. End the line with "—".' },
+      seconds: { type: 'number' },
+      ...(top ? {
+        style: { type: 'string', enum: [...CUTAWAY_STYLES], description: 'cutaway: imagined (fantasy/hypothetical) or flashback (a real memory).' },
+        label: { type: 'string', description: 'cutaway: short on-screen card, e.g. "How Barney imagined it".' },
+        location: { ...loc, description: 'cutaway: where the cutaway takes place.' },
+        time: { type: 'string', enum: ['day', 'night'], description: 'cutaway: time of day there.' },
+        cast: castSchema('cutaway: who is there when it opens, at marks of the cutaway location.'),
+        beats: { type: 'array', description: 'cutaway: 3-10 beats played there (no nested cutaways).', items: beatItem(false) },
+      } : {}),
+    },
+    required: ['type'],
+  };
+}
+
 export const SCENE_TOOL: Tool = {
   type: 'function',
   function: {
@@ -148,33 +234,12 @@ export const SCENE_TOOL: Tool = {
       type: 'object',
       properties: {
         transition,
-        cast: {
-          type: 'array',
-          description: 'Who is on stage when the scene opens, and where. Characters arriving later use an "enter" beat instead.',
-          items: {
-            type: 'object',
-            properties: { character: storyCharEnum, mark: { type: 'string', description: 'A mark from this location.' } },
-            required: ['character', 'mark'],
-          },
-        },
+        cast: castSchema('Who is on stage when the scene opens, and where. Characters arriving later use an "enter" beat instead.'),
         beats: {
           type: 'array',
           minItems: 10,
-          description: 'say: a line of dialogue. narrate: Future Ted voice-over. move: walk to a mark or next to a character. enter/exit: arrive through / leave by the door. act: a gesture. laugh: standalone laugh-track reaction. pause: a beat of silence. A say/act by penny or luke cuts away to the kids on the couch in 2030.',
-          items: {
-            type: 'object',
-            properties: {
-              type: { type: 'string', enum: ['say', 'narrate', 'move', 'enter', 'exit', 'act', 'laugh', 'pause'] },
-              character: charEnum,
-              line: { type: 'string', description: 'say/narrate: the spoken words.' },
-              to: { type: 'string', description: 'say/act: character id being addressed. move/enter: destination mark or character id.' },
-              emotion: { type: 'string', enum: [...EMOTIONS] },
-              gesture: { type: 'string', enum: [...GESTURES] },
-              laugh: { type: 'string', enum: [...LAUGHS], description: 'say/narrate/laugh: laugh-track reaction after this beat.' },
-              seconds: { type: 'number' },
-            },
-            required: ['type'],
-          },
+          description: 'say: a line of dialogue. narrate: Future Ted voice-over. move: walk to a mark or next to a character. enter/exit: arrive through / leave by the door. act: a gesture. laugh: standalone laugh-track reaction. pause: a beat of silence. cutaway: an imagined or flashback sequence somewhere else, then back here. A say/act by penny or luke cuts away to the kids on the couch in 2030.',
+          items: beatItem(true),
         },
       },
       required: ['cast', 'beats'],

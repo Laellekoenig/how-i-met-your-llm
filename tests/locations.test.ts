@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { asLocation } from '../src/llm/normalize';
-import { sampleEpisode } from '../src/script/samples';
+import { sampleCount, sampleEpisode } from '../src/script/samples';
 
 describe('public scene locations', () => {
   test('recognizes canonical IDs and creative location names before broad office aliases', () => {
@@ -16,10 +16,11 @@ describe('public scene locations', () => {
   });
 
   test('offline reruns reach all four new sets and still cycle', () => {
-    const episodes = Array.from({ length: 5 }, () => sampleEpisode());
+    const n = sampleCount();
+    const episodes = Array.from({ length: n + 1 }, () => sampleEpisode());
     const locations = new Set<string>(episodes.flatMap((items) => items.flatMap((item) => item.kind === 'scene' ? [item.scene.location] : [])));
     for (const location of ['metro_news_one', 'store', 'restaurant', 'lecture_hall']) expect(locations.has(location)).toBe(true);
-    expect(episodes[4][0].episode.title).toBe(episodes[0][0].episode.title);
-    expect(episodes[4][0].episode.id).not.toBe(episodes[0][0].episode.id);
+    expect(episodes[n][0].episode.title).toBe(episodes[0][0].episode.title);
+    expect(episodes[n][0].episode.id).not.toBe(episodes[0][0].episode.id);
   });
 });

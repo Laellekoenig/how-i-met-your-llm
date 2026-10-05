@@ -3,9 +3,9 @@ import type { Director } from './director';
 import type { Renderer } from '../engine/renderer';
 import type { Overlay, Panel } from '../ui/overlay';
 import { audio } from '../audio/audio';
-import { speech } from '../audio/speech';
+import { speech, deliveryRate, estimateDuration } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
-import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
+import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type CutawayBeat, type CutawayStyle, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
 import { sleep, clamp, pick } from '../util';
 import { sceneTransition } from './transitions';
 
@@ -131,6 +131,7 @@ export class Player {
     this.overlay.hideCards();
     this.renderer.fade = 1;
     this.renderer.rewind = 0;
+    this.renderer.dream = this.renderer.ripple = this.renderer.memory = 0;
     audio.stopSting();
     for (const a of Object.values(this.stage.actors)) a.talking = false;
   }
@@ -147,6 +148,8 @@ export class Player {
         this.currentEpisode = item.episode.id;
         this.previousScene = null;
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
+        this.stage.castGuests(item.guests);
+        for (const g of item.guests ?? []) this.panel.line('stage', `Guest star: ${g.name}${g.role ? ` (${g.role})` : ''}.`);
         this.stage.setLocation('future', 'night');
         this.stage.seatKids();
         this.director.wide(0, 0.02);
@@ -229,9 +232,12 @@ export class Player {
     this.previousScene = scene;
     await this.wait(0.25);
 
-    const onCouch = scene.location === 'future';
-    const beats = scene.beats;
-    for (let i = firstBeat; i < beats.length; i++) {
+    await this.playBeats(scene.beats.slice(firstBeat), scene.location === 'future');
+    await this.wait(0.6);
+  }
+
+  private async playBeats(beats: Beat[], onCouch: boolean) {
+    for (let i = 0; i < beats.length; i++) {
       await this.untilUnpaused();
       if (onCouch || !isKidBeat(beats[i])) {
         await this.beat(beats[i]);
@@ -243,11 +249,57 @@ export class Player {
       await this.cutaway(beats.slice(i, j));
       i = j - 1;
     }
-    await this.wait(0.6);
+  }
+
+  /**
+   * Into somebody's imagination (a harp run and a wavy dissolve) or back in time (the rewind smear), play the
+   * sequence on its own set, then return to the scene exactly as we left it.
+   */
+  private async playCutaway(c: CutawayBeat) {
+    const st = this.stage, r = this.renderer;
+    const shot = this.director.current;
+    const ambience = st.current.ambience;
+    const frozen = st.freeze();
+    const imagined = c.style === 'imagined';
+    const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const label = c.label || (imagined ? 'Picture this' : 'Earlier');
+    this.overlay.hideCaption();
+    this.panel.line('stage', `${imagined ? 'Imagined' : 'Flashback'}: ${label}.`);
+    try {
+      if (imagined) {
+        audio.dream(true);
+        if (!reducedMotion) await this.animate(0.45, (u) => { r.ripple = u; r.dream = u; });
+      } else {
+        audio.rewind();
+        if (!reducedMotion) await this.animate(0.22, (u) => { r.rewind = u; });
+      }
+      this.stageScene({ location: c.location, time: c.time, cast: c.cast, beats: c.beats }, { label, style: c.style });
+      r.dream = imagined ? 1 : 0;
+      r.memory = imagined ? 0 : 1;
+      if (!reducedMotion) await this.animate(imagined ? 0.45 : 0.28, (u) => {
+        if (imagined) r.ripple = 1 - u;
+        else r.rewind = 1 - u;
+      });
+      r.ripple = r.rewind = 0;
+      await this.wait(0.2);
+      await this.playBeats(c.beats, false);
+      await this.wait(0.3);
+      this.overlay.hideCaption();
+      if (imagined) {
+        audio.dream(false);
+        if (!reducedMotion) await this.animate(0.35, (u) => { r.ripple = u; });
+      } else if (!reducedMotion) await this.animate(0.16, (u) => { r.rewind = u; });
+    } finally {
+      r.dream = r.memory = r.ripple = r.rewind = 0;
+      st.thaw(frozen);
+      audio.ambience(ambience);
+      this.director.resume(shot);
+    }
+    await this.wait(0.25);
   }
 
   /** Stage and frame the interior in one synchronous cut, including the midpoint of a flashback. */
-  private stageScene(scene: Scene) {
+  private stageScene(scene: Pick<Scene, 'location' | 'time' | 'cast' | 'beats'>, cutaway?: { label: string; style: CutawayStyle }) {
     this.stage.setLocation(scene.location, scene.time);
     audio.ambience(this.stage.current.ambience);
     const onCouch = scene.location === 'future';
@@ -281,7 +333,8 @@ export class Player {
     }
 
     this.director.coverage(this.stage.castIds());
-    this.overlay.location(onCouch ? 'the year 2030' : `${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
+    if (cutaway) this.overlay.location(cutaway.label, cutaway.style);
+    else this.overlay.location(onCouch ? 'the year 2030' : `${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
   }
 
   /** Hard cut to Penny and Luke on the couch in 2030, play their beats, then cut straight back to the story. */
@@ -289,8 +342,11 @@ export class Player {
     const st = this.stage;
     const shot = this.director.current;
     const ambience = st.current.ambience;
+    // 2030 is real: no fantasy haze or old-film grade on the couch
+    const grade = { dream: this.renderer.dream, memory: this.renderer.memory };
     st.cutToKids();
     audio.ambience('none');
+    this.renderer.dream = this.renderer.memory = 0;
     this.director.wide(0, 0.02);
     try {
       await this.wait(0.35);
@@ -301,6 +357,7 @@ export class Player {
       await this.wait(0.3);
     } finally {
       st.cutBack();
+      Object.assign(this.renderer, grade);
       audio.ambience(ambience);
       this.director.resume(shot);
     }
@@ -348,7 +405,7 @@ export class Player {
         if (!st.onStage(b.character)) st.place(b.character, st.resolveMark(undefined, b.character));
         const text = clean(b.line);
         if (!text) return;
-        a.setEmotion(b.emotion);
+        a.setEmotion(b.emotion ?? (b.delivery === 'deadpan' ? 'bored' : undefined));
         const to = isChar(b.to) && b.to !== b.character && st.onStage(b.to) ? b.to : undefined;
         if (to) {
           const th = st.actors[to].headWorld;
@@ -363,23 +420,32 @@ export class Player {
           a.lookAt = others.length ? st.actors[pick(others)].headWorld : null;
         }
         this.lookAtSpeaker(b.character);
+        const delivery = b.delivery;
         if (isKid(b.character)) this.director.onCouchLine(b.character);
+        // a whisper is a two-shot secret; a shout gets the single
+        else if (delivery === 'whisper' && to) this.director.twoShot(b.character, to);
+        else if (delivery === 'shout') this.director.closeup(b.character, to);
         else this.director.onLine(b.character, to);
         const def = CHARACTERS[b.character];
-        this.panel.line('say', text, def.name, def.color);
+        this.panel.line('say', delivery && delivery !== 'fast' && delivery !== 'slow' ? `(${delivery}) ${text}` : text, def.name, def.color);
         if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to);
+        a.talkLevel = delivery === 'shout' ? 1.6 : delivery === 'whisper' ? 0.45 : delivery === 'sing' ? 1.2 : 1;
         const h = speech.speak(b.character, text, def.voice, () => {
           a.talking = true;
-          this.overlay.showCaption(def.name, def.color, text);
-        });
+          this.overlay.showCaption(def.name, def.color, text, false, delivery);
+          if (delivery === 'sing') audio.serenade(estimateDuration(text, def.voice.rate * deliveryRate(delivery)));
+        }, { delivery, cutOff: b.interrupted });
         try {
           await this.race(h.done);
         } finally {
           a.talking = false;
+          a.talkLevel = 1;
+          if (delivery === 'sing') audio.stopSting();
         }
         this.overlay.hideCaption();
         if (b.laugh) await this.laugh(b.laugh);
-        else await this.wait(0.18);
+        // whoever interrupts jumps straight in
+        else if (!b.interrupted) await this.wait(0.18);
         break;
       }
       case 'narrate':
@@ -437,6 +503,10 @@ export class Player {
         break;
       case 'pause':
         await this.wait(clamp(Number(b.seconds) || 1, 0.3, 4));
+        break;
+      case 'cutaway':
+        // the kids' couch is the one place there's no cutting away from
+        if (!st.inCutaway) await this.playCutaway(b);
         break;
     }
   }

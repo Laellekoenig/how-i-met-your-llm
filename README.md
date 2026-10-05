@@ -26,7 +26,8 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
 
 - **The script language** (`src/script/types.ts`): a scene is a cast placement plus a list of beats:
   `say`, `narrate` (Future Ted), `move`, `enter`, `exit`, `act` (gestures like `high_five`, `slap`, `suit_up`),
-  `laugh` (chuckle / laugh / big / ooh / aww / woo / applause / gasp) and `pause`.
+  `laugh` (chuckle / laugh / big / ooh / aww / woo / applause / gasp), `pause` and `cutaway`.
+  A `say` can carry a `delivery` (whisper / shout / sing / deadpan / fast / slow) and be `interrupted`.
 - **The kids** (`src/world/sets/future.ts`): every episode opens on Penny and Luke on the black Chesterfield in Ted's
   2030 living room while Future Ted narrates the cold open. Penny and Luke never appear in the story: any `say`/`act`
   beat of theirs hard-cuts to the couch (along with Future Ted's answer) and then straight back to the scene.
@@ -57,6 +58,23 @@ Your OpenRouter key is only sent to OpenRouter, directly from your browser, and 
 "remember key" is checked.
 
 Debug handle in the console: `himyllm` (`stage`, `director`, `player`, `writer`, …).
+
+## Guest stars, cutaways and delivery
+
+Everything here is written by the model through the same two tool calls, and is coerced by `normalize.ts`:
+
+- **Guest stars**: `plan_episode` can cast up to three one-off characters (Ted's date, a mark, a bouncer) in plain
+  words: gender, height, build, skin, hair, clothes, accessories, voice pitch and pace. They take the slots `guest1`–`guest3`
+  for that episode only (`src/world/guests.ts` turns the description into a procedural look and voice); scenes can
+  also refer to them by name.
+- **Cutaways**: a `cutaway` beat leaves the scene for a few beats on any set, with its own cast and an on-screen card,
+  then returns to exactly where the scene left off. `imagined` (a fantasy or hypothetical) dissolves in on a harp run
+  with a soft, hazy look; `flashback` uses the rewind smear and a faded sepia grade.
+- **Delivery**: whispers, shouts, sung lines (with a little guitar), deadpan, fast and slow lines change the voice, the
+  caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
+  mid-word and the next speaker jumps straight in.
+
+The fifth offline rerun, **The Whisperer**, uses all of it. In dev mode, skip four episodes from the first rerun to reach it.
 
 ## Recurring cast and wardrobe references
 
