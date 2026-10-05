@@ -64,6 +64,12 @@ Spread scenes around: MacLaren's and the apartment are home base, but use the ot
 - store: a generic neighborhood shop with stocked shelves, produce, a sale display and a checkout. Shopping trips, impulse purchases, errands and arguments in line. A shopkeeper is at cashier unless a cast member takes that mark.
 - restaurant: a generic neighborhood restaurant with a two-person date table, a five-seat group booth and a reservation stand. Dates, disastrous dinners and the gang dining out. Say which restaurant it is in the scene.
 - lecture_hall: Ted's university architecture classroom, with chalkboards, a lectern, an architectural model and tiered student seats. Ted lectures at lectern/chalkboard/center; the friends can sit in student seats or interrupt from the aisle. Background students listen quietly.
+- subway: NYC subway car with orange molded benches, stainless grab poles, route maps and sliding doors. Seated conversations or standing in the aisle; use pole/center for standing, seat_* for sitting.
+- laser_tag: Blacklight laser tag arena, cyan and pink team bases, low bunkers, barrels and a scoreboard. Barney takes it far too seriously. blue_cover/red_cover are behind the bunkers; center/teammate are in the open playing lane.
+- wesleyan_dorm: Ted and Marshall's Wesleyan dorm, College, 1996. Metal bunks with plaid bedding, student flyers, a beige CRT, cassette stereo and pizza on the rug. Use flashback cutaways labeled "College, 1996" for college Ted, Marshall and Lily. bed_left/bed_right are seats on the lower bunk. Keep props and dialogue period-appropriate; no smartphones or modern laptops.
+- hospital: Hospital waiting room with teal chairs, magazines, a coffee machine, reception and a ward door. Quiet worry, family milestones and awkward attempts to pass the time. receptionist is reserved for staff.
+- elevator: Wood-paneled elevator with steel doors, brass-toned details, floor buttons and a glowing floor indicator. Awkward silences and trapped conversations; everyone stands. buttons is beside the control panel.
+- canadian_mall: Canadian mall, 1990, for Robin Sparkles memories: pastel storefronts, tiled atrium, record shop, plants, benches and a low pink performance dais. Use flashback cutaways labeled "Canada, 1990". Robin is still character ID robin; stage/dancer_left/dancer_right are on the dais, audience/friend watch her. Write original pop-song jokes instead of quoting song lyrics.
 - limo: Barney's stretch limo with Ranjit at the wheel. Scenes on the way to (or fleeing from) something.
 - taxi: a yellow cab. A cabbie drives unless Ranjit is in the scene (then put him in the driver mark).
 Work clothes: Ted wears a suit and tie at office and lecture_hall, Marshall at office and barneys_office (GNB); everywhere else they're in their own clothes. A cast entry's "outfit" overrides that: "work" for Marshall still in his suit at MacLaren's after a day at the firm, "casual" for Ted just dropping by Marshall's office.
@@ -75,7 +81,7 @@ gestures: ${GESTURES.join(', ')}
 laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (huge laugh + applause), ooh (scandal/burn), aww (sweet moment), woo (crowd cheers, e.g. Barney's entrance), applause, gasp.
 
 # Scene transitions
-Choose the incoming transition for each scene. Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
+For subway, laser_tag, wesleyan_dorm, hospital, elevator and canadian_mall, use cut (or an intentional rewind); their interiors have no dedicated exterior. Choose the incoming transition for each scene. Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
 - cut: straight into the scene on a short guitar sting. Best for immediate continuations and punchline reveals.
 - skyline: a brief day/night New York skyline shot with a guitar sting. Good after the titles or for time passing.
 - exterior: the outside of the destination building (or street traffic for a cab/limo), then cut inside. Good for a new location.

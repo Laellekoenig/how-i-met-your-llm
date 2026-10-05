@@ -33,6 +33,8 @@ export interface StageSet {
   edges: [string, string][];
   door: string;
   wides: Shot[];
+  /** Keep generated two-shots near the actors; distant pairs get singles instead. */
+  maxTwoShotDistance?: number;
   ambience: Ambience;
   background: { character: CharacterId; mark: string }[];
   /** What you hear when someone comes in (defaults to the doorbell). */

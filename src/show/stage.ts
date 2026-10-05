@@ -15,6 +15,12 @@ import { buildMetroNewsOne } from '../world/sets/metroNewsOne';
 import { buildStore } from '../world/sets/store';
 import { buildRestaurant } from '../world/sets/restaurant';
 import { buildLectureHall } from '../world/sets/lectureHall';
+import { buildSubway } from '../world/sets/subway';
+import { buildLaserTag } from '../world/sets/laserTag';
+import { buildWesleyanDorm } from '../world/sets/wesleyanDorm';
+import { buildHospital } from '../world/sets/hospital';
+import { buildElevator } from '../world/sets/elevator';
+import { buildCanadianMall } from '../world/sets/canadianMall';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, type CharacterId, type GuestStar, type LocationId, type Outfit, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
@@ -65,6 +71,8 @@ export class Stage {
       maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), rooftop: buildRooftop(),
       barneys_office: buildBarneysOffice(), office: buildOffice(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
       metro_news_one: buildMetroNewsOne(), store: buildStore(), restaurant: buildRestaurant(), lecture_hall: buildLectureHall(),
+      subway: buildSubway(), laser_tag: buildLaserTag(), wesleyan_dorm: buildWesleyanDorm(),
+      hospital: buildHospital(), elevator: buildElevator(), canadian_mall: buildCanadianMall(),
     };
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;

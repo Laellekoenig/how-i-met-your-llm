@@ -30,6 +30,12 @@ const LOCATION_LABEL: Record<string, string> = {
   lecture_hall: "Ted's Lecture Hall",
   limo: "Barney's Limo",
   taxi: 'A Cab',
+  subway: 'NYC Subway Car',
+  laser_tag: 'Laser Tag Arena',
+  wesleyan_dorm: 'Wesleyan · College, 1996',
+  hospital: 'Hospital Waiting Room',
+  elevator: 'The Elevator',
+  canadian_mall: 'Canada · 1990',
 };
 
 const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_IDS as readonly string[]).includes(s);

@@ -52,6 +52,12 @@ function guestByName(s: string, casting?: Casting) {
 }
 
 const LOCATION_HINTS: [RegExp, LocationId][] = [
+  [/subway|metro[\s_-]*car|\btrain\b/, 'subway'],
+  [/laser[\s_-]*tag|laser[\s_-]*arena/, 'laser_tag'],
+  [/wesleyan|\bdorm\b|college[\s,]*(19)?96/, 'wesleyan_dorm'],
+  [/hospital|waiting[\s_-]*room|emergency[\s_-]*room/, 'hospital'],
+  [/elevator|\blift\b/, 'elevator'],
+  [/\bmall\b|robin[\s_-]*sparkles|shopping[\s_-]*(centre|center)/, 'canadian_mall'],
   [/metro[\s_-]*news|news[\s_-]*(studio|set)|robin.*(studio|station)/, 'metro_news_one'],
   [/lecture|classroom|university|college|ted.*class/, 'lecture_hall'],
   [/restaurant|bistro|diner|cafe|café/, 'restaurant'],

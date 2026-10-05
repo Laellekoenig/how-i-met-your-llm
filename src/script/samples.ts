@@ -363,7 +363,7 @@ const GUEST_LECTURE: SampleEpisode = {
         say('lily', 'Ted, you’re not going to bring up the letters, right?', { to: 'ted', e: 'nervous' }),
         say('marshall', 'Oh no. The letters.', { to: 'lily', e: 'nervous', l: 'ooh' }),
         narr('Kids, back in college, I may have written Ingrid Solberg a fan letter.'),
-        cutaway('flashback', 'Wesleyan, 1997', 'apartment', 'night', [{ character: 'ted', mark: 'desk' }, { character: 'marshall', mark: 'couch_center' }], [
+        cutaway('flashback', 'College, 1996', 'wesleyan_dorm', 'night', [{ character: 'ted', mark: 'desk' }, { character: 'marshall', mark: 'bed_right' }], [
           say('ted', 'Dear Ms. Solberg. Your buildings make me feel the way a cathedral feels.', { e: 'happy', d: 'slow' }),
           say('marshall', 'Ted, buildings don’t have feelings.', { to: 'ted', e: 'confused' }),
           say('ted', 'Hers do. That’s draft forty. I’m sending all forty.', { to: 'marshall', e: 'excited', l: 'laugh' }),
@@ -426,8 +426,78 @@ const GUEST_LECTURE: SampleEpisode = {
   ],
 };
 
+/** A city detour, with two distinctly period flashbacks. */
+const HIGH_SCORE: SampleEpisode = {
+  meta: { code: 'S10E05', title: 'The High Score', logline: 'Barney disputes a laser-tag score. A subway ride, a hospital vending machine and two embarrassing memories reveal a lifelong problem with coming second.' },
+  coldOpen: 'Kids, there are two kinds of people. People who can lose gracefully, and your Uncle Barney, who once requested an instant replay of rock-paper-scissors.',
+  guests: [{
+    id: 'guest1', name: 'Denise', role: 'laser-tag referee, unimpressed by adults who contest the scoreboard',
+    gender: 'female', height: 'average', build: 'average', skin: 'brown', hair: 'black', hairStyle: 'ponytail',
+    top: 'teal', topStyle: 'polo', pants: 'black', extras: [], voice: { pitch: 'medium', pace: 'slow' },
+  }],
+  scenes: [
+    {
+      location: 'subway', time: 'day', transition: 'cut',
+      cast: [{ character: 'ted', mark: 'seat_left' }, { character: 'marshall', mark: 'seat_left_inner' }, { character: 'barney', mark: 'pole' }, { character: 'robin', mark: 'center' }],
+      beats: [
+        say('barney', 'Today, we become legends. I booked the entire laser-tag arena.', { e: 'excited', g: 'point' }),
+        say('robin', 'The invitation said team-building. I brought a resignation letter.', { to: 'barney', d: 'deadpan', l: 'laugh' }),
+        say('marshall', 'Ted has never handled competition well. Remember college?', { to: 'ted', e: 'smug' }),
+        cutaway('flashback', 'College, 1996', 'wesleyan_dorm', 'night', [
+          { character: 'ted', mark: 'desk' }, { character: 'marshall', mark: 'bed_right' }, { character: 'lily', mark: 'center' },
+        ], [
+          say('ted', 'The computer ranked my essay second. It is a spell checker. It has no authority here.', { e: 'angry' }),
+          say('marshall', 'You spelled architecture three different ways.', { to: 'ted' }),
+          say('lily', 'He is exploring alternate structures.', { to: 'marshall', d: 'deadpan', l: 'big' }),
+        ]),
+        say('ted', 'That computer was biased against the humanities.', { e: 'smug', l: 'laugh' }),
+      ],
+    },
+    {
+      location: 'laser_tag', time: 'day', transition: 'cut',
+      cast: [{ character: 'barney', mark: 'blue_cover' }, { character: 'robin', mark: 'red_cover' }, { character: 'guest1', mark: 'center' }],
+      beats: [
+        say('guest1', 'Blue team lost. Please return your equipment and your sense of entitlement.', { d: 'deadpan', l: 'laugh' }),
+        say('barney', 'I demand a recount. And a smaller opponent. That child was at least eleven.', { to: 'guest1', e: 'angry' }),
+        say('robin', 'I used to perform for crowds tougher than this.', { e: 'smug' }),
+        cutaway('flashback', 'Canada, 1990', 'canadian_mall', 'day', [
+          { character: 'robin', mark: 'stage' },
+        ], [
+          narr('Before New York, there was a mall. And a very ambitious sound check.'),
+          say('robin', 'Neon dreams and shopping bags, everybody dance past the price tags!', { e: 'excited', d: 'sing', g: 'dance' }),
+          say('robin', 'Thank you, Canada! Could someone tell the pretzel guy the microphone is on?', { e: 'nervous', l: 'big' }),
+        ]),
+        say('barney', 'You had a stage? I want a stage for my appeal.', { to: 'robin', e: 'excited', l: 'laugh' }),
+        say('guest1', 'You can have a chair. Outside.', { to: 'barney', d: 'deadpan', l: 'big' }),
+      ],
+    },
+    {
+      location: 'hospital', time: 'night', transition: 'cut',
+      cast: [{ character: 'barney', mark: 'seat_left' }, { character: 'robin', mark: 'seat_right' }, { character: 'ted', mark: 'center' }, { character: 'marshall', mark: 'coffee' }],
+      beats: [
+        narr('Nobody was injured. We were waiting for Lily, who was visiting a friend. Barney had diagnosed himself with scoreboard trauma.'),
+        say('barney', 'Do they validate parking? And possibly my performance?', { to: 'robin', e: 'sad' }),
+        say('robin', 'The machine says your coffee is ready. You finally won something.', { to: 'marshall' }),
+        say('marshall', 'It gave me hot water. The coffee is a participation trophy.', { e: 'sad', l: 'laugh' }),
+        say('ted', 'Sometimes second place is just the universe saying there is room to grow.', { e: 'happy' }),
+        say('barney', 'Ted. You appealed a spell checker.', { to: 'ted', d: 'deadpan', l: 'big' }),
+      ],
+    },
+    {
+      location: 'elevator', time: 'night', transition: 'cut',
+      cast: [{ character: 'ted', mark: 'left' }, { character: 'marshall', mark: 'right' }, { character: 'lily', mark: 'center' }, { character: 'barney', mark: 'buttons' }],
+      beats: [
+        narr('On the way home, Barney insisted on stopping at his office. He needed to print a certificate.'),
+        say('lily', 'Why did you press every floor?', { to: 'barney', e: 'confused' }),
+        say('barney', 'Highest score in the building.', { to: 'lily', e: 'smug', g: 'thumbs_up', l: 'big' }),
+        say('marshall', 'Great. Now the elevator is beating us too.', { d: 'deadpan', l: 'laugh' }),
+      ],
+    },
+  ],
+};
+
 /** The offline reruns, in airing order. */
-export const RERUNS: SampleEpisode[] = [UNDERSTUDY, SILENT_AUCTION, CORRECTION, GUEST_LECTURE];
+export const RERUNS: SampleEpisode[] = [UNDERSTUDY, SILENT_AUCTION, CORRECTION, GUEST_LECTURE, HIGH_SCORE];
 
 let counter = 0;
 
