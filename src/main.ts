@@ -192,11 +192,14 @@ player.onItem = (item) => {
   currentEpisodeId = item.episode.id;
   prevOnItem?.(item);
 };
-$('btn-skip').addEventListener('click', () => player.skip('scene'));
-$('btn-skip-ep').addEventListener('click', () => {
+function skipEpisode() {
   if (currentEpisodeId) programming.dropEpisode(currentEpisodeId);
   player.skip('episode');
-});
+}
+$('btn-back-ep').addEventListener('click', () => player.back('episode'));
+$('btn-back').addEventListener('click', () => player.back('scene'));
+$('btn-skip').addEventListener('click', () => player.skip('scene'));
+$('btn-skip-ep').addEventListener('click', skipEpisode);
 // Fullscreen the letterboxing wrapper, not the screen itself, so the picture keeps its aspect.
 function toggleFullscreen() {
   if (document.fullscreenElement) void document.exitFullscreen();
@@ -228,7 +231,10 @@ window.addEventListener('keydown', (e) => {
   else if (e.code === 'Space') {
     e.preventDefault();
     setPaused(!player.paused);
-  } else if (e.code === 'ArrowRight') player.skip('scene');
+  } else if (e.code === 'ArrowRight') {
+    if (e.shiftKey) skipEpisode();
+    else player.skip('scene');
+  } else if (e.code === 'ArrowLeft') player.back(e.shiftKey ? 'episode' : 'scene');
 });
 
 // ---------------------------------------------------------------- tune in

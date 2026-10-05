@@ -47,6 +47,13 @@ export class Player {
   private credits: CreditCard[] = [];
   private billing: ReturnType<typeof openingCredits> | null = null;
   private rollingCredits = false;
+  /** Items played so far (the last one is on screen), so dev mode can step back through them. */
+  private history: ShowItem[] = [];
+  /** Played items queued again by back(), ahead of anything new from the source. */
+  private rewound: ShowItem[] = [];
+  private fetching: Promise<ShowItem> | null = null;
+  private wake: (() => void) | null = null;
+  private playing = false;
   onItem: ((item: ShowItem) => void) | null = null;
 
   constructor(
@@ -62,6 +69,40 @@ export class Player {
     this.skipLevel = level;
     speech.cancel();
     this.skipWaiters.splice(0).forEach((f) => f());
+  }
+
+  /** Replay the previous scene, or the previous episode from its cold open (the current one if it is the first). */
+  back(level: 'scene' | 'episode') {
+    const h = this.history;
+    if (!h.length) return;
+    // While waiting on the writers, the last item has finished: stepping back replays it.
+    const current = this.playing ? h.length - 1 : h.length;
+    const episodeStart = (i: number) => {
+      while (i > 0 && h[i - 1].episode.id === h[i].episode.id) i--;
+      return i;
+    };
+    let to = Math.max(0, current - 1);
+    if (level === 'episode') {
+      const start = episodeStart(Math.min(current, h.length - 1));
+      to = start > 0 ? episodeStart(start - 1) : 0;
+    }
+    this.rewound.unshift(...h.splice(to));
+    this.skip('scene');
+    this.wake?.();
+  }
+
+  private async nextItem(): Promise<ShowItem> {
+    for (;;) {
+      if (this.rewound.length) return this.rewound.shift()!;
+      // Keep a pending fetch across a back() so the item it brings is not lost.
+      const fetching = (this.fetching ??= this.source.next((msg) => this.overlay.standby(true, msg)));
+      const item = await Promise.race([fetching, new Promise<null>((r) => (this.wake = () => r(null)))]);
+      this.wake = null;
+      if (item) {
+        this.fetching = null;
+        return item;
+      }
+    }
   }
 
   /** Playback time freezes on pause; all waits and fades abort on skip. */
@@ -110,7 +151,7 @@ export class Player {
 
   async run() {
     for (;;) {
-      const item = await this.source.next((msg) => this.overlay.standby(true, msg));
+      const item = await this.nextItem();
       this.overlay.standby(false);
       // skipping an episode drops the rest of its items
       if (this.skipLevel === 'episode' && 'episode' in item && item.episode.id === this.currentEpisode) {
@@ -118,7 +159,10 @@ export class Player {
         continue;
       }
       this.skipLevel = 'none';
+      this.history.push(item);
+      if (this.history.length > 400) this.history.splice(0, 100);
       this.onItem?.(item);
+      this.playing = true;
       try {
         await this.untilUnpaused();
         await this.play(item);
@@ -127,6 +171,8 @@ export class Player {
         this.cleanup();
         // (re-read: skip() may have changed it while we were awaiting)
         if ((this.skipLevel as string) === 'scene') this.skipLevel = 'none';
+      } finally {
+        this.playing = false;
       }
     }
   }
@@ -300,6 +346,12 @@ export class Player {
         break;
       }
       case 'scene':
+        if (item.episode.id !== this.currentEpisode) {
+          // Stepped back into an earlier episode past its cold open: bring back its guest stars.
+          const start = [...this.history].reverse().find((i) => i.kind === 'episode-start' && i.episode.id === item.episode.id);
+          if (start?.kind === 'episode-start') this.stage.castGuests(start.guests);
+          this.currentEpisode = item.episode.id;
+        }
         await this.playScene(item.scene, item.index);
         break;
       case 'episode-end': {
