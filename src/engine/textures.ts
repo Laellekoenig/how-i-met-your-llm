@@ -1188,3 +1188,96 @@ export function riverWater(night: boolean, seed = 93) {
     }
   }, [10, 4]);
 }
+
+/** A lit glass-door drinks fridge: door frames with rows of bottles and cans behind the glass. */
+export function drinksCooler(doors = 3, seed = 97) {
+  const r = mulberry32(seed);
+  const cols = ['#c83a2a', '#2a7ac8', '#e8c040', '#3aa05a', '#e8e8e0', '#8a3ac8', '#f08a2a'];
+  return canvas(doors * 16, 48, (g, w, h) => {
+    g.fillStyle = '#d8ecf0';
+    g.fillRect(0, 0, w, h);
+    for (let row = 0; row < 5; row++) {
+      const y = 3 + row * 9;
+      for (let x = 1; x < w - 1; x += 2) {
+        if (r() < 0.12) continue;
+        const tall = r() < 0.6;
+        g.fillStyle = cols[Math.floor(r() * cols.length)];
+        g.fillRect(x, y + (tall ? 0 : 3), 2 - (r() < 0.3 ? 1 : 0), tall ? 7 : 4);
+      }
+      g.fillStyle = '#9aa8ac';
+      g.fillRect(0, y + 7, w, 1);
+    }
+    for (let d = 0; d <= doors; d++) {
+      g.fillStyle = '#3a3e42';
+      g.fillRect(d * 16 - 1, 0, 2, h);
+      if (d < doors) g.fillRect(d * 16 + 13, 18, 1, 12); // handle
+    }
+    g.fillRect(0, 0, w, 2);
+    g.fillRect(0, h - 2, w, 2);
+  });
+}
+
+/** A wire newsstand rack: overlapping rows of magazine covers and folded papers. */
+export function magazineRack(seed = 101) {
+  const r = mulberry32(seed);
+  const cols = ['#c83a3a', '#2a5aa8', '#e8c040', '#f0f0e8', '#3a8a5a', '#e86a9a', '#1a1a1a', '#f08a2a'];
+  return canvas(48, 40, (g, w, h) => {
+    g.fillStyle = '#4a4a4c';
+    g.fillRect(0, 0, w, h);
+    for (let row = 0; row < 3; row++) {
+      const y = 2 + row * 13;
+      for (let x = 1; x < w - 6; x += 8) {
+        g.fillStyle = cols[Math.floor(r() * cols.length)];
+        g.fillRect(x, y, 7, 11);
+        g.fillStyle = r() < 0.5 ? '#ffffff' : '#1a1a1a';
+        g.fillRect(x + 1, y + 1, 5, 2); // masthead
+        g.fillStyle = cols[Math.floor(r() * cols.length)];
+        g.fillRect(x + 2, y + 4, 3, 5); // cover star
+      }
+      g.fillStyle = '#9a9a9c';
+      g.fillRect(0, y + 11, w, 1);
+    }
+  });
+}
+
+/** Chalkboard with handwritten lines (restaurant specials, store prices). */
+export function chalkMenu(title: string, lines: string[], w = 128, h = 160) {
+  return canvas(w, h, (g) => {
+    g.fillStyle = '#1e2a26';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(255,255,255,0.05)';
+    g.fillRect(6, 10, w - 20, 8);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#f2e6c0';
+    g.font = 'bold 20px Georgia';
+    g.fillText(title, w / 2, 20);
+    g.fillStyle = '#e8a87a';
+    g.fillRect(w * 0.2, 34, w * 0.6, 1);
+    g.font = 'italic 13px Georgia';
+    const step = (h - 52) / Math.max(1, lines.length);
+    lines.forEach((line, i) => {
+      g.fillStyle = i % 2 ? '#bfe0d0' : '#f4f0e0';
+      g.fillText(line, w / 2, 50 + step * (i + 0.5));
+    });
+  });
+}
+
+/** Wall wine rack: a lattice of cubbies holding bottle ends. */
+export function wineRack(seed = 103) {
+  const r = mulberry32(seed);
+  return canvas(32, 48, (g, w, h) => {
+    g.fillStyle = '#3a2418';
+    g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 6) for (let x = 0; x < w; x += 6) {
+      g.fillStyle = '#1a0e08';
+      g.fillRect(x + 1, y + 1, 5, 5);
+      if (r() < 0.82) {
+        g.fillStyle = r() < 0.6 ? '#2a3a1e' : '#4a1a22';
+        g.beginPath(); g.arc(x + 3.5, y + 3.5, 2, 0, 7); g.fill();
+        g.fillStyle = r() < 0.5 ? '#c9a227' : '#8a1a1a';
+        g.fillRect(x + 3, y + 3, 1, 1);
+      }
+    }
+  });
+}
