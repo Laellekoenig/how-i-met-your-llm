@@ -276,6 +276,7 @@ export function buildFuture(): StageSet {
     ],
     ambience: 'none',
     background: [],
+    doorSound: 'none',
     setTime() {
       // it's always the same evening on the couch
       for (const l of lampLights) l.intensity = 3.2;

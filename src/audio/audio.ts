@@ -1,4 +1,5 @@
 import type { LaughKind } from '../script/types';
+import type { Ambience, DoorSound } from '../world/sets/common';
 import { rand, pick } from '../util';
 
 // Everything here is synthesized with WebAudio — no samples. A crowd laugh is
@@ -311,6 +312,141 @@ export class AudioEngine {
     }
   }
 
+  door(kind: DoorSound) {
+    if (kind === 'bell') this.doorbell();
+    else if (kind === 'car') this.carDoor();
+    else if (kind === 'elevator') this.elevatorDing();
+  }
+
+  /** A car door: a muffled thump with a little latch click on top. */
+  carDoor() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime + 0.25;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(95, t);
+    o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.5, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+    o.connect(og).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.3);
+    const n = ctx.createBufferSource();
+    n.buffer = this.noise;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 900;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.35, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    n.connect(lp).connect(ng).connect(this.sfxBus);
+    n.start(t, rand(0, 1), 0.15);
+  }
+
+  /** Elevator arrival chime. */
+  elevatorDing() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (const [f, a] of [[1318, 0.12], [2636, 0.03], [3954, 0.015]]) {
+      const o = this.ctx.createOscillator();
+      o.frequency.value = f;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(a, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+      o.connect(g).connect(this.sfxBus);
+      o.start(t);
+      o.stop(t + 1.7);
+    }
+  }
+
+  /** Something far off in the city: a car horn or, now and then, a siren going by. */
+  private cityNoise(when = 0, siren = false) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime + when;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1400;
+    const g = ctx.createGain();
+    lp.connect(g).connect(this.ambBus);
+    if (siren) {
+      const o = ctx.createOscillator();
+      o.type = 'triangle';
+      const dur = 4;
+      for (let i = 0; i < dur * 1.5; i++) {
+        o.frequency.setValueAtTime(700, t + i / 1.5);
+        o.frequency.linearRampToValueAtTime(980, t + i / 1.5 + 0.33);
+      }
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.012, t + dur * 0.5);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(lp);
+      o.start(t);
+      o.stop(t + dur);
+      return;
+    }
+    const len = rand(0.15, 0.5);
+    for (const f of [410, 520].map((f) => f * rand(0.92, 1.08))) {
+      const o = ctx.createOscillator();
+      o.type = 'square';
+      o.frequency.value = f;
+      o.connect(lp);
+      o.start(t);
+      o.stop(t + len);
+    }
+    g.gain.setValueAtTime(0.008, t);
+    g.gain.setValueAtTime(0.008, t + len - 0.03);
+    g.gain.linearRampToValueAtTime(0, t + len);
+  }
+
+  /** Office phone trilling a couple of desks away. */
+  private phoneRing(when = 0) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime + when;
+    const o = ctx.createOscillator();
+    o.frequency.value = 1150;
+    const trill = ctx.createOscillator();
+    trill.type = 'square';
+    trill.frequency.value = 18;
+    const tg = ctx.createGain();
+    tg.gain.value = 120;
+    trill.connect(tg).connect(o.frequency);
+    const g = ctx.createGain();
+    g.gain.value = 0;
+    for (const s of [0, 0.4]) {
+      g.gain.setValueAtTime(0.01, t + s);
+      g.gain.setValueAtTime(0, t + s + 0.3);
+    }
+    o.connect(g).connect(this.ambBus);
+    o.start(t);
+    trill.start(t);
+    o.stop(t + 0.8);
+    trill.stop(t + 0.8);
+  }
+
+  /** A burst of typing. */
+  private typing(when = 0) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t0 = ctx.currentTime + when;
+    let t = t0;
+    for (let i = 0, n = Math.floor(rand(5, 16)); i < n; i++) {
+      t += rand(0.06, 0.2);
+      const s = ctx.createBufferSource();
+      s.buffer = this.clapBuf;
+      s.playbackRate.value = rand(2.5, 3.5);
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 2500;
+      const g = ctx.createGain();
+      g.gain.value = 0.05;
+      s.connect(hp).connect(g).connect(this.ambBus);
+      s.start(t);
+    }
+  }
+
   doorbell() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
@@ -418,7 +554,7 @@ export class AudioEngine {
 
   // ------------------------------------------------------------- ambience
 
-  ambience(kind: 'bar' | 'apartment' | 'penthouse' | 'none') {
+  ambience(kind: Ambience) {
     if (!this.ctx) return;
     const ctx = this.ctx;
     for (const n of this.ambNodes) {
@@ -434,17 +570,60 @@ export class AudioEngine {
     this.ambTimer = null;
     if (kind === 'none') return;
 
+    // the room tone: filtered noise (bar chatter, HVAC, traffic wash, road rumble)
+    const tone: Partial<Record<Ambience, [number, number]>> = { bar: [650, 0.05], city: [420, 0.05], office: [220, 0.035], car: [170, 0.12] };
+    const [freq, gain] = tone[kind] ?? [280, 0.025];
     const src = ctx.createBufferSource();
     src.buffer = this.noise;
     src.loop = true;
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = kind === 'bar' ? 650 : 280;
+    lp.frequency.value = freq;
     const g = ctx.createGain();
-    g.gain.value = kind === 'bar' ? 0.05 : 0.025;
+    g.gain.value = gain;
     src.connect(lp).connect(g).connect(this.ambBus);
     src.start();
     this.ambNodes.push(src, lp, g);
+    /** A noise band whose level drifts with a slow LFO (wind gusts, engine load). */
+    const drift = (type: BiquadFilterType, f: number, level: number, rate: number, depth: number) => {
+      const s = ctx.createBufferSource();
+      s.buffer = this.noise;
+      s.loop = true;
+      const bp = ctx.createBiquadFilter();
+      bp.type = type;
+      bp.frequency.value = f;
+      const mg = ctx.createGain();
+      mg.gain.value = level;
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = rate;
+      const lg = ctx.createGain();
+      lg.gain.value = depth;
+      lfo.connect(lg).connect(mg.gain);
+      s.connect(bp).connect(mg).connect(this.ambBus);
+      s.start(rand(0, 1.5));
+      lfo.start();
+      this.ambNodes.push(s, bp, mg, lfo, lg);
+    };
+    if (kind === 'city') {
+      drift('highpass', 1800, 0.012, 0.13, 0.01); // wind over the roof
+      this.ambTimer = window.setInterval(() => {
+        if (Math.random() < 0.35) this.cityNoise(rand(0, 1));
+        else if (Math.random() < 0.05) this.cityNoise(0, true);
+      }, 3000);
+    }
+    if (kind === 'office') {
+      this.ambTimer = window.setInterval(() => {
+        if (Math.random() < 0.3) this.typing(rand(0, 1));
+        if (Math.random() < 0.06) this.phoneRing(rand(0, 1));
+      }, 2500);
+    }
+    if (kind === 'car') {
+      drift('bandpass', 90, 0.06, 0.21, 0.03); // the engine pulling
+      drift('bandpass', 1200, 0.008, 0.08, 0.006); // tyre hiss
+      this.ambTimer = window.setInterval(() => {
+        if (Math.random() < 0.3) this.cityNoise(rand(0, 1));
+      }, 3500);
+    }
     if (kind === 'bar') {
       // murmur: a few slowly modulated "voice" bands
       for (let i = 0; i < 3; i++) {

@@ -18,6 +18,11 @@ const LOCATION_LABEL: Record<string, string> = {
   maclarens: "MacLaren's Pub",
   apartment: 'The Apartment',
   barneys: "Barney's Place",
+  rooftop: 'The Roof',
+  barneys_office: "Barney's Office",
+  office: 'The Office',
+  limo: "Barney's Limo",
+  taxi: 'A Cab',
 };
 
 const isChar = (s: string | undefined): s is CharacterId => !!s && (CHARACTER_IDS as readonly string[]).includes(s);
@@ -328,7 +333,7 @@ export class Player {
           return;
         }
         this.panel.line('stage', `${charName(b.character)} enters.`);
-        if (st.current.id !== 'maclarens') audio.doorbell();
+        audio.door(st.current.doorSound ?? 'bell');
         const p = st.enter(b.character, b.to);
         this.director.wide(0);
         this.lookAtSpeaker(b.character);

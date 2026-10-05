@@ -40,6 +40,14 @@ ${marks}
 
 You can also use a character id as a move/enter target to walk over next to that person.
 
+Spread scenes around: MacLaren's and the apartment are home base, but use the other sets when the story goes there.
+- rooftop: the apartment building's roof. Late-night talks, big confessions, "sandwiches", watching the skyline.
+- barneys_office: Barney's corner office at GNB (nobody knows what he does there: "Please."). Barney's schemes, Marshall dropping by from his GNB job.
+- office: a generic open-plan office: Marshall's law firm, Ted's architecture firm, Robin's newsroom, a temp job. Say whose office it is in the scene.
+- limo: Barney's stretch limo with Ranjit at the wheel. Scenes on the way to (or fleeing from) something.
+- taxi: a yellow cab. A cabbie drives unless Ranjit is in the scene (then put him in the driver mark).
+In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car.
+
 # Stagecraft vocabulary
 emotions: ${EMOTIONS.join(', ')}
 gestures: ${GESTURES.join(', ')}

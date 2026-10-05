@@ -29,9 +29,19 @@ export function asChar(v: unknown): CharacterId | undefined {
   return inSet(CHARACTER_IDS, s) ?? CHAR_ALIASES[s] ?? CHARACTER_IDS.find((c) => s.startsWith(c));
 }
 
+const LOCATION_HINTS: [RegExp, LocationId][] = [
+  [/barney.*(office|work|gnb)|gnb|goliath/, 'barneys_office'],
+  [/limo/, 'limo'],
+  [/taxi|\bcab(?!in)/, 'taxi'],
+  [/roof/, 'rooftop'],
+  [/office|work|cubicle/, 'office'],
+  [/barney/, 'barneys'],
+  [/apart/, 'apartment'],
+];
+
 export const asLocation = (v: unknown): LocationId => {
   const s = typeof v === 'string' ? v.toLowerCase() : '';
-  return inSet(LOCATION_IDS, s) ?? (s.includes('barney') ? 'barneys' : s.includes('apart') ? 'apartment' : 'maclarens');
+  return inSet(LOCATION_IDS, s) ?? LOCATION_HINTS.find(([re]) => re.test(s))?.[1] ?? 'maclarens';
 };
 
 export const asTime = (v: unknown): TimeOfDay => (v === 'day' ? 'day' : 'night');

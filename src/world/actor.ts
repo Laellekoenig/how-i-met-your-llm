@@ -84,6 +84,7 @@ export class Actor {
   private sitPose: SitPose = 'upright';
   private lapProp: THREE.Object3D | null = null;
   private path: THREE.Vector3[] = [];
+  private scooting = false;
   private onArrive: (() => void) | null = null;
   private walkPhase = 0;
   private walking = 0; // blend
@@ -632,22 +633,25 @@ export class Actor {
     this.sitPose = seatHeight !== null ? opts.pose ?? 'upright' : 'upright';
     this.setLapProp(opts.prop ?? null);
     this.path = [];
+    this.scooting = false;
     this.onArrive = null;
     this.gesture = null;
     this.lookAt = null;
     this.talking = false;
   }
 
-  /** Walk along waypoints; resolves when arrived. */
-  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null }) {
+  /** Walk along waypoints; resolves when arrived. With `scoot`, slide along them sitting down (there's no standing up in a car). */
+  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean }) {
     return new Promise<void>((resolve) => {
       if (this.onArrive) this.onArrive();
       this.path = points.map((p) => p.clone());
-      this.seatHeight = null; // stand up first
+      this.scooting = !!final.scoot;
+      this.seatHeight = final.scoot ? final.seat ?? this.seatHeight ?? 0.42 : null; // stand up first
       this.sitPose = 'upright';
       this.setLapProp(null);
       this.onArrive = () => {
         this.onArrive = null;
+        this.scooting = false;
         this.targetFacing = final.facing;
         this.seatHeight = final.seat;
         resolve();
@@ -700,12 +704,12 @@ export class Actor {
     const sitting = this.seatHeight !== null;
     this.sitBlend += ((sitting ? 1 : 0) - this.sitBlend) * damp(7, dt);
     let moving = false;
-    if (this.path.length && this.sitBlend < 0.3) {
+    if (this.path.length && (this.sitBlend < 0.3 || this.scooting)) {
       const next = this.path[0];
       const pos = this.root.position;
       const dx = next.x - pos.x, dz = next.z - pos.z;
       const dist = Math.hypot(dx, dz);
-      const speed = 1.45;
+      const speed = this.scooting ? 0.9 : 1.45;
       if (dist < 0.05) {
         pos.x = next.x;
         pos.z = next.z;
@@ -715,8 +719,10 @@ export class Actor {
         const step = Math.min(dist, speed * dt);
         pos.x += (dx / dist) * step;
         pos.z += (dz / dist) * step;
-        this.targetFacing = Math.atan2(dx, dz);
-        moving = true;
+        if (!this.scooting) {
+          this.targetFacing = Math.atan2(dx, dz);
+          moving = true;
+        }
       }
     }
     this.walking += ((moving ? 1 : 0) - this.walking) * damp(10, dt);

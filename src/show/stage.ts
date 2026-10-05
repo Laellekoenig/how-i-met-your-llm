@@ -6,6 +6,11 @@ import { buildMaclarens } from '../world/sets/maclarens';
 import { buildApartment } from '../world/sets/apartment';
 import { buildBarneys } from '../world/sets/barneys';
 import { buildFuture, KID_MARKS } from '../world/sets/future';
+import { buildRooftop } from '../world/sets/rooftop';
+import { buildBarneysOffice } from '../world/sets/barneysOffice';
+import { buildOffice } from '../world/sets/office';
+import { buildLimo } from '../world/sets/limo';
+import { buildTaxi } from '../world/sets/taxi';
 import { CHARACTER_IDS, KIDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 
@@ -13,7 +18,8 @@ import { pick, rand } from '../util';
 export class Stage {
   readonly sets: Record<LocationId, StageSet>;
   readonly actors = {} as Record<CharacterId, Actor>;
-  readonly extras: { actor: Actor; set: LocationId; talkT: number }[] = [];
+  /** Background people. `chatty` ones talk among themselves; one with a `mark` gives it up to anyone the script puts there. */
+  readonly extras: { actor: Actor; set: LocationId; talkT: number; chatty: boolean; mark?: string }[] = [];
   current: StageSet;
   private occupancy = new Map<string, CharacterId>(); // mark -> character
   private actorMark = new Map<CharacterId, string>();
@@ -22,7 +28,10 @@ export class Stage {
   private paused: { set: StageSet; visible: CharacterId[] } | null = null;
 
   constructor(scene: THREE.Scene) {
-    this.sets = { maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), future: buildFuture() };
+    this.sets = {
+      maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), rooftop: buildRooftop(),
+      barneys_office: buildBarneysOffice(), office: buildOffice(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
+    };
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;
       scene.add(s.group);
@@ -38,7 +47,19 @@ export class Stage {
     this.current.group.visible = true;
   }
 
-  /** Background patrons in MacLaren's, for atmosphere. */
+  private extra(i: number, name: string, look: Partial<CharacterDef['look']>) {
+    const def: CharacterDef = {
+      id: `extra${i}` as CharacterId,
+      name,
+      color: '#999',
+      main: false,
+      voice: CHARACTERS.carl.voice,
+      look: { ...CHARACTERS.carl.look, extras: [], pants: '#2a2a30', build: 1, ...look } as CharacterDef['look'],
+    };
+    return new Actor(def);
+  }
+
+  /** Background patrons in MacLaren's, for atmosphere, and the cabbie. */
   private buildExtras() {
     const looks: Partial<CharacterDef['look']>[] = [
       { female: false, hair: '#2a1a12', hairStyle: 'short', top: '#5a6b7a', topStyle: 'polo', skin: '#c48a64', height: 1.8 },
@@ -48,23 +69,25 @@ export class Stage {
     // corner booth under the mural, and a floor table by the window
     const spots: [number, number, number, number][] = [[-6.42, -3.0, Math.PI / 2, 0.47], [-5.4, -3.92, 0, 0.47], [1.3, -3.78, 0, 0.48]];
     looks.forEach((l, i) => {
-      const def: CharacterDef = {
-        id: `extra${i}` as CharacterId,
-        name: 'Patron',
-        color: '#999',
-        main: false,
-        voice: CHARACTERS.carl.voice,
-        look: { ...CHARACTERS.carl.look, extras: [], pants: '#2a2a30', build: 1, ...l } as CharacterDef['look'],
-      };
-      const a = new Actor(def);
+      const a = this.extra(i, 'Patron', l);
       a.place(new THREE.Vector3(spots[i][0], 0, spots[i][1]), spots[i][2], spots[i][3]);
       a.holdingGlass = true;
       this.sets.maclarens.group.add(a.root);
-      this.extras.push({ actor: a, set: 'maclarens', talkT: rand(0, 3) });
+      this.extras.push({ actor: a, set: 'maclarens', talkT: rand(0, 3), chatty: true });
     });
     // they chat with each other
     this.extras[0].actor.lookAt = new THREE.Vector3(-5.4, 1.25, -3.92);
     this.extras[1].actor.lookAt = new THREE.Vector3(-6.42, 1.25, -3.0);
+
+    // a cab always comes with a cabbie, unless Ranjit (or someone) takes the wheel
+    const cabbie = this.extra(looks.length, 'Cabbie', {
+      female: false, hair: '#3a2a20', hairStyle: 'receding', top: '#4a4238', topStyle: 'flannel', plaid: ['#2a2620', '#6a5a40'],
+      skin: '#a8724c', height: 1.74, build: 1.15, extras: ['cap'],
+    });
+    const wheel = this.sets.taxi.marks.driver;
+    cabbie.place(wheel.pos.clone(), wheel.facing, wheel.seat);
+    this.sets.taxi.group.add(cabbie.root);
+    this.extras.push({ actor: cabbie, set: 'taxi', talkT: 0, chatty: false, mark: 'driver' });
   }
 
   setLocation(id: LocationId, time: TimeOfDay) {
@@ -119,9 +142,13 @@ export class Stage {
       const sibling = Object.keys(marks).find((k) => k.startsWith(family) && this.isFree(k, forChar));
       if (sibling) return sibling;
     }
-    const free = Object.keys(marks).filter((k) => this.isFree(k, forChar) && k !== this.current.door && k !== 'behind_bar');
+    const reserved = this.current.reserved ?? [];
+    const free = Object.keys(marks).filter((k) => this.isFree(k, forChar) && k !== this.current.door && !reserved.includes(k));
     const seats = free.filter((k) => marks[k].seat !== null);
-    return seats.length ? pick(seats) : free.length ? pick(free) : 'center';
+    if (seats.length) return pick(seats);
+    if (free.length) return pick(free);
+    // a full house: squeeze in somewhere
+    return marks.center ? 'center' : pick(Object.keys(marks).filter((k) => k !== this.current.door && !reserved.includes(k)));
   }
 
   private isFree(mark: string, forChar?: CharacterId) {
@@ -264,7 +291,9 @@ export class Stage {
     let approach: THREE.Vector3 | undefined;
     let node: string;
     const other = (CHARACTER_IDS as readonly string[]).includes(target) ? (target as CharacterId) : null;
-    if (other && other !== id && this.onStage(other)) {
+    // in a car you can't go stand next to someone: slide over to the free seat nearest them
+    if (other && this.current.seated) target = this.seatNear(other, id) ?? (prevMarkName || target);
+    if (other && other !== id && this.onStage(other) && !this.current.seated) {
       const o = this.actors[other];
       const op = o.position.clone();
       // stand in front of/next to them, on the audience side
@@ -287,6 +316,13 @@ export class Stage {
     const curMark = prevMarkName && prevMarkName !== name ? this.current.marks[prevMarkName] : undefined;
     const pts: THREE.Vector3[] = [];
     const start = a.position.clone();
+    const scoot = !!this.current.seated;
+    if (scoot) {
+      // straight along the seats (through the set's nodes on longer trips), never standing up
+      if (start.distanceTo(dest) > 2.0) pts.push(...this.route(start, dest, this.nearestNode(start), node));
+      pts.push(dest);
+      return a.walk(pts, { facing, seat: seat ?? a.seatHeight, scoot });
+    }
     if (a.isSitting && curMark?.approach) pts.push(curMark.approach.clone());
     const fromNode = this.nearestNode(pts[0] ?? start);
     const direct = (pts[0] ?? start).distanceTo(approach ?? dest) < 2.0;
@@ -296,10 +332,29 @@ export class Stage {
     return a.walk(pts, { facing, seat });
   }
 
+  /** The free seat closest to someone (for sliding over to them in a car). */
+  private seatNear(other: CharacterId, id: CharacterId) {
+    if (!this.onStage(other)) return undefined;
+    const p = this.actors[other].position;
+    const reserved = this.current.reserved ?? [];
+    let best: string | undefined;
+    let bd = Infinity;
+    for (const [k, m] of Object.entries(this.current.marks)) {
+      if (m.seat === null || k === this.current.door || reserved.includes(k) || !this.isFree(k, id)) continue;
+      const d = m.pos.distanceTo(p);
+      if (d > 0.1 && d < bd) {
+        bd = d;
+        best = k;
+      }
+    }
+    return best;
+  }
+
   enter(id: CharacterId, target?: string): Promise<void> {
     const door = this.current.marks[this.current.door];
     const a = this.actors[id];
-    a.place(door.pos.clone(), door.facing, null);
+    // climbing into a car: they appear sitting by the door and slide over
+    a.place(door.pos.clone(), door.facing, this.current.seated ? door.seat : null);
     a.root.visible = true;
     this.occupy(id, null);
     return this.moveTo(id, target && target !== this.current.door ? target : 'center');
@@ -323,6 +378,11 @@ export class Stage {
       }
     for (const e of this.extras) {
       if (!this.sets[e.set].group.visible) continue;
+      if (e.mark) e.actor.root.visible = !this.occupancy.has(e.mark);
+      if (!e.chatty) {
+        e.actor.update(dt, t);
+        continue;
+      }
       e.talkT -= dt;
       if (e.talkT < 0) {
         e.actor.talking = !e.actor.talking;

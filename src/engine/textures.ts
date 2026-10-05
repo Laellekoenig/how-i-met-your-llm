@@ -678,3 +678,382 @@ export function handprint() {
     }
   });
 }
+
+/** Noisy flecked surface: roof gravel, office carpet. */
+export function speckle(base: string, repeat: [number, number], seed = 37, contrast = 0.25) {
+  const r = mulberry32(seed);
+  return canvas(32, 32, (g, w, h) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 260; i++) {
+      g.fillStyle = shade(base, 1 - contrast + r() * contrast * 2);
+      g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 1 + (r() < 0.2 ? 1 : 0), 1);
+    }
+  }, repeat);
+}
+
+/** Square tiles with grout lines (drop ceilings, roof pavers). */
+export function tiles(base: string, line: string, repeat: [number, number]) {
+  return canvas(16, 16, (g, w, h) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = line;
+    g.fillRect(0, 0, w, 1);
+    g.fillRect(0, 0, 1, h);
+  }, repeat);
+}
+
+/** A strip of city going past a car window: storefronts, lit windows, streetlamps. Tiles horizontally. */
+export function street(night: boolean, seed = 51) {
+  const r = mulberry32(seed);
+  const t = canvas(128, 48, (g, w, h) => {
+    g.fillStyle = night ? '#141626' : '#a8c4dc';
+    g.fillRect(0, 0, w, h);
+    let x = 0;
+    while (x < w) {
+      const bw = Math.min(w - x, 14 + Math.floor(r() * 18));
+      const top = Math.floor(r() * 10);
+      g.fillStyle = night ? shade('#2a2836', 0.7 + r() * 0.6) : shade('#8a7a6a', 0.75 + r() * 0.5);
+      g.fillRect(x, top, bw, h - top);
+      // upper-floor windows
+      for (let wy = top + 3; wy < h - 18; wy += 6)
+        for (let wx = x + 2; wx < x + bw - 3; wx += 5) {
+          const lit = r() < (night ? 0.45 : 0);
+          g.fillStyle = lit ? (r() < 0.8 ? '#f6d27a' : '#9ad0ff') : night ? '#1a1a26' : '#5a6878';
+          g.fillRect(wx, wy, 3, 3);
+        }
+      // shopfront with an awning
+      g.fillStyle = night ? (r() < 0.6 ? '#ffd890' : '#ff8a6a') : '#c8d8e0';
+      g.fillRect(x + 2, h - 14, bw - 4, 9);
+      g.fillStyle = ['#a82a22', '#2a6a3a', '#2a3a7a', '#c88a22'][Math.floor(r() * 4)];
+      g.fillRect(x + 1, h - 16, bw - 2, 3);
+      g.fillStyle = night ? '#0a0a10' : '#3a3a3a';
+      g.fillRect(x, h - 5, bw, 5);
+      x += bw;
+    }
+    // streetlamps
+    for (let lx = 10; lx < w; lx += 42) {
+      g.fillStyle = '#1a1a1e';
+      g.fillRect(lx, 14, 1, h - 19);
+      g.fillRect(lx, 14, 4, 1);
+      g.fillStyle = night ? '#fff0b0' : '#d0d0c0';
+      g.fillRect(lx + 3, 15, 2, 1);
+    }
+  });
+  t.wrapS = THREE.RepeatWrapping;
+  return t;
+}
+
+/** Face of an apartment or office tower: a grid of windows, some lit. */
+export function facade(night: boolean, wall: string, seed = 61, cols = 6, rows = 10) {
+  const r = mulberry32(seed);
+  return canvas(cols * 4, rows * 4, (g, w, h) => {
+    g.fillStyle = night ? shade(wall, 0.35) : wall;
+    g.fillRect(0, 0, w, h);
+    for (let y = 0; y < rows; y++)
+      for (let x = 0; x < cols; x++) {
+        const lit = night && r() < 0.4;
+        g.fillStyle = lit ? (r() < 0.75 ? '#f6d27a' : '#9ad0ff') : night ? '#12121c' : shade('#5a6a80', 0.8 + r() * 0.4);
+        g.fillRect(x * 4 + 1, y * 4 + 1, 2, 2);
+      }
+  });
+}
+
+/** Whiteboard covered in marker: a sketchy chart, boxes and arrows, someone's scrawl. */
+export function whiteboard(seed = 71) {
+  const r = mulberry32(seed);
+  return canvas(64, 32, (g, w, h) => {
+    g.fillStyle = '#f2f2ee';
+    g.fillRect(0, 0, w, h);
+    const ink = ['#2a3a8a', '#1a1a1a', '#b82a2a', '#2a7a3a'];
+    // a bar chart going up
+    g.fillStyle = ink[0];
+    g.fillRect(4, 26, 22, 1);
+    g.fillRect(4, 6, 1, 20);
+    for (let i = 0; i < 4; i++) g.fillRect(7 + i * 5, 25 - (4 + i * 4 + r() * 3), 3, 4 + i * 4);
+    // boxes and an arrow
+    g.fillStyle = ink[1];
+    g.strokeStyle = ink[1];
+    g.strokeRect(32.5, 5.5, 10, 6);
+    g.strokeRect(48.5, 5.5, 10, 6);
+    g.fillRect(43, 8, 5, 1);
+    g.fillStyle = ink[2];
+    for (let y = 16; y < 28; y += 3) g.fillRect(32, y, 10 + Math.floor(r() * 18), 1);
+    g.fillStyle = ink[3];
+    g.beginPath();
+    g.arc(56, 21, 4, 0, 7);
+    g.fill();
+  });
+}
+
+/** A computer screen: desktop, a window, a spreadsheet. */
+export function monitorScreen(seed = 81) {
+  const r = mulberry32(seed);
+  return canvas(24, 18, (g, w, h) => {
+    g.fillStyle = '#2a6aa8';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#e8ecf0';
+    g.fillRect(3, 2, 18, 13);
+    g.fillStyle = '#1a3a8a';
+    g.fillRect(3, 2, 18, 2);
+    g.fillStyle = '#9aa8b8';
+    for (let y = 6; y < 14; y += 2) for (let x = 4; x < 20; x += 4) if (r() < 0.8) g.fillRect(x, y, 3, 1);
+    g.fillStyle = '#c8c8c8';
+    g.fillRect(0, h - 2, w, 2);
+  });
+}
+
+export type PosterArt = 'penguins' | 'jets' | 'jet' | 'hands' | 'climber' | 'column' | 'flames' | 'sunset' | 'propeller' | 'skydivers';
+
+/**
+ * Barney's office-supply-catalog motivational posters: black frame and mat, a stock photo, and the
+ * title in spaced serif caps inside a thin ruled box, with a line of small print under it.
+ */
+export function poster(title: string, art: PosterArt, opts: { titleColor?: string; wide?: boolean } = {}) {
+  const W = opts.wide ? 80 : 64, H = opts.wide ? 64 : 80;
+  return canvas(W, H, (g, w, h) => {
+    g.fillStyle = '#0a0a0c';
+    g.fillRect(0, 0, w, h);
+    const px = 6, py = 5, pw = w - 12, ph = h - 25;
+    g.save();
+    g.beginPath();
+    g.rect(px, py, pw, ph);
+    g.clip();
+    g.translate(px, py);
+    posterArt(g, art, pw, ph);
+    g.restore();
+    g.strokeStyle = '#5a5a5e';
+    g.strokeRect(px - 0.5, py - 0.5, pw + 1, ph + 1);
+    // the title box
+    const by = h - 17;
+    g.strokeStyle = '#8a8a8e';
+    g.strokeRect(10.5, by + 0.5, w - 21, 9);
+    g.fillStyle = opts.titleColor ?? '#f2f0ea';
+    g.font = 'bold 7px Georgia';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    const spaced = title.split('').join(String.fromCharCode(8202));
+    g.fillText(spaced, w / 2, by + 5.5, w - 24);
+    // the small print
+    g.fillStyle = '#6a6a6e';
+    g.fillRect(14, h - 5, w - 28, 1);
+  });
+}
+
+function posterArt(g: CanvasRenderingContext2D, art: PosterArt, w: number, h: number) {
+  const sky = (top: string, bottom: string) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, top);
+    gr.addColorStop(1, bottom);
+    g.fillStyle = gr;
+    g.fillRect(0, 0, w, h);
+  };
+  /** A jet seen from above-ish, nose toward angle a, with a contrail behind it. */
+  const jet = (x: number, y: number, s: number, a: number) => {
+    g.save();
+    g.translate(x, y);
+    g.rotate(a);
+    g.fillStyle = 'rgba(255,255,255,0.8)';
+    g.fillRect(-14 * s, -0.5, 12 * s, 1);
+    g.fillStyle = '#1e2a4a';
+    g.beginPath();
+    g.moveTo(4 * s, 0);
+    g.lineTo(-3 * s, -3.5 * s);
+    g.lineTo(-2 * s, 0);
+    g.lineTo(-3 * s, 3.5 * s);
+    g.closePath();
+    g.fill();
+    g.fillRect(-4 * s, -0.7 * s, 8 * s, 1.4 * s);
+    g.restore();
+  };
+  switch (art) {
+    case 'penguins': {
+      sky('#9ab0c4', '#c8d4dc');
+      g.fillStyle = '#e8eef2';
+      g.fillRect(0, h * 0.72, w, h);
+      // a row of identical penguins
+      const n = 7;
+      for (let i = 0; i < n; i++) {
+        const x = 4 + (i * (w - 8)) / (n - 1), y = h * 0.42;
+        g.fillStyle = '#16181c';
+        g.beginPath();
+        g.ellipse(x, y + 7, 3.4, 9, 0, 0, 7);
+        g.fill();
+        g.beginPath();
+        g.arc(x, y - 3, 2.4, 0, 7);
+        g.fill();
+        g.fillStyle = '#f4f4f0';
+        g.beginPath();
+        g.ellipse(x + 0.6, y + 8, 2, 7, 0, 0, 7);
+        g.fill();
+        g.fillStyle = '#e8b830';
+        g.fillRect(x, y - 1, 1.5, 1.5);
+      }
+      break;
+    }
+    case 'jets':
+      sky('#4a7ac8', '#9ac0ea');
+      for (let i = 0; i < 4; i++) jet(w * 0.75 - i * w * 0.15, h * 0.22 + i * h * 0.19, 1.1, -0.35);
+      break;
+    case 'jet':
+      sky('#3a6ac0', '#a8c8ee');
+      g.fillStyle = 'rgba(255,255,255,0.5)';
+      g.fillRect(0, h * 0.82, w, h);
+      jet(w * 0.62, h * 0.4, 1.8, -0.6);
+      break;
+    case 'hands': {
+      g.fillStyle = '#f4f2ee';
+      g.fillRect(0, 0, w, h);
+      // four forearms gripping each other's wrists in a square
+      const cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.24;
+      const skins = ['#e0a888', '#c88a64', '#e8b898', '#b07850'];
+      for (let i = 0; i < 4; i++) {
+        g.save();
+        g.translate(cx, cy);
+        g.rotate((i * Math.PI) / 2);
+        g.fillStyle = '#7a4a30';
+        g.fillRect(-r - 1, -r - 5, 2 * r + 8, 10);
+        g.fillStyle = skins[i];
+        g.fillRect(-r, -r - 4, 2 * r + 6, 8);
+        g.fillStyle = '#8a5a40';
+        g.beginPath();
+        g.arc(r + 3, -r, 5.5, 0, 7);
+        g.fill();
+        g.fillStyle = skins[i];
+        g.beginPath();
+        g.arc(r + 3, -r, 4.5, 0, 7);
+        g.fill();
+        g.restore();
+      }
+      break;
+    }
+    case 'climber': {
+      sky('#a88a64', '#7a5a3e');
+      g.strokeStyle = '#5a4028';
+      for (let i = 0; i < 6; i++) {
+        g.beginPath();
+        g.moveTo((i * w) / 5, 0);
+        g.lineTo((i * w) / 5 + 6, h * 0.5);
+        g.lineTo((i * w) / 5 - 2, h);
+        g.stroke();
+      }
+      g.fillStyle = '#f0ece4';
+      g.fillRect(w * 0.3, h * 0.4, 4, 5);
+      g.fillStyle = '#2a2a3a';
+      g.fillRect(w * 0.3, h * 0.4 + 5, 4, 5);
+      g.fillStyle = '#d8a888';
+      g.fillRect(w * 0.31, h * 0.4 - 3, 2.5, 3);
+      g.fillRect(w * 0.3 + 4, h * 0.4 - 4, 1, 5);
+      break;
+    }
+    case 'column': {
+      sky('#2a2a2e', '#4a4a50');
+      g.fillStyle = '#c8c4bc';
+      g.fillRect(w * 0.3, h * 0.18, w * 0.4, h);
+      g.fillStyle = '#e0dcd4';
+      g.fillRect(w * 0.24, h * 0.1, w * 0.52, h * 0.1);
+      g.fillStyle = '#9a968e';
+      for (let x = w * 0.33; x < w * 0.7; x += 4) g.fillRect(x, h * 0.2, 1, h);
+      break;
+    }
+    case 'flames': {
+      sky('#1a0a04', '#8a2a08');
+      for (let i = 0; i < 9; i++) {
+        const x = (i * w) / 8;
+        g.fillStyle = i % 2 ? '#f0a020' : '#e85a10';
+        g.beginPath();
+        g.moveTo(x - 6, h);
+        g.quadraticCurveTo(x + 4, h * 0.5, x, h * (0.15 + (i % 3) * 0.1));
+        g.quadraticCurveTo(x + 2, h * 0.6, x + 7, h);
+        g.fill();
+      }
+      g.fillStyle = '#141414';
+      g.fillRect(w * 0.42, h * 0.45, 9, h * 0.55);
+      g.beginPath();
+      g.arc(w * 0.42 + 4.5, h * 0.42, 4, 0, 7);
+      g.fill();
+      g.fillRect(w * 0.42 - 2, h * 0.4, 13, 2);
+      break;
+    }
+    case 'sunset': {
+      sky('#f0c060', '#c8742a');
+      g.fillStyle = '#fff0b0';
+      g.beginPath();
+      g.arc(w * 0.68, h * 0.45, 6, 0, 7);
+      g.fill();
+      g.fillStyle = '#3a2210';
+      g.beginPath();
+      g.moveTo(0, h * 0.65);
+      g.quadraticCurveTo(w * 0.4, h * 0.5, w, h * 0.7);
+      g.lineTo(w, h);
+      g.lineTo(0, h);
+      g.fill();
+      g.fillStyle = '#141008';
+      g.fillRect(w * 0.3, h * 0.56, 2, 6);
+      break;
+    }
+    case 'propeller': {
+      sky('#6a9ad0', '#c0d8f0');
+      g.fillStyle = '#3a4a5a';
+      g.save();
+      g.translate(w * 0.45, h * 0.5);
+      for (let i = 0; i < 3; i++) {
+        g.rotate((Math.PI * 2) / 3);
+        g.fillRect(-2, 0, 4, h * 0.36);
+      }
+      g.beginPath();
+      g.arc(0, 0, 4, 0, 7);
+      g.fill();
+      g.restore();
+      break;
+    }
+    case 'skydivers': {
+      sky('#2a5aa8', '#8ab8e8');
+      g.fillStyle = '#f4f4f4';
+      g.fillRect(0, h * 0.85, w, h);
+      const cols = ['#e8302a', '#f0d020', '#2ab04a', '#f07a20', '#c83ab0'];
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2;
+        const x = w / 2 + Math.cos(a) * w * 0.22, y = h * 0.45 + Math.sin(a) * h * 0.18;
+        g.fillStyle = cols[i];
+        g.fillRect(x - 2, y - 2, 5, 5);
+        g.fillRect(x + Math.cos(a + Math.PI) * 4, y + Math.sin(a + Math.PI) * 4, 3, 3);
+      }
+      break;
+    }
+  }
+}
+
+/** Wood veneer wall panels: vertical grain, a dark reveal between panels. */
+export function veneer(base: string, repeat: [number, number], seed = 67) {
+  const r = mulberry32(seed);
+  return canvas(32, 64, (g, w, h) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, w, h);
+    for (let x = 0; x < w; x++) {
+      g.fillStyle = shade(base, 0.88 + r() * 0.2);
+      g.fillRect(x, 0, 1, h);
+    }
+    for (let i = 0; i < 10; i++) {
+      g.fillStyle = shade(base, 0.8);
+      g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 1, 6 + Math.floor(r() * 14));
+    }
+    g.fillStyle = shade(base, 0.35);
+    g.fillRect(0, 0, 1, h);
+  }, repeat);
+}
+
+/** Asphalt with a dashed lane line along the middle. Tiles in both directions. */
+export function road(seed = 57) {
+  const r = mulberry32(seed);
+  return canvas(32, 32, (g, w, h) => {
+    g.fillStyle = '#26262a';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 120; i++) {
+      g.fillStyle = shade('#26262a', 0.7 + r() * 0.7);
+      g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 1, 1);
+    }
+    g.fillStyle = '#d8d0a0';
+    g.fillRect(0, h / 2 - 1, w / 2, 2);
+  }, [1, 1]);
+}

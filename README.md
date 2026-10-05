@@ -1,7 +1,8 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on three sets, framed by Future Ted telling
+Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on eight sets (MacLaren's, the apartment,
+Barney's place, the roof, Barney's office, a generic office, Barney's limo and a cab), framed by Future Ted telling
 the story to his bored kids on the couch in 2030, with browser TTS voices,
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
@@ -31,7 +32,8 @@ Keys: `space` pause · `→` skip scene · `f` fullscreen.
   bounded by how fast the show airs. Recent episode titles are kept in localStorage to avoid repeats.
 - **The stage** (`src/world/`, `src/show/`): procedural low-poly characters (no model files) with walk/sit/talk
   animation (including sitting cross-legged or slouched), facial expressions and gestures; sets with named marks and a tiny nav graph; a director that cuts between
-  wides, close-ups, two-shots and over-the-shoulders while avoiding occluded angles.
+  wides, close-ups, two-shots and over-the-shoulders while avoiding occluded angles. The limo and the cab are `seated`
+  sets: the city scrolls past outside, and people slide between seats and climb in and out instead of walking.
 - **The look** (`src/engine/renderer.ts`): renders at ~270p, then applies depth-based ink outlines, posterize + Bayer
   dithering, chromatic aberration, scanlines, grain and vignette. Toggle/tune under *picture & sound*.
 - **The sound** (`src/audio/`): every laugh is ~10–40 formant-filtered synthetic "ha-ha" voices in a reverb;

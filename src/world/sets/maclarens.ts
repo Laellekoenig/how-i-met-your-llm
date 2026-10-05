@@ -330,6 +330,8 @@ export function buildMaclarens(): StageSet {
     ],
     ambience: 'bar',
     background: [{ character: 'carl', mark: 'behind_bar' }],
+    doorSound: 'none',
+    reserved: ['behind_bar'],
     setTime(t) {
       const night = t === 'night';
       doorGlass.material = night ? streetNight : streetDay;

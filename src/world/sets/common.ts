@@ -21,6 +21,9 @@ export interface Shot {
   fov: number;
 }
 
+export type Ambience = 'bar' | 'apartment' | 'penthouse' | 'city' | 'office' | 'car' | 'none';
+export type DoorSound = 'bell' | 'car' | 'elevator' | 'none';
+
 export interface StageSet {
   id: LocationId;
   name: string;
@@ -30,8 +33,14 @@ export interface StageSet {
   edges: [string, string][];
   door: string;
   wides: Shot[];
-  ambience: 'bar' | 'apartment' | 'penthouse' | 'none';
+  ambience: Ambience;
   background: { character: CharacterId; mark: string }[];
+  /** What you hear when someone comes in (defaults to the doorbell). */
+  doorSound?: DoorSound;
+  /** Cars: there's no standing up. People slide between seats and get in and out through the door. */
+  seated?: boolean;
+  /** Marks nobody gets put on unless the script asks for them (the bartender's spot, the driver's seat). */
+  reserved?: string[];
   setTime(t: TimeOfDay): void;
   update?(dt: number, t: number): void;
   /** Floor height at a point, for sets with raised areas (defaults to 0). */
