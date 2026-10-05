@@ -257,9 +257,12 @@ function buildStreet(
   const FRONT = -6; // building line
   const CURB = -3.2;
 
-  const sky = dn(mesh(new THREE.PlaneGeometry(400, 200), toon('#ffffff'), 0, 35, -55, false),
-    toon('#ffffff', { map: skyGradient(false, 97), emissive: '#ffffff', emissiveIntensity: 0.9 }),
-    toon('#ffffff', { map: skyGradient(true, 97), emissive: '#ffffff', emissiveIntensity: 0.9 }));
+  // Huge, with plain sky piled on top: tilting steeply up the towers, the top corners of the frame skim
+  // along the backdrop and land hundreds of metres out.
+  const skyMap = { wide: 2.5, zenith: 2 };
+  const sky = dn(mesh(new THREE.PlaneGeometry(400 * skyMap.wide, 200 * (1 + skyMap.zenith)), toon('#ffffff'), 0, 35 + 100 * skyMap.zenith, -55, false),
+    toon('#ffffff', { map: skyGradient(false, 97, skyMap), emissive: '#ffffff', emissiveIntensity: 0.9 }),
+    toon('#ffffff', { map: skyGradient(true, 97, skyMap), emissive: '#ffffff', emissiveIntensity: 0.9 }));
   g.add(sky);
 
   // ---- ground: avenue, sidewalks ------------------------------------------------------------------------

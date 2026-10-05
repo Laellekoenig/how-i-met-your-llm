@@ -1147,10 +1147,13 @@ export function road(seed = 57) {
 }
 
 /** Open sky behind the establishing shots: dusky blue with the city's glow on the horizon at night. */
-export function skyGradient(night: boolean, seed = 89) {
+/** A day or night sky. For backdrops the camera tilts up past, `wide` makes it that many skies wide and
+ *  `zenith` stacks that many skies' worth of plain upper sky on top, at the same scale. */
+export function skyGradient(night: boolean, seed = 89, { wide = 1, zenith = 0 } = {}) {
   const r = mulberry32(seed);
-  return canvas(512, 256, (g, w, h) => {
-    const sky = g.createLinearGradient(0, 0, 0, h);
+  const h = 256, top = Math.round(h * zenith);
+  return canvas(Math.round(512 * wide), top + h, (g, w) => {
+    const sky = g.createLinearGradient(0, top, 0, top + h);
     if (night) {
       sky.addColorStop(0, '#05081c');
       sky.addColorStop(0.55, '#141a44');
@@ -1162,16 +1165,20 @@ export function skyGradient(night: boolean, seed = 89) {
       sky.addColorStop(1, '#dce8f0');
     }
     g.fillStyle = sky;
-    g.fillRect(0, 0, w, h);
+    g.fillRect(0, 0, w, top + h);
     if (night) {
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 40 * wide; i++) {
         g.fillStyle = r() < 0.8 ? '#fff6d0' : '#a8c8ff';
-        g.fillRect(Math.floor(r() * w), Math.floor(r() * h * 0.6), 1, 1);
+        g.fillRect(Math.floor(r() * w), top + Math.floor(r() * h * 0.6), 1, 1);
+      }
+      for (let i = 0; i < 40 * wide * zenith; i++) {
+        g.fillStyle = r() < 0.8 ? '#fff6d0' : '#a8c8ff';
+        g.fillRect(Math.floor(r() * w), Math.floor(r() * top), 1, 1);
       }
     } else {
       // a few flat streaky clouds
       g.fillStyle = 'rgba(255,255,255,0.55)';
-      for (let i = 0; i < 6; i++) g.fillRect(Math.floor(r() * w), Math.floor(h * 0.15 + r() * h * 0.45), 48 + Math.floor(r() * 72), 3 + Math.floor(r() * 5));
+      for (let i = 0; i < 6 * wide; i++) g.fillRect(Math.floor(r() * w), top + Math.floor(h * 0.15 + r() * h * 0.45), 48 + Math.floor(r() * 72), 3 + Math.floor(r() * 5));
     }
   });
 }
