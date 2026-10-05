@@ -117,9 +117,15 @@ export interface CutawayBeat {
 
 export type SceneLocationId = (typeof SCENE_LOCATION_IDS)[number];
 
+/** What someone is wearing: their own clothes, or their work clothes (Ted and Marshall suit up for the office). */
+export const OUTFITS = ['casual', 'work'] as const;
+export type Outfit = (typeof OUTFITS)[number];
+
 export interface CastPlacement {
   character: CharacterId;
   mark: string;
+  /** Omit to dress for the location: work clothes at their own workplace, their own clothes anywhere else. */
+  outfit?: Outfit;
 }
 
 export interface Scene {

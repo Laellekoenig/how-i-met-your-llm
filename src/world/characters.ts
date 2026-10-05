@@ -1,4 +1,4 @@
-import { GUEST_IDS, type CharacterId, type GuestStar } from '../script/types';
+import { GUEST_IDS, type CharacterId, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { guestDef, placeholderGuest } from './guests';
 
 export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly';
@@ -41,6 +41,12 @@ export interface VoiceProfile {
   rate: number;
 }
 
+/** A work wardrobe: what someone changes into (over their usual look) at the places they work. */
+export interface Wardrobe {
+  at: LocationId[];
+  look: Partial<Look>;
+}
+
 export interface CharacterDef {
   id: CharacterId;
   name: string;
@@ -48,6 +54,7 @@ export interface CharacterDef {
   look: Look;
   voice: VoiceProfile;
   main: boolean;
+  work?: Wardrobe;
 }
 
 export const CHARACTERS: Record<CharacterId, CharacterDef> = {
@@ -64,6 +71,14 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       pants: '#2b3448', jeans: true, shoes: '#4a2e1c',
       face: { long: 1.03, jaw: 0.97, nose: 1.05 },
     },
+    // At the architecture firm and at the lectern: a navy suit, light blue shirt and a burgundy tie
+    work: {
+      at: ['office', 'lecture_hall'],
+      look: {
+        top: '#2e3a52', topStyle: 'suit', tweed: false, under: '#a9c4e4', tie: '#7a2a36',
+        pants: '#2e3a52', jeans: false, shoes: '#2a1a12',
+      },
+    },
     voice: { gender: 'male', pitch: 1.0, rate: 1.02 },
   },
   marshall: {
@@ -78,6 +93,14 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       top: '#8a3328', topStyle: 'flannel', plaid: ['#2e1a16', '#d6b07a'], under: '#8d9299',
       pants: '#a8916a', shoes: '#4a3424',
       face: { long: 1.07, jaw: 1.1, nose: 1.1, brow: 1.2 },
+    },
+    // Corporate lawyer at the firm and at GNB: a charcoal suit, white shirt, striped blue tie
+    work: {
+      at: ['office', 'barneys_office'],
+      look: {
+        top: '#3a3f47', topStyle: 'suit', plaid: undefined, under: '#f2f0ea',
+        tie: '#2f5a8a', tiePattern: 'stripes', tieAccent: '#c9b27c', pants: '#3a3f47', shoes: '#1e1712',
+      },
     },
     voice: { gender: 'male', pitch: 0.92, rate: 1.0 },
   },
@@ -385,6 +408,16 @@ export const FUTURE_TED_VOICE: VoiceProfile = {
   pitch: 0.94,
   rate: 0.96,
 };
+
+/** What someone wears at a location unless the script says otherwise. */
+export function outfitAt(id: CharacterId, location: LocationId): Outfit {
+  return CHARACTERS[id].work?.at.includes(location) ? 'work' : 'casual';
+}
+
+/** A character dressed in one of their outfits. */
+export function dressed(def: CharacterDef, outfit: Outfit): CharacterDef {
+  return outfit === 'work' && def.work ? { ...def, look: { ...def.look, ...def.work.look } } : def;
+}
 
 export function charName(id: string) {
   return (CHARACTERS as Record<string, CharacterDef>)[id]?.name ?? id;

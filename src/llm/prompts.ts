@@ -1,6 +1,6 @@
 import {
   CHARACTER_IDS, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS,
-  LAUGHS, SCENE_LOCATION_IDS, TRANSITIONS, KIDS, isKid,
+  LAUGHS, OUTFITS, SCENE_LOCATION_IDS, TRANSITIONS, KIDS, isKid,
 } from '../script/types';
 import type { Tool } from './openrouter';
 import type { StageSet } from '../world/sets/common';
@@ -66,6 +66,7 @@ Spread scenes around: MacLaren's and the apartment are home base, but use the ot
 - lecture_hall: Ted's university architecture classroom, with chalkboards, a lectern, an architectural model and tiered student seats. Ted lectures at lectern/chalkboard/center; the friends can sit in student seats or interrupt from the aisle. Background students listen quietly.
 - limo: Barney's stretch limo with Ranjit at the wheel. Scenes on the way to (or fleeing from) something.
 - taxi: a yellow cab. A cabbie drives unless Ranjit is in the scene (then put him in the driver mark).
+Work clothes: Ted wears a suit and tie at office and lecture_hall, Marshall at office and barneys_office (GNB); everywhere else they're in their own clothes. A cast entry's "outfit" overrides that: "work" for Marshall still in his suit at MacLaren's after a day at the firm, "casual" for Ted just dropping by Marshall's office.
 In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car. Keep movement within one compartment; changing between the passenger cabin and the front/driver compartment requires getting out and back in through its own door. Door marks are entrances, not seats for dialogue.
 
 # Stagecraft vocabulary
@@ -191,7 +192,11 @@ const castSchema = (description: string) => ({
   description,
   items: {
     type: 'object',
-    properties: { character: storyCharEnum, mark: { type: 'string', description: 'A mark from this location.' } },
+    properties: {
+      character: storyCharEnum,
+      mark: { type: 'string', description: 'A mark from this location.' },
+      outfit: { type: 'string', enum: [...OUTFITS], description: 'Optional. Leave out to dress for the location (work clothes at their own workplace).' },
+    },
     required: ['character', 'mark'],
   },
 });

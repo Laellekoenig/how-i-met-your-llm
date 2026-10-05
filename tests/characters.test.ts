@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { normalizeScene } from '../src/llm/normalize';
 import { RERUNS } from '../src/script/samples';
 import { roles } from '../src/ui/casting';
+import { testStage } from './helpers/sets';
+import type { CharacterId } from '../src/script/types';
 
 describe('recurring guest dialogue', () => {
   test('full names from the writer remain dialogue with castable voices, including directed gestures', () => {
@@ -30,5 +32,51 @@ describe('recurring guest dialogue', () => {
       for (const beat of normalized.beats.flatMap((b) => b.type === 'cutaway' ? b.beats : [b])) if (beat.type === 'say') speakers.add(beat.character);
     }
     for (const id of ['sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter']) expect(speakers.has(id)).toBe(true);
+  });
+});
+
+describe('work wardrobe', () => {
+  const stage = testStage();
+  const style = (id: CharacterId) => stage.actors[id].def.look.topStyle;
+
+  test('Ted and Marshall suit up at their workplaces and change back everywhere else', () => {
+    stage.setLocation('office', 'day');
+    expect([style('ted'), style('marshall')]).toEqual(['suit', 'suit']);
+    expect(stage.actors.marshall.def.look.plaid).toBeUndefined();
+    stage.setLocation('lecture_hall', 'day');
+    expect([style('ted'), style('marshall')]).toEqual(['suit', 'flannel']);
+    stage.setLocation('barneys_office', 'day');
+    expect([style('ted'), style('marshall')]).toEqual(['blazer', 'suit']);
+    stage.setLocation('maclarens', 'night');
+    expect([style('ted'), style('marshall')]).toEqual(['blazer', 'flannel']);
+    expect(stage.actors.ted.def.look.tweed).toBe(true);
+  });
+
+  test('a cast outfit overrides the location, and comes back after a cutaway', () => {
+    stage.setLocation('maclarens', 'night');
+    stage.dress('marshall', 'work');
+    stage.place('marshall', 'booth_left_back');
+    expect(style('marshall')).toBe('suit');
+    const frozen = stage.freeze();
+    stage.setLocation('apartment', 'day');
+    expect(style('marshall')).toBe('flannel');
+    stage.thaw(frozen);
+    expect(style('marshall')).toBe('suit');
+    expect(stage.onStage('marshall')).toBe(true);
+  });
+
+  test('swapping outfits reuses the actors already built', () => {
+    stage.setLocation('office', 'day');
+    const suited = stage.actors.ted;
+    stage.setLocation('maclarens', 'night');
+    const casual = stage.actors.ted;
+    stage.setLocation('office', 'day');
+    expect(stage.actors.ted).toBe(suited);
+    expect(casual.root.visible).toBe(false);
+  });
+
+  test('the writer can ask for an outfit on a cast entry', () => {
+    const scene = normalizeScene({ cast: [{ character: 'Marshall', mark: 'booth_end', outfit: 'Work' }, { character: 'ted', mark: 'x', outfit: 'tux' }], beats: [] }, 'maclarens', 'night');
+    expect(scene.cast).toEqual([{ character: 'marshall', mark: 'booth_end', outfit: 'work' }, { character: 'ted', mark: 'x' }]);
   });
 });
