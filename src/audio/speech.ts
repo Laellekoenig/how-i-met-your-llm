@@ -167,7 +167,12 @@ export class Speech {
       };
       u.onstart = start;
       u.onend = finish;
-      u.onerror = finish;
+      // Blocked until the first user gesture (autoplay policy): keep the line's timing, silently.
+      u.onerror = (e) => {
+        if (e.error !== 'not-allowed' || started) return finish();
+        start();
+        setTimeout(finish, estimate * 1000);
+      };
       // If the engine never starts, fall back to a silent, timed line.
       setTimeout(() => {
         if (!started) {
