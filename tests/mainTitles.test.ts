@@ -19,7 +19,7 @@ function rig() {
   const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, snap: 0, trail: 0, photo: () => ({}) };
   const shown: { title: (boolean | null)[]; credits: [string, string][]; locations: string[] } = { title: [], credits: [], locations: [] };
   const overlay = {
-    hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, showCaption() {}, moveTitle() {},
+    hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, showCaption() {}, moveTitle() {},
     location: (t: string) => shown.locations.push(t),
     showTitle: (photo: unknown | null, name = false) => shown.title.push(photo ? name : null),
     credit: (c: { label?: string; name: string } | null, kind = 'cast') => c && shown.credits.push([kind, c.name]),

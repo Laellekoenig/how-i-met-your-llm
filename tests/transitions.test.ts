@@ -41,7 +41,7 @@ function playback(incoming: Scene) {
     coverage() { this.current = { kind: 'wide' }; },
   };
   const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 };
-  const overlay = { hideCaption() {}, hideCards() {}, standby() {}, location() {}, hideLocation() {}, showCaption() {} };
+  const overlay = { hideCaption() {}, hideCards() {}, standby() {}, location() {}, hideLocation() {}, year() {}, showCaption() {} };
   const episode = { id: 'test', code: 'S1E1', title: 'Test', logline: '', source: 'sample' as const };
   const item: ShowItem = { kind: 'scene', episode, index: 1, scene: incoming };
   let requests = 0;

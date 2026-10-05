@@ -113,6 +113,24 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 }
 #loc-label.flashback { color: #f4e6c8; background: rgba(40, 26, 12, 0.78); border: 1px solid rgba(244, 230, 200, 0.5); }
 
+/* the show's "2030" stamp over the kids on the couch: plain white, bottom centre, clear of the subtitles */
+#year {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18%;
+  text-align: center;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: clamp(14px, 3cqw, 32px);
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transition: bottom 0.25s ease-out;
+  animation: yearIn 0.5s ease-out;
+}
+@keyframes yearIn { from { opacity: 0; } to { opacity: 1; } }
+
 #caption {
   position: absolute;
   left: 8%;

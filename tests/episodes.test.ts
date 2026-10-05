@@ -170,7 +170,7 @@ describe('cutaway playback', () => {
     const director = new Director(camera, stage);
     const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 };
     const labels: [string, string | undefined][] = [];
-    const overlay = { hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, showCaption() {}, location: (t: string, s?: string) => labels.push([t, s]) };
+    const overlay = { hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, showCaption() {}, location: (t: string, s?: string) => labels.push([t, s]) };
     const spoken: { who: string; set: string; dream: number; memory: number; delivery?: string; cutOff?: boolean }[] = [];
     spies.push(spyOn(speech, 'speak').mockImplementation((key, _text, _profile, onStart, opts = {}) => {
       onStart?.();

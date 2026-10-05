@@ -136,6 +136,7 @@ export class Player {
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.overlay.hideCaption();
     this.overlay.hideLocation();
+    this.overlay.year(false);
     audio.ambience('none');
     const credits = openingCredits();
     this.credits = credits.cast;
@@ -230,6 +231,7 @@ export class Player {
     speech.cancel();
     this.overlay.hideCaption();
     this.overlay.hideCards();
+    this.overlay.year(false);
     this.renderer.fade = 1;
     this.renderer.rewind = 0;
     this.renderer.dream = this.renderer.ripple = this.renderer.memory = 0;
@@ -257,7 +259,7 @@ export class Player {
         audio.ambience('none');
         this.renderer.fade = 0;
         await this.fade(1, 0.6);
-        this.overlay.location('the year 2030');
+        this.overlay.year(true);
         await this.wait(0.8);
         if (item.coldOpen) await this.narrate(item.coldOpen);
         for (const b of item.couch ?? []) {
@@ -288,6 +290,7 @@ export class Player {
     await this.untilUnpaused();
     this.overlay.hideCaption();
     this.overlay.hideLocation();
+    this.overlay.year(false);
     const transition = sceneTransition(scene, this.previousScene, index);
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     let firstBeat = 0;
@@ -392,6 +395,7 @@ export class Player {
     } finally {
       r.dream = r.memory = r.ripple = r.rewind = 0;
       st.thaw(frozen);
+      this.overlay.year(st.current.id === 'future');
       audio.ambience(ambience);
       this.director.resume(shot);
     }
@@ -433,8 +437,10 @@ export class Player {
     }
 
     this.director.coverage(this.stage.castIds());
+    this.overlay.year(onCouch);
     if (cutaway) this.overlay.location(cutaway.label, cutaway.style);
-    else this.overlay.location(onCouch ? 'the year 2030' : `${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
+    else if (!onCouch) this.overlay.location(`${LOCATION_LABEL[scene.location] ?? scene.location} · ${scene.time}`);
+    else this.overlay.hideLocation();
   }
 
   /** Hard cut to Penny and Luke on the couch in 2030, play their beats, then cut straight back to the story. */
@@ -448,6 +454,7 @@ export class Player {
     audio.ambience('none');
     this.renderer.dream = this.renderer.memory = 0;
     this.director.wide(0, 0.02);
+    this.overlay.year(true);
     try {
       await this.wait(0.35);
       for (const b of beats) {
@@ -457,6 +464,7 @@ export class Player {
       await this.wait(0.3);
     } finally {
       st.cutBack();
+      this.overlay.year(false);
       Object.assign(this.renderer, grade);
       audio.ambience(ambience);
       this.director.resume(shot);

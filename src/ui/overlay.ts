@@ -17,6 +17,7 @@ export class Overlay {
   private standbyMsg = $('standby-msg');
   private loc = $('loc-label');
   private onair = $('onair');
+  private yearEl = $('year');
 
   showCaption(name: string, color: string, text: string, narration = false, delivery?: Delivery) {
     if (!this.captionsEnabled) return;
@@ -27,6 +28,27 @@ export class Overlay {
     this.capName.style.color = narration ? '' : color;
     this.capText.textContent = text;
     this.caption.classList.remove('hidden');
+    this.clearYear();
+  }
+
+  /** "2030" at the bottom of the frame while we're on the couch with the kids. */
+  year(on: boolean) {
+    const wasOn = !this.yearEl.classList.contains('hidden');
+    this.yearEl.classList.toggle('hidden', !on);
+    if (!on || wasOn) return;
+    this.yearEl.style.bottom = '';
+    this.clearYear();
+  }
+
+  /** Lift the year above a tall caption; it never drops back mid-shot, so it doesn't bounce between lines. */
+  private clearYear() {
+    if (this.yearEl.classList.contains('hidden') || this.caption.classList.contains('hidden')) return;
+    const screen = this.yearEl.parentElement!.getBoundingClientRect();
+    if (!screen.height) return;
+    const gap = screen.height * 0.025;
+    const need = (screen.bottom - this.caption.getBoundingClientRect().top + gap) / screen.height * 100;
+    const now = (screen.bottom - this.yearEl.getBoundingClientRect().bottom) / screen.height * 100;
+    if (need > now) this.yearEl.style.bottom = `${need}%`;
   }
 
   hideCaption() {
