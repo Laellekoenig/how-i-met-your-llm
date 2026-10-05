@@ -108,9 +108,16 @@ describe('main titles', () => {
     expect(stop).toHaveBeenCalled();
   });
 
-  test('opening credits: five made-up cast names, and the creators', () => {
+  test('opening credits: five made-up cast names in the original billing order, and the creators', () => {
     const { cast, creators } = openingCredits();
     expect(cast).toHaveLength(5);
+    expect(cast[3].name.split(' ')).toHaveLength(3);
+    // Sound-alikes, never the real names with a letter changed.
+    const real = ['Josh', 'Radnor', 'Jason', 'Segel', 'Cobie', 'Smulders', 'Neil', 'Patrick', 'Harris', 'Alyson',
+      'Hannigan', 'Carter', 'Bays', 'Craig', 'Thomas'];
+    for (const name of [...cast.map((c) => c.name), creators.name]) {
+      for (const word of name.split(/[\s&]+/)) expect(real).not.toContain(word);
+    }
     expect(new Set(cast.map((c) => c.name)).size).toBe(5);
     expect(creators.label).toBe('created by');
     expect(creators.name).toMatch(/^\S+ \S+ &\n\S+ \S+$/);
