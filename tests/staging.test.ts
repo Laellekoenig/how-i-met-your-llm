@@ -149,7 +149,9 @@ describe('camera coverage on the current sets', () => {
       expect(stage.markOf(c.character)).toBe(c.mark);
     }
     director.coverage(stage.castIds());
-    for (const c of scene.cast) expectVisible(stage.actors[c.character], `${scene.location}/${c.character}/wide`);
+    // Shooting from inside a car, the driver behind the partition gets his own angles, not the passengers' master.
+    const inMaster = scene.cast.filter(c => !(stage.current.cameraBounds && stage.current.reserved?.includes(c.mark)));
+    for (const c of inMaster) expectVisible(stage.actors[c.character], `${scene.location}/${c.character}/wide`);
     for (const a of scene.cast) {
       director.closeup(a.character);
       expectVisible(stage.actors[a.character], `${a.character}/closeup`);
@@ -186,6 +188,22 @@ describe('camera coverage on the current sets', () => {
         for (const shot of ['twoShot', 'overShoulder'] as const) {
           director[shot]('ted', 'robin');
           expectVisible(stage.actors.ted, `${set.id}/${first}/${second}/${shot}`);
+        }
+      }
+    }
+  });
+
+  test('car angles never leave the car: every wide and generated shot is shot from inside', () => {
+    for (const set of Object.values(stage.sets).filter(s => s.cameraBounds)) {
+      for (const [i, w] of set.wides.entries()) expect(set.cameraBounds!.containsPoint(w.pos), `${set.id}/wide ${i}`).toBe(true);
+      const marks = Object.keys(set.marks);
+      for (const first of marks) for (const second of marks) if (first !== second) {
+        stage.setLocation(set.id, 'night');
+        stage.place('ted', first); stage.place('robin', second);
+        for (const shot of [() => director.closeup('ted'), () => director.closeup('ted', 'robin'), () => director.twoShot('ted', 'robin'),
+          () => director.overShoulder('ted', 'robin'), () => director.coverage(['ted', 'robin'])]) {
+          shot();
+          expect(set.cameraBounds!.containsPoint(director.current!.pos), `${set.id}/${first}/${second}/${director.current!.kind}`).toBe(true);
         }
       }
     }

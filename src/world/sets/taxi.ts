@@ -4,7 +4,7 @@ import { street, road, skyline, sign, speckle } from '../../engine/textures';
 import { type StageSet, mark, nodes, keyLight, v3 } from './common';
 import { scroll, lampposts } from './vehicle';
 
-// A yellow cab heading uptown, shot through the windshield: the cabbie at the wheel on the right
+// A yellow cab heading uptown, shot from inside or through the windshield from a hood mount: the cabbie at the wheel on the right
 // (a generic cabbie, unless Ranjit is driving), the front passenger seat on the left, and behind the
 // scuffed plexiglass partition the back seat, three across, knees against the partition. Out the rear
 // window the avenue recedes; streetlamps flick past on both sides. Everyone sits: people slide along
@@ -97,7 +97,10 @@ export function buildTaxi(): StageSet {
   g.add(mesh(new THREE.PlaneGeometry(R - L, ROOF - 1.0), tint, 0, (ROOF + 1.0) / 2, REAR - 0.02, false));
   g.add(mesh(roundedBox(R - L + 0.12, 0.45, 0.9, 0.06), yellow, 0, 0.3, REAR - 0.5, false));
   for (const s of [-1, 1]) g.add(mesh(box(0.2, 0.12, 0.04), glow('#ff3030', 1.1), s * 0.7, 0.42, REAR - 0.96, false));
-  // the windshield is the fourth wall: just the A-pillars and the header
+  // the windshield, between the A-pillars and the header: the hood-mounted camera looks in through it
+  const windshield = mesh(new THREE.PlaneGeometry(R - L, ROOF - 0.86), tint, 0, (0.86 + ROOF) / 2, DASH + 0.08, false);
+  windshield.rotation.x = -0.17;
+  g.add(windshield);
   for (const s of [-1, 1]) {
     const p = mesh(box(0.07, 0.95, 0.07), trimGrey, s * (R - 0.02), (0.72 + ROOF) / 2, DASH + 0.08, false);
     p.rotation.x = -0.17;
@@ -190,11 +193,13 @@ export function buildTaxi(): StageSet {
       door: mark(-0.74, BZ + 0.05, 0.3, 'door', 'the curbside back door', { seat: BACK_SEAT }),
     },
     wides: [
-      { pos: v3(0, 1.5, 2.5), target: v3(0, 1.05, -0.5), fov: 46 },
+      { pos: v3(0, 1.42, 1.95), target: v3(0, 1.0, -0.5), fov: 50 },
       { pos: v3(-0.15, 1.55, 1.9), target: v3(0, 1.15, -0.95), fov: 40 },
       { pos: v3(0, 1.3, 1.9), target: v3(0, 1.05, 0.2), fov: 42 },
       { pos: v3(0.5, 1.5, 2.1), target: v3(-0.25, 1.05, -0.7), fov: 44 },
     ],
+    // in the cabin, or on the hood mount looking in through the windshield
+    cameraBounds: new THREE.Box3(v3(L + 0.06, 0.75, REAR + 0.1), v3(R - 0.06, ROOF - 0.04, DASH + 1.6)),
     ambience: 'car',
     background: [],
     doorSound: 'car',
