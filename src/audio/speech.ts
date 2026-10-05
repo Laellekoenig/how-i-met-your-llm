@@ -45,6 +45,8 @@ export const deliveryRate = (d?: Delivery) => (d ? DELIVERY[d].rate : 1);
 
 export class Speech {
   enabled = true;
+  /** Silent mode for automated testing: lines keep their timing but are never spoken. */
+  muted = false;
   private voices: SpeechSynthesisVoice[] = [];
   private cast = new Map<string, SpeechSynthesisVoice | null>();
   private shared: Record<'male' | 'female', SpeechSynthesisVoice | null> = { male: null, female: null };
@@ -135,7 +137,7 @@ export class Speech {
     const rate = profile.rate * (d?.rate ?? 1);
     // a line that gets cut off stops early; without boundary events, we stop it on time
     const estimate = estimateDuration(text, rate) * (opts.cutOff ? 0.88 : 1);
-    if (!this.enabled || !this.supported || !this.voices.length) {
+    if (!this.enabled || this.muted || !this.supported || !this.voices.length) {
       onStart?.();
       return { done: sleep(estimate * 1000) };
     }

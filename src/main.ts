@@ -233,14 +233,23 @@ window.addEventListener('keydown', (e) => {
 
 // ---------------------------------------------------------------- tune in
 
+// Agents testing the show play it silently: ?mute, a webdriver browser, or T3 Code's preview browser
+// (where agents drive the app). ?sound overrides the detection.
+function testingMuted() {
+  const q = new URLSearchParams(location.search);
+  if (q.has('sound')) return false;
+  return q.has('mute') || navigator.webdriver || /\bT3Code\b/.test(navigator.userAgent);
+}
+
 let tunedIn = false;
 function tuneIn() {
   if (tunedIn) return;
   tunedIn = true;
+  const muted = (audio.muted = speech.muted = testingMuted());
   audio.init();
   audio.setVolume(Number(vol.value));
   // unlock speech synthesis inside the user gesture
-  if (speech.supported) speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
+  if (speech.supported && !muted) speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
   $('tune-in').classList.add('hidden');
   // Regular mode has no writers' room UI, so a remembered key starts the writers on its own.
   if (!devMode() && !writer.running && keyInput.value.trim()) writeBtn.click();

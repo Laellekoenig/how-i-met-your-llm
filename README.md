@@ -14,6 +14,8 @@ bun dev            # http://localhost:5173
 
 Click **tune in**. By default it's just the TV: episodes play back to back, letterboxed to 16:9 with black bars,
 with no controls. Press `d` (or open `/?dev`) for **dev mode**, which brings back the transport bar and the side panel.
+Add `mute` (`/?mute`, `/?dev&mute`) to play everything silently. Automated browsers (`navigator.webdriver`) and
+the T3 Code preview browser are muted automatically, so agents testing the show stay quiet; `?sound` overrides that.
 
 With no API key it plays four hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
 pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is

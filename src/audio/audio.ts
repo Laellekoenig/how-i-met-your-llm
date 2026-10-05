@@ -28,6 +28,8 @@ export class AudioEngine {
   laughsEnabled = true;
   musicEnabled = true;
   volume = 0.8;
+  /** Silent mode for automated testing: everything still runs, nothing reaches the speakers. */
+  muted = false;
 
   init() {
     if (this.ctx) {
@@ -36,7 +38,7 @@ export class AudioEngine {
     }
     const ctx = (this.ctx = new AudioContext());
     this.master = ctx.createGain();
-    this.master.gain.value = this.volume;
+    this.master.gain.value = this.muted ? 0 : this.volume;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.ratio.value = 4;
@@ -79,7 +81,7 @@ export class AudioEngine {
 
   setVolume(v: number) {
     this.volume = v;
-    if (this.ctx) this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
+    if (this.ctx) this.master.gain.setTargetAtTime(this.muted ? 0 : v, this.ctx.currentTime, 0.05);
   }
 
   private impulse(seconds: number, decay: number) {
