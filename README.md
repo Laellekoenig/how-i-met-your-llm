@@ -5,8 +5,8 @@ Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on thre
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
 ```sh
-npm install
-npm run dev        # http://localhost:5173
+bun install
+bun dev            # http://localhost:5173
 ```
 
 Click **tune in**. With no API key it plays two hand-written "reruns". Paste an OpenRouter key in the
