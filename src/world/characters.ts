@@ -1,7 +1,7 @@
 import type { CharacterId } from '../script/types';
 
-export type HairStyle = 'swoop' | 'messy' | 'neat' | 'bob' | 'long' | 'ponytail' | 'buzz' | 'short';
-export type TopStyle = 'sweater' | 'flannel' | 'cardigan' | 'jacket' | 'suit' | 'tee' | 'polo';
+export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short';
+export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo';
 
 export interface Look {
   height: number;
@@ -10,14 +10,22 @@ export interface Look {
   skin: string;
   hair: string;
   hairStyle: HairStyle;
-  top: string;
+  top: string; // outermost layer
   topStyle: TopStyle;
-  under?: string; // shirt under jacket / cardigan / sweater collar
+  under?: string; // shirt / top under a jacket or cardigan; the dress for a skirt
   tie?: string;
+  vest?: string;
   plaid?: [string, string];
+  tweed?: boolean;
   pants: string;
+  jeans?: boolean;
+  skirt?: string; // knee-length skirt (worn over `legs`)
+  legs?: string; // tights
   shoes: string;
-  extras?: ('cap' | 'mustache' | 'apron' | 'stubble' | 'pocketsquare')[];
+  boots?: boolean;
+  eyes?: string;
+  face?: { jaw?: number; long?: number; nose?: number; brow?: number };
+  extras?: ('cap' | 'mustache' | 'goatee' | 'apron' | 'stubble' | 'pocketsquare' | 'headband')[];
 }
 
 export interface VoiceProfile {
@@ -43,10 +51,12 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#7fb4ff',
     main: true,
     look: {
-      height: 1.82, build: 1.0, female: false,
-      skin: '#e8b996', hair: '#4a2f1d', hairStyle: 'swoop',
-      top: '#2f3f63', topStyle: 'sweater', under: '#dfe7f2',
-      pants: '#2b3446', shoes: '#4a3020',
+      // Josh Radnor: tall and lean; tweed blazer over an oxford shirt, dark jeans
+      height: 1.82, build: 0.97, female: false,
+      skin: '#e9bc9a', hair: '#3a2416', hairStyle: 'swoop', eyes: '#4a2c1a',
+      top: '#6e5038', topStyle: 'blazer', tweed: true, under: '#8fb0d9',
+      pants: '#2b3448', jeans: true, shoes: '#4a2e1c',
+      face: { long: 1.03, jaw: 0.97, nose: 1.05 },
     },
     voice: { gender: 'male', pitch: 1.0, rate: 1.02, prefer: ['Andrew', 'Guy', 'Aaron', 'Evan', 'Nathan', 'Alex', 'Tom', 'Google UK English Male', 'Daniel'] },
   },
@@ -56,10 +66,12 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#9be38c',
     main: true,
     look: {
-      height: 1.95, build: 1.22, female: false,
-      skin: '#efc3a0', hair: '#5a3a22', hairStyle: 'messy',
-      top: '#7a3b2a', topStyle: 'flannel', plaid: ['#3a1d16', '#d9a26b'], under: '#3b4a5c',
-      pants: '#a58a62', shoes: '#3a2a1c',
+      // Jason Segel: very tall and big; untucked red flannel over a grey tee, khakis
+      height: 1.95, build: 1.2, female: false,
+      skin: '#efc4a2', hair: '#5a3a24', hairStyle: 'shaggy', eyes: '#3a2a1c',
+      top: '#8a3328', topStyle: 'flannel', plaid: ['#2e1a16', '#d6b07a'], under: '#8d9299',
+      pants: '#a8916a', shoes: '#4a3424',
+      face: { long: 1.07, jaw: 1.1, nose: 1.1, brow: 1.2 },
     },
     voice: { gender: 'male', pitch: 0.92, rate: 1.0, prefer: ['Christopher', 'Eric', 'Roger', 'Tom', 'Alex', 'Gordon'] },
   },
@@ -69,10 +81,12 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#ff9ad5',
     main: true,
     look: {
-      height: 1.62, build: 0.9, female: true,
-      skin: '#f3c9a8', hair: '#a8381c', hairStyle: 'bob',
-      top: '#7d3f8c', topStyle: 'cardigan', under: '#2f8f83',
-      pants: '#2a2638', shoes: '#7a2236',
+      // Alyson Hannigan: petite; red bob, mustard cardigan over a teal dress, tights, red flats
+      height: 1.62, build: 0.92, female: true,
+      skin: '#f6d2b8', hair: '#b4401e', hairStyle: 'bob', eyes: '#5a4a2a',
+      top: '#d7a33a', topStyle: 'cardigan', under: '#2b7d84', skirt: '#2b7d84',
+      pants: '#3a2f3d', legs: '#3a2f3d', shoes: '#a3263a',
+      face: { jaw: 0.9, long: 0.97, nose: 0.85 },
     },
     voice: { gender: 'female', pitch: 1.08, rate: 1.05, prefer: ['Jenny', 'Aria', 'Samantha', 'Ava', 'Allison', 'Google US English', 'Nicky'] },
   },
@@ -82,10 +96,12 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#ffc46b',
     main: true,
     look: {
-      height: 1.74, build: 0.92, female: true,
-      skin: '#f0c4a4', hair: '#3a2418', hairStyle: 'long',
-      top: '#4b2c1c', topStyle: 'jacket', under: '#3f6fb0',
-      pants: '#1f2533', shoes: '#241a14',
+      // Cobie Smulders: tall; long dark waves, brown leather jacket, blue top, skinny jeans, boots
+      height: 1.74, build: 0.94, female: true,
+      skin: '#f2c8a8', hair: '#3a2417', hairStyle: 'long', eyes: '#4a3a2a',
+      top: '#5a3420', topStyle: 'leather', under: '#3f6fb0',
+      pants: '#252c3e', jeans: true, shoes: '#2a1c14', boots: true,
+      face: { jaw: 0.95, long: 1.02, nose: 0.9 },
     },
     voice: { gender: 'female', pitch: 0.96, rate: 1.02, prefer: ['Clara', 'Michelle', 'Karen', 'Susan', 'Zoe', 'Google UK English Female', 'Catherine', 'Victoria'] },
   },
@@ -95,10 +111,12 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#e6e6e6',
     main: true,
     look: {
-      height: 1.79, build: 1.0, female: false,
-      skin: '#f0c7a6', hair: '#d8b96a', hairStyle: 'neat',
-      top: '#3a3d45', topStyle: 'suit', under: '#f2f2f2', tie: '#b02a37',
-      pants: '#34373f', shoes: '#141414', extras: ['pocketsquare'],
+      // Neil Patrick Harris: three-piece charcoal suit, white shirt, tie, pocket square
+      height: 1.8, build: 1.0, female: false,
+      skin: '#f2c9a9', hair: '#d2b16e', hairStyle: 'neat', eyes: '#3a5a7a',
+      top: '#3a3e47', topStyle: 'suit', under: '#f4f4f2', vest: '#3a3e47', tie: '#9c2433',
+      pants: '#3a3e47', shoes: '#141414', extras: ['pocketsquare'],
+      face: { jaw: 1.0, long: 0.98, nose: 0.95 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.12, prefer: ['Brian', 'Ryan', 'Christopher', 'Oliver', 'Arthur', 'Daniel', 'Google UK English Male'] },
   },
@@ -108,9 +126,11 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#c7b3ff',
     main: false,
     look: {
+      // Charlene Amoia: brunette ponytail, black tee, waist apron, jeans
       height: 1.66, build: 0.9, female: true,
-      skin: '#f2cbb0', hair: '#e2c06e', hairStyle: 'ponytail',
-      top: '#1d1d22', topStyle: 'tee', pants: '#2c3a55', shoes: '#222', extras: ['apron'],
+      skin: '#f0c8aa', hair: '#3a2418', hairStyle: 'ponytail', eyes: '#3a2a1c',
+      top: '#1d1d22', topStyle: 'tee', pants: '#2c3a55', jeans: true, shoes: '#222', extras: ['apron'],
+      face: { jaw: 0.92, nose: 0.9 },
     },
     voice: { gender: 'female', pitch: 1.12, rate: 1.08, prefer: ['Ava', 'Emma', 'Allison', 'Tessa', 'Moira', 'Nicky', 'Samantha'] },
   },
@@ -120,9 +140,11 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#c0a080',
     main: false,
     look: {
-      height: 1.8, build: 1.1, female: false,
-      skin: '#e3b08c', hair: '#2a2420', hairStyle: 'buzz',
-      top: '#26262b', topStyle: 'polo', pants: '#1c1c20', shoes: '#111', extras: ['stubble'],
+      // Joe Nieves: slicked-back dark hair, black button-up with rolled sleeves
+      height: 1.78, build: 1.06, female: false,
+      skin: '#d8a27e', hair: '#1e1814', hairStyle: 'slick', eyes: '#2a1c14',
+      top: '#1f1f24', topStyle: 'shirt', pants: '#1c1c20', shoes: '#111',
+      face: { jaw: 1.05, long: 1.02 },
     },
     voice: { gender: 'male', pitch: 0.88, rate: 0.95, prefer: ['Roger', 'Gordon', 'Lee', 'Eric'] },
   },
@@ -132,10 +154,12 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#ffd966',
     main: false,
     look: {
-      height: 1.72, build: 1.0, female: false,
-      skin: '#a8714e', hair: '#151010', hairStyle: 'short',
+      // Marshall Manesh: grey close-cropped hair, black chauffeur suit and tie
+      height: 1.72, build: 1.06, female: false,
+      skin: '#b8805a', hair: '#8f8b86', hairStyle: 'receding', eyes: '#2a1c14',
       top: '#18181c', topStyle: 'suit', under: '#f0f0f0', tie: '#18181c',
-      pants: '#18181c', shoes: '#0d0d0d', extras: ['cap', 'mustache'],
+      pants: '#18181c', shoes: '#0d0d0d',
+      face: { jaw: 1.04, long: 1.05, nose: 1.2, brow: 1.15 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.06, prefer: ['Rishi', 'Prabhat', 'Ravi'] },
   },

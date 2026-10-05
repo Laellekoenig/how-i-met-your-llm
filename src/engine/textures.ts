@@ -100,6 +100,37 @@ export function plaid(base: string, line1: string, line2: string) {
   }, [3, 3]);
 }
 
+/** Flecked herringbone-ish wool, for Ted's jacket. */
+export function tweed(base: string, seed = 29) {
+  const r = mulberry32(seed);
+  return canvas(16, 16, (g, w, h) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const band = Math.floor(x / 4) % 2 ? (x + y) % 4 < 2 : (x - y + 16) % 4 < 2;
+        const f = (band ? 1.12 : 0.88) + (r() - 0.5) * 0.25;
+        g.fillStyle = shade(base, f);
+        g.fillRect(x, y, 1, 1);
+      }
+  });
+}
+
+/** Faint diagonal twill, for jeans. */
+export function denim(base: string, seed = 31) {
+  const r = mulberry32(seed);
+  return canvas(16, 16, (g, w, h) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const f = ((x + y) % 3 === 0 ? 1.1 : 0.96) + (r() - 0.5) * 0.12;
+        g.fillStyle = shade(base, f);
+        g.fillRect(x, y, 1, 1);
+      }
+  });
+}
+
 export function rug(a: string, b: string, c: string) {
   return canvas(32, 32, (g, w, h) => {
     g.fillStyle = a;

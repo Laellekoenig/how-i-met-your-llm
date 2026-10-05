@@ -16,8 +16,8 @@ function gradientMap() {
 
 const cache = new Map<string, THREE.Material>();
 
-export function toon(color: THREE.ColorRepresentation, opts: { map?: THREE.Texture; emissive?: THREE.ColorRepresentation; emissiveIntensity?: number; key?: string } = {}) {
-  const key = opts.key ?? (opts.map ? '' : `${new THREE.Color(color).getHexString()}|${opts.emissive ?? ''}|${opts.emissiveIntensity ?? ''}`);
+export function toon(color: THREE.ColorRepresentation, opts: { map?: THREE.Texture; emissive?: THREE.ColorRepresentation; emissiveIntensity?: number; key?: string; side?: THREE.Side } = {}) {
+  const key = opts.key ?? (opts.map ? '' : `${new THREE.Color(color).getHexString()}|${opts.emissive ?? ''}|${opts.emissiveIntensity ?? ''}|${opts.side ?? ''}`);
   if (key && cache.has(key)) return cache.get(key)!;
   const m = new THREE.MeshToonMaterial({
     color,
@@ -27,6 +27,7 @@ export function toon(color: THREE.ColorRepresentation, opts: { map?: THREE.Textu
     emissiveIntensity: opts.emissiveIntensity ?? 1,
     // glowing textures (windows, screens) should glow with their own colors
     emissiveMap: opts.map && opts.emissive ? opts.map : null,
+    side: opts.side ?? THREE.FrontSide,
   });
   if (key) cache.set(key, m);
   return m;
