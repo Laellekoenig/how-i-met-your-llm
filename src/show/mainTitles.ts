@@ -1,41 +1,64 @@
 import type { Gesture } from '../script/types';
 
-/**
- * The main titles, after the show's: no clips from episodes. It's one night at the bar, the five of them crammed
- * together right in front of a camera, mugging for it in a fast-motion burst of photos (hot, glowing, smeared),
- * the camera jumping from face to face. It ends on a mosaic of those photos under the show's name.
- */
+/** Candid bar photographs, reframed on the beat. References: docs/intro-reference.md. */
 export const GANG = ['ted', 'marshall', 'lily', 'robin', 'barney'] as const;
 export type GangId = (typeof GANG)[number];
 
-/** The huddle, on the open floor of MacLaren's between the booth and the bar, everyone facing the lens. */
+/** Open floor between the booth and bar. Each photo has its own arrangement. */
 export const HUDDLE_AT: [number, number] = [2.15, -0.75];
-/** Offsets in the huddle: Lily up front, Marshall looming at the back. */
 export const HUDDLE: Record<GangId, [number, number]> = {
-  lily: [-0.12, 0.32], robin: [0.42, 0.2], ted: [-0.52, -0.08], barney: [0.08, -0.12], marshall: [0.6, -0.36],
+  marshall: [-0.76, 0.08], lily: [-0.4, 0.22], ted: [0, -0.02], barney: [0.41, -0.12], robin: [0.8, 0.1],
 };
 
-/** One burst of photos: who's in the frame, how close the camera is, and what everybody's up to. */
-export interface Burst {
-  who: readonly GangId[];
-  /** Camera distance from the faces, metres. */
-  dist: number;
-  /** Swing around the huddle, radians (0 = straight on). */
-  yaw: number;
-  /** Camera height above (or below) the faces. */
-  lift: number;
-  fov: number;
-  /** What they do; a pair means doing it to each other. Everyone else just cracks up. */
-  moves: [GangId, Gesture, GangId?][];
+/** Shared with the original synthesized theme so muted playback keeps the same edit. */
+export const TITLE_BEAT = 0.2;
+export const TITLE_BEATS = 48;
+export const TITLE_TAIL = 2.4;
+
+export interface PhotoMotion {
+  /** A small reframe of the still, not movement by the actors. */
+  pan: [number, number];
+  zoom: number;
+  tilt: number;
 }
 
+export interface Burst extends PhotoMotion {
+  who: readonly GangId[];
+  layout: Partial<Record<GangId, [number, number]>>;
+  dist: number;
+  yaw: number;
+  lift: number;
+  fov: number;
+  /** Headroom for the title, or a lower aim for a waist-up portrait. */
+  aim: number;
+  beats: number;
+  card?: 'name' | 'creators';
+  moves: [GangId, Gesture][];
+  looks?: Partial<Record<GangId, GangId>>;
+}
+
+// A few legible snapshots with uneven holds, like the original: name early, creators on the final group shot.
 export const BURSTS: Burst[] = [
-  { who: GANG, dist: 1.55, yaw: 0.1, lift: 0.1, fov: 52, moves: [['ted', 'cheers'], ['marshall', 'cheers'], ['lily', 'cheers'], ['robin', 'cheers'], ['barney', 'cheers']] },
-  { who: ['ted', 'barney'], dist: 0.8, yaw: -0.35, lift: 0.05, fov: 52, moves: [['barney', 'hands_up'], ['ted', 'thumbs_up']] },
-  { who: ['lily', 'marshall'], dist: 0.85, yaw: 0.3, lift: -0.05, fov: 52, moves: [['lily', 'wave'], ['marshall', 'thumbs_up']] },
-  { who: ['robin', 'lily', 'barney'], dist: 1.05, yaw: 0.45, lift: 0.1, fov: 50, moves: [['robin', 'wave'], ['barney', 'thumbs_up']] },
-  { who: GANG, dist: 1.35, yaw: -0.25, lift: -0.2, fov: 56, moves: [['ted', 'point'], ['marshall', 'point'], ['lily', 'point'], ['robin', 'point'], ['barney', 'suit_up']] },
-  { who: ['barney'], dist: 0.6, yaw: 0.15, lift: 0.04, fov: 54, moves: [['barney', 'suit_up']] },
-  { who: ['marshall', 'ted', 'barney'], dist: 1.0, yaw: -0.1, lift: 0.08, fov: 52, moves: [['marshall', 'dance'], ['ted', 'high_five', 'barney']] },
-  { who: GANG, dist: 1.6, yaw: 0, lift: 0.15, fov: 50, moves: [['ted', 'hands_up'], ['marshall', 'hands_up'], ['lily', 'hands_up'], ['robin', 'hands_up'], ['barney', 'hands_up']] },
+  { who: GANG, layout: HUDDLE, dist: 1.5, yaw: -0.08, lift: 0.15, fov: 53, aim: -0.2,
+    beats: 4, pan: [-1.1, 0.5], zoom: 0.035, tilt: -1.2,
+    moves: [['ted', 'thumbs_up'], ['lily', 'thumbs_up']], looks: { robin: 'barney', marshall: 'lily' } },
+  { who: ['barney', 'ted', 'robin'], layout: { barney: [-0.65, -0.05], ted: [0, 0.06], robin: [0.62, 0] },
+    dist: 1.4, yaw: 0.06, lift: 0.04, fov: 55, aim: 0.22,
+    beats: 10, card: 'name', pan: [1.3, -0.5], zoom: -0.025, tilt: 1.2,
+    moves: [['barney', 'suit_up']], looks: { ted: 'robin', robin: 'ted' } },
+  { who: ['marshall', 'lily'], layout: { marshall: [-0.29, -0.1], lily: [0.27, 0.1] },
+    dist: 1.08, yaw: -0.12, lift: 0.08, fov: 55, aim: -0.1,
+    beats: 6, pan: [-1.6, 0.6], zoom: 0.035, tilt: -1.6,
+    moves: [['lily', 'wave']], looks: { marshall: 'lily' } },
+  { who: ['ted', 'barney'], layout: { ted: [-0.3, 0.08], barney: [0.32, -0.02] },
+    dist: 1.08, yaw: 0.14, lift: 0.02, fov: 54, aim: -0.16,
+    beats: 8, pan: [1.2, 0.2], zoom: 0.025, tilt: 1.5,
+    moves: [['ted', 'shrug'], ['barney', 'suit_up']], looks: { ted: 'barney' } },
+  { who: ['lily', 'robin', 'marshall'], layout: { lily: [-0.56, 0.12], robin: [0.03, 0.04], marshall: [0.63, -0.18] },
+    dist: 1.48, yaw: -0.08, lift: 0.16, fov: 54, aim: -0.13,
+    beats: 8, pan: [-1, -0.5], zoom: -0.02, tilt: -0.8,
+    moves: [['robin', 'thumbs_up'], ['marshall', 'wave']], looks: { lily: 'robin' } },
+  { who: GANG, layout: HUDDLE, dist: 1.48, yaw: 0.02, lift: 0.2, fov: 55, aim: -0.24,
+    beats: 12, card: 'creators', pan: [0.7, 0.4], zoom: -0.03, tilt: 0.7,
+    moves: [['ted', 'thumbs_up'], ['barney', 'suit_up']] },
 ];

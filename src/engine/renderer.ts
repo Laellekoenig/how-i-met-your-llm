@@ -118,7 +118,7 @@ void main() {
   }
 
   // tone map + grade (scene is rendered linear)
-  col = aces(col * 1.05);
+  col = aces(col * mix(1.05, 0.68, uSnap));
   col = toSRGB(col);
   float luma = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(luma), col, 1.0 + 0.15 * uStylize);
@@ -304,10 +304,10 @@ export class Renderer {
     const s = this.style;
     u.time.value = time;
     u.uStylize.value = s.enabled ? 1 : 0;
-    u.uOutline.value = s.outline;
-    u.uDither.value = s.dither;
-    u.uLevels.value = s.levels;
-    u.uScan.value = s.scanlines;
+    u.uOutline.value = s.outline * (1 - this.snap * 0.45);
+    u.uDither.value = s.dither * (1 - this.snap * 0.7);
+    u.uLevels.value = s.levels + this.snap * 8;
+    u.uScan.value = s.scanlines * (1 - this.snap * 0.85);
     u.uVignette.value = s.vignette;
     u.uGrain.value = s.grain;
     u.uAberr.value = s.aberration;
@@ -345,14 +345,20 @@ export class Renderer {
     this.historyValid = true;
   }
 
-  /** A small print of the current picture (for the photo mosaic at the end of the main titles). */
-  photo(width = 320) {
-    this.render(this.lastTime);
+  /** A frozen print; render faces at photo resolution, then restore the viewer's picture settings. */
+  photo(width = 1280) {
     const src = this.gl.domElement;
     const c = document.createElement('canvas');
     c.width = width;
     c.height = Math.round(width * src.height / Math.max(1, src.width));
-    c.getContext('2d')?.drawImage(src, 0, 0, c.width, c.height);
-    return c;
+    const pixelHeight = this.style.pixelHeight;
+    this.setStyle({ pixelHeight: Math.max(pixelHeight, Math.min(720, c.height)) });
+    try {
+      this.render(this.lastTime);
+      c.getContext('2d')?.drawImage(src, 0, 0, c.width, c.height);
+      return c;
+    } finally {
+      this.setStyle({ pixelHeight });
+    }
   }
 }

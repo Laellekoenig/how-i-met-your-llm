@@ -163,42 +163,40 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 }
 .logo .llm { color: var(--umbrella); }
 .logo.small { font-size: 30px; }
-/* Main titles: pull back from the last photo into a mosaic of the burst, under the show's name (and nothing else). */
+/* Main titles: candid, full-frame bar snapshots with the original's loose white serif lettering. */
 #title-card {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #000;
+  background: #100b05;
 }
-#title-card .mosaic {
+#title-card .title-photo {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template: repeat(5, minmax(0, 1fr)) / repeat(5, minmax(0, 1fr));
-  gap: 0.35cqw;
-  background: #000;
-  transform: scale(5);
+  will-change: transform, filter;
 }
-#title-card .mosaic canvas { width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; display: block; filter: brightness(0.85) saturate(1.1); }
+.title-photo canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
 .show-title {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  left: 49%;
+  top: 13%;
+  transform: rotate(4deg);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  align-items: flex-start;
+  font-family: Georgia, 'Times New Roman', serif;
   font-weight: 400;
-  font-size: clamp(18px, 5.4cqw, 60px);
-  letter-spacing: -0.03em;
-  line-height: 0.92;
-  color: #fff;
-  text-shadow: 0 0 0.25em rgba(255, 240, 200, 0.55), 0 0.05em 0.35em rgba(0, 0, 0, 0.8);
-  opacity: 0;
+  font-size: 5.8cqw;
+  letter-spacing: -0.045em;
+  line-height: 0.8;
+  color: #fffdf4;
+  text-shadow: 0 1px 4px #0009;
+  visibility: hidden;
 }
-.show-title .last { font-weight: 700; font-size: 1.3em; }
+.with-name .show-title { visibility: visible; }
+.show-title span:nth-child(2) { margin-left: 1.1em; }
+.show-title .last { margin-left: 1.65em; font-size: 1.18em; }
 
 /* Opening credits, in a plain white serif: the creators beside the gang in the main titles, then the cast
    one name at a time low in the frame over the first scene. */
@@ -220,13 +218,18 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   animation: fadeinout 2.6s forwards;
 }
 #credit.creators {
-  right: 12%;
-  top: 52%;
+  right: 17%;
+  top: 66%;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3.2cqw;
+  font-weight: 400;
+  letter-spacing: -0.025em;
   text-transform: lowercase;
-  font-size: clamp(11px, 2.7cqw, 26px);
-  line-height: 1.05;
-  animation: fadeinout 2.9s forwards;
+  line-height: 0.94;
+  transform: rotate(-2deg);
+  animation: none;
 }
+#credit.creators small { font-size: 0.56em; margin-left: -1.2em; margin-bottom: 0.1em; }
 #credit small { display: block; font-size: 0.55em; letter-spacing: 0.04em; opacity: 0.9; }
 .end-text { font-family: var(--hand); font-size: clamp(20px, 5.6cqw, 52px); color: #fff; }
 #end-sub { color: var(--dim); letter-spacing: 0.2em; font-size: clamp(10px, 1.5cqw, 14px); text-transform: uppercase; }

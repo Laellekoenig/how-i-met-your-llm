@@ -234,9 +234,9 @@ export class Director {
   }
 
   /** Right up in the gang's faces, like someone holding the camera at arm's length: for the main titles. */
-  selfie(heads: THREE.Vector3[], o: { dist: number; yaw: number; lift: number; fov: number }) {
+  selfie(heads: THREE.Vector3[], o: { dist: number; yaw: number; lift: number; fov: number; aim?: number }) {
     const target = heads.reduce((sum, h) => sum.add(h), new THREE.Vector3()).divideScalar(Math.max(1, heads.length));
-    target.y -= 0.06;
+    target.y += o.aim ?? -0.06;
     const pos = target.clone().add(new THREE.Vector3(Math.sin(o.yaw) * o.dist, o.lift, Math.cos(o.yaw) * o.dist));
     this.cut({ kind: 'selfie', pos, target, fov: o.fov, push: 0 });
   }

@@ -31,11 +31,12 @@ Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `
 - **The kids** (`src/world/sets/future.ts`): every episode opens on Penny and Luke on the black Chesterfield in Ted's
   2030 living room while Future Ted narrates the cold open. Penny and Luke never appear in the story: any `say`/`act`
   beat of theirs hard-cuts to the couch (along with Future Ted's answer) and then straight back to the scene.
-- **The main titles** (`src/show/mainTitles.ts`): after the cold open, the theme (an original synthesized power-pop riff)
-  kicks in on the five of them crammed together in front of a camera at MacLaren's, mugging through a fast-motion burst
-  of photos: stop-motion, smeared, hot yellow-orange and glowing, cut on the beat. It pulls back into a mosaic of those
-  photos under the show's name, and only the name: no episode number or title. Made-up creators are credited over the
-  burst, and a made-up cast (`src/show/credits.ts`) one name at a time over the first scene.
+- **The main titles** (`src/show/mainTitles.ts`): a twelve-second edit of six candid bar photographs, with close-ups,
+  pairs and the whole gang. The white, loosely stacked serif name appears over the second photo; made-up creators
+  appear over the last group portrait. Gentle pans and quick blurred changes follow an original synthesized power-pop
+  theme. Photos are captured from the procedural cast at higher resolution with a warm film grade; no show footage is
+  bundled. Pausing freezes the edit, skipping clears the photos and music, and reduced motion uses stationary cuts.
+  Made-up cast names (`src/show/credits.ts`) roll over the first scene. See [the visual references](docs/intro-reference.md).
 - **The writers' room** (`src/llm/`): two tool calls. `plan_episode` pitches a title, logline, Future Ted cold open and
   3–4 scene outlines; `write_scene` stages one scene at a time with the episode so far as context. The system prompt
   (`prompts.ts`) is the show bible: characters, catchphrases, every set's marks, and the stagecraft vocabulary.

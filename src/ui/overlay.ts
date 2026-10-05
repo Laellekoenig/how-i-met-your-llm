@@ -1,5 +1,6 @@
 import type { CutawayStyle, Delivery, EpisodeMeta } from '../script/types';
 import { sleep } from '../util';
+import type { PhotoMotion } from '../show/mainTitles';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -32,40 +33,28 @@ export class Overlay {
     this.caption.classList.add('hidden');
   }
 
-  /**
-   * The end of the main titles: pull back from the last photo into a mosaic of the whole burst, under the show's
-   * name. Just the name, like the real thing.
-   */
-  showTitle(photos: HTMLCanvasElement[] | null) {
-    this.titleCard.classList.toggle('hidden', !photos);
-    this.titleCard.style.opacity = '';
-    const mosaic = this.titleCard.querySelector('.mosaic')!;
-    mosaic.replaceChildren();
-    this.zoomTitle(0);
-    if (!photos?.length) return;
-    // 5 x 5 prints the shape of the screen; the last photo sits in the middle, where the pull-back starts
-    const order = [...photos.slice(0, -1)].sort(() => Math.random() - 0.5);
-    for (let i = 0; i < 25; i++) {
-      const src = i === 12 ? photos[photos.length - 1] : order[i % Math.max(1, order.length)] ?? photos[0];
-      const c = document.createElement('canvas');
-      c.width = src.width;
-      c.height = src.height;
-      c.getContext('2d')?.drawImage(src, 0, 0);
-      mosaic.append(c);
+  /** Full-bleed still photo. The title belongs to the second photograph, like the show's opening. */
+  showTitle(photo: HTMLCanvasElement | null, name = false) {
+    this.titleCard.classList.toggle('hidden', !photo);
+    this.titleCard.classList.toggle('with-name', !!photo && name);
+    const frame = this.titleCard.querySelector('.title-photo') as HTMLElement;
+    frame.replaceChildren(...(photo ? [photo] : []));
+    frame.style.transform = '';
+    frame.style.filter = '';
+  }
+
+  /** Driven by playback time so pauses freeze the pan and reduced motion leaves the print still. */
+  moveTitle(u: number, motion: PhotoMotion, reducedMotion: boolean, shutter = 0) {
+    const frame = this.titleCard.querySelector('.title-photo') as HTMLElement;
+    if (reducedMotion) {
+      frame.style.transform = 'none';
+      frame.style.filter = 'none';
+      return;
     }
-  }
-
-  /** Pull back from the last photo (0) to the whole mosaic (1); the name surfaces partway. */
-  zoomTitle(u: number) {
-    const k = Math.min(1, Math.max(0, u));
-    const ease = 1 - Math.pow(1 - k, 3);
-    (this.titleCard.querySelector('.mosaic') as HTMLElement).style.transform = `scale(${5 - (5 - 1.18) * ease})`;
-    const name = this.titleCard.querySelector('.show-title') as HTMLElement;
-    name.style.opacity = String(Math.min(1, Math.max(0, (k - 0.3) * 3)));
-  }
-
-  fadeTitle(opacity: number) {
-    this.titleCard.style.opacity = String(opacity);
+    const drift = u - 0.5;
+    const sweep = shutter * shutter;
+    frame.style.transform = `translate(${motion.pan[0] * drift + sweep * motion.pan[0] * 5}%, ${motion.pan[1] * drift}%) rotate(${motion.tilt}deg) scale(${1.085 + motion.zoom * drift})`;
+    frame.style.filter = shutter > 0 ? `blur(${sweep * 5}px)` : 'none';
   }
 
   /** An opening credit: a cast name low in the frame, or the creators beside the gang in the main titles. */

@@ -8,7 +8,7 @@ import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
 import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type CutawayBeat, type CutawayStyle, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
 import { sleep, clamp, pick } from '../util';
 import { sceneTransition } from './transitions';
-import { BURSTS, GANG, HUDDLE, HUDDLE_AT, type Burst } from './mainTitles';
+import { BURSTS, GANG, HUDDLE_AT, TITLE_TAIL, type Burst } from './mainTitles';
 import { openingCredits, type CreditCard } from './credits';
 
 export interface ContentSource {
@@ -130,11 +130,7 @@ export class Player {
     }
   }
 
-  /**
-   * The theme kicks in on a hard cut from the couch. Like the show's titles, it's one night at the bar: the five
-   * of them crammed in front of the camera, mugging through a fast-motion burst of hot, smeary photos, cut on the
-   * beat, pulling back into a mosaic of those photos under the show's name. No episode number, no title.
-   */
+  /** The cold open cuts to six still photographs: the name early, creators on the last group portrait. */
   private async mainTitles() {
     const st = this.stage, r = this.renderer;
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -143,81 +139,73 @@ export class Player {
     audio.ambience('none');
     const credits = openingCredits();
     this.credits = credits.cast;
-    const { beat, duration } = audio.theme();
-    const photos: HTMLCanvasElement[] = [];
     try {
       st.setLocation('maclarens', 'night');
-      for (const id of GANG) st.stand(id, HUDDLE_AT[0] + HUDDLE[id][0], HUDDLE_AT[1] + HUDDLE[id][1], 0);
       for (const bg of st.current.background) {
         st.place(bg.character, bg.mark);
         st.setBackground(bg.character, true);
       }
-      // the world moves in jerks, and every frame leaves a ghost
-      if (!reducedMotion) {
-        st.strobe = beat / 2;
-        r.trail = 0.45;
-      }
       r.fade = 1;
       r.snap = 1;
-      // cut on the music: every wait overshoots a frame or so, so take it out of the next one
-      let late = 0;
-      for (const [i, burst] of BURSTS.entries()) {
-        for (let k = 0; k < 4; k++) {
-          this.burst(burst, k, reducedMotion);
-          if (i === 3 && k === 0) this.overlay.credit(credits.creators, 'creators');
-          const t = performance.now();
-          await this.wait(Math.max(0.05, beat - late));
-          late = clamp(late + (performance.now() - t) / 1000 - beat, 0, 0.1);
-          if (k % 2) photos.push(r.photo());
-        }
-      }
       r.trail = 0;
-      this.overlay.credit(null);
-      this.overlay.showTitle(photos);
-      const hold = Math.max(2.2, duration - BURSTS.length * 4 * beat - 0.4);
-      await this.animate(hold, (u) => this.overlay.zoomTitle((u * hold) / 2));
-      await this.animate(0.4, (u) => {
-        r.fade = 1 - u;
-        this.overlay.fadeTitle(1 - u);
+      // Capture each pose once. Reframing the resulting print cannot introduce live animation or ghost faces.
+      const photos = BURSTS.map((burst) => {
+        this.burst(burst);
+        return r.photo(1280);
+      });
+      const { beat } = audio.theme();
+      const total = BURSTS.reduce((n, b) => n + b.beats * beat, 0) + TITLE_TAIL;
+      let current = -1;
+      await this.animate(total, (u) => {
+        const elapsed = u * total;
+        let index = 0, start = 0;
+        while (index < BURSTS.length - 1 && elapsed >= start + BURSTS[index].beats * beat) {
+          start += BURSTS[index++].beats * beat;
+        }
+        const burst = BURSTS[index];
+        const duration = burst.beats * beat + (index === BURSTS.length - 1 ? TITLE_TAIL : 0);
+        if (index !== current) {
+          this.overlay.showTitle(photos[index], burst.card === 'name');
+          this.overlay.credit(burst.card === 'creators' ? credits.creators : null, 'creators');
+          current = index;
+        }
+        this.overlay.moveTitle(clamp((elapsed - start) / duration, 0, 1), burst, reducedMotion,
+          index > 0 ? Math.max(0, 1 - (elapsed - start) / 0.12) : 0);
       });
     } finally {
       st.strobe = 0;
       r.snap = r.trail = 0;
       this.overlay.showTitle(null);
+      this.overlay.credit(null);
+      for (const id of GANG) st.actors[id].talking = false;
+      audio.stopSting();
     }
   }
 
-  /** One photo of a burst: everybody strikes a new pose; the first photo of a burst finds a new angle. */
-  private burst(b: Burst, k: number, still: boolean) {
+  /** Stage a candid photograph with space between faces and deliberately held expressions. */
+  private burst(b: Burst) {
     const st = this.stage, d = this.director;
-    const paired = new Set(b.moves.flatMap(([id, , to]) => (to ? [id, to] : [])));
-    if (k === 0) {
-      d.selfie(b.who.map((id) => st.actors[id].headWorld), b);
-      // square up to the lens, all at once: it's a new photo, not a turn
-      for (const id of GANG) {
-        const a = st.actors[id];
-        a.faceTowards(d.current!.pos, 0);
-        a.facing = a.targetFacing;
-      }
-    } else if (!still) d.jog(0.07);
     for (const id of GANG) {
-      const a = st.actors[id];
-      a.setEmotion(pick(['happy', 'happy', 'excited', 'excited', 'smug', 'surprised'] as const));
-      // mouths wide open: they're cracking up
-      a.talking = Math.random() < 0.75;
-      a.talkLevel = 1.6;
+      const at = b.layout[id];
+      if (!at) { st.actors[id].root.visible = false; continue; }
+      st.stand(id, HUDDLE_AT[0] + at[0], HUDDLE_AT[1] + at[1], 0);
     }
-    // they ham it up for the lens (and now and then crack up at each other)
+    d.selfie(b.who.map((id) => st.actors[id].headWorld), b);
     const lens = d.current!.pos;
-    for (const id of GANG) {
-      if (paired.has(id)) continue;
-      st.actors[id].lookAt = Math.random() < 0.75 ? lens.clone() : st.actors[pick(GANG.filter((o) => o !== id))].headWorld;
-    }
-    if (k === 0 || k === 2) {
-      for (const [id, g, to] of b.moves) this.gesture(id, g, to);
-      // the shutter goes off mid-move, not at the start of it
-      const t = performance.now() / 1000;
-      for (const id of GANG) st.actors[id].update(0.25, t);
+    for (const [i, id] of b.who.entries()) {
+      const a = st.actors[id];
+      a.faceTowards(lens, 0);
+      a.facing = a.targetFacing;
+      a.setEmotion(id === 'barney' ? 'smug' : 'happy');
+      a.talking = id !== 'barney';
+      a.talkLevel = 0.7;
+      // Turn a little toward a friend while keeping three-quarter faces readable.
+      a.lookAt = b.looks?.[id] ? lens.clone().lerp(st.actors[b.looks[id]!].headWorld, 0.55) : lens.clone();
+      a.onGestureBeat = null;
+      const move = b.moves.find(([who]) => who === id);
+      if (move) a.doGesture(move[1]);
+      a.update(0.32, 1.1 + i * 0.37, true);
+      a.root.updateWorldMatrix(true, true);
     }
   }
 
