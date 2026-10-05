@@ -6,8 +6,8 @@ import { routeNodes } from '../src/show/navigation';
 import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
-import { RERUNS } from '../src/script/samples';
-import type { CutawayBeat } from '../src/script/types';
+import { EPISODES } from './helpers/episodes';
+import type { Costume, CutawayBeat, MontageBeat } from '../src/script/types';
 
 const stage = testStage();
 const camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.05, 60);
@@ -134,14 +134,20 @@ describe('current set navigation', () => {
   });
 });
 
-const rerunScenes = RERUNS.flatMap((ep) => ep.scenes.flatMap((scene, i) => [
-  { ...scene, guests: ep.guests, label: `${ep.meta.title} ${i + 1}: ${scene.location}` },
-  ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, label: `${ep.meta.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
-]));
+// Every scene, cutaway and montage shot, in the clothes it's played in.
+const rerunScenes = EPISODES.flatMap((ep) => ep.scenes.flatMap((scene, i) => {
+  const wardrobe: Costume[] = [...(ep.wardrobe ?? []), ...(scene.wardrobe ?? [])];
+  return [
+    { ...scene, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` },
+    ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
+    ...scene.beats.filter((b): b is MontageBeat => b.type === 'montage').flatMap((m) => m.shots.map((s, k) => ({ ...s, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: montage shot ${k + 1} at ${s.location}` }))),
+  ];
+}));
 
 describe('camera coverage on the current sets', () => {
   for (const scene of rerunScenes) test(`${scene.label} covers the cast and both sides of each conversation`, () => {
     stage.castGuests(scene.guests);
+    stage.setWardrobe(scene.wardrobe);
     stage.setLocation(scene.location, scene.time);
     for (const c of scene.cast) {
       expect(stage.current.marks[c.mark], `${c.character}/${c.mark}`).toBeDefined();
@@ -149,7 +155,9 @@ describe('camera coverage on the current sets', () => {
       expect(stage.markOf(c.character)).toBe(c.mark);
     }
     director.coverage(stage.castIds());
-    for (const c of scene.cast) expectVisible(stage.actors[c.character], `${scene.location}/${c.character}/wide`);
+    // Shooting from inside a car, the driver behind the partition gets his own angles, not the passengers' master.
+    const inMaster = scene.cast.filter(c => !(stage.current.cameraBounds && stage.current.reserved?.includes(c.mark)));
+    for (const c of inMaster) expectVisible(stage.actors[c.character], `${scene.location}/${c.character}/wide`);
     for (const a of scene.cast) {
       director.closeup(a.character);
       expectVisible(stage.actors[a.character], `${a.character}/closeup`);
@@ -191,6 +199,65 @@ describe('camera coverage on the current sets', () => {
     }
   });
 
+  test('car angles never leave the car: every wide and generated shot is shot from inside', () => {
+    for (const set of Object.values(stage.sets).filter(s => s.cameraBounds)) {
+      for (const [i, w] of set.wides.entries()) expect(set.cameraBounds!.containsPoint(w.pos), `${set.id}/wide ${i}`).toBe(true);
+      const marks = Object.keys(set.marks);
+      for (const first of marks) for (const second of marks) if (first !== second) {
+        stage.setLocation(set.id, 'night');
+        stage.place('ted', first); stage.place('robin', second);
+        for (const shot of [() => director.closeup('ted'), () => director.closeup('ted', 'robin'), () => director.twoShot('ted', 'robin'),
+          () => director.overShoulder('ted', 'robin'), () => director.coverage(['ted', 'robin'])]) {
+          shot();
+          expect(set.cameraBounds!.containsPoint(director.current!.pos), `${set.id}/${first}/${second}/${director.current!.kind}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  test('new master wides cover every mark, including short actors behind reception', () => {
+    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const) {
+      for (const id of ['marshall', 'patrice'] as const) for (const name of Object.keys(stage.sets[location].marks)) {
+        stage.setLocation(location, 'day');
+        stage.place(id, name);
+        director.wide(0, 0);
+        expectVisible(stage.actors[id], `${location}/${name}/${id}/master`);
+      }
+    }
+  });
+
+  test('subway and elevator group coverage keeps people large enough in the picture', () => {
+    for (const [location, minimumHeight] of [['subway', 0.25], ['elevator', 0.30]] as const) {
+      const scene = EPISODES.flatMap(ep => ep.scenes).find(s => s.location === location)!;
+      stage.setLocation(location, 'day');
+      for (const c of scene.cast) stage.place(c.character, c.mark);
+      director.coverage(stage.castIds());
+      expect(director.current!.kind).toBe('wide');
+      camera.updateMatrixWorld();
+      for (const id of stage.castIds()) {
+        const actor = stage.actors[id];
+        const head = actor.headWorld.add(new THREE.Vector3(0, 0.1, 0)).project(camera);
+        const floor = actor.position.clone().project(camera);
+        expect((head.y - floor.y) / 2, `${location}/${id}/picture height`).toBeGreaterThan(minimumHeight);
+        expectVisible(actor, `${location}/${id}/closer coverage`);
+      }
+    }
+  });
+
+  test('opposite subway benches get close-ups instead of a distant generated two-shot', () => {
+    stage.setLocation('subway', 'day');
+    stage.place('ted', 'seat_left'); stage.place('robin', 'seat_right_window');
+    for (const [speaker, listener] of [['ted', 'robin'], ['robin', 'ted']] as const) {
+      director.twoShot(speaker, listener);
+      expect(director.current!.kind).toBe('closeup');
+      expectVisible(stage.actors[speaker], `${speaker}/opposite benches`);
+    }
+    // With both people on one bench, the authored close pair stays preferred.
+    stage.place('robin', 'seat_left_inner');
+    director.coverage(['ted', 'robin']);
+    expect(director.current!.pos.distanceTo(stage.sets.subway.wides[3].pos)).toBeLessThan(0.01);
+  });
+
   test('a reverse-facing apartment chair gets a face angle backed by scenery', () => {
     stage.setLocation('apartment', 'day'); stage.place('robin', 'woven_chair');
     director.closeup('robin');
@@ -221,6 +288,18 @@ describe('camera coverage on the current sets', () => {
     director.closeup('ted');
     expect(director.current!.pos.z).toBeLessThan(stage.actors.ted.position.z);
     expectVisible(stage.actors.ted, 'student reverse');
+  });
+
+  test('a push-in creeps toward its subject for longer than a closeup, without losing them', () => {
+    stage.setWardrobe([]);
+    stage.setLocation('metro_news_one', 'day'); stage.place('ted', 'center'); stage.place('robin', 'anchor_left');
+    director.pushIn('ted', 'robin');
+    const from = camera.position.distanceTo(stage.actors.ted.headWorld);
+    for (let i = 0; i < 120; i++) {
+      director.update(0.05);
+      if (i % 20 === 19) expectVisible(stage.actors.ted, `push-in ${i}`);
+    }
+    expect(from - camera.position.distanceTo(stage.actors.ted.headWorld)).toBeGreaterThan(0.6);
   });
 
   test('long held shots stop pushing before they enter the set', () => {

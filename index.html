@@ -17,9 +17,10 @@
             <div id="viewport"></div>
 
             <div id="loc-label" class="hidden"></div>
-            <div id="onair" class="hidden"><span class="dot"></span><span>LIVE · LLM</span></div>
 
             <div id="year" class="hidden">2030</div>
+
+            <div id="insert" class="hidden" aria-live="polite"></div>
 
             <div id="caption" class="hidden">
               <span id="caption-name"></span>
@@ -43,11 +44,6 @@
               </div>
             </div>
 
-            <button id="tune-in">
-              <span class="tune-logo">how i met your <span class="llm">llm</span></span>
-              <span class="tune-cta">▶ click to tune in</span>
-              <span class="tune-note">sound on — voices, laugh track &amp; all</span>
-            </button>
           </div>
         </div>
 
@@ -66,45 +62,20 @@
       <aside id="panel">
         <header>
           <div class="logo small">how i met your <span class="llm">llm</span></div>
-          <div class="tagline">an endless sitcom, written live by a language model</div>
+          <div class="tagline">an endless sitcom, written by language models</div>
         </header>
 
         <section id="now">
           <h3>now playing</h3>
           <div id="now-code">—</div>
-          <div id="now-title">Waiting to tune in…</div>
+          <div id="now-title">—</div>
           <div id="now-logline"></div>
           <div id="now-meta"></div>
         </section>
 
-        <section id="writers">
-          <h3>writers' room <span class="sub">via OpenRouter</span></h3>
-          <label>API key
-            <input id="api-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false" />
-          </label>
-          <label>model
-            <input id="model" list="model-list" spellcheck="false" />
-            <datalist id="model-list"></datalist>
-          </label>
-          <label class="check"><input id="remember-key" type="checkbox" checked /> remember key in this browser</label>
-          <div class="row">
-            <button id="btn-write" class="primary">start writing</button>
-            <span id="writer-status" class="status">offline</span>
-          </div>
-          <div id="writer-stats"></div>
-          <details id="writer-log-wrap">
-            <summary>writers' log</summary>
-            <ol id="writer-log"></ol>
-          </details>
-        </section>
-
-        <section id="pitch">
-          <h3>pitch an episode</h3>
-          <div class="row">
-            <input id="pitch-input" placeholder="e.g. Barney tries to get banned from a Costco" />
-            <button id="btn-pitch">pitch</button>
-          </div>
-          <div id="pitch-queue"></div>
+        <section id="episodes">
+          <h3>episodes <span class="sub" id="episodes-count"></span></h3>
+          <ol id="episode-list"></ol>
         </section>
 
         <section id="transcript-wrap">
@@ -116,15 +87,6 @@
           <h3>picture &amp; sound</h3>
           <label class="check"><input id="opt-style" type="checkbox" checked /> stylized picture</label>
           <label class="slider">resolution <input id="opt-res" type="range" min="160" max="540" step="10" value="270" /><span id="opt-res-v">270p</span></label>
-          <label class="check"><input id="opt-voices" type="checkbox" checked /> voices (browser TTS)</label>
-          <label class="check"><input id="opt-laughs" type="checkbox" checked /> laugh track</label>
-          <label class="check"><input id="opt-music" type="checkbox" checked /> music stings</label>
-          <label class="check"><input id="opt-captions" type="checkbox" checked /> captions</label>
-          <details id="casting-wrap">
-            <summary>voice casting</summary>
-            <div id="casting"></div>
-            <div class="casting-note">Voices come from your browser/OS. Edge's "Natural" voices sound best. On a Mac, add more under System Settings → Accessibility → Spoken Content → System Voice → Manage Voices (e.g. Evan, Nathan, Tom — Enhanced), then reload.</div>
-          </details>
         </section>
       </aside>
     </div>

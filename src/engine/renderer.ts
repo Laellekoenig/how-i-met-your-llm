@@ -40,7 +40,7 @@ uniform vec2 screenRes;
 uniform float cameraNear;
 uniform float cameraFar;
 uniform float time;
-uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory, uSnap, uTrail;
+uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory, uSnap, uTrail, uStill;
 uniform sampler2D tPrev;
 varying vec2 vUv;
 
@@ -139,6 +139,12 @@ void main() {
     col = mix(col, col * 0.45, uMemory * smoothstep(0.08, 0.4, dot(cv, cv)));
   }
 
+  // a freeze frame: the color drains a little while Future Ted talks over it
+  if (uStill > 0.0) {
+    float l = dot(col, vec3(0.299, 0.587, 0.114));
+    col = mix(col, mix(vec3(l), col, 0.5) * vec3(1.03, 1.0, 0.95) + 0.02, uStill);
+  }
+
   // ...graded hot yellow-orange with greenish shadows, crushed blacks and a heavy vignette
   if (uSnap > 0.0) {
     float l = dot(col, vec3(0.299, 0.587, 0.114));
@@ -194,6 +200,8 @@ export class Renderer {
   ripple = 0;
   /** Flashback look (0..1). */
   memory = 0;
+  /** Freeze-frame grade (0..1). */
+  still = 0;
   /** The main titles' hot, glowing snapshot grade (0..1). */
   snap = 0;
   /** How much of the previous frame lingers (0..1): the smear of a fast-motion photo burst. */
@@ -240,7 +248,7 @@ export class Renderer {
         uOutline: { value: 0 }, uDither: { value: 0 }, uLevels: { value: 8 }, uScan: { value: 0 },
         uVignette: { value: 0 }, uGrain: { value: 0 }, uAberr: { value: 0 }, uWarmth: { value: 0 },
         uStylize: { value: 1 }, uFade: { value: 1 }, uRewind: { value: 0 },
-        uDream: { value: 0 }, uRipple: { value: 0 }, uMemory: { value: 0 }, uSnap: { value: 0 }, uTrail: { value: 0 },
+        uDream: { value: 0 }, uRipple: { value: 0 }, uMemory: { value: 0 }, uSnap: { value: 0 }, uTrail: { value: 0 }, uStill: { value: 0 },
         tPrev: { value: null },
       },
       depthTest: false,
@@ -317,6 +325,7 @@ export class Renderer {
     u.uDream.value = this.dream;
     u.uRipple.value = this.ripple;
     u.uMemory.value = this.memory;
+    u.uStill.value = this.still;
     u.cameraNear.value = this.camera.near;
     u.cameraFar.value = this.camera.far;
 

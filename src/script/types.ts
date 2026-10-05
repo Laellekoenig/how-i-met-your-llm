@@ -1,9 +1,9 @@
-// The script language shared by the LLM, the sample episodes and the player.
+// The script language shared by the episode files (episodes/*.json), the validator and the player.
 
-export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'guest1', 'guest2', 'guest3', 'penny', 'luke'] as const;
+export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles', 'guest1', 'guest2', 'guest3', 'penny', 'luke'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
-/** One-off guest stars (Ted's date, Barney's mark, a bouncer): slots the episode planner recasts every episode. */
+/** One-off guest stars (Ted's date, Barney's mark, a bouncer): slots each episode recasts. */
 export const GUEST_IDS = ['guest1', 'guest2', 'guest3'] as const satisfies readonly CharacterId[];
 export type GuestId = (typeof GUEST_IDS)[number];
 export const isGuest = (id: string | undefined): id is GuestId => (GUEST_IDS as readonly string[]).includes(id ?? '');
@@ -13,7 +13,7 @@ export const KIDS = ['penny', 'luke'] as const satisfies readonly CharacterId[];
 export const isKid = (id: string | undefined) => (KIDS as readonly string[]).includes(id ?? '');
 
 /** Where the story's scenes take place. */
-export const SCENE_LOCATION_IDS = ['maclarens', 'apartment', 'barneys', 'rooftop', 'barneys_office', 'office', 'metro_news_one', 'store', 'restaurant', 'lecture_hall', 'limo', 'taxi'] as const;
+export const SCENE_LOCATION_IDS = ['maclarens', 'apartment', 'barneys', 'rooftop', 'barneys_office', 'office', 'metro_news_one', 'store', 'restaurant', 'lecture_hall', 'limo', 'taxi', 'subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const;
 /** ...plus Ted's living room in 2030, where he's telling the kids the story. */
 export const LOCATION_IDS = [...SCENE_LOCATION_IDS, 'future'] as const;
 export type LocationId = (typeof LOCATION_IDS)[number];
@@ -26,8 +26,32 @@ export type Emotion = (typeof EMOTIONS)[number];
 export const GESTURES = [
   'none', 'wave', 'point', 'shrug', 'facepalm', 'arms_crossed', 'drink', 'cheers', 'thumbs_up',
   'high_five', 'suit_up', 'hands_up', 'nod', 'shake_head', 'dance', 'hug', 'slap', 'think',
+  'kiss', 'phone_call', 'sit', 'stand', 'lean_in', 'jaw_drop', 'fist_bump', 'spit_take',
 ] as const;
 export type Gesture = (typeof GESTURES)[number];
+/** Gestures done to someone else, who joins in (or gets slapped). */
+export const PAIRED_GESTURES = ['high_five', 'hug', 'slap', 'kiss', 'fist_bump'] as const satisfies readonly Gesture[];
+
+/** Things people carry around and hand to each other. */
+export const PROPS = [
+  'phone', 'ring', 'envelope', 'beer', 'glass', 'flowers', 'book', 'umbrella', 'pineapple', 'goat', 'gift', 'sword',
+  'briefcase', 'microphone', 'french_horn',
+] as const;
+export type Prop = (typeof PROPS)[number];
+
+/** Camera intent the writer can put on a beat; otherwise the director picks the coverage. */
+export const SHOTS = ['closeup', 'two', 'push_in', 'wide'] as const;
+export type ShotIntent = (typeof SHOTS)[number];
+
+/** Full-screen cards: a text message, one of Barney's charts or slideshows, a sign, a page of the Playbook. */
+export const INSERT_KINDS = ['text', 'chart', 'slides', 'sign', 'playbook'] as const;
+export type InsertKind = (typeof INSERT_KINDS)[number];
+export const CHART_STYLES = ['bar', 'line', 'pie'] as const;
+export type ChartStyle = (typeof CHART_STYLES)[number];
+
+/** Music under a montage. */
+export const MONTAGE_MUSIC = ['upbeat', 'tender'] as const;
+export type MontageMusic = (typeof MONTAGE_MUSIC)[number];
 
 export const LAUGHS = ['chuckle', 'laugh', 'big', 'ooh', 'aww', 'applause', 'woo', 'gasp'] as const;
 export type LaughKind = (typeof LAUGHS)[number];
@@ -42,7 +66,7 @@ export type Delivery = (typeof DELIVERIES)[number];
 export const CUTAWAY_STYLES = ['imagined', 'flashback'] as const;
 export type CutawayStyle = (typeof CUTAWAY_STYLES)[number];
 
-// What the writer can say about a guest star's look. Kept to plain words so any model can describe someone.
+// What a writer can say about a guest star's look, in plain words.
 export const GUEST_SKIN = ['fair', 'light', 'olive', 'tan', 'brown', 'dark'] as const;
 export const GUEST_HAIR = ['black', 'dark_brown', 'brown', 'auburn', 'red', 'blonde', 'gray', 'white'] as const;
 export const GUEST_HAIR_STYLES = ['short', 'buzz', 'neat', 'slick', 'messy', 'shaggy', 'swoop', 'receding', 'curly', 'bob', 'long', 'waves', 'ponytail', 'updo'] as const;
@@ -84,21 +108,91 @@ export interface GuestStar {
 export const TRANSITIONS = ['cut', 'skyline', 'exterior', 'rewind'] as const;
 export type Transition = (typeof TRANSITIONS)[number];
 
+/** A listener's reaction once a line (or an insert) lands: the shocked stare, the spit take. */
+export interface Reaction {
+  character: CharacterId;
+  emotion?: Emotion;
+  gesture?: Gesture;
+}
+
 export type Beat =
   | {
     type: 'say'; character: CharacterId; line: string; emotion?: Emotion; to?: string; gesture?: Gesture; laugh?: LaughKind;
     delivery?: Delivery;
     /** The next beat cuts this line off: it ends on a dash and the next speaker jumps straight in. */
     interrupted?: boolean;
+    /** Everyone else saying it at the same time ("ALL: What?!"). */
+    chorus?: CharacterId[];
+    react?: Reaction[];
+    shot?: ShotIntent;
   }
   | { type: 'narrate'; line: string; laugh?: LaughKind }
   | { type: 'move'; character: CharacterId; to: string }
   | { type: 'enter'; character: CharacterId; to?: string }
   | { type: 'exit'; character: CharacterId }
-  | { type: 'act'; character: CharacterId; gesture: Gesture; to?: string; emotion?: Emotion }
+  | { type: 'act'; character: CharacterId; gesture: Gesture; to?: string; emotion?: Emotion; shot?: ShotIntent }
   | { type: 'laugh'; laugh: LaughKind }
   | { type: 'pause'; seconds: number }
-  | CutawayBeat;
+  /** Pick something up (or put it down with prop "none"). */
+  | { type: 'hold'; character: CharacterId; prop: Prop | 'none'; shot?: ShotIntent }
+  /** Hand what you're holding (or `prop`) to someone. */
+  | { type: 'give'; character: CharacterId; to: CharacterId; prop?: Prop; shot?: ShotIntent }
+  | FreezeBeat
+  | InsertBeat
+  | CutawayBeat
+  | MontageBeat;
+
+/** Future Ted talks over a frozen frame, optionally caught mid-gesture ("Kids, this is the moment...") */
+export interface FreezeBeat {
+  type: 'freeze';
+  line: string;
+  /** Who the frame is on. Without one, the frame freezes on whatever shot is up. */
+  character?: CharacterId;
+  gesture?: Gesture;
+  to?: CharacterId;
+  emotion?: Emotion;
+  laugh?: LaughKind;
+  shot?: ShotIntent;
+}
+
+/** A full-screen card, held long enough to read, with an optional line read over it. */
+export interface InsertBeat {
+  type: 'insert';
+  kind: InsertKind;
+  /** Chart, slide, sign or play name; for a text, who the thread is with. */
+  title?: string;
+  /** Slide bullets, Playbook steps, the sign's smaller print. */
+  lines?: string[];
+  /** A text thread. Messages from the phone's owner (`character`) are on the right. */
+  messages?: { from: CharacterId | string; text: string }[];
+  /** A chart's labelled values. */
+  items?: { label: string; value: number }[];
+  chart?: ChartStyle;
+  /** Whose phone, chart, slideshow or Playbook it is; reads `line` over the card. */
+  character?: CharacterId;
+  /** Read over the card by `character`, or by Future Ted. */
+  line?: string;
+  laugh?: LaughKind;
+  react?: Reaction[];
+}
+
+/** "And that's how it went for three weeks": quick shots across sets over music, then back to the scene. */
+export interface MontageBeat {
+  type: 'montage';
+  /** Card over the first shot, e.g. "Three weeks of canoe lessons". */
+  label?: string;
+  music: MontageMusic;
+  shots: MontageShot[];
+}
+
+/** One montage shot: one or two beats somewhere, with its own little card ("Day 3"). */
+export interface MontageShot {
+  location: SceneLocationId;
+  time: TimeOfDay;
+  label?: string;
+  cast: CastPlacement[];
+  beats: Beat[];
+}
 
 /**
  * Leave the scene for a short sequence somewhere else ("Here's how Barney imagined it", "Three years earlier"),
@@ -128,12 +222,32 @@ export interface CastPlacement {
   outfit?: Outfit;
 }
 
+/**
+ * A change of clothes for one character, in the guest-star vocabulary: anything left out stays as it is.
+ * Ted's red boots, Barney in sweatpants, a wedding. Worn over their casual or work clothes.
+ */
+export interface Costume {
+  character: CharacterId;
+  topStyle?: (typeof GUEST_TOPS)[number];
+  top?: string;
+  under?: string;
+  tie?: string;
+  vest?: string;
+  pants?: string;
+  shoes?: string;
+  boots?: boolean;
+  hairStyle?: (typeof GUEST_HAIR_STYLES)[number];
+  extras?: (typeof GUEST_EXTRAS)[number][];
+}
+
 export interface Scene {
   location: LocationId;
   time: TimeOfDay;
   summary?: string;
   /** Omit for automatic skyline/time-change, exterior/location-change, or same-location cut. */
   transition?: Transition;
+  /** Costumes for this scene, over the episode's. */
+  wardrobe?: Costume[];
   cast: CastPlacement[];
   beats: Beat[];
 }
@@ -143,12 +257,26 @@ export interface EpisodeMeta {
   title: string;
   logline: string;
   code: string; // e.g. "S04E12"
-  source: 'sample' | 'llm';
+}
+
+/** One pre-written episode, as stored in episodes/<code>-<slug>.json. */
+export interface EpisodeScript {
+  code: string;
+  title: string;
+  logline: string;
+  /** Future Ted over the kids on the couch in 2030: "Kids, ..." */
+  coldOpen: string;
+  /** The kids' reaction to the cold open: say beats by penny/luke and Future Ted's narrate answers. */
+  couch?: Beat[];
+  guests?: GuestStar[];
+  /** Costumes worn all episode, over everyone's casual or work clothes. */
+  wardrobe?: Costume[];
+  scenes: Scene[];
 }
 
 // Items the player consumes, in order.
 export type ShowItem =
   /** Future Ted's cold open over the kids on the couch, then any couch beats (the kids' reaction). */
-  | { kind: 'episode-start'; episode: EpisodeMeta; coldOpen: string; couch?: Beat[]; guests?: GuestStar[] }
+  | { kind: 'episode-start'; episode: EpisodeMeta; coldOpen: string; couch?: Beat[]; guests?: GuestStar[]; wardrobe?: Costume[] }
   | { kind: 'scene'; episode: EpisodeMeta; index: number; scene: Scene }
   | { kind: 'episode-end'; episode: EpisodeMeta };

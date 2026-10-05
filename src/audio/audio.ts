@@ -1,5 +1,5 @@
 import { TITLE_BEAT, TITLE_BEATS, TITLE_TAIL } from '../show/mainTitles';
-import type { LaughKind } from '../script/types';
+import type { LaughKind, MontageMusic } from '../script/types';
 import type { Ambience, DoorSound } from '../world/sets/common';
 import { rand, pick } from '../util';
 
@@ -24,19 +24,41 @@ export class AudioEngine {
   private noise!: AudioBuffer;
   private clapBuf!: AudioBuffer;
   private ambNodes: AudioNode[] = [];
+  /** A montage's music, scheduled a little ahead at a time until it's stopped. */
+  private bed: { out: GainNode; timer: ReturnType<typeof setInterval> } | null = null;
+  private plucks = new Map<string, AudioBuffer>();
   private ambTimer: number | null = null;
-  laughsEnabled = true;
-  musicEnabled = true;
   volume = 0.8;
   /** Silent mode for automated testing: everything still runs, nothing reaches the speakers. */
   muted = false;
 
+  /** A context the browser hasn't let start yet (autoplay policy): it goes live on the first user gesture. */
+  private pending: AudioContext | null = null;
+
+  /** Start the audio graph. Safe to call repeatedly; call it again from a user gesture to unlock autoplay. */
   init() {
     if (this.ctx) {
       void this.ctx.resume();
       return;
     }
-    const ctx = (this.ctx = new AudioContext());
+    if (!this.pending) {
+      const ctx = (this.pending = new AudioContext());
+      ctx.onstatechange = () => {
+        if (ctx.state !== 'running' || this.ctx) return;
+        this.pending = null;
+        this.build(ctx);
+      };
+    }
+    // Sounds scheduled on a suspended clock would all fire at once on unlock, so until the
+    // context runs `ctx` stays null and every cue is skipped.
+    if (this.pending.state === 'running') {
+      this.build(this.pending);
+      this.pending = null;
+    } else void this.pending.resume();
+  }
+
+  private build(ctx: AudioContext) {
+    this.ctx = ctx;
     this.master = ctx.createGain();
     this.master.gain.value = this.muted ? 0 : this.volume;
     const comp = ctx.createDynamicsCompressor();
@@ -218,7 +240,7 @@ export class AudioEngine {
 
   /** Plays a laugh-track reaction. Returns its duration in seconds. */
   laugh(kind: LaughKind): number {
-    if (!this.ctx || !this.laughsEnabled) return 0;
+    if (!this.ctx) return 0;
     const t0 = this.ctx.currentTime + 0.05;
     const crowd = (n: number, durA: number, durB: number, gain: number, spread: number, vowelSet: Vowel[], pulse: [number, number] | null, glide = 0) => {
       let end = t0;
@@ -451,6 +473,93 @@ export class AudioEngine {
     }
   }
 
+  /** A text arriving: the little two-note chime. */
+  textChime() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [[1318, 0], [1760, 0.09]].forEach(([f, d]) => {
+      const o = this.ctx!.createOscillator();
+      o.frequency.value = f;
+      const g = this.ctx!.createGain();
+      g.gain.setValueAtTime(0.0001, t + d);
+      g.gain.exponentialRampToValueAtTime(0.09, t + d + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.25);
+      o.connect(g).connect(this.sfxBus);
+      o.start(t + d);
+      o.stop(t + d + 0.3);
+    });
+  }
+
+  /** A card slides in: a short filtered whoosh. */
+  whoosh() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.Q.value = 1.4;
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.exponentialRampToValueAtTime(2600, t + 0.25);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.22, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    this.noiseSrc(t, 0.35).connect(f).connect(g).connect(this.sfxBus);
+  }
+
+  /** The freeze frame: a dry shutter click with a soft thump under it. */
+  freezeFrame() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    for (const d of [0, 0.05]) {
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3000;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.3, t + d);
+      g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.03);
+      this.noiseSrc(t + d, 0.04).connect(hp).connect(g).connect(this.sfxBus);
+    }
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(110, t);
+    o.frequency.exponentialRampToValueAtTime(55, t + 0.2);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.25, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.connect(g).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.3);
+  }
+
+  /** Pffft: a drink sprayed across the table. */
+  spray() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 1400;
+    f.Q.value = 0.7;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+    this.noiseSrc(t, 0.45).connect(f).connect(g).connect(this.sfxBus);
+  }
+
+  /** Knuckles meeting knuckles. */
+  bump() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(220, t);
+    o.frequency.exponentialRampToValueAtTime(90, t + 0.06);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o.connect(g).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.12);
+  }
+
   doorbell() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
@@ -492,6 +601,14 @@ export class AudioEngine {
     return buf;
   }
 
+  /** Plucked strings repeat a lot in the music beds: synthesize each note once. */
+  private plucked(midi: number, dur: number, bright: number) {
+    const k = `${midi}/${dur}/${bright}`;
+    let b = this.plucks.get(k);
+    if (!b) this.plucks.set(k, (b = this.pluck(440 * Math.pow(2, (midi - 69) / 12), dur, bright)));
+    return b;
+  }
+
   private note(buf: AudioBuffer, t: number, gain: number, dest: AudioNode) {
     const ctx = this.ctx!;
     const s = ctx.createBufferSource();
@@ -526,6 +643,52 @@ export class AudioEngine {
     return out;
   }
 
+  /**
+   * Music under a montage until stopBed(): a bright strummed power-pop loop, or a tender fingerpicked one.
+   * Scheduled a little ahead at a time, so a pause (which suspends the context) simply holds it.
+   */
+  montage(kind: MontageMusic) {
+    this.stopBed(0.05);
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const out = ctx.createGain();
+    out.gain.value = kind === 'upbeat' ? 0.75 : 0.9;
+    out.connect(this.musicBus);
+    const gtr = kind === 'upbeat' ? this.guitarOut(out) : out;
+    const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
+    const bars = kind === 'upbeat' ? [E, B, Cs, A] : [E, Cs, A, B];
+    const lead = [76, 0, 75, 76, 78, 0, 76, 73, 75, 0, 71, 0, 73, 71, 68, 0];
+    const step = kind === 'upbeat' ? 0.22 : 0.3;
+    let i = 0, next = ctx.currentTime + 0.05;
+    const schedule = () => {
+      for (; next < ctx.currentTime + 1.2; i++, next += step) {
+        const chord = bars[Math.floor(i / 8) % bars.length], k = i % 8, t = next;
+        if (kind === 'tender') {
+          if (k === 0) this.note(this.plucked(chord[0], 2, 0.25), t, 0.2, out);
+          this.note(this.plucked(chord[[1, 3, 2, 4, 1, 3, 2, 4][k] % chord.length] + 12, 1.4, 0.3), t, 0.13, out);
+          continue;
+        }
+        const open = k === 0 || k === 3 || k === 4 || k === 6;
+        (open ? chord : chord.slice(0, 3)).forEach((m, j) => this.note(this.plucked(m, open ? 1.2 : 0.22, 0.4), t + j * 0.011, open ? 0.2 : 0.16, gtr));
+        const m = lead[i % lead.length];
+        if (Math.floor(i / 16) % 2 && m) this.note(this.plucked(m, 0.9, 0.25), t, 0.22, gtr);
+        if (k % 4 === 0) this.kick(t, out);
+        if (k % 4 === 2) this.hit(t, 0.14, 1800, 0.25, out);
+        this.hit(t, 0.04, 7000, k % 2 ? 0.04 : 0.06, out);
+      }
+    };
+    schedule();
+    this.bed = { out, timer: setInterval(schedule, 300) };
+  }
+
+  /** Fade the montage music out. */
+  stopBed(fade = 0.35) {
+    if (!this.bed) return;
+    clearInterval(this.bed.timer);
+    if (this.ctx) this.bed.out.gain.setTargetAtTime(0, this.ctx.currentTime, fade / 3);
+    this.bed = null;
+  }
+
   /** Silence even scheduled notes when a viewer skips a scene or episode. */
   stopSting() {
     if (!this.ctx || !this.stingGain) return;
@@ -535,7 +698,7 @@ export class AudioEngine {
 
   /** Original, short descending tape-like zip to punctuate an intentional flashback. */
   rewind() {
-    if (!this.ctx || !this.musicEnabled) return;
+    if (!this.ctx) return;
     const ctx = this.ctx;
     const duration = 0.5;
     const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
@@ -551,7 +714,7 @@ export class AudioEngine {
 
   /** A bright harp glissando into someone's imagination (or back down out of it). Returns duration. */
   dream(into = true) {
-    if (!this.ctx || !this.musicEnabled) return 0;
+    if (!this.ctx) return 0;
     const ctx = this.ctx;
     const out = this.cueOutput();
     const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -565,7 +728,7 @@ export class AudioEngine {
 
   /** Soft fingerpicked chords under a sung line. */
   serenade(seconds: number) {
-    if (!this.ctx || !this.musicEnabled) return;
+    if (!this.ctx) return;
     const ctx = this.ctx;
     const out = this.cueOutput();
     const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -585,7 +748,7 @@ export class AudioEngine {
   theme(): { beat: number; duration: number } {
     const beat = TITLE_BEAT;
     const duration = TITLE_BEATS * beat + TITLE_TAIL;
-    if (!this.ctx || !this.musicEnabled) return { beat, duration };
+    if (!this.ctx) return { beat, duration };
     const ctx = this.ctx;
     const out = this.cueOutput();
     const gtr = this.guitarOut(out);
@@ -666,7 +829,7 @@ export class AudioEngine {
 
   /** Upbeat jangly guitar transition riff. Returns duration. */
   sting(variant: 'transition' | 'outro' = 'transition') {
-    if (!this.ctx || !this.musicEnabled) return 0;
+    if (!this.ctx) return 0;
     const ctx = this.ctx;
     const out = this.guitarOut();
     const t0 = ctx.currentTime + 0.05;

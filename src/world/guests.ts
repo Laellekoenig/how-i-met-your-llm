@@ -1,4 +1,4 @@
-import type { GuestId, GuestStar } from '../script/types';
+import type { Costume, GuestId, GuestStar } from '../script/types';
 import type { CharacterDef, Look } from './characters';
 
 // One-off guest stars: the writer describes someone in plain words, and we turn that into a procedural look and voice.
@@ -65,6 +65,52 @@ export function guestLook(g: GuestStar): Look {
   }
   if (g.pants === 'denim') look.jeans = true;
   if (g.extras.includes('apron')) look.apron = { bib: true };
+  return look;
+}
+
+const JACKETS = ['suit', 'blazer', 'cardigan', 'leather', 'hoodie'];
+
+/**
+ * Someone's usual look with a costume over it, in the guest-star vocabulary. A new kind of top drops the details
+ * that belonged to the old one (Ted's tweed, Marshall's plaid, Barney's waistcoat); anything not mentioned stays.
+ */
+export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
+  const look: Look = { ...base, extras: [...(base.extras ?? [])] };
+  if (c.topStyle && c.topStyle !== base.topStyle) {
+    for (const k of ['plaid', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
+    look.topStyle = c.topStyle;
+    if (JACKETS.includes(c.topStyle)) look.under ??= '#f2f0ea';
+    if (base.topStyle === 'dress') {
+      delete look.skirt;
+      delete look.legs;
+      look.pants = '#2a2a30';
+    }
+  }
+  if (c.top) look.top = guestColor(c.top, look.top);
+  if (look.topStyle === 'flannel' && (c.top || !look.plaid)) look.plaid = [shade(look.top, 0.45), '#d8cfb8'];
+  if (c.under) look.under = guestColor(c.under, '#f2f0ea');
+  if (c.tie) {
+    look.tie = guestColor(c.tie, '#8a2a30');
+    delete look.tiePattern;
+    delete look.tieAccent;
+  }
+  if (c.vest) look.vest = guestColor(c.vest, look.top);
+  if (look.topStyle === 'dress') {
+    look.skirt = look.top;
+    look.pants = look.legs = look.skin;
+    look.jeans = false;
+  } else if (c.pants || (c.topStyle === 'suit' && base.topStyle !== 'suit')) {
+    // a suit comes with its trousers; new trousers replace a skirt
+    look.pants = c.pants ? guestColor(c.pants, look.pants) : look.top;
+    look.jeans = c.pants === 'denim';
+    delete look.skirt;
+    delete look.legs;
+  }
+  if (c.shoes) look.shoes = guestColor(c.shoes, look.shoes);
+  if (c.boots !== undefined) look.boots = c.boots;
+  if (c.hairStyle) look.hairStyle = c.hairStyle;
+  for (const e of c.extras ?? []) if (!look.extras!.includes(e)) look.extras!.push(e);
+  if (c.extras?.includes('apron')) look.apron ??= { bib: true };
   return look;
 }
 

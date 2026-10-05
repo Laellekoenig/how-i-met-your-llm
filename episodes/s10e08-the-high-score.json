@@ -1,0 +1,118 @@
+{
+  "code": "S10E08",
+  "title": "The High Score",
+  "logline": "Barney disputes a laser-tag score. A subway ride, a hospital vending machine and two embarrassing memories reveal a lifelong problem with coming second.",
+  "coldOpen": "Kids, there are two kinds of people. People who can lose gracefully, and your Uncle Barney, who once requested an instant replay of rock-paper-scissors.",
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Denise",
+      "role": "laser-tag referee, unimpressed by adults who contest the scoreboard",
+      "gender": "female",
+      "height": "average",
+      "build": "average",
+      "skin": "brown",
+      "hair": "black",
+      "hairStyle": "ponytail",
+      "top": "teal",
+      "topStyle": "polo",
+      "pants": "black",
+      "extras": [],
+      "voice": { "pitch": "medium", "pace": "slow" }
+    }
+  ],
+  "scenes": [
+    {
+      "location": "subway",
+      "time": "day",
+      "transition": "cut",
+      "cast": [
+        { "character": "ted", "mark": "seat_left" },
+        { "character": "marshall", "mark": "seat_left_inner" },
+        { "character": "barney", "mark": "pole" },
+        { "character": "robin", "mark": "center" }
+      ],
+      "beats": [
+        { "type": "say", "character": "barney", "line": "Today, we become legends. I booked the entire laser-tag arena.", "emotion": "excited", "gesture": "point" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "The invitation said team-building. I brought a resignation letter.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "Ted has never handled competition well. Remember college?", "emotion": "smug" },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "College, 1996",
+          "location": "wesleyan_dorm",
+          "time": "night",
+          "cast": [{ "character": "ted", "mark": "desk" }, { "character": "marshall", "mark": "bed_right" }, { "character": "lily", "mark": "center" }],
+          "beats": [
+            { "type": "say", "character": "ted", "line": "The computer ranked my essay second. It is a spell checker. It has no authority here.", "emotion": "angry" },
+            { "type": "say", "character": "marshall", "to": "ted", "line": "You spelled architecture three different ways." },
+            { "type": "say", "character": "lily", "to": "marshall", "line": "He is exploring alternate structures.", "delivery": "deadpan", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "ted", "line": "That computer was biased against the humanities.", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "laser_tag",
+      "time": "day",
+      "transition": "cut",
+      "cast": [{ "character": "barney", "mark": "blue_cover" }, { "character": "robin", "mark": "red_cover" }, { "character": "guest1", "mark": "center" }],
+      "beats": [
+        { "type": "say", "character": "guest1", "line": "Blue team lost. Please return your equipment and your sense of entitlement.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "I demand a recount. And a smaller opponent. That child was at least eleven.", "emotion": "angry" },
+        { "type": "say", "character": "robin", "line": "I used to perform for crowds tougher than this.", "emotion": "smug" },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "Canada, 1990",
+          "location": "canadian_mall",
+          "time": "day",
+          "cast": [{ "character": "robin_sparkles", "mark": "stage" }],
+          "beats": [
+            { "type": "narrate", "line": "Before New York, there was a mall. And a very ambitious sound check." },
+            { "type": "say", "character": "robin_sparkles", "line": "Neon dreams and shopping bags, everybody dance past the price tags!", "delivery": "sing", "emotion": "excited", "gesture": "dance" },
+            { "type": "say", "character": "robin_sparkles", "line": "Thank you, Canada! Could someone tell the pretzel guy the microphone is on?", "emotion": "nervous", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "barney", "to": "robin", "line": "You had a stage? I want a stage for my appeal.", "emotion": "excited", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "You can have a chair. Outside.", "delivery": "deadpan", "laugh": "big" }
+      ]
+    },
+    {
+      "location": "hospital",
+      "time": "night",
+      "transition": "cut",
+      "cast": [
+        { "character": "barney", "mark": "seat_left" },
+        { "character": "robin", "mark": "seat_right" },
+        { "character": "ted", "mark": "center" },
+        { "character": "marshall", "mark": "coffee" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "Nobody was injured. We were waiting for Lily, who was visiting a friend. Barney had diagnosed himself with scoreboard trauma." },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Do they validate parking? And possibly my performance?", "emotion": "sad" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "The machine says your coffee is ready. You finally won something." },
+        { "type": "say", "character": "marshall", "line": "It gave me hot water. The coffee is a participation trophy.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "line": "Sometimes second place is just the universe saying there is room to grow.", "emotion": "happy" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ted. You appealed a spell checker.", "delivery": "deadpan", "laugh": "big" }
+      ]
+    },
+    {
+      "location": "elevator",
+      "time": "night",
+      "transition": "cut",
+      "cast": [
+        { "character": "ted", "mark": "left" },
+        { "character": "marshall", "mark": "right" },
+        { "character": "lily", "mark": "center" },
+        { "character": "barney", "mark": "buttons" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "On the way home, Barney insisted on stopping at his office. He needed to print a certificate." },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Why did you press every floor?", "emotion": "confused" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Highest score in the building.", "emotion": "smug", "gesture": "thumbs_up", "laugh": "big" },
+        { "type": "say", "character": "marshall", "line": "Great. Now the elevator is beating us too.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    }
+  ]
+}

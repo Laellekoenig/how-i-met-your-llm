@@ -4,12 +4,11 @@ import { Stage } from './show/stage';
 import { Director } from './show/director';
 import { Player } from './show/player';
 import { Overlay, Panel } from './ui/overlay';
-import { Showrunner, Programming } from './llm/showrunner';
-import { listModels } from './llm/openrouter';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
-import { initCasting } from './ui/casting';
+import { EPISODES } from './script/catalog';
+import { Syndication } from './script/episodes';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -19,127 +18,27 @@ const director = new Director(renderer.camera, stage);
 const overlay = new Overlay();
 const panel = new Panel();
 
-// ---------------------------------------------------------------- writers' room
+// ---------------------------------------------------------------- programming
 
-const statusEl = $('writer-status');
-const logEl = $('writer-log');
-const writer = new Showrunner(stage.sets, {
-  status(text, state) {
-    statusEl.textContent = text;
-    statusEl.className = `status ${state === 'busy' ? 'busy' : state === 'error' ? 'error' : ''}`;
-    syncWriteButton();
-  },
-  log(text, error) {
-    const li = document.createElement('li');
-    li.textContent = text;
-    if (error) li.className = 'err';
-    logEl.appendChild(li);
-    logEl.scrollTop = logEl.scrollHeight;
-    if (error) ($('writer-log-wrap') as HTMLDetailsElement).open = true;
-  },
-  stats(text) {
-    $('writer-stats').textContent = text;
-  },
+// Pre-written episodes air back to back. `?ep=S11E03` starts at a given episode.
+const startAt = Math.max(0, Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep')));
+const syndication = new Syndication(EPISODES, startAt);
+const player = new Player(stage, director, renderer, overlay, panel, syndication);
+
+// Dev mode's episode picker airs any episode from its cold open; syndication carries on from there.
+panel.episodes(EPISODES, (index) => {
+  syndication.seek(index);
+  player.cue();
 });
-const programming = new Programming(writer);
-const player = new Player(stage, director, renderer, overlay, panel, programming);
-
-const keyInput = $<HTMLInputElement>('api-key');
-const modelInput = $<HTMLInputElement>('model');
-const remember = $<HTMLInputElement>('remember-key');
-const writeBtn = $<HTMLButtonElement>('btn-write');
-
-keyInput.value = localStorage.getItem('himyllm.key') ?? '';
-modelInput.value = localStorage.getItem('himyllm.model') ?? writer.model;
-remember.checked = localStorage.getItem('himyllm.remember') !== '0';
-
-function syncWriteButton() {
-  writeBtn.textContent = writer.running ? 'stop writing' : 'start writing';
-  writeBtn.classList.toggle('stop', writer.running);
-}
-
-function persistKey() {
-  localStorage.setItem('himyllm.remember', remember.checked ? '1' : '0');
-  if (remember.checked && keyInput.value) localStorage.setItem('himyllm.key', keyInput.value.trim());
-  else localStorage.removeItem('himyllm.key');
-}
-keyInput.addEventListener('change', persistKey);
-remember.addEventListener('change', persistKey);
-modelInput.addEventListener('change', () => localStorage.setItem('himyllm.model', modelInput.value.trim()));
-
-writeBtn.addEventListener('click', () => {
-  if (writer.running) {
-    writer.stop();
-    syncWriteButton();
-    return;
-  }
-  writer.apiKey = keyInput.value.trim();
-  writer.model = modelInput.value.trim() || 'anthropic/claude-sonnet-5.5';
-  persistKey();
-  writer.start();
-  syncWriteButton();
-  if (writer.running && !tunedIn) tuneIn();
-});
-
-listModels()
-  .then((models) => {
-    const dl = $('model-list');
-    const preferred = ['anthropic/', 'openai/', 'google/', 'deepseek/', 'x-ai/', 'moonshotai/', 'meta-llama/', 'mistralai/', 'qwen/'];
-    models
-      .filter((m) => !m.id.endsWith(':batch') && !m.id.startsWith('~'))
-      .sort((a, b) => {
-        const pa = preferred.findIndex((p) => a.id.startsWith(p));
-        const pb = preferred.findIndex((p) => b.id.startsWith(p));
-        return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb) || a.id.localeCompare(b.id);
-      })
-      .forEach((m) => {
-        const o = document.createElement('option');
-        o.value = m.id;
-        o.label = `${m.name} · $${(m.promptPrice * 1e6).toFixed(2)}/$${(m.completionPrice * 1e6).toFixed(2)} per M`;
-        dl.appendChild(o);
-      });
-  })
-  .catch(() => {
-    /* offline: free-text model input still works */
-  });
-
-// pitches
-const pitchInput = $<HTMLInputElement>('pitch-input');
-const pitchQueue = $('pitch-queue');
-function renderPitches() {
-  pitchQueue.innerHTML = '';
-  for (const p of writer.suggestions) {
-    const d = document.createElement('div');
-    d.textContent = p;
-    pitchQueue.appendChild(d);
-  }
-  if (writer.suggestions.length && !writer.running) {
-    const d = document.createElement('div');
-    d.textContent = 'start writing (needs an API key) to air pitches';
-    d.style.opacity = '0.6';
-    pitchQueue.appendChild(d);
-  }
-}
-function submitPitch() {
-  const v = pitchInput.value.trim();
-  if (!v) return;
-  writer.suggestions.push(v.slice(0, 300));
-  pitchInput.value = '';
-  renderPitches();
-}
-$('btn-pitch').addEventListener('click', submitPitch);
-pitchInput.addEventListener('keydown', (e) => e.key === 'Enter' && submitPitch());
 
 // ---------------------------------------------------------------- now playing
 
 player.onItem = (item: ShowItem) => {
-  overlay.setLive(item.episode.source === 'llm');
   const meta: string[] = [];
   if (item.kind === 'scene') meta.push(`scene ${item.index + 1}`, item.scene.location, item.scene.time);
   if (item.kind === 'episode-start') meta.push('cold open');
   if (item.kind === 'episode-end') meta.push('credits');
   panel.nowPlaying(item.episode, meta);
-  renderPitches();
 };
 
 // ---------------------------------------------------------------- settings & transport
@@ -156,14 +55,6 @@ const bind = (id: string, fn: (on: boolean) => void) => {
   });
 };
 bind('opt-style', (on) => renderer.setStyle({ enabled: on }));
-bind('opt-voices', (on) => (speech.enabled = on));
-initCasting($('casting'));
-bind('opt-laughs', (on) => (audio.laughsEnabled = on));
-bind('opt-music', (on) => (audio.musicEnabled = on));
-bind('opt-captions', (on) => {
-  overlay.captionsEnabled = on;
-  if (!on) overlay.hideCaption();
-});
 const res = $<HTMLInputElement>('opt-res');
 res.addEventListener('input', () => {
   $('opt-res-v').textContent = `${res.value}p`;
@@ -186,16 +77,7 @@ function setPaused(paused: boolean) {
   }
 }
 pauseBtn.addEventListener('click', () => setPaused(!player.paused));
-let currentEpisodeId: string | null = null;
-const prevOnItem = player.onItem;
-player.onItem = (item) => {
-  currentEpisodeId = item.episode.id;
-  prevOnItem?.(item);
-};
-function skipEpisode() {
-  if (currentEpisodeId) programming.dropEpisode(currentEpisodeId);
-  player.skip('episode');
-}
+const skipEpisode = () => player.skip('episode');
 $('btn-back-ep').addEventListener('click', () => player.back('episode'));
 $('btn-back').addEventListener('click', () => player.back('scene'));
 $('btn-skip').addEventListener('click', () => player.skip('scene'));
@@ -210,7 +92,7 @@ $('btn-full').addEventListener('click', toggleFullscreen);
 // ---------------------------------------------------------------- dev mode
 
 // Regular mode is just the TV: the show plays on its own, letterboxed to fill the window.
-// Dev mode (?dev, or press D) brings back the transport, the writers' room and all the settings.
+// Dev mode (?dev, or press D) brings back the transport, the transcript and all the settings.
 const devMode = () => document.body.classList.contains('dev');
 function setDevMode(on: boolean) {
   document.body.classList.toggle('dev', on);
@@ -237,7 +119,7 @@ window.addEventListener('keydown', (e) => {
   } else if (e.code === 'ArrowLeft') player.back(e.shiftKey ? 'episode' : 'scene');
 });
 
-// ---------------------------------------------------------------- tune in
+// ---------------------------------------------------------------- start
 
 // Agents testing the show play it silently: ?mute, a webdriver browser, or T3 Code's preview browser
 // (where agents drive the app). ?sound overrides the detection.
@@ -247,33 +129,21 @@ function testingMuted() {
   return q.has('mute') || navigator.webdriver || /\bT3Code\b/.test(navigator.userAgent);
 }
 
-let tunedIn = false;
-function tuneIn() {
-  if (tunedIn) return;
-  tunedIn = true;
-  const muted = (audio.muted = speech.muted = testingMuted());
+// The show starts on load. Browsers may hold sound back until the viewer first interacts with the
+// page; the picture and captions run regardless, and the first click or key press brings in the audio.
+const muted = (audio.muted = speech.muted = testingMuted());
+audio.init();
+audio.setVolume(Number(vol.value));
+function unlockSound() {
+  window.removeEventListener('pointerdown', unlockSound, true);
+  window.removeEventListener('keydown', unlockSound, true);
   audio.init();
-  audio.setVolume(Number(vol.value));
   // unlock speech synthesis inside the user gesture
   if (speech.supported && !muted) speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
-  $('tune-in').classList.add('hidden');
-  // Regular mode has no writers' room UI, so a remembered key starts the writers on its own.
-  if (!devMode() && !writer.running && keyInput.value.trim()) writeBtn.click();
-  void player.run();
 }
-$('tune-in').addEventListener('click', tuneIn);
-
-// Preview behind the tune-in screen: the gang in the booth.
-stage.setLocation('maclarens', 'night');
-stage.place('ted', 'booth_end');
-stage.place('marshall', 'booth_left_back');
-stage.place('lily', 'booth_left_front');
-stage.place('robin', 'booth_right_back');
-stage.place('barney', 'booth_right_front');
-stage.place('carl', 'behind_bar');
-stage.setBackground('carl', true);
-director.wide(1, 0.05);
-let previewChatter = 0;
+window.addEventListener('pointerdown', unlockSound, true);
+window.addEventListener('keydown', unlockSound, true);
+void player.run();
 
 // ---------------------------------------------------------------- frame loop
 
@@ -282,17 +152,6 @@ function frame(now: number) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   const t = now / 1000;
-  if (!tunedIn) {
-    previewChatter -= dt;
-    if (previewChatter < 0) {
-      previewChatter = 1.5 + Math.random() * 2;
-      const ids = stage.onStageIds().filter((i) => i !== 'carl');
-      for (const id of ids) stage.actors[id].talking = false;
-      const who = ids[Math.floor(Math.random() * ids.length)];
-      stage.actors[who].talking = true;
-      for (const id of ids) if (id !== who) stage.actors[id].lookAt = stage.actors[who].headWorld;
-    }
-  }
   if (!player.paused) {
     stage.update(dt, t);
     director.update(dt);
@@ -303,4 +162,4 @@ function frame(now: number) {
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-Object.assign(window as unknown as Record<string, unknown>, { himyllm: { stage, director, renderer, player, writer, programming, audio } });
+Object.assign(window as unknown as Record<string, unknown>, { himyllm: { stage, director, renderer, player, audio } });
