@@ -20,7 +20,6 @@ the T3 Code preview browser are muted automatically, so agents testing the show 
 With no API key it plays four hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
 pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is
 remembered, regular mode starts the writers on its own when you tune in.
-You can also **pitch an episode** idea; the writers use the next pitch for the next episode.
 
 Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `→` skip scene.
 

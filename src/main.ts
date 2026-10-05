@@ -103,33 +103,6 @@ listModels()
     /* offline: free-text model input still works */
   });
 
-// pitches
-const pitchInput = $<HTMLInputElement>('pitch-input');
-const pitchQueue = $('pitch-queue');
-function renderPitches() {
-  pitchQueue.innerHTML = '';
-  for (const p of writer.suggestions) {
-    const d = document.createElement('div');
-    d.textContent = p;
-    pitchQueue.appendChild(d);
-  }
-  if (writer.suggestions.length && !writer.running) {
-    const d = document.createElement('div');
-    d.textContent = 'start writing (needs an API key) to air pitches';
-    d.style.opacity = '0.6';
-    pitchQueue.appendChild(d);
-  }
-}
-function submitPitch() {
-  const v = pitchInput.value.trim();
-  if (!v) return;
-  writer.suggestions.push(v.slice(0, 300));
-  pitchInput.value = '';
-  renderPitches();
-}
-$('btn-pitch').addEventListener('click', submitPitch);
-pitchInput.addEventListener('keydown', (e) => e.key === 'Enter' && submitPitch());
-
 // ---------------------------------------------------------------- now playing
 
 player.onItem = (item: ShowItem) => {
@@ -139,7 +112,6 @@ player.onItem = (item: ShowItem) => {
   if (item.kind === 'episode-start') meta.push('cold open');
   if (item.kind === 'episode-end') meta.push('credits');
   panel.nowPlaying(item.episode, meta);
-  renderPitches();
 };
 
 // ---------------------------------------------------------------- settings & transport
