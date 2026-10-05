@@ -5,7 +5,7 @@ import type { EstablishingShot } from '../world/sets/establishing';
 import type { CharacterId } from '../script/types';
 import { damp, noise1 } from '../util';
 
-type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing';
+type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing' | 'selfie';
 
 interface ActiveShot {
   kind: ShotKind;
@@ -19,6 +19,8 @@ interface ActiveShot {
   drift?: EstablishingShot;
   subjects?: CharacterId[];
   followHead?: THREE.Vector3;
+  /** Where a jogged shot was originally framed. */
+  base?: { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
 }
 
 /** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. */
@@ -229,6 +231,26 @@ export class Director {
     if (s?.kind === 'closeup' && s.subject === speaker) return;
     if (Math.random() < 0.3) this.closeup(speaker);
     else if (s?.kind !== 'wide') this.wide(0, 0.02);
+  }
+
+  /** Right up in the gang's faces, like someone holding the camera at arm's length: for the main titles. */
+  selfie(heads: THREE.Vector3[], o: { dist: number; yaw: number; lift: number; fov: number }) {
+    const target = heads.reduce((sum, h) => sum.add(h), new THREE.Vector3()).divideScalar(Math.max(1, heads.length));
+    target.y -= 0.06;
+    const pos = target.clone().add(new THREE.Vector3(Math.sin(o.yaw) * o.dist, o.lift, Math.cos(o.yaw) * o.dist));
+    this.cut({ kind: 'selfie', pos, target, fov: o.fov, push: 0 });
+  }
+
+  /** The next photo in a burst: the same shot, taken from a hand's width away and a hair tighter or looser. */
+  jog(amount = 0.06) {
+    const s = this.shot;
+    if (!s) return;
+    s.base ??= { pos: s.pos.clone(), target: s.target.clone(), fov: s.fov };
+    const r = () => (Math.random() * 2 - 1) * amount;
+    s.pos.copy(s.base.pos).add(new THREE.Vector3(r(), r() * 0.5, r() * 0.5));
+    s.target.copy(s.base.target).add(new THREE.Vector3(r() * 0.5, r() * 0.3, 0));
+    s.fov = s.base.fov * (1 + r() * 0.6);
+    this.apply(0);
   }
 
   get current() {

@@ -51,6 +51,9 @@ export class Stage {
   private time: TimeOfDay = 'night';
   private establishing: Establishing | null = null;
   private establishingCast: CharacterId[] | null = null;
+  /** Stop-motion: when set, the world only moves in steps this many seconds apart, like a burst of photos. */
+  strobe = 0;
+  private strobeDt = 0;
 
   constructor(private scene: THREE.Scene) {
     this.sets = {
@@ -321,6 +324,13 @@ export class Stage {
     this.occupy(id, name);
   }
 
+  /** Stand someone anywhere on the floor, off the marks (the main titles' huddle). */
+  stand(id: CharacterId, x: number, z: number, facing: number) {
+    const a = this.actors[id];
+    a.place(new THREE.Vector3(x, this.current.floorAt?.(x, z) ?? 0, z), facing, null);
+    a.root.visible = true;
+  }
+
   /** Penny and Luke, in their spots on the couch. */
   seatKids() {
     for (const id of KIDS) {
@@ -482,6 +492,12 @@ export class Stage {
   }
 
   update(dt: number, t: number) {
+    if (this.strobe) {
+      this.strobeDt += dt;
+      if (this.strobeDt < this.strobe) return;
+      dt = this.strobeDt;
+      this.strobeDt = 0;
+    }
     if (this.establishingCast) {
       this.establishing!.update(dt);
       return;

@@ -40,7 +40,8 @@ uniform vec2 screenRes;
 uniform float cameraNear;
 uniform float cameraFar;
 uniform float time;
-uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory;
+uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory, uSnap, uTrail;
+uniform sampler2D tPrev;
 varying vec2 vUv;
 
 float linDepth(vec2 uv) {
@@ -106,6 +107,16 @@ void main() {
     col = mix(col, max(col, soft / 8.0) * 1.12 + 0.015, uDream * 0.7);
   }
 
+  // the main titles: blown-out, glowing party snapshots
+  if (uSnap > 0.0) {
+    vec3 soft = vec3(0.0);
+    for (int i = 0; i < 8; i++) {
+      float a = float(i) * 0.785398 + 0.39;
+      soft += texture2D(tColor, clamp(uv + vec2(cos(a), sin(a)) * px * 3.5, vec2(0.001), vec2(0.999))).rgb;
+    }
+    col = mix(col, max(col, soft / 8.0) * 1.12, uSnap * 0.45);
+  }
+
   // tone map + grade (scene is rendered linear)
   col = aces(col * 1.05);
   col = toSRGB(col);
@@ -126,6 +137,15 @@ void main() {
     vec3 sepia = vec3(l * 1.1 + 0.05, l * 0.94 + 0.03, l * 0.72 + 0.01);
     col = mix(col, mix(sepia, col, 0.12), uMemory * 0.9);
     col = mix(col, col * 0.45, uMemory * smoothstep(0.08, 0.4, dot(cv, cv)));
+  }
+
+  // ...graded hot yellow-orange with greenish shadows, crushed blacks and a heavy vignette
+  if (uSnap > 0.0) {
+    float l = dot(col, vec3(0.299, 0.587, 0.114));
+    vec3 hot = vec3(l * 1.1 + 0.03, l * 0.97 + 0.02, l * 0.42) + vec3(-0.03, 0.04, -0.01) * (1.0 - l);
+    col = mix(col, mix(hot, col * vec3(1.08, 0.98, 0.6), 0.5), uSnap * 0.75);
+    col = mix(col, smoothstep(vec3(0.05), vec3(1.0), col), uSnap * 0.6);
+    col *= 1.0 - uSnap * smoothstep(0.06, 0.42, dot(cv, cv)) * 0.85;
   }
 
   // depth-based ink outlines
@@ -154,6 +174,8 @@ void main() {
   col *= 1.0 - uVignette * uStylize * dot(v, v) * 1.6;
   col += (hash(vUv * screenRes + time * 61.0) - 0.5) * uGrain * uStylize;
   col *= uFade;
+  // fast-motion smear: the last frames linger
+  if (uTrail > 0.0) col = mix(col, texture2D(tPrev, vUv).rgb, uTrail);
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
@@ -172,6 +194,16 @@ export class Renderer {
   ripple = 0;
   /** Flashback look (0..1). */
   memory = 0;
+  /** The main titles' hot, glowing snapshot grade (0..1). */
+  snap = 0;
+  /** How much of the previous frame lingers (0..1): the smear of a fast-motion photo burst. */
+  trail = 0;
+  /** The last two finished frames, for the smear. */
+  private history: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
+  private historyValid = false;
+  private copy: THREE.Mesh;
+  private copyScene = new THREE.Scene();
+  private lastTime = 0;
   private rt: THREE.WebGLRenderTarget;
   private post: THREE.ShaderMaterial;
   private postScene = new THREE.Scene();
@@ -208,7 +240,8 @@ export class Renderer {
         uOutline: { value: 0 }, uDither: { value: 0 }, uLevels: { value: 8 }, uScan: { value: 0 },
         uVignette: { value: 0 }, uGrain: { value: 0 }, uAberr: { value: 0 }, uWarmth: { value: 0 },
         uStylize: { value: 1 }, uFade: { value: 1 }, uRewind: { value: 0 },
-        uDream: { value: 0 }, uRipple: { value: 0 }, uMemory: { value: 0 },
+        uDream: { value: 0 }, uRipple: { value: 0 }, uMemory: { value: 0 }, uSnap: { value: 0 }, uTrail: { value: 0 },
+        tPrev: { value: null },
       },
       depthTest: false,
       depthWrite: false,
@@ -216,6 +249,17 @@ export class Renderer {
     const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.post);
     quad.frustumCulled = false;
     this.postScene.add(quad);
+    this.history = [new THREE.WebGLRenderTarget(16, 9), new THREE.WebGLRenderTarget(16, 9)];
+    // a plain blit (no color-space conversion: the post pass already wrote display-ready values)
+    this.copy = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+      vertexShader: vert,
+      fragmentShader: 'uniform sampler2D map; varying vec2 vUv; void main() { gl_FragColor = texture2D(map, vUv); }',
+      uniforms: { map: { value: null } },
+      depthTest: false,
+      depthWrite: false,
+    }));
+    this.copy.frustumCulled = false;
+    this.copyScene.add(this.copy);
 
     new ResizeObserver(() => this.resize()).observe(container);
     this.resize();
@@ -245,6 +289,8 @@ export class Renderer {
     this.rt.texture.needsUpdate = true;
     this.post.uniforms.lowRes.value.set(lw, lh);
     this.post.uniforms.screenRes.value.set(w * pr, h * pr);
+    for (const t of this.history) t.setSize(Math.round(w * pr), Math.round(h * pr));
+    this.historyValid = false;
   }
 
   setStyle(s: Partial<StyleSettings>) {
@@ -274,9 +320,39 @@ export class Renderer {
     u.cameraNear.value = this.camera.near;
     u.cameraFar.value = this.camera.far;
 
+    u.uSnap.value = this.snap;
+    this.lastTime = time;
+
     this.gl.setRenderTarget(this.rt);
     this.gl.render(this.scene, this.camera);
-    this.gl.setRenderTarget(null);
+    if (this.trail <= 0) {
+      this.historyValid = false;
+      u.uTrail.value = 0;
+      this.gl.setRenderTarget(null);
+      this.gl.render(this.postScene, this.postCam);
+      return;
+    }
+    // smear: finish into one history buffer, mixing in the other, then show it
+    const [next, prev] = this.history;
+    u.tPrev.value = prev.texture;
+    u.uTrail.value = this.historyValid ? this.trail : 0;
+    this.gl.setRenderTarget(next);
     this.gl.render(this.postScene, this.postCam);
+    (this.copy.material as THREE.ShaderMaterial).uniforms.map.value = next.texture;
+    this.gl.setRenderTarget(null);
+    this.gl.render(this.copyScene, this.postCam);
+    this.history = [prev, next];
+    this.historyValid = true;
+  }
+
+  /** A small print of the current picture (for the photo mosaic at the end of the main titles). */
+  photo(width = 320) {
+    this.render(this.lastTime);
+    const src = this.gl.domElement;
+    const c = document.createElement('canvas');
+    c.width = width;
+    c.height = Math.round(width * src.height / Math.max(1, src.width));
+    c.getContext('2d')?.drawImage(src, 0, 0, c.width, c.height);
+    return c;
   }
 }

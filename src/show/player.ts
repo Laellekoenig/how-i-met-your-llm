@@ -8,6 +8,8 @@ import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
 import { CHARACTER_IDS, KIDS, isKid, type Beat, type CharacterId, type CutawayBeat, type CutawayStyle, type Scene, type ShowItem, type LaughKind, type Gesture } from '../script/types';
 import { sleep, clamp, pick } from '../util';
 import { sceneTransition } from './transitions';
+import { BURSTS, GANG, HUDDLE, HUDDLE_AT, type Burst } from './mainTitles';
+import { openingCredits, type CreditCard } from './credits';
 
 export interface ContentSource {
   next(onWaiting: (msg: string) => void): Promise<ShowItem>;
@@ -41,6 +43,9 @@ export class Player {
   private skipWaiters: (() => void)[] = [];
   private currentEpisode: string | null = null;
   private previousScene: Scene | null = null;
+  /** Opening credits still to show over the first scenes of this episode. */
+  private credits: CreditCard[] = [];
+  private rollingCredits = false;
   onItem: ((item: ShowItem) => void) | null = null;
 
   constructor(
@@ -125,6 +130,114 @@ export class Player {
     }
   }
 
+  /**
+   * The theme kicks in on a hard cut from the couch. Like the show's titles, it's one night at the bar: the five
+   * of them crammed in front of the camera, mugging through a fast-motion burst of hot, smeary photos, cut on the
+   * beat, pulling back into a mosaic of those photos under the show's name. No episode number, no title.
+   */
+  private async mainTitles() {
+    const st = this.stage, r = this.renderer;
+    const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.overlay.hideCaption();
+    this.overlay.hideLocation();
+    audio.ambience('none');
+    const credits = openingCredits();
+    this.credits = credits.cast;
+    const { beat, duration } = audio.theme();
+    const photos: HTMLCanvasElement[] = [];
+    try {
+      st.setLocation('maclarens', 'night');
+      for (const id of GANG) st.stand(id, HUDDLE_AT[0] + HUDDLE[id][0], HUDDLE_AT[1] + HUDDLE[id][1], 0);
+      for (const bg of st.current.background) {
+        st.place(bg.character, bg.mark);
+        st.setBackground(bg.character, true);
+      }
+      // the world moves in jerks, and every frame leaves a ghost
+      if (!reducedMotion) {
+        st.strobe = beat / 2;
+        r.trail = 0.45;
+      }
+      r.fade = 1;
+      r.snap = 1;
+      // cut on the music: every wait overshoots a frame or so, so take it out of the next one
+      let late = 0;
+      for (const [i, burst] of BURSTS.entries()) {
+        for (let k = 0; k < 4; k++) {
+          this.burst(burst, k, reducedMotion);
+          if (i === 3 && k === 0) this.overlay.credit(credits.creators, 'creators');
+          const t = performance.now();
+          await this.wait(Math.max(0.05, beat - late));
+          late = clamp(late + (performance.now() - t) / 1000 - beat, 0, 0.1);
+          if (k % 2) photos.push(r.photo());
+        }
+      }
+      r.trail = 0;
+      this.overlay.credit(null);
+      this.overlay.showTitle(photos);
+      const hold = Math.max(2.2, duration - BURSTS.length * 4 * beat - 0.4);
+      await this.animate(hold, (u) => this.overlay.zoomTitle((u * hold) / 2));
+      await this.animate(0.4, (u) => {
+        r.fade = 1 - u;
+        this.overlay.fadeTitle(1 - u);
+      });
+    } finally {
+      st.strobe = 0;
+      r.snap = r.trail = 0;
+      this.overlay.showTitle(null);
+    }
+  }
+
+  /** One photo of a burst: everybody strikes a new pose; the first photo of a burst finds a new angle. */
+  private burst(b: Burst, k: number, still: boolean) {
+    const st = this.stage, d = this.director;
+    const paired = new Set(b.moves.flatMap(([id, , to]) => (to ? [id, to] : [])));
+    if (k === 0) {
+      d.selfie(b.who.map((id) => st.actors[id].headWorld), b);
+      // square up to the lens, all at once: it's a new photo, not a turn
+      for (const id of GANG) {
+        const a = st.actors[id];
+        a.faceTowards(d.current!.pos, 0);
+        a.facing = a.targetFacing;
+      }
+    } else if (!still) d.jog(0.07);
+    for (const id of GANG) {
+      const a = st.actors[id];
+      a.setEmotion(pick(['happy', 'happy', 'excited', 'excited', 'smug', 'surprised'] as const));
+      // mouths wide open: they're cracking up
+      a.talking = Math.random() < 0.75;
+      a.talkLevel = 1.6;
+    }
+    // they ham it up for the lens (and now and then crack up at each other)
+    const lens = d.current!.pos;
+    for (const id of GANG) {
+      if (paired.has(id)) continue;
+      st.actors[id].lookAt = Math.random() < 0.75 ? lens.clone() : st.actors[pick(GANG.filter((o) => o !== id))].headWorld;
+    }
+    if (k === 0 || k === 2) {
+      for (const [id, g, to] of b.moves) this.gesture(id, g, to);
+      // the shutter goes off mid-move, not at the start of it
+      const t = performance.now() / 1000;
+      for (const id of GANG) st.actors[id].update(0.25, t);
+    }
+  }
+
+  /** Cast and creators, one card at a time, over the first scenes (never on the 2030 couch). */
+  private async rollCredits() {
+    if (this.rollingCredits || !this.credits.length) return;
+    this.rollingCredits = true;
+    try {
+      await this.wait(1.2);
+      while (this.credits.length) {
+        if (!this.stage.inCutaway && this.stage.current.id !== 'future') this.overlay.credit(this.credits.shift()!, 'cast');
+        await this.wait(3);
+      }
+    } catch {
+      // skipped: the next scene picks up where we left off
+    } finally {
+      this.rollingCredits = false;
+    }
+  }
+
   private cleanup() {
     speech.cancel();
     this.overlay.hideCaption();
@@ -163,17 +276,15 @@ export class Player {
           await this.untilUnpaused();
           await this.beat(b);
         }
-        await this.wait(0.4);
-        const d = audio.sting('intro');
-        await this.fade(0.35, 0.4);
-        await this.race(this.overlay.title(item.episode, Math.max(4.2, d)));
-        await this.fade(0, 0.5);
+        await this.wait(0.3);
+        await this.mainTitles();
         break;
       }
       case 'scene':
         await this.playScene(item.scene, item.index);
         break;
       case 'episode-end': {
+        this.credits = [];
         this.overlay.hideCaption();
         const d = audio.sting('outro');
         audio.laugh('applause');
@@ -230,6 +341,7 @@ export class Player {
     }
     this.renderer.fade = 1;
     this.previousScene = scene;
+    void this.rollCredits();
     await this.wait(0.25);
 
     await this.playBeats(scene.beats.slice(firstBeat), scene.location === 'future');

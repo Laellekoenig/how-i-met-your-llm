@@ -499,7 +499,7 @@ export class AudioEngine {
     s.start(t);
   }
 
-  private guitarOut() {
+  private guitarOut(out = this.cueOutput()) {
     const ctx = this.ctx!;
     const drive = ctx.createWaveShaper();
     const curve = new Float32Array(1024);
@@ -511,7 +511,7 @@ export class AudioEngine {
     const tone = ctx.createBiquadFilter();
     tone.type = 'lowpass';
     tone.frequency.value = 3200;
-    drive.connect(tone).connect(this.cueOutput());
+    drive.connect(tone).connect(out);
     return drive;
   }
 
@@ -575,8 +575,91 @@ export class AudioEngine {
     }
   }
 
+  /**
+   * The main-title theme: an original, driving power-pop riff (palm-muted eighths, a jangly lead, a little kit),
+   * four bars long, landing on a big ringing chord for the title. `beat` is one eighth note, for cutting on.
+   */
+  theme(): { beat: number; duration: number } {
+    const beat = 0.18;
+    if (!this.ctx || !this.musicEnabled) return { beat, duration: 0 };
+    const ctx = this.ctx;
+    const out = this.cueOutput();
+    const gtr = this.guitarOut(out);
+    const t0 = ctx.currentTime + 0.05;
+    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
+    // the same few notes come back again and again: pluck each once
+    const bufs = new Map<string, AudioBuffer>();
+    const pluck = (m: number, dur: number, bright: number) => {
+      const k = `${m}/${dur}/${bright}`;
+      if (!bufs.has(k)) bufs.set(k, this.pluck(hz(m), dur, bright));
+      return bufs.get(k)!;
+    };
+    const strum = (chord: number[], t: number, gain: number, dur = 1.6, down = true) =>
+      (down ? chord : [...chord].reverse()).forEach((m, i) => this.note(pluck(m, dur, 0.4), t + i * 0.011, gain, gtr));
+    const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
+    // E | B | C#m | A B | E (ring out)
+    const bars = [[E, E], [B, B], [Cs, Cs], [A, B]];
+    bars.forEach((halves, bar) => {
+      for (let i = 0; i < 8; i++) {
+        const t = t0 + (bar * 8 + i) * beat;
+        const chord = halves[i < 4 ? 0 : 1];
+        // accents ring open; everything else is a tight palm-muted chug
+        if (i === 0 || i === 3 || i === 4 || i === 6) strum(chord, t, 0.24, 1.2, i !== 3);
+        else strum(chord.slice(0, 3), t, 0.2, 0.22);
+      }
+    });
+    const lead = [
+      [71, 73, 76, 0, 76, 78, 76, 73],
+      [75, 0, 71, 0, 75, 76, 75, 71],
+      [73, 0, 68, 0, 73, 75, 73, 68],
+      [69, 71, 73, 76, 78, 76, 75, 71],
+    ].flat();
+    lead.forEach((m, i) => m && this.note(pluck(m + 12, 0.9, 0.25), t0 + i * beat + 0.005, 0.3, gtr));
+    const end = t0 + 32 * beat;
+    strum(E, end, 0.42, 2.6);
+    strum([64, 68, 71, 76], end + 0.04, 0.3, 2.6);
+    // the kit: kick on the downbeats, snare on the backbeat, eighth-note hats, a crash on the title
+    for (let i = 0; i < 32; i++) {
+      const t = t0 + i * beat;
+      if (i % 4 === 0 || i % 8 === 7) this.kick(t, out);
+      if (i % 4 === 2) this.hit(t, 0.16, 1800, 0.35, out);
+      this.hit(t, 0.04, 7000, i % 2 ? 0.05 : 0.08, out);
+    }
+    this.hit(end - beat, 0.12, 1800, 0.3, out);
+    this.hit(end - beat / 2, 0.12, 1800, 0.38, out);
+    this.kick(end, out);
+    this.hit(end, 1.8, 5000, 0.16, out);
+    return { beat, duration: 32 * beat + 2.4 };
+  }
+
+  private kick(t: number, out: AudioNode) {
+    const ctx = this.ctx!;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(130, t);
+    o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.55, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    o.connect(g).connect(out);
+    o.start(t);
+    o.stop(t + 0.25);
+  }
+
+  /** A filtered noise hit: snare, hi-hat or crash. */
+  private hit(t: number, dur: number, freq: number, gain: number, out: AudioNode) {
+    const ctx = this.ctx!;
+    const s = this.noiseSrc(t, dur + 0.05);
+    const f = ctx.createBiquadFilter();
+    f.type = 'highpass';
+    f.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(f).connect(g).connect(out);
+  }
+
   /** Upbeat jangly guitar transition riff. Returns duration. */
-  sting(variant: 'intro' | 'transition' | 'outro' = 'transition') {
+  sting(variant: 'transition' | 'outro' = 'transition') {
     if (!this.ctx || !this.musicEnabled) return 0;
     const ctx = this.ctx;
     const out = this.guitarOut();
@@ -585,20 +668,12 @@ export class AudioEngine {
     const E = [40, 47, 52, 56, 59, 64];
     const A = [45, 52, 57, 61, 64];
     const B = [47, 54, 59, 63, 66];
-    const Cs = [49, 56, 61, 64, 68];
     const strum = (chord: number[], t: number, down = true, gain = 0.32) => {
       const notes = down ? chord : [...chord].reverse();
       notes.forEach((m, i) => this.note(this.pluck(hz(m), 1.8, 0.4), t + i * 0.012, gain, out));
     };
     const lick = (notes: number[], t: number, step: number) => notes.forEach((m, i) => this.note(this.pluck(hz(m), 1.0, 0.2), t + i * step, 0.45, out));
     const beat = 0.21;
-    if (variant === 'intro') {
-      const seq: [number[], number][] = [[E, 0], [E, 1], [E, 2.5], [A, 4], [A, 5], [B, 6.5], [Cs, 8], [A, 9], [B, 10.5], [E, 12]];
-      seq.forEach(([c, b], i) => strum(c, t0 + b * beat, i % 2 === 0));
-      lick([68, 71, 73, 76, 73, 71, 76], t0 + 12.5 * beat, beat * 0.5);
-      strum(E, t0 + 16 * beat, true, 0.4);
-      return 16 * beat + 1.2;
-    }
     if (variant === 'outro') {
       strum(A, t0);
       strum(B, t0 + beat * 2);
