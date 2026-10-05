@@ -44,6 +44,10 @@ Spread scenes around: MacLaren's and the apartment are home base, but use the ot
 - rooftop: the apartment building's roof. Late-night talks, big confessions, "sandwiches", watching the skyline.
 - barneys_office: Barney's corner office at GNB (nobody knows what he does there: "Please."). Barney's schemes, Marshall dropping by from his GNB job.
 - office: a generic open-plan office: Marshall's law firm, Ted's architecture firm, Robin's newsroom, a temp job. Say whose office it is in the scene.
+- metro_news_one: Robin's local TV news studio, with two anchor chairs behind the desk, a Manhattan backdrop, cameras and an ON AIR sign. Broadcast mishaps, awkward interviews, friends visiting Robin at work. Use this for on-camera news segments; office is for newsroom desk work.
+- store: a generic neighborhood shop with stocked shelves, produce, a sale display and a checkout. Shopping trips, impulse purchases, errands and arguments in line. A shopkeeper is at cashier unless a cast member takes that mark.
+- restaurant: a generic neighborhood restaurant with a two-person date table, a five-seat group booth and a reservation stand. Dates, disastrous dinners and the gang dining out. Say which restaurant it is in the scene.
+- lecture_hall: Ted's university architecture classroom, with chalkboards, a lectern, an architectural model and tiered student seats. Ted lectures at lectern/chalkboard/center; the friends can sit in student seats or interrupt from the aisle. Background students listen quietly.
 - limo: Barney's stretch limo with Ranjit at the wheel. Scenes on the way to (or fleeing from) something.
 - taxi: a yellow cab. A cabbie drives unless Ranjit is in the scene (then put him in the driver mark).
 In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car.

@@ -22,6 +22,10 @@ const LOCATION_LABEL: Record<string, string> = {
   rooftop: 'The Roof',
   barneys_office: "Barney's Office",
   office: 'The Office',
+  metro_news_one: 'Metro News One',
+  store: 'The Store',
+  restaurant: 'The Restaurant',
+  lecture_hall: "Ted's Lecture Hall",
   limo: "Barney's Limo",
   taxi: 'A Cab',
 };

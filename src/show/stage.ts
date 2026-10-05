@@ -11,6 +11,10 @@ import { buildBarneysOffice } from '../world/sets/barneysOffice';
 import { buildOffice } from '../world/sets/office';
 import { buildLimo } from '../world/sets/limo';
 import { buildTaxi } from '../world/sets/taxi';
+import { buildMetroNewsOne } from '../world/sets/metroNewsOne';
+import { buildStore } from '../world/sets/store';
+import { buildRestaurant } from '../world/sets/restaurant';
+import { buildLectureHall } from '../world/sets/lectureHall';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, type CharacterId, type LocationId, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
@@ -34,6 +38,7 @@ export class Stage {
     this.sets = {
       maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), rooftop: buildRooftop(),
       barneys_office: buildBarneysOffice(), office: buildOffice(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
+      metro_news_one: buildMetroNewsOne(), store: buildStore(), restaurant: buildRestaurant(), lecture_hall: buildLectureHall(),
     };
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;
@@ -62,7 +67,7 @@ export class Stage {
     return new Actor(def);
   }
 
-  /** Background patrons in MacLaren's, for atmosphere, and the cabbie. */
+  /** Background patrons, crew, students and the cabbie; named marks yield to the cast. */
   private buildExtras() {
     const looks: Partial<CharacterDef['look']>[] = [
       { female: false, hair: '#2a1a12', hairStyle: 'short', top: '#5a6b7a', topStyle: 'polo', skin: '#c48a64', height: 1.8 },
@@ -91,6 +96,22 @@ export class Stage {
     cabbie.place(wheel.pos.clone(), wheel.facing, wheel.seat);
     this.sets.taxi.group.add(cabbie.root);
     this.extras.push({ actor: cabbie, set: 'taxi', talkT: 0, chatty: false, mark: 'driver' });
+
+    const atMark = (set: LocationId, markName: string, name: string, look: Partial<CharacterDef['look']>, chatty = false) => {
+      const s = this.sets[set], m = s.marks[markName];
+      const a = this.extra(this.extras.length, name, look);
+      const p = m.pos.clone(); p.y = s.floorAt?.(p.x, p.z) ?? 0;
+      a.place(p, m.facing, m.seat);
+      s.group.add(a.root);
+      this.extras.push({ actor: a, set, talkT: rand(0, 3), chatty, mark: markName });
+    };
+    atMark('store', 'cashier', 'Shopkeeper', { ...looks[0], top: '#567754' });
+    atMark('metro_news_one', 'camera_operator', 'Camera operator', { ...looks[2], top: '#41464c', topStyle: 'tee' });
+    atMark('restaurant', 'table_2_left', 'Diner', looks[0], true);
+    atMark('restaurant', 'table_2_right', 'Diner', looks[1], true);
+    for (const [i, spot] of ['student_1_2', 'student_1_5', 'student_2_1', 'student_2_4', 'student_3_3', 'student_3_6'].entries()) {
+      atMark('lecture_hall', spot, 'Student', looks[i % looks.length]);
+    }
   }
 
   setLocation(id: LocationId, time: TimeOfDay) {

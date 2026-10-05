@@ -186,6 +186,79 @@ const EPISODES: SampleEpisode[] = [
   },
 ];
 
+// A location-hopping rerun makes the public sets part of offline programming too.
+EPISODES.push({
+  meta: { code: 'S10E03', title: 'The Expert', logline: 'A local-news interview turns Ted into a neighborhood expert on absolutely everything.' },
+  coldOpen: 'Kids, the most dangerous words in New York were not "stand clear of the closing doors." They were "Ted, you are the expert."',
+  couch: [say('penny', 'Did you get a badge?', { e: 'bored' }), narr('I looked into it.', 'chuckle')],
+  scenes: [
+    {
+      location: 'metro_news_one', time: 'day', transition: 'exterior',
+      cast: [{ character: 'robin', mark: 'anchor_left' }, { character: 'ted', mark: 'anchor_right' }, { character: 'barney', mark: 'desk_side' }],
+      beats: [
+        narr('Robin needed an architect for a very slow news day.'),
+        say('robin', 'We have forty seconds. Explain why the city needs benches.', { to: 'ted' }),
+        say('ted', 'To understand the bench, we must first understand ancient Greece.', { to: 'robin', g: 'point' }),
+        say('robin', 'We now have thirty seconds and a new enemy.', { to: 'ted', e: 'bored', l: 'laugh' }),
+        say('barney', 'Put me on. My qualifications are cheekbones and a tie.', { e: 'smug', g: 'suit_up', l: 'laugh' }),
+        say('ted', 'A bench is architecture that believes in you sitting down.', { e: 'happy', to: 'robin' }),
+        say('robin', 'Perfect. Sit with that thought. Silently. Through the weather.', { to: 'ted', l: 'big' }),
+        say('barney', 'Can the weather be single?', { to: 'robin', e: 'flirty', l: 'laugh' }),
+        say('robin', 'And we are off the air. For reasons beyond weather.', { e: 'angry', g: 'facepalm', l: 'laugh' }),
+      ],
+    },
+    {
+      location: 'store', time: 'day', transition: 'exterior',
+      cast: [{ character: 'ted', mark: 'shelves' }, { character: 'lily', mark: 'center' }, { character: 'marshall', mark: 'display' }],
+      beats: [
+        narr('By lunch, Ted had expanded his area of expertise.'),
+        say('ted', 'This cereal display has terrible structural integrity.', { to: 'lily', g: 'point' }),
+        say('lily', 'It is four boxes and a coupon, Ted.', { to: 'ted', e: 'bored', l: 'laugh' }),
+        say('marshall', 'The coupon is load-bearing. I respect that.', { to: 'ted', g: 'nod', l: 'laugh' }),
+        move('ted', 'queue'),
+        say('ted', 'People saw me on television. I have a responsibility.', { to: 'lily', e: 'smug' }),
+        say('lily', 'To buy the paper towels we came for.', { to: 'ted', l: 'laugh' }),
+        move('marshall', 'checkout'),
+        say('marshall', 'Our apartment is now eighty percent paper towel.', { e: 'happy', l: 'laugh' }),
+        say('ted', 'Finally. A building material that understands spills.', { g: 'thumbs_up', l: 'big' }),
+      ],
+    },
+    {
+      location: 'lecture_hall', time: 'day', transition: 'exterior',
+      cast: [{ character: 'ted', mark: 'lectern' }, { character: 'barney', mark: 'student_1_3' }, { character: 'marshall', mark: 'student_1_4' }, { character: 'lily', mark: 'student_2_3' }],
+      beats: [
+        narr('That afternoon, the expert returned to his natural habitat.'),
+        say('ted', 'Today, we examine how public spaces bring people together.', { g: 'hands_up' }),
+        say('barney', 'Is there a lab? I brought business cards.', { to: 'ted', e: 'smug', l: 'laugh' }),
+        move('ted', 'center'),
+        say('ted', 'Barney, this is an architecture class.', { to: 'barney' }),
+        say('barney', 'Exactly. I am building connections.', { to: 'ted', g: 'point', l: 'laugh' }),
+        say('marshall', 'Do we get college credit for this?', { to: 'ted', e: 'excited' }),
+        say('lily', 'We get him to stop explaining benches at dinner.', { to: 'marshall', l: 'laugh' }),
+        say('ted', 'Actually, dinner seating is next week.', { to: 'lily', e: 'happy' }),
+        say('marshall', 'I would like to audit the dessert portion.', { to: 'ted', l: 'big' }),
+      ],
+    },
+    {
+      location: 'restaurant', time: 'night', transition: 'exterior',
+      cast: [{ character: 'ted', mark: 'booth_middle' }, { character: 'robin', mark: 'booth_left' }, { character: 'lily', mark: 'booth_right' }, { character: 'marshall', mark: 'booth_end_right' }, { character: 'barney', mark: 'booth_end_left' }],
+      beats: [
+        narr('That night, we tested his research at dinner.'),
+        say('ted', 'Notice how this booth encourages intimate conversation.', { e: 'smug' }),
+        say('robin', 'Ted, I spent all day editing Greece out of a bench story.', { to: 'ted', e: 'bored', l: 'laugh' }),
+        say('barney', 'My business cards are gone. Huge success.', { e: 'happy' }),
+        say('lily', 'The students thought they were drink coupons.', { to: 'barney', l: 'laugh' }),
+        say('marshall', 'One of them traded me three for a breadstick.', { to: 'barney', e: 'smug', l: 'laugh' }),
+        say('ted', 'Can we agree that the seating works?', { to: 'robin', e: 'nervous' }),
+        say('robin', 'Yes. Nobody mentioned ancient Greece.', { to: 'ted' }),
+        say('ted', 'Funny you should say that. This bread basket is basically a small amphitheater.', { g: 'point', l: 'big' }),
+        act('robin', 'facepalm'),
+        narr('Kids, they never asked me to be on the news again.', 'laugh'),
+      ],
+    },
+  ],
+});
+
 let counter = 0;
 
 /** Items for one sample episode, cycling through the reruns. */

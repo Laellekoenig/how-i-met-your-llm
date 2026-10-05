@@ -182,6 +182,59 @@ export function skyline(night: boolean, seed = 7) {
   });
 }
 
+/** The station's blue/yellow badge, drawn locally so the set has no external assets. */
+export function metroNewsLogo() {
+  return canvas(384, 128, (g, w, h) => {
+    g.fillStyle = '#203956'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#f4b72a'; g.beginPath(); g.arc(295, 64, 55, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#f8f3e5'; g.font = 'italic bold 43px Helvetica';
+    g.fillText('METRO', 20, 58); g.fillText('NEWS', 20, 106);
+    g.fillStyle = '#20478b'; g.font = 'italic bold 108px Helvetica'; g.fillText('1', 257, 106);
+  });
+}
+
+/** Printed dusk Manhattan backdrop behind the Metro News One desk. */
+export function metroNewsBackdrop() {
+  const r = mulberry32(122);
+  return canvas(640, 240, (g, w, h) => {
+    const sky = g.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#222b46'); sky.addColorStop(0.6, '#bc6a64'); sky.addColorStop(1, '#f2b985');
+    g.fillStyle = sky; g.fillRect(0, 0, w, h);
+    const building = (x: number, y: number, bw: number, color: string) => {
+      g.fillStyle = color; g.fillRect(x, y, bw, h - y);
+      for (let wy = y + 7; wy < h; wy += 9) for (let wx = x + 4; wx < x + bw - 3; wx += 7) {
+        if (r() < 0.72) { g.fillStyle = r() < 0.8 ? '#c5ddd4' : '#ffdaa1'; g.fillRect(wx, wy, 3, 4); }
+      }
+    };
+    for (let x = 0; x < w; x += 29) building(x, 90 + r() * 80, 24 + r() * 13, '#344555');
+    for (let x = 0; x < w; x += 48) building(x, 125 + r() * 75, 38 + r() * 14, '#182d3a');
+    // Empire State and Chrysler silhouettes, the recognizable peaks in the reference.
+    for (const [x, top, bw] of [[169, 43, 34], [503, 32, 32]]) {
+      building(x, top + 28, bw, '#283e49');
+      building(x + 5, top + 12, bw - 10, '#42545b');
+      g.fillStyle = '#f6ddb0'; g.fillRect(x + 10, top, bw - 20, 18);
+      g.fillRect(x + bw / 2 - 1, top - 21, 2, 23);
+    }
+  });
+}
+
+export function lectureChalkboard() {
+  return canvas(768, 256, (g, w, h) => {
+    g.fillStyle = '#243734'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#e3e6d5'; g.font = '30px cursive'; g.fillText('PROFESSOR MOSBY', 32, 48);
+    g.font = '20px cursive'; g.fillText('ARCHITECTURE 101', 34, 91);
+    g.fillText('Form  +  function  +  a good story', 34, 132);
+    g.fillStyle = '#b9c6af'; g.font = '16px cursive'; g.fillText('Office hours: after class', 34, 215);
+    g.strokeStyle = '#d7dfcd'; g.lineWidth = 2;
+    // Chalk elevation of a classical building, plus a tower study.
+    g.beginPath(); g.moveTo(445, 88); g.lineTo(553, 39); g.lineTo(661, 88); g.closePath(); g.stroke();
+    g.strokeRect(443, 92, 220, 14); g.strokeRect(439, 208, 228, 12);
+    for (let x = 460; x < 650; x += 43) { g.strokeRect(x, 110, 13, 95); }
+    g.beginPath(); g.moveTo(697, 218); g.lineTo(702, 90); g.lineTo(719, 59); g.lineTo(735, 90); g.lineTo(741, 218); g.stroke();
+    for (let y = 110; y < 212; y += 17) { g.beginPath(); g.moveTo(703, y); g.lineTo(735, y); g.stroke(); }
+  });
+}
+
 /** Abstract framed "painting". */
 export function painting(seed: number) {
   const r = mulberry32(seed);

@@ -30,6 +30,10 @@ export function asChar(v: unknown): CharacterId | undefined {
 }
 
 const LOCATION_HINTS: [RegExp, LocationId][] = [
+  [/metro[\s_-]*news|news[\s_-]*(studio|set)|robin.*(studio|station)/, 'metro_news_one'],
+  [/lecture|classroom|university|college|ted.*class/, 'lecture_hall'],
+  [/restaurant|bistro|diner|cafe|café/, 'restaurant'],
+  [/\b(store|shop|bodega|market|grocery|boutique)\b/, 'store'],
   [/barney.*(office|work|gnb)|gnb|goliath/, 'barneys_office'],
   [/limo/, 'limo'],
   [/taxi|\bcab(?!in)/, 'taxi'],

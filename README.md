@@ -1,8 +1,9 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on eight sets (MacLaren's, the apartment,
-Barney's place, the roof, Barney's office, a generic office, Barney's limo and a cab), framed by Future Ted telling
+Low-poly puppets perform scripts written live by an LLM (via OpenRouter) on twelve sets (MacLaren's, the apartment,
+Barney's place, the roof, Barney's office, a generic office, Metro News One, a neighborhood store, a restaurant,
+Ted's lecture hall, Barney's limo and a cab), framed by Future Ted telling
 the story to his bored kids on the couch in 2030, with browser TTS voices,
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
@@ -14,7 +15,7 @@ bun dev            # http://localhost:5173
 Click **tune in**. By default it's just the TV: episodes play back to back, letterboxed to 16:9 with black bars,
 with no controls. Press `d` (or open `/?dev`) for **dev mode**, which brings back the transport bar and the side panel.
 
-With no API key it plays two hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
+With no API key it plays three hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
 pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is
 remembered, regular mode starts the writers on its own when you tune in.
 You can also **pitch an episode** idea; the writers use the next pitch for the next episode.
@@ -56,3 +57,23 @@ Your OpenRouter key is only sent to OpenRouter, directly from your browser, and 
 "remember key" is checked.
 
 Debug handle in the console: `himyllm` (`stage`, `director`, `player`, `writer`, …).
+
+## Public sets and visual references
+
+`metro_news_one`, `store`, `restaurant`, and `lecture_hall` are available to the episode planner and scene writer,
+with named marks, navigation, camera coverage, background occupants, day/night lighting, and their own exteriors.
+The third offline rerun, **The Expert**, visits all four. In dev mode, skip two episodes to reach it.
+
+The two show-specific interiors use these online visual references:
+
+- **Metro News One**: [Robin at the anchor desk in “Come On” (S01E22)](https://www.imdb.com/title/tt0774239/)
+  ([reference still](https://m.media-amazon.com/images/M/MV5BZDM2MDFhY2MtZDUzMi00NTE4LWFmNzQtMTE5YmRmNjQ3ZmQ4XkEyXkFqcGc%40._V1_.jpg)).
+  Dusk Manhattan backdrop, warm wood trim, dark desk, red mugs, and blue/yellow station branding.
+- **Ted's lecture hall**: [“Definitions” classroom still in TVLine's episode gallery](https://www.tvline.com/gallery/farewell-how-i-met-your-mother-13-clue-filled-episodes-to-watch-before-the-final-season/)
+  ([tiered seating](https://www.tvline.com/tvline/gallery/farewell-how-i-met-your-mother-13-clue-filled-episodes-to-watch-before-the-final-season/how-i-met-your-mother-episodes-21.jpg))
+  and [Prime Video's Season 5 imagery](https://www.primevideo.com/detail/How-I-Met-Your-Mother/0P557GI6F8MMATTJJ6RFJMCRWP)
+  ([chalkboard still](https://m.media-amazon.com/images/S/pv-target-images/6454f55bb1ecf5d61dc284c210a45d996a20cd9dbf223027815bfe058a434c0f.jpg)).
+  Dark chalkboards, cream walls, wood paneling, a lectern, and banked student seating.
+
+These are original procedural interpretations. Reference images are not bundled or fetched by the app;
+the store, restaurant, and destination exteriors are generic original designs.
