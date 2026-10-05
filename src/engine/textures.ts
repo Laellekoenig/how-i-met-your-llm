@@ -505,3 +505,53 @@ export function clockFace() {
     g.fillRect(8, 7.5, 3, 1);
   });
 }
+
+/** The arched niche above the kitchen sink: a warm-lit recess with a shelf of knick-knacks. */
+export function archNiche() {
+  return canvas(24, 36, (g, w, h) => {
+    g.fillStyle = '#e6dcc0';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#7a5a3a';
+    g.beginPath();
+    g.moveTo(2, h);
+    g.lineTo(2, 12);
+    g.arc(w / 2, 12, w / 2 - 2, Math.PI, 0);
+    g.lineTo(w - 2, h);
+    g.fill();
+    const gl = g.createLinearGradient(0, 4, 0, h);
+    gl.addColorStop(0, '#f2c880');
+    gl.addColorStop(1, '#b8915a');
+    g.fillStyle = gl;
+    g.beginPath();
+    g.moveTo(4, h);
+    g.lineTo(4, 12);
+    g.arc(w / 2, 12, w / 2 - 4, Math.PI, 0);
+    g.lineTo(w - 4, h);
+    g.fill();
+    g.fillStyle = '#5a3a20';
+    g.fillRect(4, 22, w - 8, 1);
+    for (const [x, c, hh] of [[7, '#c94a3a', 5], [11, '#e8e2d0', 7], [15, '#3a6aa8', 4]] as const) {
+      g.fillStyle = c;
+      g.fillRect(x, 22 - hh, 2, hh);
+    }
+  });
+}
+
+/** Glass-fronted upper cabinet: cream frames with dishes behind the panes. */
+export function glassCabinet(doors = 2) {
+  return canvas(doors * 12, 20, (g, w, h) => {
+    g.fillStyle = '#e6dcc0';
+    g.fillRect(0, 0, w, h);
+    for (let d = 0; d < doors; d++) {
+      const x = d * 12;
+      g.fillStyle = '#d4c8a8';
+      g.fillRect(x, 0, 1, h);
+      g.fillStyle = '#8a8270';
+      g.fillRect(x + 2, 2, 8, h - 4);
+      g.fillStyle = '#efe9dc';
+      for (const y of [4, 10]) for (let i = 0; i < 3; i++) g.fillRect(x + 3 + i * 2.5, y, 2, 4);
+      g.fillStyle = '#d4c8a8';
+      g.fillRect(x + 2, 9, 8, 1);
+    }
+  });
+}
