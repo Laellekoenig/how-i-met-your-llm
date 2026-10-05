@@ -1,6 +1,6 @@
 // The script language shared by the LLM, the sample episodes and the player.
 
-export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'penny', 'luke'] as const;
+export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'penny', 'luke'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
 
 /** Ted's kids only exist in 2030, on the couch. Anything they say or do cuts away to them. */

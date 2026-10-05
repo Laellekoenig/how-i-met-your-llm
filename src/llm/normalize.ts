@@ -18,6 +18,10 @@ const CHAR_ALIASES: Record<string, CharacterId> = {
   'the captain': 'captain', 'george van smoot': 'captain', 'van smoot': 'captain', 'marvin eriksen': 'marvin', 'marvin sr': 'marvin',
   'marvin sr.': 'marvin', 'marvin eriksen sr.': 'marvin', 'mr. eriksen': 'marvin', "marshall's dad": 'marvin',
   'james stinson': 'james', "barney's brother": 'james',
+  'sandy rivers': 'sandy', rivers: 'sandy', 'arthur hobbs': 'arthur', hobbs: 'arthur', 'artillery arthur': 'arthur',
+  'brad morris': 'brad', 'quinn garvey': 'quinn', 'kevin venkataraghavan': 'kevin', 'dr. kevin': 'kevin',
+  'judy eriksen': 'judy', 'mrs. eriksen': 'judy', "marshall's mom": 'judy', "marshall's mother": 'judy',
+  "lily's ex": 'scooter',
   'penny mosby': 'penny', "ted's daughter": 'penny', daughter: 'penny', 'luke mosby': 'luke', "ted's son": 'luke', son: 'luke',
   // a line "the kids" say together goes to whoever's quicker
   kids: 'penny', 'the kids': 'penny', 'both kids': 'penny',

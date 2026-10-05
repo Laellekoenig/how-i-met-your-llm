@@ -259,6 +259,82 @@ EPISODES.push({
   ],
 });
 
+/** An offline introduction to the recurring guests, also useful for camera/wardrobe review. */
+export const GUEST_EPISODE: SampleEpisode = {
+  meta: { code: 'S10E04', title: 'The Character Reference', logline: 'Ted needs one character reference. His friends accidentally commission a citywide investigation.' },
+  coldOpen: 'Kids, applying to the neighborhood preservation committee required one character reference. I asked all my friends. This was my first mistake.',
+  couch: [say('luke', 'Was the application your second mistake?', { e: 'bored' }), narr('The appendix was.', 'chuckle')],
+  scenes: [
+    {
+      location: 'metro_news_one', time: 'day', transition: 'exterior',
+      cast: [{ character: 'robin', mark: 'anchor_left' }, { character: 'sandy', mark: 'anchor_right' }, { character: 'kevin', mark: 'desk_side' }],
+      beats: [
+        say('robin', 'Sandy, I need a reference for my friend. Three sentences. Off the air.', { to: 'sandy' }),
+        say('sandy', 'Tonight: a local man claims to have character. Sandy Rivers investigates.', { e: 'smug', g: 'point', l: 'laugh' }),
+        say('kevin', 'Or we could write that Ted is thoughtful.', { to: 'sandy', g: 'shrug' }),
+        say('sandy', 'Thoughtful. Is that on the record, doctor?', { to: 'kevin', e: 'excited' }),
+        say('kevin', 'I came here to take Robin to lunch.', { to: 'sandy', e: 'confused', l: 'laugh' }),
+        say('robin', 'Ted cares about old buildings. There. A sentence.', { to: 'sandy' }),
+        say('sandy', 'Local man refuses to let go of the past. We have our headline.', { e: 'smug', l: 'laugh' }),
+        say('kevin', 'I am trying very hard not to analyze this workplace.', { to: 'robin', g: 'arms_crossed' }),
+        say('robin', 'Good. We cannot afford the hours.', { to: 'kevin', e: 'bored', l: 'big' }),
+      ],
+    },
+    {
+      location: 'office', time: 'day', transition: 'exterior',
+      cast: [{ character: 'arthur', mark: 'meeting_back_left' }, { character: 'brad', mark: 'meeting_back_right' }, { character: 'marshall', mark: 'meeting_head_left' }],
+      beats: [
+        narr('Meanwhile, Marshall asked two lawyers for a simple favor.'),
+        say('marshall', 'Can you say something nice about Ted? For free?', { to: 'arthur', e: 'nervous' }),
+        say('arthur', 'Eriksen! You buried the most offensive part at the end.', { to: 'marshall', e: 'angry', g: 'point', l: 'laugh' }),
+        say('brad', 'Bro, I already wrote one. Great guy. Strong brunch potential.', { to: 'marshall', e: 'happy' }),
+        say('marshall', 'This is a preservation committee.', { to: 'brad' }),
+        say('brad', 'Exactly. Preserve brunch. It is under attack from early lunch.', { to: 'marshall', l: 'laugh' }),
+        say('arthur', 'Does Mosby like dogs?', { to: 'marshall' }),
+        say('marshall', 'He once designed a gazebo for a dog park.', { to: 'arthur', g: 'nod' }),
+        say('arthur', 'Tugboat deserves shelter. Put me down as a reference.', { e: 'happy' }),
+        say('brad', 'Put me down for the opening brunch.', { e: 'smug', l: 'laugh' }),
+        say('arthur', 'The dog is getting your parking space.', { to: 'brad', e: 'angry', l: 'big' }),
+      ],
+    },
+    {
+      location: 'restaurant', time: 'night', transition: 'exterior',
+      cast: [{ character: 'victoria', mark: 'table_left' }, { character: 'quinn', mark: 'table_right' }, { character: 'barney', mark: 'host' }],
+      beats: [
+        narr('Barney recruited Victoria after her catering job. Quinn came to supervise Barney.'),
+        say('victoria', 'Ted is kind. He also needs three drafts to order soup.', { to: 'quinn', e: 'happy', l: 'laugh' }),
+        say('quinn', 'Barney sent me a template. It mentions Barney six times.', { to: 'victoria', e: 'smug' }),
+        say('barney', 'Seven. You missed the watermark.', { to: 'quinn', g: 'suit_up', l: 'laugh' }),
+        say('victoria', 'I can write something honest. Ted does care about beautiful things.', { to: 'quinn' }),
+        say('quinn', 'Great. I charged Barney fifty dollars for your honesty.', { to: 'victoria', e: 'happy', l: 'laugh' }),
+        say('barney', 'You said there was a processing fee.', { to: 'quinn', e: 'confused' }),
+        say('quinn', 'There was. I had to process your template emotionally.', { to: 'barney', l: 'big' }),
+        say('victoria', 'Can I pay you to read his wedding toasts?', { to: 'quinn' }),
+        say('quinn', 'Those are billed by the hour.', { to: 'victoria', g: 'nod', l: 'laugh' }),
+      ],
+    },
+    {
+      location: 'apartment', time: 'night', transition: 'exterior',
+      cast: [{ character: 'judy', mark: 'couch_left' }, { character: 'scooter', mark: 'couch_right' }, { character: 'lily', mark: 'couch_center' }, { character: 'ted', mark: 'center' }],
+      beats: [
+        narr('Back home, Lily had recruited family. And someone who heard the word invitation.'),
+        say('judy', 'I brought a casserole and a reference. Both need a bigger dish.', { to: 'ted', e: 'happy', l: 'laugh' }),
+        say('scooter', 'Lily, I wrote twelve pages about your excellent judgment.', { to: 'lily', e: 'excited' }),
+        say('lily', 'Scooter. The reference is for Ted.', { to: 'scooter', e: 'bored' }),
+        say('scooter', 'I can change the name. Some of the poetry still works.', { to: 'lily', e: 'nervous', l: 'laugh' }),
+        say('judy', 'Lily, dear, he does finish his paperwork.', { to: 'lily', e: 'smug' }),
+        say('lily', 'Judy, please do not give him extra credit.', { to: 'judy', g: 'facepalm', l: 'laugh' }),
+        say('ted', 'The committee wrote back. They only needed my landlord to confirm I live here.', { e: 'confused' }),
+        say('judy', 'Good. Then my reference can go under the casserole.', { to: 'ted' }),
+        say('scooter', 'Mine is laminated.', { e: 'happy', l: 'laugh' }),
+        narr('Kids, somehow the casserole got appointed to the committee.', 'big'),
+        say('penny', 'At least it had references.', { e: 'smug', l: 'laugh' }),
+      ],
+    },
+  ],
+};
+EPISODES.push(GUEST_EPISODE);
+
 let counter = 0;
 
 /** Items for one sample episode, cycling through the reruns. */

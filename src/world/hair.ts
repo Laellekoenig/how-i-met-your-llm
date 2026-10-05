@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Profile, curve, surface, smoothstep } from '../engine/shapes';
+import { Profile, curve, surface, smoothstep, ellipsoid } from '../engine/shapes';
 import type { HairStyle } from './characters';
 
 // Hair is a shell grown off the head surface between a per-style hairline and
@@ -119,6 +119,44 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
   const taper = (f: number) => 0.5 + 0.5 * smoothstep(0.62, 0.92, f);
   const out: HairParts = { head: [], back: [] };
   switch (style) {
+    case 'updo': {
+      // Victoria's swept, lifted crown and low bun, with a loose curl beside each ear.
+      out.head.push(shell(c, {
+        line: sym([[0, 0.84], [0.55, 0.82], [1.0, 0.68], [1.5, 0.52], [Math.PI, 0.22]]),
+        thick: (f, a) => 0.06 + 0.11 * front(a) * smoothstep(0.8, 0.94, f) + 0.035 * top(f),
+        edge: () => 0.35,
+        warp: (f, a, _v, p) => { p.x -= 0.04 * hh * front(a) * top(f); },
+      }));
+      const bun = ellipsoid(0.25 * hh, 0.24 * hh, 0.2 * hh, 16, 10);
+      bun.translate(0, 0.34 * hh, -0.38 * hh);
+      out.head.push(bun);
+      for (const sg of [-1, 1]) {
+        const curl = ellipsoid(0.045 * hh, 0.22 * hh, 0.06 * hh, 10, 12);
+        curl.rotateZ(sg * 0.2); curl.translate(sg * 0.31 * hh, 0.44 * hh, 0.03 * hh);
+        out.head.push(curl);
+      }
+      break;
+    }
+    case 'curly': {
+      // Judy's high crown and full auburn curls, with the face kept clear.
+      out.head.push(shell(c, {
+        line: sym([[0, 0.84], [0.65, 0.81], [1.0, 0.67], [1.5, 0.54], [Math.PI, 0.46]]),
+        thick: (f, a) => 0.1 + 0.09 * top(f) + 0.055 * front(a) + 0.022 * Math.sin(a * 12 + f * 16),
+        edge: () => 0.6,
+      }));
+      const curls = drape(c, { top: 0.84, bottom: -0.7, open: () => 1.06, thick: 0.13, flare: 0.26, wave: 0.09, back: 0.02 });
+      const positions = curls.getAttribute('position');
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+        const angle = Math.atan2(x, z);
+        const ripple = 0.022 * hh * Math.sin(angle * 18 + y / hh * 25);
+        positions.setXYZ(i, x + Math.sin(angle) * ripple, y, z + Math.cos(angle) * ripple);
+      }
+      curls.computeVertexNormals();
+      out.head.push(curls);
+      out.back.push(backSheet(c, c.neckBase + 0.06, 0.35 * (hh / 0.24), 0.028));
+      break;
+    }
     case 'swoop':
       // Ted: medium length, pushed up at the front and swept to his right
       out.head.push(shell(c, {

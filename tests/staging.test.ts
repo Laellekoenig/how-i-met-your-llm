@@ -6,6 +6,7 @@ import { routeNodes } from '../src/show/navigation';
 import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
+import { GUEST_EPISODE } from '../src/script/samples';
 
 const stage = testStage();
 const camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.05, 60);
@@ -29,6 +30,16 @@ function expectVisible(actor: Actor, label: string) {
     expect(ray.intersectObjects([...stage.occluders(), ...others], false).length, label).toBe(0);
     ray.set(point, camera.position.clone().sub(point).normalize());
     expect(ray.intersectObjects(stage.occluders(), false).filter(hit => hit.distance >= 0.12 && !hit.object.userData.cameraBackdrop).length, label).toBe(0);
+  }
+}
+
+function expectBackdrop(label: string) {
+  if (director.current!.kind === 'wide') return;
+  camera.updateMatrixWorld();
+  const ray = new THREE.Raycaster();
+  for (const x of [-0.85, 0, 0.85]) for (const y of [-0.1, 0.25, 0.7]) {
+    ray.setFromCamera(new THREE.Vector2(x, y), camera);
+    expect(ray.intersectObjects(stage.occluders(), false).length, `${label}/backdrop/${x}/${y}`).toBeGreaterThan(0);
   }
 }
 
@@ -123,6 +134,30 @@ describe('current set navigation', () => {
 });
 
 describe('camera coverage on the current sets', () => {
+  for (const scene of GUEST_EPISODE.scenes) test(`guest episode: ${scene.location} covers the cast and both sides of each conversation`, () => {
+    stage.setLocation(scene.location, scene.time);
+    for (const c of scene.cast) {
+      expect(stage.current.marks[c.mark], `${c.character}/${c.mark}`).toBeDefined();
+      stage.place(c.character, c.mark);
+      expect(stage.markOf(c.character)).toBe(c.mark);
+    }
+    director.coverage(stage.castIds());
+    for (const c of scene.cast) expectVisible(stage.actors[c.character], `${scene.location}/${c.character}/wide`);
+    for (const a of scene.cast) {
+      director.closeup(a.character);
+      expectVisible(stage.actors[a.character], `${a.character}/closeup`);
+      expectBackdrop(`${a.character}/closeup`);
+      for (const b of scene.cast) if (a !== b) {
+        for (const shot of ['twoShot', 'overShoulder'] as const) {
+          director[shot](a.character, b.character);
+          expectVisible(stage.actors[a.character], `${a.character}/${b.character}/${shot}`);
+          expectBackdrop(`${a.character}/${b.character}/${shot}`);
+          if (director.current!.kind === 'two') expectVisible(stage.actors[b.character], `${b.character}/two`);
+        }
+      }
+    }
+  });
+
   for (const set of Object.values(stage.sets)) test(`${set.id}: every mark has unobstructed, in-frame dialogue coverage`, () => {
     const cast: CharacterId[] = set.id === 'future' ? ['penny', 'luke'] : ['ted', 'marshall', 'patrice'];
     for (const id of cast) {

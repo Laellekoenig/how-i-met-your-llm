@@ -16,10 +16,10 @@ describe('public scene locations', () => {
   });
 
   test('offline reruns reach all four new sets and still cycle', () => {
-    const episodes = Array.from({ length: 4 }, () => sampleEpisode());
+    const episodes = Array.from({ length: 5 }, () => sampleEpisode());
     const locations = new Set<string>(episodes.flatMap((items) => items.flatMap((item) => item.kind === 'scene' ? [item.scene.location] : [])));
     for (const location of ['metro_news_one', 'store', 'restaurant', 'lecture_hall']) expect(locations.has(location)).toBe(true);
-    expect(episodes[3][0].episode.title).toBe(episodes[0][0].episode.title);
-    expect(episodes[3][0].episode.id).not.toBe(episodes[0][0].episode.id);
+    expect(episodes[4][0].episode.title).toBe(episodes[0][0].episode.title);
+    expect(episodes[4][0].episode.id).not.toBe(episodes[0][0].episode.id);
   });
 });

@@ -102,11 +102,13 @@ export class Director {
     const objects = this.stage.occluders();
     let covered = 0;
     this.ray.near = 0.2; this.ray.far = 60;
-    for (const x of [-0.65, 0, 0.65]) for (const y of [0.25, 0.7]) {
+    // Include the sides and lower background: a ceiling alone must not approve a
+    // reverse that exposes the missing fourth wall behind a standing speaker.
+    for (const x of [-0.85, 0, 0.85]) for (const y of [-0.1, 0.25, 0.7]) {
       this.ray.setFromCamera(new THREE.Vector2(x, y), cam);
       if (this.ray.intersectObjects(objects, false).length) covered++;
     }
-    return covered >= 5;
+    return covered === 9;
   }
 
   private clear(from: THREE.Vector3, to: THREE.Vector3, ignore: Actor[]) {
@@ -195,9 +197,10 @@ export class Director {
     if (side.z < 0) side.negate();
     const pos = hl.clone().addScaledVector(back, 1.1).addScaledVector(side, 0.45);
     pos.y = hl.y + 0.05;
+    const target = hs.clone().add(new THREE.Vector3(0, -0.08, 0));
     // Validate reverse angles against the current walls and furniture too.
-    if (!this.allInFrame(pos, hs, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target: hs, fov: 36 })) return this.closeup(speaker, listener);
-    this.cut({ kind: 'ots', pos, target: hs.clone().add(new THREE.Vector3(0, -0.08, 0)), fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker, subjects: [speaker] });
+    if (!this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
+    this.cut({ kind: 'ots', pos, target, fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker, subjects: [speaker] });
   }
 
   /** Pick coverage for a line of dialogue. */

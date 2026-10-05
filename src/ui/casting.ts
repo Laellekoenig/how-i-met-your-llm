@@ -3,7 +3,7 @@ import { CHARACTERS, FUTURE_TED_VOICE, type VoiceProfile } from '../world/charac
 import type { CharacterId } from '../script/types';
 
 // Settings order.
-const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'penny', 'luke', 'wendy', 'ranjit', 'carl', 'patrice', 'captain', 'marvin', 'james'];
+const ORDER: CharacterId[] = ['ted', 'barney', 'marshall', 'lily', 'robin', 'penny', 'luke', 'wendy', 'ranjit', 'carl', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter'];
 
 const SAMPLES: Record<string, string> = {
   'future-ted': 'Kids, I want to tell you an incredible story.',
@@ -19,6 +19,14 @@ const SAMPLES: Record<string, string> = {
   captain: 'A man chooses his own name. Stepping off!',
   marvin: "Son, I built you a canoe. Don't tell your mother.",
   james: "Little brother, I invented suiting up. You just made it a catchphrase.",
+  sandy: 'This is Sandy Rivers. Even my corrections deserve their own headline.',
+  arthur: 'Eriksen! That meeting could have been a resignation letter.',
+  brad: 'Bro, brunch is basically networking with better eggs.',
+  victoria: 'Ted, I can make a wedding cake. I cannot make your decisions.',
+  quinn: 'Nice scheme, Barney. I already sold tickets to watch it fail.',
+  kevin: 'As your friend, I support you. As a therapist, I need a larger notebook.',
+  judy: 'Marshall, honey, I brought enough salad for everyone. It has marshmallows.',
+  scooter: 'Lily said maybe. I have been very loyal to that maybe.',
   penny: 'Dad. You said this story was about Mom.',
   luke: 'Are we almost done? I have practice.',
 };

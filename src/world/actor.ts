@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { CharacterDef, Look } from './characters';
 import type { Emotion, Gesture } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
-import { plaid, tweed, denim } from '../engine/textures';
+import { plaid, tweed, denim, tieWeave, kitchenPrint } from '../engine/textures';
 import { Profile, limb, ellipsoid, surface, smoothstep } from '../engine/shapes';
 import { buildHairGeometry } from './hair';
 import { clamp, damp, dampAngle, angleDiff, noise1, rand, lerp } from '../util';
@@ -141,6 +141,7 @@ export class Actor {
     const topDark = toon(shade(L.top, 0.72), { side: DS });
     const underMat = toon(L.under ?? L.top);
     const underDS = toon(L.under ?? L.top, { side: DS });
+    const collarDS = L.collar ? toon(L.collar, { side: DS }) : underDS;
     const pantsMat = L.jeans ? fabric(denim(L.pants), 0.06) : toon(L.pants);
     const legMat = L.legs ? toon(L.legs) : pantsMat;
     const shoeMat = toon(L.shoes);
@@ -157,6 +158,7 @@ export class Actor {
     const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie';
     const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee' || style === 'hoodie';
     const shortSleeves = style === 'tee' || style === 'polo';
+    const sleeveless = style === 'dress';
     const rolled = style === 'shirt';
 
     this.root.add(this.hips);
@@ -247,7 +249,9 @@ export class Actor {
       }
     };
     const tie = () => {
-      const tieMat = toon(L.tie!, { side: DS });
+      const tieMat = L.tiePattern
+        ? toon('#ffffff', { side: DS, map: tieWeave(L.tie!, L.tieAccent ?? '#ddd1b0', L.tiePattern) })
+        : toon(L.tie!, { side: DS });
       const y0 = 0.4 * tl, y1 = 0.955 * tl;
       add(this.spine, mesh(surface(4, 10, (u, v, p) => {
         const y = y0 + (y1 - y0) * v;
@@ -277,7 +281,7 @@ export class Actor {
     switch (style) {
       case 'suit': {
         const yb = 0.42 * tl;
-        shirtCollar(underDS, 0.004, 0.24);
+        shirtCollar(collarDS, 0.004, 0.24);
         if (L.tie) tie();
         if (L.vest) {
           shell(0.008, -0.07 * tl, 0.97 * tl, (y) => 0.03 + 0.4 * smoothstep(0.55 * tl, 0.97 * tl, y), toon(L.vest, { side: DS }));
@@ -291,7 +295,7 @@ export class Actor {
         add(this.spine, collar(collarOpen(vTop, 0.018), 0.018, 0.012 * s, topDS, 0.02));
         buttons([yb], 0.02, dark, 0, drape);
         if (L.extras?.includes('pocketsquare')) {
-          const sq = mesh(ellipsoid(0.03 * s, 0.014 * s, 0.006 * s, 8, 4), toon('#f4f4f4'));
+          const sq = mesh(ellipsoid(0.03 * s, 0.014 * s, 0.006 * s, 8, 4), toon(L.pocketSquare ?? '#f4f4f4'));
           sq.position.copy(onTorso(0.72 * tl, 0.62, 0.024, drape));
           add(this.spine, sq, false);
         }
@@ -351,9 +355,27 @@ export class Actor {
         buttons([0.15, 0.32, 0.5, 0.68].map((y) => y * tl), 0.004, toon(shade(L.top, 1.6)));
         break;
       case 'sweater':
-        if (L.under) shirtCollar(underDS, 0.006, 0.3);
-        add(this.spine, collar(0, 0.006, 0.006 * s, topDark));
+        if (L.neckline === 'v') {
+          // A visible crew-neck undershirt inside the V, not a shirt collar.
+          add(this.spine, placket(0.78 * tl, torso.yMax, y => 0.45 * ramp(0.78 * tl, 0.99 * tl, y), 0.004, underDS), false);
+          add(this.spine, mesh(new THREE.CylinderGeometry(nr + 0.004, nr + 0.009, 0.014 * s, 16, 1, true), underDS, 0, tl + 0.004 * s, -0.01 * s), false);
+        } else if (L.neckline === 'turtleneck') {
+          add(this.spine, collar(0, 0.007, 0.044 * s, topDS, 0.002));
+        } else {
+          if (L.under) shirtCollar(underDS, 0.006, 0.3);
+          add(this.spine, collar(0, 0.006, 0.006 * s, topDark));
+        }
         shell(0.006, hem, -0.1 * tl, () => 0, topDark);
+        break;
+      case 'dress':
+        // Victoria's scoop-neck plum dress, with folded ruffles along both shoulder straps.
+        add(this.spine, placket(0.73 * tl, 0.99 * tl, y => 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y)), 0.003, skin), false);
+        add(this.spine, mesh(torso.geometry({ seg: 26, rows: 3, e: E, y: [0.975 * tl, torso.yMax], inflate: 0.004 }), skin), false);
+        for (const sg of [-1, 1]) add(this.spine, mesh(surface(6, 24, (u, v, p) => {
+          const y = (0.74 + 0.25 * v) * tl;
+          const edge = 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y));
+          torso.point(y, sg * (edge + 0.03 + u * 0.34), p, 0.006 + Math.sin(u * Math.PI) * (0.014 + 0.013 * Math.sin(v * Math.PI * 8)), E);
+        }), topDS), false);
         break;
       case 'polo':
         add(this.spine, collar(0.3, 0.005, 0.016 * s, topDS));
@@ -411,9 +433,15 @@ export class Actor {
     if (apron) {
       const r = Math.max(hipR, torso.at(hem).rx) + 0.014;
       const ap = new Profile([[-0.36 * s, r * 1.1, r * 0.8], [-0.1 * s, r * 1.05, r * 0.76], [0.06 * s, r, r * 0.74]]);
-      const apMat = toon('#ece6d8', { side: DS });
+      const apMat = L.apron?.patterned ? toon('#ffffff', { side: DS, map: kitchenPrint() }) : toon('#ece6d8', { side: DS });
       add(this.skirt!, mesh(ap.geometry({ seg: 12, rows: 8, arc: [-1.2, 1.2] }), apMat));
       add(this.skirt!, mesh(new Profile([[0.03 * s, r * 1.02, r * 0.75], [0.07 * s, r, r * 0.74]]).geometry({ seg: 20, rows: 1 }), apMat), false);
+      if (L.apron?.bib) {
+        add(this.spine, placket(0.02 * tl, 0.84 * tl, y => lerp(0.83, 0.57, y / tl), 0.017, apMat));
+        for (const sg of [-1, 1]) add(this.spine, mesh(surface(2, 8, (u, v, p) => {
+          torso.point((0.8 + 0.2 * v) * tl, sg * (0.48 + u * 0.13), p, 0.019, E);
+        }), toon('#ece6d8', { side: DS })), false);
+      }
     }
 
     // ---- arms
@@ -425,18 +453,18 @@ export class Actor {
       sh.position.set(side * shX, shY, -0.005);
       this.spine.add(sh);
       const ur = 0.05 * ba, er = 0.041 * ba, wr = 0.031 * s;
-      add(sh, mesh(limb(ur, er, upper - 0.03, { uv: true }), shortSleeves ? skin : topMat, 0, 0.0, 0));
+      add(sh, mesh(limb(ur, er, upper - 0.03, { uv: true }), shortSleeves || sleeveless ? skin : topMat, 0, 0.0, 0));
       if (shortSleeves) {
         const sleeve = new Profile([[-upper * 0.45, ur + 0.012, ur + 0.012], [-upper * 0.2, ur + 0.01, ur + 0.01], [0, ur + 0.008, ur + 0.008], [0.035 * s, ur * 0.8, ur * 0.8], [0.06 * s, 0, 0]]);
         add(sh, mesh(sleeve.geometry({ seg: 12, rows: 8 }), topDS));
       }
       el.position.y = -upper + 0.03;
       sh.add(el);
-      const bare = shortSleeves || rolled;
+      const bare = shortSleeves || sleeveless || rolled;
       add(el, mesh(limb(er * 0.98, wr, fore - 0.04, { bulge: 0.005 * ba, bulgeAt: 0.25, uv: true }), bare ? skin : topMat));
       if (rolled) add(el, mesh(new Profile([[-0.06 * s, er + 0.008, er + 0.008], [0.0, er + 0.012, er + 0.012], [0.01, er + 0.009, er + 0.009]]).geometry({ seg: 12, rows: 3 }), topDS));
       if (style === 'hoodie') add(el, mesh(new THREE.CylinderGeometry(wr + 0.008, wr + 0.009, 0.04, 12, 1, true), topDark, 0, -fore + 0.06, 0), false);
-      if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under)) {
+      if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under && !L.neckline)) {
         const cuff = mesh(new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true), underDS, 0, -fore + 0.05, 0);
         add(el, cuff, false);
       }
@@ -551,8 +579,21 @@ export class Actor {
     const beard = toon(new THREE.Color(L.hair).multiplyScalar(0.7));
     if (L.extras?.includes('stubble'))
       add(mesh(head.geometry({ seg: 16, rows: 8, y: [fy(0.015), fy(0.31)], arc: [-1.35, 1.35], inflate: 0.0035 }), toon(new THREE.Color(L.skin).lerp(new THREE.Color(L.hair), 0.35))));
-    if (L.extras?.includes('mustache')) add(mesh(ellipsoid(0.1 * hh, 0.026 * hh, 0.03 * hh, 10, 6), beard, 0, fy(0.3), fz(0, fy(0.3)) + 0.008 * hh));
+    if (L.extras?.includes('beard')) {
+      // Follow the jaw and cheeks while leaving the animated mouth uncovered.
+      add(mesh(surface(28, 10, (u, v, p) => {
+        const a = (u * 2 - 1) * 1.65;
+        const upper = 0.15 + 0.36 * smoothstep(0.22, 0.85, Math.abs(a));
+        head.point(fy(0.015 + (upper - 0.015) * v), a, p, 0.006);
+      }), beard));
+    }
+    if (L.extras?.includes('mustache') || L.extras?.includes('beard')) add(mesh(ellipsoid(0.1 * hh, 0.026 * hh, 0.03 * hh, 10, 6), beard, 0, fy(0.3), fz(0, fy(0.3)) + 0.008 * hh));
     if (L.extras?.includes('goatee')) add(mesh(ellipsoid(0.07 * hh, 0.07 * hh, 0.04 * hh, 10, 6), beard, 0, fy(0.09), fz(0, fy(0.09))));
+    if (L.extras?.includes('earrings')) for (const sg of [-1, 1]) {
+      const silver = toon('#d8dce4');
+      add(mesh(ellipsoid(0.021 * hh, 0.025 * hh, 0.02 * hh, 8, 6), silver, sg * 0.34 * hh, fy(0.34), 0));
+      add(mesh(ellipsoid(0.033 * hh, 0.07 * hh, 0.025 * hh, 8, 6), silver, sg * 0.34 * hh, fy(0.24), 0));
+    }
 
     // glasses: thin frames in front of the eyes, temples back to the ears
     if (L.extras?.includes('glasses')) {

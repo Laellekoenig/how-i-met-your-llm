@@ -1,7 +1,7 @@
 import type { CharacterId } from '../script/types';
 
-export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop';
-export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie';
+export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly';
+export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress';
 
 export interface Look {
   height: number;
@@ -13,8 +13,13 @@ export interface Look {
   top: string; // outermost layer
   topStyle: TopStyle;
   under?: string; // shirt / top under a jacket or cardigan; the dress for a skirt
-  collar?: string; // collar of the shirt under a hoodie (defaults to `under`)
+  collar?: string; // contrast shirt collar (defaults to `under`)
   tie?: string;
+  tiePattern?: 'stripes' | 'diamonds';
+  tieAccent?: string;
+  pocketSquare?: string;
+  neckline?: 'v' | 'turtleneck';
+  apron?: { bib?: boolean; patterned?: boolean };
   vest?: string;
   plaid?: [string, string];
   tweed?: boolean;
@@ -26,7 +31,7 @@ export interface Look {
   boots?: boolean;
   eyes?: string;
   face?: { jaw?: number; long?: number; nose?: number; brow?: number };
-  extras?: ('cap' | 'mustache' | 'goatee' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass')[];
+  extras?: ('cap' | 'mustache' | 'goatee' | 'beard' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass' | 'earrings')[];
 }
 
 export interface VoiceProfile {
@@ -222,6 +227,107 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 1.04, long: 1.02, nose: 1.1 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.1 },
+  },
+  // Episode stills and clothing notes for these eight guests are linked in README.md.
+  sandy: {
+    id: 'sandy', name: 'Sandy Rivers', color: '#d8b1e8', main: false,
+    look: {
+      // Alexis Denisof, "Come On": swept brown hair, gray suit, pink shirt with white collar, lavender accessories.
+      height: 1.86, build: 1.02, female: false,
+      skin: '#e7b996', hair: '#433126', hairStyle: 'swoop', eyes: '#627584',
+      top: '#63676a', topStyle: 'suit', under: '#d49bb4', collar: '#f5f1e8',
+      tie: '#b98fae', tiePattern: 'diamonds', tieAccent: '#68648b', pocketSquare: '#b896ce',
+      pants: '#63676a', shoes: '#2a211c', extras: ['pocketsquare'],
+      face: { long: 1.08, jaw: 1.03, nose: 1.14, brow: 1.05 },
+    },
+    voice: { gender: 'male', pitch: 0.9, rate: 1.01 },
+  },
+  arthur: {
+    id: 'arthur', name: 'Arthur Hobbs', color: '#beb1f0', main: false,
+    look: {
+      // Bob Odenkirk: high hairline, brown hair, charcoal business suit, lavender shirt and patterned purple tie.
+      height: 1.75, build: 1.03, female: false,
+      skin: '#e8b68e', hair: '#60412b', hairStyle: 'receding', eyes: '#657a89',
+      top: '#48464e', topStyle: 'suit', under: '#b5abcd',
+      tie: '#77618e', tiePattern: 'diamonds', tieAccent: '#b6a1c6',
+      pants: '#48464e', shoes: '#211e23',
+      face: { long: 1.07, jaw: 1.0, nose: 1.2, brow: 1.18 },
+    },
+    voice: { gender: 'male', pitch: 0.91, rate: 1.1 },
+  },
+  brad: {
+    id: 'brad', name: 'Brad', color: '#a2c5dc', main: false,
+    look: {
+      // Joe Manganiello, "Twelve Horny Women": tall, broad, dark swept hair and beard; dark suit, gray shirt, striped tie.
+      height: 1.96, build: 1.2, female: false,
+      skin: '#c58e6c', hair: '#28231e', hairStyle: 'shaggy', eyes: '#654833',
+      top: '#292f35', topStyle: 'suit', under: '#a7aaa4',
+      tie: '#222b2b', tiePattern: 'stripes', tieAccent: '#b7aa7e',
+      pants: '#292f35', shoes: '#181b1c', extras: ['beard'],
+      face: { long: 1.08, jaw: 1.2, nose: 1.12, brow: 1.25 },
+    },
+    voice: { gender: 'male', pitch: 0.8, rate: 0.94 },
+  },
+  victoria: {
+    id: 'victoria', name: 'Victoria', color: '#ed9cce', main: false,
+    look: {
+      // Ashley Williams at the Architect's Ball: brunette updo, plum sleeveless ruffled dress, drop earrings.
+      height: 1.7, build: 0.99, female: true,
+      skin: '#efc1a0', hair: '#422d22', hairStyle: 'updo', eyes: '#65818b',
+      top: '#64204f', topStyle: 'dress', skirt: '#64204f',
+      pants: '#efc1a0', legs: '#efc1a0', shoes: '#392030', extras: ['earrings'],
+      face: { jaw: 0.99, long: 0.98, nose: 0.9 },
+    },
+    voice: { gender: 'female', pitch: 1.03, rate: 1.0 },
+  },
+  quinn: {
+    id: 'quinn', name: 'Quinn', color: '#f4b8a2', main: false,
+    look: {
+      // Becki Newton, "The Pre-Nup": long blonde waves, burgundy leather jacket over black, dark skinny jeans.
+      height: 1.6, build: 0.91, female: true,
+      skin: '#efbe9c', hair: '#c8a45e', hairStyle: 'waves', eyes: '#677c72',
+      top: '#762c42', topStyle: 'leather', under: '#1a171c',
+      pants: '#202431', jeans: true, shoes: '#241b21', boots: true,
+      face: { jaw: 0.91, long: 1.02, nose: 0.87, brow: 1.05 },
+    },
+    voice: { gender: 'female', pitch: 0.99, rate: 1.09 },
+  },
+  kevin: {
+    id: 'kevin', name: 'Kevin', color: '#b4aae8', main: false,
+    look: {
+      // Kal Penn, "Mystery vs. History": short black hair, purple V-neck over a white crew-neck tee, gray jeans.
+      height: 1.78, build: 1.05, female: false,
+      skin: '#b87f58', hair: '#181716', hairStyle: 'short', eyes: '#30231b',
+      top: '#534763', topStyle: 'sweater', neckline: 'v', under: '#eeeae5',
+      pants: '#656969', jeans: true, shoes: '#322821',
+      face: { jaw: 1.1, long: 0.98, nose: 1.09, brow: 1.24 },
+    },
+    voice: { gender: 'male', pitch: 0.96, rate: 0.98 },
+  },
+  judy: {
+    id: 'judy', name: 'Judy Eriksen', color: '#eedb8c', main: false,
+    look: {
+      // Suzie Plakson's own HIMYM still: tall, voluminous auburn curls, pale yellow turtleneck and printed kitchen apron.
+      height: 1.87, build: 1.0, female: true,
+      skin: '#efbc9d', hair: '#7d3523', hairStyle: 'curly', eyes: '#587184',
+      top: '#edcf79', topStyle: 'sweater', neckline: 'turtleneck',
+      pants: '#655546', shoes: '#594030', extras: ['apron'], apron: { bib: true, patterned: true },
+      face: { long: 1.08, jaw: 0.98, nose: 1.1, brow: 1.08 },
+    },
+    voice: { gender: 'female', pitch: 0.89, rate: 1.02 },
+  },
+  scooter: {
+    id: 'scooter', name: 'Scooter', color: '#e7b69a', main: false,
+    look: {
+      // David Burtka, "Something Borrowed": tousled brown hair, brown suit, ivory shirt, red diamond-pattern tie.
+      height: 1.75, build: 0.96, female: false,
+      skin: '#edbb9a', hair: '#503522', hairStyle: 'messy', eyes: '#785438',
+      top: '#4c372d', topStyle: 'suit', under: '#eee2c7',
+      tie: '#a72e38', tiePattern: 'diamonds', tieAccent: '#b7a67d',
+      pants: '#4c372d', shoes: '#37261d',
+      face: { jaw: 1.06, long: 0.96, nose: 0.93, brow: 1.08 },
+    },
+    voice: { gender: 'male', pitch: 1.12, rate: 1.08 },
   },
   penny: {
     id: 'penny',

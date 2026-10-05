@@ -27,6 +27,41 @@ const shade = (hex: string, f: number) => {
   return `#${c.getHexString()}`;
 };
 
+/** Small woven tie motifs, with UVs spanning the length of the tie. */
+export function tieWeave(base: string, accent: string, pattern: 'stripes' | 'diamonds') {
+  return canvas(32, 128, (g, w, h) => {
+    g.fillStyle = base;
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = accent;
+    g.lineWidth = pattern === 'stripes' ? 2 : 1.5;
+    for (let y = -32; y < h + 32; y += pattern === 'stripes' ? 18 : 12) {
+      g.beginPath(); g.moveTo(0, y); g.lineTo(w, y + 16); g.stroke();
+      if (pattern === 'diamonds') {
+        g.beginPath(); g.moveTo(w, y); g.lineTo(0, y + 16); g.stroke();
+      }
+    }
+  });
+}
+
+/** Original kitchenware/fruit print inspired by Judy's cream cooking apron. */
+export function kitchenPrint() {
+  return canvas(64, 64, (g, w, h) => {
+    g.fillStyle = '#eee5ce'; g.fillRect(0, 0, w, h);
+    for (let row = 0; row < 4; row++) for (let col = 0; col < 4; col++) {
+      const x = col * 16 + 7, y = row * 16 + 8;
+      const pot = (row + col) % 2 === 0;
+      g.fillStyle = pot ? '#514139' : '#973944';
+      g.beginPath(); g.ellipse(x, y, pot ? 5 : 3, 4, 0, 0, Math.PI * 2); g.fill();
+      if (pot) {
+        g.fillRect(x - 5, y - 5, 10, 2); g.fillRect(x - 1, y - 7, 2, 2);
+        g.strokeStyle = '#514139'; g.strokeRect(x + 4, y - 2, 3, 3);
+      } else {
+        g.fillStyle = '#60714a'; g.fillRect(x, y - 6, 3, 2);
+      }
+    }
+  });
+}
+
 export function planks(base: string, repeat: [number, number], seed = 1) {
   const r = mulberry32(seed);
   return canvas(64, 64, (g, w, h) => {
