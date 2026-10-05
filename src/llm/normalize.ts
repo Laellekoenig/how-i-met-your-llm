@@ -1,6 +1,6 @@
 import {
   CHARACTER_IDS, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS,
-  LAUGHS, LOCATION_IDS, TRANSITIONS, isGuest, isKid,
+  LAUGHS, LOCATION_IDS, OUTFITS, TRANSITIONS, isGuest, isKid,
   type Beat, type CastPlacement, type CharacterId, type CutawayStyle, type Delivery, type Emotion, type Gesture, type GuestStar, type LaughKind,
   type LocationId, type Scene, type SceneLocationId, type TimeOfDay,
 } from '../script/types';
@@ -103,7 +103,8 @@ function normalizeCast(raw: unknown, casting?: Casting): CastPlacement[] {
     const ch = asChar((c as Record<string, unknown>)?.character, casting);
     if (!ch || isKid(ch) || seen.has(ch)) continue;
     seen.add(ch);
-    cast.push({ character: ch, mark: String((c as Record<string, unknown>).mark ?? '') });
+    const outfit = inSet(OUTFITS, (c as Record<string, unknown>).outfit);
+    cast.push({ character: ch, mark: String((c as Record<string, unknown>).mark ?? ''), ...(outfit && { outfit }) });
   }
   return cast;
 }

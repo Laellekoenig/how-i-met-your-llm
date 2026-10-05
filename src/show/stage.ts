@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Actor } from '../world/actor';
-import { CHARACTERS, setGuests, type CharacterDef } from '../world/characters';
+import { CHARACTERS, dressed, outfitAt, setGuests, type CharacterDef } from '../world/characters';
 import type { StageSet, Mark } from '../world/sets/common';
 import { buildMaclarens } from '../world/sets/maclarens';
 import { buildApartment } from '../world/sets/apartment';
@@ -16,7 +16,7 @@ import { buildStore } from '../world/sets/store';
 import { buildRestaurant } from '../world/sets/restaurant';
 import { buildLectureHall } from '../world/sets/lectureHall';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
-import { CHARACTER_IDS, KIDS, type CharacterId, type GuestStar, type LocationId, type TimeOfDay } from '../script/types';
+import { CHARACTER_IDS, KIDS, type CharacterId, type GuestStar, type LocationId, type Outfit, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 import { joinRoute, routeNodes } from './navigation';
 
@@ -27,6 +27,7 @@ export interface FrozenScene {
   actorMark: Map<CharacterId, string>;
   actorNode: Map<CharacterId, string>;
   background: Set<CharacterId>;
+  outfits: Map<CharacterId, Outfit>;
   actors: {
     id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D;
     emotion: Actor['emotion']; holdingGlass: boolean;
@@ -46,6 +47,10 @@ export class Stage {
   private actorMark = new Map<CharacterId, string>();
   private actorNode = new Map<CharacterId, string>();
   private backgroundIds = new Set<CharacterId>();
+  /** Who's in their work clothes. Everyone else is in their own. */
+  private outfits = new Map<CharacterId, Outfit>();
+  /** Actors built for the outfits people aren't wearing right now, keyed `id:outfit`. */
+  private wardrobe = new Map<string, Actor>();
   /** The scene we cut away from while we're on the 2030 couch. */
   private paused: { set: StageSet; visible: CharacterId[] } | null = null;
   private time: TimeOfDay = 'night';
@@ -163,6 +168,7 @@ export class Stage {
       actorMark: new Map(this.actorMark),
       actorNode: new Map(this.actorNode),
       background: new Set(this.backgroundIds),
+      outfits: new Map(this.outfits),
       actors: this.onStageIds().map((id) => {
         const a = this.actors[id];
         const mark = this.current.marks[this.actorMark.get(id) ?? ''];
@@ -178,6 +184,7 @@ export class Stage {
   /** Back from a cutaway to the frozen scene. */
   thaw(f: FrozenScene) {
     this.setLocation(f.set.id, f.time);
+    for (const id of CHARACTER_IDS) this.dress(id, f.outfits.get(id) ?? 'casual');
     for (const [k, v] of f.occupancy) this.occupancy.set(k, v);
     for (const [k, v] of f.actorMark) this.actorMark.set(k, v);
     for (const [k, v] of f.actorNode) this.actorNode.set(k, v);
@@ -201,6 +208,7 @@ export class Stage {
     this.current.group.visible = true;
     this.current.setTime(time);
     this.time = time;
+    for (const c of CHARACTER_IDS) this.dress(c, outfitAt(c, id));
     for (const a of Object.values(this.actors)) {
       a.root.visible = false;
       a.place(new THREE.Vector3(0, 0, 0), 0, null);
@@ -212,6 +220,37 @@ export class Stage {
     this.actorNode.clear();
     this.backgroundIds.clear();
     this.syncExtras();
+  }
+
+  /**
+   * Change someone into their work clothes or back into their own. Swaps in another actor (built the first time
+   * it's needed), so only call it before they're placed in a scene.
+   */
+  dress(id: CharacterId, outfit: Outfit) {
+    if (!CHARACTERS[id].work) return;
+    const wearing = this.outfits.get(id) ?? 'casual';
+    if (wearing === outfit) return;
+    const old = this.actors[id];
+    let a = this.wardrobe.get(`${id}:${outfit}`);
+    if (!a) {
+      a = new Actor(dressed(CHARACTERS[id], outfit));
+      this.scene.add(a.root);
+    }
+    this.wardrobe.delete(`${id}:${outfit}`);
+    this.wardrobe.set(`${id}:${wearing}`, old);
+    old.root.visible = false;
+    a.root.visible = false;
+    a.place(new THREE.Vector3(0, 0, 0), 0, null);
+    a.emotion = 'neutral';
+    a.holdingGlass = a.talking = false;
+    a.lookAt = null;
+    this.actors[id] = a;
+    if (outfit === 'casual') this.outfits.delete(id);
+    else this.outfits.set(id, outfit);
+  }
+
+  outfitOf(id: CharacterId): Outfit {
+    return this.outfits.get(id) ?? 'casual';
   }
 
   /** Temporarily replace the story with an actor-free view of New York. Built only when first needed. */

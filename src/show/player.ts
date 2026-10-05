@@ -491,6 +491,7 @@ export class Player {
     for (const c of scene.cast) {
       if (!isChar(c.character) || isKid(c.character) || present.has(c.character)) continue;
       present.add(c.character);
+      if (c.outfit) this.stage.dress(c.character, c.outfit);
       this.stage.place(c.character, c.mark);
     }
     for (const b of scene.beats) {
