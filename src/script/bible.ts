@@ -1,6 +1,6 @@
 import {
-  CHARACTER_IDS, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS,
-  LAUGHS, OUTFITS, SCENE_LOCATION_IDS, TRANSITIONS, isGuest, isKid,
+  CHARACTER_IDS, CHART_STYLES, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_SKIN,
+  GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OUTFITS, PROPS, SCENE_LOCATION_IDS, SHOTS, TRANSITIONS, isGuest, isKid,
 } from './types';
 import type { StageSet } from '../world/sets/common';
 
@@ -98,6 +98,7 @@ Spread scenes around: MacLaren's and the apartment are home base, but use the ot
 - limo: Barney's stretch limo with Ranjit at the wheel. Scenes on the way to (or fleeing from) something.
 - taxi: a yellow cab. A cabbie drives unless Ranjit is in the scene (then put him in the driver mark).
 Work clothes: Ted wears a suit and tie at office and lecture_hall, Marshall at office and barneys_office (GNB); everywhere else they're in their own clothes. A cast entry's "outfit" overrides that: "work" for Marshall still in his suit at MacLaren's after a day at the firm, "casual" for Ted just dropping by Marshall's office.
+Wardrobe: when the clothes are the joke or the occasion (Ted's red cowboy boots, Barney in sweatpants, a wedding, a job interview), give someone a costume: the episode's "wardrobe" for the whole episode, a scene's "wardrobe" for that scene (over the episode's). Only what you mention changes, and it goes over their casual or work clothes. Not for guest stars (describe them in guests) or the kids.
 In the limo and taxi everyone is seated: "move" means sliding over to another seat, "enter"/"exit" is getting in or out of the car. Keep movement within one compartment; changing between the passenger cabin and the front/driver compartment requires getting out and back in through its own door. Door marks are entrances, not seats for dialogue.
 
 # Scene transitions
@@ -120,10 +121,27 @@ Most lines need no delivery. Use it when the performance is the joke:
 - delivery on a say beat: ${DELIVERIES.join(', ')}. whisper for secrets and being overheard, shout for outbursts across the room, sing for a few words of made-up lyrics (never real songs), deadpan for dry understatement, fast for panicked rambling, slow for melodrama.
 - interrupted: true when the next speaker cuts this line off. Write the line only up to where it's cut, ending with "—", and make the very next beat the interruption.
 
+# Group lines and reactions
+- "chorus" on a say beat: everyone else saying the line at the same time ("ALL: What?!"). The caption reads "Ted & Marshall", or "Everyone" when it's the whole room. penny and luke can say a line together on the couch.
+- "react" on a say beat (or an insert) cuts to the listeners when it lands: [{ "character": "marshall", "gesture": "spit_take" }, { "character": "lily", "emotion": "surprised" }]. One reactor gets a closeup cheated toward the camera; a cluster gets a group shot; people spread around the room get quick cuts face to face. For reveals and big punchlines, not every line.
+
+# Props
+"hold" picks something up ("none" puts it down); "give" hands what they're holding (or "prop") to "to", walking over if needed. Props: ${PROPS.join(', ')}. Plots built around objects: the ring box, the envelope, the phone with the text, the Playbook (book), the yellow umbrella, the blue French horn, the goat. One thing at a time; props carry through cutaways and montages and are dropped at the next scene.
+
+# Camera
+Leave coverage to the director, except when a shot is the joke. "shot" on a say, act, hold, give or freeze beat: closeup (a single), two (a two-shot with "to"), push_in (a slow dolly in for a realization, confession or reveal), wide (the whole room). At most a few per scene.
+
+# Inserts, freeze frames and montages
+- insert: a full-screen card of the thing itself. kind ${INSERT_KINDS.join('|')}: text (a thread on "character"'s phone: "messages" [{ "from", "text" }], theirs on the right; "title" is who it's with), chart (an easel chart in marker: "title", up to 6 "items" [{ "label", "value" }], "chart" ${CHART_STYLES.join('|')}), slides (a slide: "title" and up to 6 bullet "lines"), sign (a taped-up note: "title" and a couple of "lines"), playbook (a Playbook page: the play as "title", steps as "lines"). "character" is whose it is and reads "line" over it (Future Ted reads it without a character). The card is the punchline or the setup. 0-2 per episode.
+- freeze: Future Ted narrates "line" over a frozen frame. A "character" (with an optional gesture, "to" and emotion) freezes on them mid-action: Marshall mid-slap, a face mid-realization. 0-1 per episode.
+- montage (top-level only): "and that's how it went for three weeks". A "label" for the first card, "music" ${MONTAGE_MUSIC.join('|')}, and 2-6 "shots", each a location, time, its own cast, an optional little card ("Day 3") and 0-2 beats (gestures, props, very short lines). A narrate beat can set it up before and land it after. 0-1 per episode.
+
 # Stagecraft vocabulary
 characters: ${CHARACTER_IDS.filter((c) => !isGuest(c) && !isKid(c)).join(', ')}; guest1-guest3 (this episode's guests); penny, luke (couch only)
 emotions: ${EMOTIONS.join(', ')}
-gestures: ${GESTURES.join(', ')}
+gestures: ${GESTURES.join(', ')}. Done to someone ("to"): high_five, hug, slap, kiss and fist_bump (the bro fist) bring the other person in; a kiss without "to" is blown. sit/stand: into the nearest free seat, or up out of it. phone_call holds a phone to their ear for the whole line. lean_in for secrets and flirting, jaw_drop for disbelief, spit_take (a sip sprayed across the room) works best as a reaction.
+props: ${PROPS.join(', ')}
+shots: ${SHOTS.join(', ')}
 laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (huge laugh + applause), ooh (scandal/burn), aww (sweet moment), woo (crowd cheers, e.g. Barney's entrance), applause, gasp.
 
 # Episode file format
@@ -136,8 +154,13 @@ One JSON file per episode: episodes/<code>-<slug>.json, e.g. episodes/s11e03-the
   "coldOpen": "Kids, ...",          // Future Ted over the kids on the couch, 1-3 sentences
   "couch": [ ...beats ],            // optional: penny/luke "say" beats and Future Ted "narrate" answers
   "guests": [ ...guest stars ],     // optional, up to 3: guest1, guest2, guest3 in order
+  "wardrobe": [ ...costumes ],      // optional: worn all episode
   "scenes": [ ...3-4 scenes ]
 }
+
+A costume (only "character" is required; anything left out stays as it is):
+{ "character": "ted", "topStyle": "${GUEST_TOPS.join('|')}", "top": <color>, "under": <color>, "tie": <color>, "vest": <color>,
+  "pants": <color>, "shoes": <color>, "boots": true, "hairStyle": <hair style>, "extras": [...] }
 
 A guest star (every field required except under/tie/vest):
 { "id": "guest1", "name": "Elodie", "role": "Ted's date, a sommelier who whispers everything",
@@ -154,20 +177,29 @@ A scene:
 { "location": "${SCENE_LOCATION_IDS.join('|')}", "time": "day|night",
   "transition": "${TRANSITIONS.join('|')}",   // optional
   "summary": "Writers' note: what happens and how it ends.",   // optional, not shown
+  "wardrobe": [ ...costumes ],   // optional: this scene only, over the episode's
   "cast": [ { "character": "ted", "mark": "booth_end", "outfit": "${OUTFITS.join('|')}" } ],   // outfit optional
   "beats": [ ...beats, in order ] }
 
 Beats (optional fields in brackets):
-{ "type": "say", "character": "barney", ["to": "ted"], "line": "...", ["delivery": "${DELIVERIES.join('|')}"], ["interrupted": true], ["emotion": ...], ["gesture": ...], ["laugh": ...] }
+{ "type": "say", "character": "barney", ["to": "ted"], "line": "...", ["delivery": "${DELIVERIES.join('|')}"], ["interrupted": true], ["emotion": ...], ["gesture": ...], ["laugh": ...],
+  ["chorus": ["ted", "marshall"]], ["react": [{ "character": "lily", ["emotion": ...], ["gesture": ...] }]], ["shot": "${SHOTS.join('|')}"] }
 { "type": "narrate", "line": "Kids, ...", ["laugh": ...] }          // Future Ted voice-over
 { "type": "move", "character": "ted", "to": <mark or character id> }
 { "type": "enter", "character": "robin", ["to": <mark or character id>] }   // through the door
 { "type": "exit", "character": "robin" }
-{ "type": "act", "character": "marshall", "gesture": "slap", ["to": "barney"], ["emotion": ...] }
+{ "type": "act", "character": "marshall", "gesture": "slap", ["to": "barney"], ["emotion": ...], ["shot": ...] }
+{ "type": "hold", "character": "ted", "prop": "ring"|"none", ["shot": ...] }
+{ "type": "give", "character": "ted", "to": "robin", ["prop": "ring"], ["shot": ...] }
+{ "type": "freeze", "line": "Kids, ...", ["character": "marshall"], ["gesture": ...], ["to": ...], ["emotion": ...], ["laugh": ...], ["shot": ...] }
+{ "type": "insert", "kind": "${INSERT_KINDS.join('|')}", ["title": "..."], ["lines": [...]], ["messages": [{ "from": "barney", "text": "..." }]],
+  ["items": [{ "label": "Hot", "value": 9 }]], ["chart": "${CHART_STYLES.join('|')}"], ["character": "barney"], ["line": "..."], ["laugh": ...], ["react": [...]] }
 { "type": "laugh", "laugh": "applause" }                              // a standalone laugh-track reaction
 { "type": "pause", "seconds": 1.5 }                                    // up to 5
 { "type": "cutaway", "style": "${CUTAWAY_STYLES.join('|')}", "label": "How Barney imagined it", "location": "barneys_office", "time": "day",
-  "cast": [ ...cast at that location ], "beats": [ ...3-10 beats, no cutaways ] }
+  "cast": [ ...cast at that location ], "beats": [ ...3-10 beats, no cutaways or montages ] }
+{ "type": "montage", ["label": "Three weeks of canoe lessons"], "music": "${MONTAGE_MUSIC.join('|')}",
+  "shots": [ { "location": ..., "time": ..., ["label": "Day 3"], "cast": [...], "beats": [ ...0-2 beats ] }, ...2-6 shots ] }
 
 Staging rules (\`bun run episodes check\` enforces them):
 - Everyone who speaks, acts, moves or exits is on stage: in the scene's cast, or brought on with "enter". Exited characters are gone until they enter again.

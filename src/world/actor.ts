@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import type { CharacterDef, Look } from './characters';
-import type { Emotion, Gesture } from '../script/types';
+import type { Emotion, Gesture, Prop } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
 import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint } from '../engine/textures';
 import { Profile, limb, ellipsoid, surface, smoothstep } from '../engine/shapes';
 import { buildHairGeometry } from './hair';
+import { buildProp, GRIP } from './props';
 import { clamp, damp, dampAngle, angleDiff, noise1, rand, lerp } from '../util';
 
 type V3 = [number, number, number];
@@ -46,10 +47,15 @@ const FACES: Record<Emotion, Face> = {
   bored:     { browY: -0.005, browTilt: 0.06, browAsym: 0.005, smile: -0.25, mouthBase: 0,  headTilt: 0.14,  headDown: 0.04 },
 };
 
-const GESTURE_DUR: Record<Gesture, number> = {
+/** Gestures, plus `give`: holding something out to someone (or reaching to take it). */
+export type Motion = Gesture | 'give';
+
+/** Sitting down and standing up are walks, not animations: the stage handles them. */
+const GESTURE_DUR: Record<Motion, number> = {
   none: 0, wave: 1.6, point: 1.5, shrug: 1.3, facepalm: 2.0, arms_crossed: 3.2, drink: 2.0, cheers: 1.6,
   thumbs_up: 1.4, high_five: 1.3, suit_up: 1.7, hands_up: 1.6, nod: 1.0, shake_head: 1.1, dance: 3.2,
-  hug: 2.2, slap: 1.0, think: 2.2,
+  hug: 2.2, slap: 1.0, think: 2.2, kiss: 2.0, phone_call: 3.0, sit: 0, stand: 0, lean_in: 2.4, jaw_drop: 2.2,
+  fist_bump: 1.4, spit_take: 2.0, give: 1.4,
 };
 
 export class Actor {
@@ -71,6 +77,9 @@ export class Actor {
   private browL!: THREE.Mesh; private browR!: THREE.Mesh;
   private mouthOpen!: THREE.Mesh; private cornerL!: THREE.Mesh; private cornerR!: THREE.Mesh;
   private glass!: THREE.Mesh;
+  /** Where hand props go (in the right hand), and where carried ones are held against the chest. */
+  private hand = new THREE.Group();
+  private chest = new THREE.Group();
   private skirt: THREE.Group | null = null;
   private browY0 = 0;
   private headH: number;
@@ -95,15 +104,24 @@ export class Actor {
   emotion: Emotion = 'neutral';
   private face: Face = { ...FACES.neutral };
   lookAt: THREE.Vector3 | null = null;
-  private gesture: { g: Gesture; t: number; dur: number } | null = null;
+  private gesture: { g: Motion; t: number; dur: number; partner: boolean } | null = null;
   holdingGlass = false;
+  /** What they're holding, if anything. */
+  prop: Prop | null = null;
+  private propObj: THREE.Object3D | null = null;
+  /** The phone that appears for a phone call when they weren't already holding one. */
+  private callPhone: THREE.Object3D | null = null;
+  /** This frame's gesture extras: stepping in (kiss, lean in) and how far the jaw has dropped. */
+  private gestureLean = 0;
+  private jaw = 0;
+  private spray: { drops: THREE.Group; vel: Float32Array; t: number } | null = null;
   private blinkT = rand(1, 4);
   private accent = { t: 0, side: 1, dur: 0 };
   private seed = Math.random() * 100;
   private pose = zeroPose();
   private bounce = 0;
   private reactT = 0;
-  onGestureBeat: ((g: Gesture) => void) | null = null;
+  onGestureBeat: ((g: Motion) => void) | null = null;
   private gestureBeatFired = false;
 
   constructor(def: CharacterDef) {
@@ -532,6 +550,11 @@ export class Actor {
     this.glass = mesh(cyl(0.035, 0.03, 0.12, 10), toon('#d9902a', { emissive: '#5a3008', emissiveIntensity: 0.6 }), 0, -fore - 0.04, 0.06);
     this.glass.visible = false;
     this.rEl.add(this.glass);
+    this.hand.position.set(0, -fore - 0.035, 0.035);
+    this.rEl.add(this.hand);
+    const carryY = 0.42 * tl, carry = torso.at(carryY);
+    this.chest.position.set(0, carryY, carry.zc + carry.rz + 0.15);
+    this.spine.add(this.chest);
 
     // ---- neck + head
     this.neck.position.y = tl;
@@ -792,11 +815,30 @@ export class Actor {
     if (e && FACES[e]) this.emotion = e;
   }
 
-  doGesture(g: Gesture | undefined) {
-    if (!g || g === 'none' || !(g in GESTURE_DUR)) return 0;
-    this.gesture = { g, t: 0, dur: GESTURE_DUR[g] };
+  /**
+   * Start a gesture; returns how long it takes. `partner` is for gestures done with someone (a kiss rather than
+   * a blown one); `dur` stretches a held one, like a phone call that lasts a whole line.
+   */
+  doGesture(g: Motion | undefined, opts: { partner?: boolean; dur?: number } = {}) {
+    if (!g || !GESTURE_DUR[g]) return 0;
+    const dur = Math.max(GESTURE_DUR[g], opts.dur ?? 0);
+    this.gesture = { g, t: 0, dur, partner: !!opts.partner };
     this.gestureBeatFired = false;
-    return GESTURE_DUR[g];
+    return dur;
+  }
+
+  /** Pick something up, or put it down (null). Hand props go in the right hand; big ones are carried in both arms. */
+  hold(kind: Prop | null) {
+    if (this.prop === kind) return;
+    this.propObj?.removeFromParent();
+    this.propObj = null;
+    this.prop = kind;
+    if (!kind) return;
+    const obj = buildProp(kind);
+    const grip = GRIP[kind];
+    if (grip === 'arms') this.chest.add(obj);
+    else this.hand.add(grip === 'hand' ? upright(obj) : obj);
+    this.propObj = grip === 'hand' ? obj.parent! : obj;
   }
 
   /** Small flinch, e.g. after being slapped. */
@@ -911,6 +953,17 @@ export class Actor {
       target.spine[2] -= 0.16 * k;
     }
 
+    // --- props: held up in front, or cradled in both arms
+    const grip = this.prop ? GRIP[this.prop] : null;
+    if (grip === 'hand') {
+      target.rSh = [-0.32, 0, -0.1];
+      target.rEl = -1.25;
+    } else if (grip === 'arms') {
+      target.lSh = [-0.85, 0, -0.3];
+      target.rSh = [-0.85, 0, 0.3];
+      target.lEl = target.rEl = -1.3;
+    }
+
     // --- face & emotion
     const fTarget = FACES[this.emotion];
     const k = damp(6, dt);
@@ -939,8 +992,9 @@ export class Actor {
       target.spine[0] += (level > 1 ? 0.1 * (level - 1) : 0.12 * (1 - level)) * this.talkEnv;
       // conversational hand accents
       this.accent.t -= dt;
-      if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving) {
-        this.accent = { t: rand(0.7, 1.3), side: Math.random() < 0.5 ? 1 : -1, dur: 0 };
+      if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving && grip !== 'arms') {
+        // a hand holding something stays put
+        this.accent = { t: rand(0.7, 1.3), side: grip === 'hand' || Math.random() < 0.5 ? 1 : -1, dur: 0 };
         this.accent.dur = this.accent.t;
       }
       if (this.accent.t > 0 && !this.gesture) {
@@ -984,7 +1038,8 @@ export class Actor {
     }
 
     // --- gesture overrides
-    this.glass.visible = this.holdingGlass;
+    this.glass.visible = this.holdingGlass && !this.prop;
+    this.gestureLean = this.jaw = 0;
     if (this.gesture) {
       const gs = this.gesture;
       gs.t += dt;
@@ -992,13 +1047,21 @@ export class Actor {
       if (u >= 1) this.gesture = null;
       else {
         const env = Math.min(1, gs.t / 0.22, (gs.dur - gs.t) / 0.25);
-        this.applyGesture(gs.g, gs.t, u, env, target);
+        this.applyGesture(gs.g, gs.t, u, env, target, gs.partner);
         if (!this.gestureBeatFired && u > 0.45) {
           this.gestureBeatFired = true;
+          if (gs.g === 'spit_take') this.spit();
           this.onGestureBeat?.(gs.g);
         }
       }
     }
+    const calling = this.gesture?.g === 'phone_call' && !this.prop;
+    if (calling && !this.callPhone) this.hand.add(this.callPhone = upright(buildProp('phone')));
+    else if (!calling && this.callPhone) {
+      this.callPhone.removeFromParent();
+      this.callPhone = null;
+    }
+    this.updateSpray(dt);
     if (this.reactT > 0) {
       this.reactT -= dt;
       target.head[1] += Math.sin(this.reactT * 10) * 0.5 * this.reactT;
@@ -1031,9 +1094,50 @@ export class Actor {
     this.spine.rotation.set(...p.spine);
     this.head.rotation.set(p.head[0] * 0.7, p.head[1] * 0.75, p.head[2]);
     this.neck.rotation.set(p.head[0] * 0.3, p.head[1] * 0.25, 0);
+    // stepping in for a kiss or a secret
+    this.hips.position.z += this.gestureLean;
+    if (this.jaw > 0) {
+      this.mouthOpen.scale.y = Math.max(this.mouthOpen.scale.y, 0.05 + 1.3 * this.jaw);
+      this.mouthOpen.scale.x = Math.max(this.mouthOpen.scale.x, 0.7 + 0.25 * this.jaw);
+      if (this.blinkT >= 0.12) this.eyes.scale.y = Math.max(this.eyes.scale.y, 1 + 0.3 * this.jaw);
+      this.browL.position.y += 0.012 * this.jaw;
+      this.browR.position.y += 0.012 * this.jaw;
+    }
   }
 
-  private applyGesture(g: Gesture, s: number, u: number, env: number, T: Pose) {
+  /** A spray of whatever they were drinking, out across the room: droplets, so they pixelate like everything else. */
+  private spit() {
+    if (!this.spray) {
+      const drops = new THREE.Group();
+      const geo = ellipsoid(0.017, 0.017, 0.017, 5, 4), mat = toon('#f4ead0', { emissive: '#8a7a5a', emissiveIntensity: 0.6 });
+      for (let i = 0; i < 28; i++) drops.add(new THREE.Mesh(geo, mat));
+      this.root.add(drops);
+      this.spray = { drops, vel: new Float32Array(28 * 3), t: 0 };
+    }
+    const s = this.spray;
+    const mouth = this.root.worldToLocal(this.mouthOpen.getWorldPosition(new THREE.Vector3()));
+    s.drops.children.forEach((d, i) => {
+      d.position.set(mouth.x, mouth.y, mouth.z + 0.04);
+      d.scale.setScalar(rand(0.6, 1.4));
+      s.vel.set([rand(-0.45, 0.45), rand(-0.3, 0.6), rand(1.1, 2.6)], i * 3);
+    });
+    s.t = 0;
+    s.drops.visible = true;
+  }
+
+  private updateSpray(dt: number) {
+    const s = this.spray;
+    if (!s?.drops.visible) return;
+    s.t += dt;
+    s.drops.children.forEach((d, i) => {
+      s.vel[i * 3 + 1] -= 5 * dt;
+      d.position.set(d.position.x + s.vel[i * 3] * dt, Math.max(0.02, d.position.y + s.vel[i * 3 + 1] * dt), d.position.z + s.vel[i * 3 + 2] * dt);
+      d.scale.multiplyScalar(1 - 0.9 * dt);
+    });
+    if (s.t > 0.9) s.drops.visible = false;
+  }
+
+  private applyGesture(g: Motion, s: number, u: number, env: number, T: Pose, partner: boolean) {
     const set = (key: 'lSh' | 'rSh', v: V3) => {
       T[key] = [lerp(T[key][0], v[0], env), lerp(T[key][1], v[1], env), lerp(T[key][2], v[2], env)];
     };
@@ -1059,13 +1163,13 @@ export class Actor {
         T.head[0] -= 0.06 * env;
         break;
       case 'drink': {
-        this.glass.visible = true;
+        if (!this.prop) this.glass.visible = true;
         const sip = Math.sin(clamp((u - 0.15) / 0.7, 0, 1) * Math.PI);
         set('rSh', [-0.75 - 0.4 * sip, 0, 0.25]); el('rEl', -1.9 - 0.4 * sip); T.head[0] -= 0.3 * sip * env;
         break;
       }
       case 'cheers':
-        this.glass.visible = true;
+        if (!this.prop) this.glass.visible = true;
         set('rSh', [-2.3, 0, -0.25]); el('rEl', -0.6);
         break;
       case 'thumbs_up':
@@ -1110,8 +1214,63 @@ export class Actor {
         set('rSh', [-1.15, 0, 0.35]); el('rEl', -2.35); T.head[2] += 0.12 * env; T.head[0] -= 0.12 * env;
         set('lSh', [-0.5, 0, -0.3]); el('lEl', -1.6);
         break;
+      case 'kiss':
+        if (partner) {
+          // step in, lean in, hands on their arms
+          // seated, the lean has to do all the work
+          this.gestureLean = this.isSitting ? 0.04 * env : 0.2 * env;
+          T.spine[0] += (this.isSitting ? 0.38 : 0.2) * env; T.head[0] += 0.1 * env;
+          set('lSh', [-0.75, 0, -0.15]); set('rSh', [-0.75, 0, 0.15]); el('lEl', -0.8); el('rEl', -0.8);
+        } else {
+          // fingertips to the lips, then blown off toward someone
+          const out = smoothstep(0.45, 0.7, u);
+          set('rSh', [lerp(-1.75, -1.45, out), 0, lerp(0.4, -0.1, out)]); el('rEl', lerp(-2.35, -0.35, out));
+        }
+        break;
+      case 'phone_call':
+        set('rSh', [-1.45, 0, -0.6]); el('rEl', -2.4); T.head[2] -= 0.14 * env;
+        break;
+      case 'lean_in':
+        this.gestureLean = this.isSitting ? 0 : 0.1 * env;
+        T.spine[0] += 0.26 * env; T.head[0] -= 0.06 * env;
+        break;
+      case 'jaw_drop':
+        this.jaw = env;
+        T.head[0] -= 0.14 * env; T.spine[0] -= 0.04 * env;
+        set('lSh', [-0.25, 0, 0.32]); set('rSh', [-0.25, 0, -0.32]); el('lEl', -0.35); el('rEl', -0.35);
+        break;
+      case 'fist_bump': {
+        // knuckles out, bump, then blow it up
+        const blow = smoothstep(0.6, 0.75, u);
+        set('rSh', [-1.35 - 0.35 * blow, 0, 0.12 - 0.4 * blow + Math.sin(s * 30) * 0.08 * blow]); el('rEl', -0.2 - 0.5 * blow);
+        break;
+      }
+      case 'spit_take': {
+        // a sip... then it all comes back out
+        if (!this.prop) this.glass.visible = true;
+        const sip = smoothstep(0.05, 0.3, u) * (1 - smoothstep(0.42, 0.52, u));
+        const lurch = smoothstep(0.4, 0.48, u) * (1 - smoothstep(0.75, 1, u));
+        set('rSh', [-0.75 - 0.4 * sip + 0.35 * lurch, 0, 0.25]); el('rEl', -1.9 - 0.4 * sip + 0.9 * lurch);
+        T.head[0] += (-0.3 * sip + 0.3 * lurch) * env;
+        T.spine[0] += 0.28 * lurch * env;
+        this.jaw = 0.8 * lurch;
+        break;
+      }
+      case 'give':
+        set('rSh', [-1.15, 0, 0.05]); el('rEl', -0.35); T.spine[0] += 0.08 * env;
+        break;
+      case 'sit':
+      case 'stand':
       case 'none':
         break;
     }
   }
+}
+
+/** Stand a hand prop up in the right hand: its +y along the thumb, +z along the fingers. */
+function upright(o: THREE.Object3D) {
+  const g = new THREE.Group();
+  g.rotation.x = Math.PI / 2;
+  g.add(o);
+  return g;
 }

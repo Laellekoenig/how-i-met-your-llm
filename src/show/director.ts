@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Stage } from './stage';
 import type { Actor } from '../world/actor';
 import type { EstablishingShot } from '../world/sets/establishing';
-import type { CharacterId } from '../script/types';
+import type { CharacterId, ShotIntent } from '../script/types';
 import { damp, noise1 } from '../util';
 
 type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing' | 'selfie';
@@ -15,6 +15,8 @@ interface ActiveShot {
   follow?: Actor;
   followOffset?: THREE.Vector3;
   push: number; // dolly speed toward target, m/s
+  /** How long the dolly keeps going after the cut (4 s unless it's a deliberate push-in). */
+  pushFor?: number;
   subject?: CharacterId;
   drift?: EstablishingShot;
   subjects?: CharacterId[];
@@ -31,6 +33,8 @@ export class Director {
   private time = 0;
   private ray = new THREE.Raycaster();
   onCut: (() => void) | null = null;
+  /** A freeze frame: the camera holds dead still, no sway, no dolly. */
+  held = false;
 
   constructor(private camera: THREE.PerspectiveCamera, private stage: Stage) {}
 
@@ -140,7 +144,12 @@ export class Director {
     return true;
   }
 
-  closeup(id: CharacterId, toward?: CharacterId): void {
+  /** A slow, deliberate dolly in on someone: reveals, realizations, a big confession. */
+  pushIn(id: CharacterId, toward?: CharacterId) {
+    this.closeup(id, toward, true);
+  }
+
+  closeup(id: CharacterId, toward?: CharacterId, pushIn = false): void {
     const a = this.stage.actors[id];
     if (!a?.root.visible) return this.wide(0);
     const head = a.headWorld;
@@ -155,18 +164,20 @@ export class Director {
     const candidates = [forward.clone().lerp(look, 0.35).normalize(),
       ...[0.65, -0.65, 1.1, -1.1].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
       ...[0.3, 0.65, 1].map(blend => look.clone().lerp(audience, blend).normalize())];
-    for (const dist of [2.35, 1.65, 1.15]) for (const d of candidates) {
+    // A push-in starts from a medium shot further back and creeps in over several seconds.
+    for (const dist of pushIn ? [3.3, 2.8, 2.35] : [2.35, 1.65, 1.15]) for (const d of candidates) {
       if (d.lengthSq() < 0.1 || d.dot(forward) < 0.05) continue;
       const pos = head.clone().addScaledVector(d, dist);
       pos.y = head.y + 0.08;
       const target = head.clone().add(new THREE.Vector3(0, -0.16, 0));
-      const fov = dist < 1.5 ? 44 : 32;
+      const fov = pushIn ? 34 : dist < 1.5 ? 44 : 32;
       if (this.covers({ pos, target, fov }, [a]) && this.hasBackdrop({ pos, target, fov })) {
-        this.cut({ kind: 'closeup', pos, target, fov, follow: a,
-          followOffset: new THREE.Vector3(0, -0.16, 0), push: 0.02, subject: id, subjects: [id] });
+        this.cut({ kind: 'closeup', pos, target, fov, follow: a, followOffset: new THREE.Vector3(0, -0.16, 0),
+          push: pushIn ? 0.32 : 0.02, pushFor: pushIn ? 6 : undefined, subject: id, subjects: [id] });
         return;
       }
     }
+    if (pushIn) return this.closeup(id, toward);
     this.coverage([id], false);
   }
 
@@ -178,8 +189,11 @@ export class Director {
     const sep = ha.distanceTo(hb);
     const along = hb.clone().sub(ha).setY(0).normalize();
     const perp = new THREE.Vector3(-along.z, 0, along.x);
-    if (perp.z < 0) perp.negate();
-    perp.lerp(new THREE.Vector3(0, 0, 1), 0.45).normalize();
+    // from the side they're facing: the audience usually, the chalkboard for two students
+    const facing = new THREE.Vector3(Math.sin(A.facing) + Math.sin(B.facing), 0, Math.cos(A.facing) + Math.cos(B.facing));
+    const front = facing.lengthSq() > 0.25 && facing.z < 0 ? facing.normalize() : new THREE.Vector3(0, 0, 1);
+    if (perp.dot(front) < 0) perp.negate();
+    perp.lerp(front, 0.45).normalize();
     const dist = Math.max(2.3, sep * 1.25 + 1.3);
     if (dist > (this.stage.current.maxTwoShotDistance ?? Infinity)) return this.closeup(a, b);
     const pos = mid.clone().addScaledVector(perp, dist);
@@ -205,6 +219,34 @@ export class Director {
     // Validate reverse angles against the current walls and furniture too.
     if (!this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
     this.cut({ kind: 'ots', pos, target, fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker, subjects: [speaker] });
+  }
+
+  /** The shot the writer asked for, on `subject` (and `other`, for a two-shot). */
+  intent(shot: ShotIntent, subject: CharacterId, other?: CharacterId) {
+    switch (shot) {
+      case 'closeup': return this.closeup(subject, other);
+      case 'push_in': return this.pushIn(subject, other);
+      case 'wide': return this.coverage(this.stage.castIds(), false);
+      case 'two': {
+        const partner = other && other !== subject && this.stage.onStage(other) ? other : this.nearest(subject);
+        return partner ? this.twoShot(subject, partner) : this.closeup(subject);
+      }
+    }
+  }
+
+  /** On a group: a single, a two-shot, or the widest angle that holds them all. For reactions and lines said together. */
+  group(ids: CharacterId[], toward?: CharacterId) {
+    const on = ids.filter(id => this.stage.onStage(id));
+    // a single reaction is shot from the side of whoever they're reacting to, so the face reads
+    if (on.length === 1) this.closeup(on[0], toward);
+    else if (on.length === 2) this.twoShot(on[0], on[1]);
+    else if (on.length) this.coverage(on, false);
+  }
+
+  private nearest(id: CharacterId) {
+    const p = this.stage.actors[id].position;
+    return this.stage.castIds().filter(o => o !== id)
+      .sort((a, b) => this.stage.actors[a].position.distanceTo(p) - this.stage.actors[b].position.distanceTo(p))[0];
   }
 
   /** Pick coverage for a line of dialogue. */
@@ -261,11 +303,14 @@ export class Director {
 
   /** Go back to a shot held earlier, e.g. after cutting away to the kids. */
   resume(shot: ActiveShot | null) {
+    // A wardrobe change in between swaps the actor a single was following.
+    if (shot?.follow && shot.subject && shot.follow !== this.stage.actors[shot.subject]) shot.follow = this.stage.actors[shot.subject];
     if (shot) this.cut(shot);
     else this.wide(0);
   }
 
   update(dt: number) {
+    if (this.held) return;
     this.time += dt;
     const s = this.shot;
     if (s && s.kind !== 'establishing' && !s.follow && this.time - this.lastCut > 0.5) {
@@ -310,7 +355,7 @@ export class Director {
       // Ease the aim slowly so sitting down or standing up is reframed, but idle motion isn't.
       s.target.lerp(head.add(s.followOffset), dt ? damp(1.2, dt) : 1);
     }
-    if (dt > 0 && s.push && this.time - this.lastCut < 4) {
+    if (dt > 0 && s.push && this.time - this.lastCut < (s.pushFor ?? 4)) {
       const dir = s.target.clone().sub(s.pos);
       const next = s.pos.clone().addScaledVector(dir.normalize(), s.push * dt);
       const actors = (s.subjects ?? []).filter(id => this.stage.onStage(id)).map(id => this.stage.actors[id]);

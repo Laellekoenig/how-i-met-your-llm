@@ -1,5 +1,5 @@
 import { TITLE_BEAT, TITLE_BEATS, TITLE_TAIL } from '../show/mainTitles';
-import type { LaughKind } from '../script/types';
+import type { LaughKind, MontageMusic } from '../script/types';
 import type { Ambience, DoorSound } from '../world/sets/common';
 import { rand, pick } from '../util';
 
@@ -24,6 +24,9 @@ export class AudioEngine {
   private noise!: AudioBuffer;
   private clapBuf!: AudioBuffer;
   private ambNodes: AudioNode[] = [];
+  /** A montage's music, scheduled a little ahead at a time until it's stopped. */
+  private bed: { out: GainNode; timer: ReturnType<typeof setInterval> } | null = null;
+  private plucks = new Map<string, AudioBuffer>();
   private ambTimer: number | null = null;
   volume = 0.8;
   /** Silent mode for automated testing: everything still runs, nothing reaches the speakers. */
@@ -470,6 +473,93 @@ export class AudioEngine {
     }
   }
 
+  /** A text arriving: the little two-note chime. */
+  textChime() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [[1318, 0], [1760, 0.09]].forEach(([f, d]) => {
+      const o = this.ctx!.createOscillator();
+      o.frequency.value = f;
+      const g = this.ctx!.createGain();
+      g.gain.setValueAtTime(0.0001, t + d);
+      g.gain.exponentialRampToValueAtTime(0.09, t + d + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.25);
+      o.connect(g).connect(this.sfxBus);
+      o.start(t + d);
+      o.stop(t + d + 0.3);
+    });
+  }
+
+  /** A card slides in: a short filtered whoosh. */
+  whoosh() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.Q.value = 1.4;
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.exponentialRampToValueAtTime(2600, t + 0.25);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.22, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    this.noiseSrc(t, 0.35).connect(f).connect(g).connect(this.sfxBus);
+  }
+
+  /** The freeze frame: a dry shutter click with a soft thump under it. */
+  freezeFrame() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    for (const d of [0, 0.05]) {
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3000;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.3, t + d);
+      g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.03);
+      this.noiseSrc(t + d, 0.04).connect(hp).connect(g).connect(this.sfxBus);
+    }
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(110, t);
+    o.frequency.exponentialRampToValueAtTime(55, t + 0.2);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.25, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.connect(g).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.3);
+  }
+
+  /** Pffft: a drink sprayed across the table. */
+  spray() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 1400;
+    f.Q.value = 0.7;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+    this.noiseSrc(t, 0.45).connect(f).connect(g).connect(this.sfxBus);
+  }
+
+  /** Knuckles meeting knuckles. */
+  bump() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(220, t);
+    o.frequency.exponentialRampToValueAtTime(90, t + 0.06);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o.connect(g).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.12);
+  }
+
   doorbell() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
@@ -511,6 +601,14 @@ export class AudioEngine {
     return buf;
   }
 
+  /** Plucked strings repeat a lot in the music beds: synthesize each note once. */
+  private plucked(midi: number, dur: number, bright: number) {
+    const k = `${midi}/${dur}/${bright}`;
+    let b = this.plucks.get(k);
+    if (!b) this.plucks.set(k, (b = this.pluck(440 * Math.pow(2, (midi - 69) / 12), dur, bright)));
+    return b;
+  }
+
   private note(buf: AudioBuffer, t: number, gain: number, dest: AudioNode) {
     const ctx = this.ctx!;
     const s = ctx.createBufferSource();
@@ -543,6 +641,52 @@ export class AudioEngine {
     out.connect(this.musicBus);
     this.stingGain = out;
     return out;
+  }
+
+  /**
+   * Music under a montage until stopBed(): a bright strummed power-pop loop, or a tender fingerpicked one.
+   * Scheduled a little ahead at a time, so a pause (which suspends the context) simply holds it.
+   */
+  montage(kind: MontageMusic) {
+    this.stopBed(0.05);
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const out = ctx.createGain();
+    out.gain.value = kind === 'upbeat' ? 0.75 : 0.9;
+    out.connect(this.musicBus);
+    const gtr = kind === 'upbeat' ? this.guitarOut(out) : out;
+    const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
+    const bars = kind === 'upbeat' ? [E, B, Cs, A] : [E, Cs, A, B];
+    const lead = [76, 0, 75, 76, 78, 0, 76, 73, 75, 0, 71, 0, 73, 71, 68, 0];
+    const step = kind === 'upbeat' ? 0.22 : 0.3;
+    let i = 0, next = ctx.currentTime + 0.05;
+    const schedule = () => {
+      for (; next < ctx.currentTime + 1.2; i++, next += step) {
+        const chord = bars[Math.floor(i / 8) % bars.length], k = i % 8, t = next;
+        if (kind === 'tender') {
+          if (k === 0) this.note(this.plucked(chord[0], 2, 0.25), t, 0.2, out);
+          this.note(this.plucked(chord[[1, 3, 2, 4, 1, 3, 2, 4][k] % chord.length] + 12, 1.4, 0.3), t, 0.13, out);
+          continue;
+        }
+        const open = k === 0 || k === 3 || k === 4 || k === 6;
+        (open ? chord : chord.slice(0, 3)).forEach((m, j) => this.note(this.plucked(m, open ? 1.2 : 0.22, 0.4), t + j * 0.011, open ? 0.2 : 0.16, gtr));
+        const m = lead[i % lead.length];
+        if (Math.floor(i / 16) % 2 && m) this.note(this.plucked(m, 0.9, 0.25), t, 0.22, gtr);
+        if (k % 4 === 0) this.kick(t, out);
+        if (k % 4 === 2) this.hit(t, 0.14, 1800, 0.25, out);
+        this.hit(t, 0.04, 7000, k % 2 ? 0.04 : 0.06, out);
+      }
+    };
+    schedule();
+    this.bed = { out, timer: setInterval(schedule, 300) };
+  }
+
+  /** Fade the montage music out. */
+  stopBed(fade = 0.35) {
+    if (!this.bed) return;
+    clearInterval(this.bed.timer);
+    if (this.ctx) this.bed.out.gain.setTargetAtTime(0, this.ctx.currentTime, fade / 3);
+    this.bed = null;
   }
 
   /** Silence even scheduled notes when a viewer skips a scene or episode. */
