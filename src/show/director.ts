@@ -291,7 +291,7 @@ export class Director {
       s.target.addScaledVector(s.drift.look, dt);
     }
     if (s.follow && s.followOffset) {
-      // Track the body, not the head: breathing, talk nods and excited hops would shake the camera.
+      // Track the body, not the head: breathing, talk nods and dance hops would shake the camera.
       const root = s.follow.root.getWorldPosition(new THREE.Vector3());
       const head = s.follow.headWorld;
       if (s.followRoot) {

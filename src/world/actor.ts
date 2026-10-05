@@ -922,8 +922,8 @@ export class Actor {
       target.head[0] += 0.34 * sb;
       target.head[2] += 0.08 * sb;
     }
-    if (this.emotion === 'excited' && !moving) this.bounce = Math.max(0, Math.sin(t * 9)) * 0.025 * (1 - sb);
-    else this.bounce *= 1 - damp(10, dt);
+    // only the dance action hops; let it settle once the dance ends
+    this.bounce *= 1 - damp(10, dt);
     if (this.emotion === 'nervous') target.spine[1] += Math.sin(t * 7) * 0.04;
 
     // --- talking
