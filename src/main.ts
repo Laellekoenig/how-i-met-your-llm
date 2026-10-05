@@ -173,8 +173,9 @@ const vol = $<HTMLInputElement>('volume');
 vol.addEventListener('input', () => audio.setVolume(Number(vol.value)));
 
 const pauseBtn = $('btn-pause');
-function togglePause() {
-  player.paused = !player.paused;
+function setPaused(paused: boolean) {
+  if (player.paused === paused) return;
+  player.paused = paused;
   pauseBtn.textContent = player.paused ? '▶' : '❚❚';
   if (player.paused) {
     speechSynthesis?.pause();
@@ -184,7 +185,7 @@ function togglePause() {
     void audio.ctx?.resume();
   }
 }
-pauseBtn.addEventListener('click', togglePause);
+pauseBtn.addEventListener('click', () => setPaused(!player.paused));
 let currentEpisodeId: string | null = null;
 const prevOnItem = player.onItem;
 player.onItem = (item) => {
@@ -196,18 +197,38 @@ $('btn-skip-ep').addEventListener('click', () => {
   if (currentEpisodeId) programming.dropEpisode(currentEpisodeId);
   player.skip('episode');
 });
-$('btn-full').addEventListener('click', () => {
-  const el = $('screen');
+// Fullscreen the letterboxing wrapper, not the screen itself, so the picture keeps its aspect.
+function toggleFullscreen() {
   if (document.fullscreenElement) void document.exitFullscreen();
-  else void el.requestFullscreen();
-});
+  else void $('screen-wrap').requestFullscreen();
+}
+$('btn-full').addEventListener('click', toggleFullscreen);
+
+// ---------------------------------------------------------------- dev mode
+
+// Regular mode is just the TV: the show plays on its own, letterboxed to fill the window.
+// Dev mode (?dev, or press D) brings back the transport, the writers' room and all the settings.
+const devMode = () => document.body.classList.contains('dev');
+function setDevMode(on: boolean) {
+  document.body.classList.toggle('dev', on);
+  const url = new URL(location.href);
+  if (on) url.searchParams.set('dev', '');
+  else url.searchParams.delete('dev');
+  history.replaceState(null, '', url.href.replace(/([?&])dev=(?=&|#|$)/, '$1dev'));
+  if (!on) setPaused(false);
+}
+setDevMode(new URLSearchParams(location.search).has('dev'));
+
 window.addEventListener('keydown', (e) => {
-  if ((e.target as HTMLElement).tagName === 'INPUT') return;
-  if (e.code === 'Space') {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code === 'KeyD') setDevMode(!devMode());
+  else if (e.code === 'KeyF') toggleFullscreen();
+  else if (!devMode()) return;
+  else if (e.code === 'Space') {
     e.preventDefault();
-    togglePause();
+    setPaused(!player.paused);
   } else if (e.code === 'ArrowRight') player.skip('scene');
-  else if (e.code === 'KeyF') $('btn-full').click();
 });
 
 // ---------------------------------------------------------------- tune in
@@ -221,6 +242,8 @@ function tuneIn() {
   // unlock speech synthesis inside the user gesture
   if (speech.supported) speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
   $('tune-in').classList.add('hidden');
+  // Regular mode has no writers' room UI, so a remembered key starts the writers on its own.
+  if (!devMode() && !writer.running && keyInput.value.trim()) writeBtn.click();
   void player.run();
 }
 $('tune-in').addEventListener('click', tuneIn);

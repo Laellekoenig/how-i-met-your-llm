@@ -11,11 +11,15 @@ bun install
 bun dev            # http://localhost:5173
 ```
 
-Click **tune in**. With no API key it plays two hand-written "reruns". Paste an OpenRouter key in the
-**writers' room** panel, pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written.
+Click **tune in**. By default it's just the TV: episodes play back to back, letterboxed to 16:9 with black bars,
+with no controls. Press `d` (or open `/?dev`) for **dev mode**, which brings back the transport bar and the side panel.
+
+With no API key it plays two hand-written "reruns". In dev mode, paste an OpenRouter key in the **writers' room** panel,
+pick a model, and press **start writing**: new episodes (Season 11+) air as soon as they're written. Once a key is
+remembered, regular mode starts the writers on its own when you tune in.
 You can also **pitch an episode** idea; the writers use the next pitch for the next episode.
 
-Keys: `space` pause · `→` skip scene · `f` fullscreen.
+Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `→` skip scene.
 
 ## How it works
 
