@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
-import { speckle, tiles, sign, whiteboard, monitorScreen, blindsWindow, painting } from '../../engine/textures';
+import { speckle, tiles, sign, whiteboard, monitorScreen, blindsWindow, painting, drinksCooler } from '../../engine/textures';
 import { type StageSet, mark, nodes, door, plant, keyLight, v3 } from './common';
 
 // A generic open-plan office, good for any of the gang's jobs (Marshall's law firm, Ted's architecture
 // firm, a newsroom, a temp job). Grey-blue carpet, a drop ceiling of fluorescent panels, beige walls.
 // Stage left, a row of three cubicles whose occupants swivel round to face the room; stage right,
 // the meeting table with a whiteboard on the wall. Along the back: blinds, the water cooler, the
-// copier and the elevator people arrive by. The manager's door is on the left wall.
+// copier and the elevator people arrive by. The manager's door is on the left wall, under an EXIT
+// sign, next to the vending machine.
 export function buildOffice(): StageSet {
   const g = new THREE.Group();
   g.name = 'office';
@@ -131,6 +132,19 @@ export function buildOffice(): StageSet {
     g.add(mesh(box(0.22, 0.03, 0.3), toon('#f4f4f0'), x - 0.62, 0.775, CUB_BACK + 0.4, false).rotateY(0.2));
     // a family photo pinned to the partition, a name plate on the end
     g.add(mesh(new THREE.PlaneGeometry(0.16, 0.12), toon('#ffffff', { map: painting(110 + i) }), x - 0.2, 1.15, CUB_BACK + 0.035, false));
+    for (let k = 0; k < 2 + i; k++) g.add(mesh(new THREE.PlaneGeometry(0.06, 0.06), toon(['#f4f0a0', '#f0b0c8', '#a0d0f0'][(k + i) % 3]), mx - 0.27 + (k % 2) * 0.54, 1.08 - Math.floor(k / 2) * 0.08, CUB_BACK + 0.27, false));
+    // a desk lamp, a pen cup, binders or a cactus, a bin under the desk
+    const lx = x + 0.68;
+    g.add(mesh(cyl(0.06, 0.07, 0.02, 8), black, lx, 0.77, CUB_BACK + 0.2, false));
+    g.add(mesh(cyl(0.01, 0.01, 0.34, 4), grey, lx, 0.93, CUB_BACK + 0.2, false).rotateX(0.25));
+    g.add(mesh(cyl(0.03, 0.08, 0.1, 8), toon(['#2a5a3a', '#1c1c1e', '#8a2a2a'][i]), lx, 1.1, CUB_BACK + 0.27, false));
+    g.add(mesh(cyl(0.03, 0.03, 0.09, 6), toon('#3a3a3c'), x + 0.38, 0.805, CUB_BACK + 0.25, false));
+    for (let k = 0; k < 3; k++) g.add(mesh(cyl(0.004, 0.004, 0.1, 3), toon(['#2a3a8a', '#b82a2a', '#1a1a1a'][k]), x + 0.37 + k * 0.01, 0.86, CUB_BACK + 0.25, false));
+    if (i === 1) {
+      g.add(mesh(cyl(0.035, 0.03, 0.06, 6), toon('#b86a3a'), x - 0.55, 0.79, CUB_BACK + 0.2, false));
+      g.add(mesh(cyl(0.022, 0.025, 0.1, 6), toon('#4a8a4a'), x - 0.55, 0.87, CUB_BACK + 0.2, false));
+    } else for (let k = 0; k < 4; k++) g.add(mesh(box(0.05, 0.28, 0.24), toon(['#2a4a8a', '#c83a2a', '#e8c040', '#3a7a4a'][(k + i) % 4]), x - 0.78 + k * 0.055, 0.9, CUB_BACK + 0.2, false));
+    g.add(mesh(cyl(0.12, 0.1, 0.3, 8), toon('#3a3a3c'), x - 0.5, 0.15, CUB_BACK + 0.3, false));
     // swivel chair, turned to face the room
     const c = new THREE.Group();
     c.position.set(x, 0, CUB_BACK + 1.05);
@@ -174,6 +188,50 @@ export function buildOffice(): StageSet {
   g.add(wb);
   g.add(mesh(box(0.04, 1.2, 2.1), toon('#c8ccd0'), RIGHT - 0.02, 1.55, -0.3, false));
   g.add(mesh(box(0.1, 0.03, 1.2), toon('#c8ccd0'), RIGHT - 0.06, 0.98, -0.3, false));
+
+  // ---- vending machine, EXIT sign, wall calendar, fire extinguisher ----------------------------------
+  const VZ = -0.5;
+  g.add(occluder(mesh(roundedBox(0.8, 1.85, 0.95, 0.03), toon('#a8282a'), LEFT + 0.42, 0.925, VZ)));
+  const snacks = mesh(new THREE.PlaneGeometry(0.62, 1.15), toon('#ffffff', { map: drinksCooler(2, 113), emissive: '#ffffff', emissiveIntensity: 0.5 }), LEFT + 0.825, 1.15, VZ - 0.1, false);
+  snacks.rotation.y = Math.PI / 2;
+  g.add(snacks);
+  g.add(mesh(box(0.02, 0.5, 0.16), toon('#2a2a2c'), LEFT + 0.83, 1.15, VZ + 0.33, false)); // keypad
+  for (let k = 0; k < 4; k++) g.add(mesh(box(0.01, 0.04, 0.1), toon('#d8d8d0'), LEFT + 0.845, 1.32 - k * 0.09, VZ + 0.33, false));
+  g.add(mesh(box(0.02, 0.16, 0.6), toon('#1a1a1c'), LEFT + 0.83, 0.3, VZ - 0.1, false)); // pickup slot
+  const vend = mesh(new THREE.PlaneGeometry(0.85, 0.16), new THREE.MeshBasicMaterial({ map: sign('SNACKS', '#ffffff', '#a8282a', 128, 24, 'bold 18px Helvetica') }), LEFT + 0.83, 1.95, VZ, false);
+  vend.rotation.y = Math.PI / 2;
+  g.add(vend);
+  const exit = mesh(new THREE.PlaneGeometry(0.4, 0.15), new THREE.MeshBasicMaterial({ map: sign('EXIT', '#ff4a3a', '#1a0a08', 64, 24, 'bold 18px Helvetica') }), LEFT + 0.04, 2.6, 1.2, false);
+  exit.rotation.y = Math.PI / 2;
+  g.add(exit);
+  // a month-to-a-page calendar beside the corkboard
+  g.add(mesh(box(0.42, 0.56, 0.01), toon('#f4f4f0'), 3.55, 1.65, BACK + 0.01, false));
+  g.add(mesh(new THREE.PlaneGeometry(0.4, 0.22), toon('#ffffff', { map: painting(131) }), 3.55, 1.8, BACK + 0.02, false));
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) g.add(mesh(new THREE.PlaneGeometry(0.05, 0.04), toon(r === 2 && c === 3 ? '#d83a3a' : '#c8c8c0'), 3.38 + c * 0.065, 1.6 - r * 0.055, BACK + 0.02, false));
+  g.add(mesh(cyl(0.07, 0.07, 0.42, 8), toon('#c8282a'), RIGHT - 0.1, 0.81, 1.7, false));
+  g.add(mesh(box(0.06, 0.06, 0.1), toon('#1a1a1a'), RIGHT - 0.1, 1.06, 1.7, false));
+  g.add(mesh(box(0.02, 0.1, 0.1), toon('#3a3a3a'), RIGHT - 0.02, 0.9, 1.7, false));
+  // a recycling bin by the copier and coffee things on the meeting table
+  g.add(mesh(box(0.34, 0.5, 0.3), toon('#2a6ab8'), CPX + 0.75, 0.25, BACK + 0.3));
+  g.add(mesh(box(0.3, 0.02, 0.22), toon('#f4f4f0'), CPX + 0.75, 0.51, BACK + 0.3, false));
+  for (const [dx, dz] of [[-0.55, 0.15], [0.2, 0.25], [0.9, -0.25]] as const) {
+    g.add(mesh(cyl(0.04, 0.035, 0.1, 8), toon('#f0f0ec'), TX + dx, 0.82, TZ + dz, false));
+    g.add(mesh(cyl(0.041, 0.041, 0.03, 8), toon('#8a5a3a'), TX + dx, 0.84, TZ + dz, false));
+  }
+  // an open laptop on the near edge of the table, its screen toward the upstage chairs
+  const laptop = new THREE.Group();
+  laptop.position.set(TX - 0.3, 0.77, TZ + 0.3);
+  laptop.rotation.y = Math.PI;
+  laptop.add(mesh(box(0.34, 0.015, 0.24), toon('#9a9ea2'), 0, 0.008, 0, false));
+  const lid = new THREE.Group();
+  lid.position.set(0, 0.015, -0.12);
+  lid.rotation.x = -0.25;
+  lid.add(mesh(box(0.34, 0.2, 0.012), toon('#9a9ea2'), 0, 0.1, 0, false));
+  lid.add(mesh(new THREE.CircleGeometry(0.025, 8), toon('#e8ecf0'), 0, 0.1, -0.007, false).rotateY(Math.PI));
+  lid.add(mesh(new THREE.PlaneGeometry(0.3, 0.16), toon('#ffffff', { map: monitorScreen(140), emissive: '#ffffff', emissiveIntensity: 0.6 }), 0, 0.1, 0.007, false));
+  laptop.add(lid);
+  g.add(laptop);
+  plant(g, RIGHT - 0.45, 2.6, 1.5);
 
   // ---- lights ------------------------------------------------------------------------------------
   const hemi = new THREE.HemisphereLight('#f0f4ff', '#4a4a48', 1.6);
