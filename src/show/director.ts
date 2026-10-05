@@ -278,7 +278,7 @@ export class Director {
     const s = this.shot;
     if (!s) return;
     // Exterior backdrops sit beyond the indoor camera's clipping plane.
-    const far = s.kind === 'establishing' ? 180 : 60;
+    const far = s.kind === 'establishing' ? 600 : 60;
     if (this.camera.far !== far) {
       this.camera.far = far;
       this.camera.updateProjectionMatrix();
