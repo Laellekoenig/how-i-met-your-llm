@@ -28,6 +28,12 @@ export class Syndication implements ContentSource {
     return code ? episodes.findIndex((e) => e.code.toLowerCase() === code.toLowerCase()) : -1;
   }
 
+  /** Air the episode at this catalog position next, from its cold open, dropping the rest of the current one. */
+  seek(index: number) {
+    this.at = index;
+    this.items = [];
+  }
+
   async next(): Promise<ShowItem> {
     if (!this.items.length) {
       const ep = this.episodes[this.at++ % this.episodes.length];
