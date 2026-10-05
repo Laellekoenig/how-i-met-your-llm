@@ -54,7 +54,7 @@ const EPISODES: SampleEpisode[] = [
         location: 'apartment', time: 'day',
         cast: [
           { character: 'ted', mark: 'armchair' }, { character: 'marshall', mark: 'couch_left' },
-          { character: 'lily', mark: 'couch_center' }, { character: 'robin', mark: 'kitchen_stool_1' },
+          { character: 'lily', mark: 'couch_center' }, { character: 'robin', mark: 'kitchen_chair_1' },
         ],
         beats: [
           say('ted', 'Welcome to the pitch. Each of you gets sixty seconds. Marshall, you are up.', { e: 'smug' }),

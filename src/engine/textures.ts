@@ -377,3 +377,131 @@ export function neonShamrock() {
     g.fillRect(w / 2 - 16, 27, 32, 4);
   });
 }
+
+/** Tall sash window onto the street with the blinds pulled a third of the way down. */
+export function blindsWindow(night: boolean, seed = 3) {
+  const view = skyline(night, seed);
+  return canvas(48, 72, (g, w, h) => {
+    g.drawImage(view.image as HTMLCanvasElement, 24, 0, 48, 64, 0, 0, w, h);
+    view.dispose();
+    const drop = Math.round(h * 0.38);
+    for (let y = 0; y < drop; y += 3) {
+      g.fillStyle = night ? '#6e6658' : '#e6dfcc';
+      g.fillRect(0, y, w, 2);
+      g.fillStyle = night ? '#3a352c' : '#b8ae98';
+      g.fillRect(0, y + 2, w, 1);
+    }
+    g.fillStyle = night ? '#4a4338' : '#cfc6b0';
+    g.fillRect(0, drop, w, 2);
+    g.fillRect(w - 6, drop, 1, 12);
+  });
+}
+
+/** Patchwork rug of warm squares (the apartment's living-room rug). */
+export function patchRug(seed = 17) {
+  const r = mulberry32(seed);
+  const cols = ['#c8752a', '#9a5a22', '#7a7a32', '#d9a24a', '#8a3a1e', '#b8863a', '#5a4a2a', '#c9a060'];
+  return canvas(40, 28, (g, w, h) => {
+    g.fillStyle = '#6a3a1a';
+    g.fillRect(0, 0, w, h);
+    for (let y = 2; y < h - 2; y += 4)
+      for (let x = 2; x < w - 2; x += 4) {
+        g.fillStyle = cols[Math.floor(r() * cols.length)];
+        g.fillRect(x, y, 4 - (r() < 0.3 ? 1 : 0), 4 - (r() < 0.3 ? 1 : 0));
+      }
+  });
+}
+
+/** Black-and-white checkerboard tile. */
+export function checker(a: string, b: string, repeat: [number, number]) {
+  return canvas(8, 8, (g) => {
+    g.fillStyle = a;
+    g.fillRect(0, 0, 8, 8);
+    g.fillStyle = b;
+    g.fillRect(0, 0, 4, 4);
+    g.fillRect(4, 4, 4, 4);
+  }, repeat);
+}
+
+/** Fridge door buried in snapshots, takeout menus and magnets. */
+export function fridgePhotos(seed = 23) {
+  const r = mulberry32(seed);
+  return canvas(24, 56, (g, w, h) => {
+    g.fillStyle = '#ecebe4';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#b8b6ac';
+    g.fillRect(0, 19, w, 1);
+    g.fillRect(w - 3, 6, 1, 10);
+    g.fillRect(w - 3, 24, 1, 22);
+    for (let i = 0; i < 16; i++) {
+      const x = 1 + r() * (w - 9), y = 2 + r() * (h - 14);
+      const pw = 4 + r() * 4, ph = 4 + r() * 5;
+      g.fillStyle = r() < 0.3 ? '#f4f0e0' : ['#c9a27a', '#7a9ab8', '#b86a5a', '#8ab07a', '#d9c060'][Math.floor(r() * 5)];
+      g.fillRect(x, y, pw, ph);
+      g.fillStyle = ['#d93a2a', '#2a6ad9', '#e0c020', '#2a9a4a'][Math.floor(r() * 4)];
+      g.fillRect(x + pw / 2, y - 1, 1, 1);
+    }
+  });
+}
+
+/** One side of a red K6 telephone box: glazing bars and the TELEPHONE header. */
+export function phoneBox() {
+  return canvas(16, 40, (g, w, h) => {
+    g.fillStyle = '#c4161c';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = '#1a1a1a';
+    g.fillRect(2, 2, w - 4, 3);
+    g.fillStyle = '#f4f0e0';
+    g.fillRect(4, 3, w - 8, 1);
+    for (let y = 0; y < 8; y++)
+      for (let x = 0; x < 3; x++) {
+        g.fillStyle = y === 2 && x === 1 ? '#f4f0e0' : '#9ab0b8';
+        g.fillRect(3 + x * 4, 8 + y * 3.6, 3, 2.6);
+      }
+  });
+}
+
+/** Ted's blueprint for the GNB tower, pinned to his drafting table. */
+export function blueprint() {
+  return canvas(32, 40, (g, w, h) => {
+    g.fillStyle = '#e8eef2';
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#2a5a9a';
+    g.lineWidth = 1;
+    g.strokeRect(1.5, 1.5, w - 3, h - 3);
+    // a tall, tapering tower with a spire
+    g.beginPath();
+    g.moveTo(10, h - 4);
+    g.lineTo(12, 10);
+    g.lineTo(16, 4);
+    g.lineTo(20, 10);
+    g.lineTo(22, h - 4);
+    g.closePath();
+    g.stroke();
+    for (let y = 12; y < h - 5; y += 3) {
+      g.beginPath();
+      g.moveTo(11.5, y + 0.5);
+      g.lineTo(20.5, y + 0.5);
+      g.stroke();
+    }
+    g.fillStyle = '#2a5a9a';
+    g.fillRect(3, h - 4, 26, 1);
+    g.fillRect(24, 5, 5, 1);
+    g.fillRect(24, 7, 4, 1);
+  });
+}
+
+/** Simple wall clock face. */
+export function clockFace() {
+  return canvas(16, 16, (g) => {
+    g.fillStyle = '#f2eee2';
+    g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#1a1a1a';
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      g.fillRect(8 + Math.sin(a) * 6 - 0.5, 8 - Math.cos(a) * 6 - 0.5, 1, 1);
+    }
+    g.fillRect(7.5, 4, 1, 4.5);
+    g.fillRect(8, 7.5, 3, 1);
+  });
+}

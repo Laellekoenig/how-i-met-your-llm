@@ -149,7 +149,9 @@ export class Stage {
     const name = this.resolveMark(markName, id);
     const m = this.current.marks[name];
     const a = this.actors[id];
-    a.place(this.markPosition(m, name, id), m.facing, m.seat);
+    const pos = this.markPosition(m, name, id);
+    pos.y = this.current.floorAt?.(pos.x, pos.z) ?? 0;
+    a.place(pos, m.facing, m.seat);
     a.root.visible = true;
     this.occupy(id, name);
   }
@@ -269,6 +271,13 @@ export class Stage {
 
   update(dt: number, t: number) {
     for (const a of Object.values(this.actors)) a.update(dt, t);
+    // step actors up onto raised floors
+    const floorAt = this.current.floorAt;
+    if (floorAt)
+      for (const a of Object.values(this.actors)) {
+        const p = a.root.position;
+        p.y += (floorAt(p.x, p.z) - p.y) * Math.min(1, dt * 14);
+      }
     for (const e of this.extras) {
       if (!this.sets[e.set].group.visible) continue;
       e.talkT -= dt;

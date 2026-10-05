@@ -31,6 +31,8 @@ export interface StageSet {
   background: { character: CharacterId; mark: string }[];
   setTime(t: TimeOfDay): void;
   update?(dt: number, t: number): void;
+  /** Floor height at a point, for sets with raised areas (defaults to 0). */
+  floorAt?(x: number, z: number): number;
 }
 
 export const v3 = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
