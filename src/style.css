@@ -139,6 +139,131 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 #caption.sing #caption-text::before { content: '\266A  '; }
 #caption.sing #caption-text::after { content: '  \266A'; }
 
+/* Full-screen inserts: the show cuts to the phone, the chart, the slide, the sign or the Playbook itself.
+   Everything inside is sized in container units so it scales with the picture. */
+#insert {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* cards sit above the caption that's read over them */
+  padding-bottom: 13cqh;
+  overflow: hidden;
+  pointer-events: none;
+  animation: insertIn 0.28s ease-out;
+}
+@keyframes insertIn { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+/* the same TV texture as the picture: scanlines and a vignette */
+#insert::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.13) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45));
+}
+#insert .step { opacity: 0; transform: translateY(1.2cqh); transition: opacity 0.25s, transform 0.25s; }
+#insert .step.shown { opacity: 1; transform: none; }
+
+#insert.insert-text { background: radial-gradient(ellipse at 50% 40%, #3a2c22, #0c0806 75%); }
+.phone {
+  width: 32cqh;
+  height: 76cqh;
+  padding: 2.4cqh 1.6cqh;
+  border-radius: 4.5cqh;
+  background: #f4f2ee;
+  box-shadow: 0 0 0 1.2cqh #16151a, 0 0 0 1.4cqh #4a4850, 0 3cqh 8cqh rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  transform: rotate(-2deg);
+}
+.phone-head { display: flex; flex-direction: column; align-items: center; gap: 0.6cqh; padding-bottom: 1.4cqh; border-bottom: 1px solid #d8d4cc; color: #222; font-size: 2.6cqh; }
+.phone-head .avatar { width: 6cqh; height: 6cqh; border-radius: 50%; background: linear-gradient(#a8a4b0, #7c7884); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 3cqh; }
+.thread { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 1.2cqh; padding-top: 1.4cqh; }
+.bubble { max-width: 82%; padding: 1.1cqh 1.6cqh; border-radius: 2.4cqh; font-size: 2.7cqh; line-height: 1.25; color: #111; background: #e2e0e6; align-self: flex-start; }
+.bubble.out { background: #2f86f6; color: #fff; align-self: flex-end; }
+.bubble small { display: block; font-size: 0.72em; font-weight: 700; margin-bottom: 0.2em; }
+
+#insert.insert-chart { background: linear-gradient(#5a4636, #2c2018); }
+.easel {
+  width: 70cqw;
+  height: 76cqh;
+  padding: 3cqh 4cqw 2cqh;
+  background: #fbfaf4;
+  box-shadow: 0 0 0 0.6cqh #e6e2d6, 0 2.4cqh 6cqh rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--hand);
+  color: #1c1c1c;
+  transform: rotate(0.6deg);
+}
+.easel h2 { margin: 0; text-align: center; font-size: 6.4cqh; font-weight: 700; line-height: 1; text-decoration: underline; text-decoration-thickness: 0.4cqh; text-underline-offset: 0.9cqh; }
+.easel svg { flex: 1; min-height: 0; width: 100%; font-family: var(--hand); font-size: 17px; font-weight: 700; fill: #1c1c1c; }
+.easel svg .axis { fill: none; stroke: #1c1c1c; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.easel svg .value { font-size: 15px; fill: #444; }
+.easel footer { text-align: right; font-size: 3.4cqh; color: #2f5fb3; }
+
+#insert.insert-slides { background: #0a0f20; padding-bottom: 0; }
+.slide {
+  width: 100%;
+  height: 100%;
+  padding: 11cqh 9cqw 16cqh;
+  background: linear-gradient(160deg, #1c3f8c, #0e2154 70%);
+  color: #fff;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.slide h2 { margin: 0 0 4cqh; font-size: 8cqh; line-height: 1.05; font-weight: 800; letter-spacing: -0.01em; padding-bottom: 2cqh; border-bottom: 0.8cqh solid var(--umbrella); text-shadow: 0.4cqh 0.4cqh 0 rgba(0, 0, 0, 0.35); }
+.slide ul { margin: 0; padding-left: 1.1em; font-size: 5.4cqh; line-height: 1.35; }
+.slide li::marker { color: var(--umbrella); }
+.slide footer { position: absolute; left: 9cqw; right: 9cqw; top: 4cqh; text-align: right; font-size: 2.6cqh; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; }
+
+#insert.insert-sign { background: repeating-linear-gradient(0deg, #4a2a22 0 5.2cqh, #3a1f19 5.2cqh 5.6cqh), #4a2a22; }
+.plate {
+  max-width: 76cqw;
+  padding: 6cqh 6cqw;
+  background: #fbf8ec;
+  box-shadow: 0 2cqh 5cqh rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6cqh;
+  font-family: var(--hand);
+  color: #1c1c1c;
+  text-align: center;
+  transform: rotate(-1.5deg);
+  position: relative;
+}
+.plate::before, .plate::after { content: ''; position: absolute; top: -2.2cqh; width: 12cqh; height: 4.4cqh; background: rgba(240, 232, 200, 0.75); }
+.plate::before { left: -3cqh; transform: rotate(-30deg); }
+.plate::after { right: -3cqh; transform: rotate(30deg); }
+.plate b { font-size: 11cqh; line-height: 1; color: #b0221c; text-transform: uppercase; }
+.plate span { font-size: 5cqh; line-height: 1.15; }
+
+#insert.insert-playbook { background: radial-gradient(ellipse at center, #3c2a1a, #120a05 80%); }
+.page {
+  width: 58cqh;
+  height: 78cqh;
+  padding: 4.5cqh 6cqh;
+  background: linear-gradient(90deg, #d8ccb0, #f2ead6 8%, #f6efde 90%, #e4d8bc);
+  box-shadow: 0 2.4cqh 6cqh rgba(0, 0, 0, 0.6);
+  color: #2a1c12;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  display: flex;
+  flex-direction: column;
+  transform: rotate(1deg);
+}
+.page header { font-size: 2.4cqh; letter-spacing: 0.4em; text-transform: uppercase; color: #8a1c1c; text-align: center; border-bottom: 2px solid #8a1c1c; padding-bottom: 1.2cqh; }
+.page h2 { margin: 3cqh 0 2.4cqh; font-size: 5.6cqh; line-height: 1.05; font-style: italic; text-align: center; }
+.page ol { margin: 0; padding-left: 1.4em; font-size: 3.1cqh; line-height: 1.4; }
+.page li { margin-bottom: 1cqh; }
+.page footer { margin-top: auto; text-align: right; font-family: var(--hand); font-size: 2.8cqh; color: #2f4a8a; }
+
+/* a montage's tag */
+#loc-label.montage { padding: 0.35em 0.8em; color: #1a1206; background: var(--umbrella); text-shadow: none; letter-spacing: 0.16em; }
+
 #closing-credits {
   position: absolute;
   inset: 0;

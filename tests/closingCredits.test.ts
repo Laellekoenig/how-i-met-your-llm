@@ -18,7 +18,7 @@ async function eventually(check: () => boolean, timeout = 1000) {
 
 function playback() {
   const stage = { actors: {}, current: { id: 'future' } };
-  const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0 };
+  const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
   const shown: CreditCard[][] = [];
   let visible: CreditCard[] | null = null;
   let caption = true, location = true, year = true;
@@ -28,6 +28,7 @@ function playback() {
     hideLocation() { location = false; },
     year(on: boolean) { year = on; },
     hideCards() { visible = null; },
+    insert() {},
     closingCredit(cards: CreditCard[] | null) { visible = cards; if (cards) shown.push(cards); },
   };
   const episode = { id: 'ending', code: 'S09E99', title: 'Never Put This On Screen', logline: 'No logline either' };

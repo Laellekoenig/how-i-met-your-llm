@@ -7,7 +7,7 @@ import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
 import { EPISODES } from './helpers/episodes';
-import type { CutawayBeat } from '../src/script/types';
+import type { Costume, CutawayBeat, MontageBeat } from '../src/script/types';
 
 const stage = testStage();
 const camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.05, 60);
@@ -134,14 +134,20 @@ describe('current set navigation', () => {
   });
 });
 
-const rerunScenes = EPISODES.flatMap((ep) => ep.scenes.flatMap((scene, i) => [
-  { ...scene, guests: ep.guests, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` },
-  ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, label: `${ep.code} ${ep.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
-]));
+// Every scene, cutaway and montage shot, in the clothes it's played in.
+const rerunScenes = EPISODES.flatMap((ep) => ep.scenes.flatMap((scene, i) => {
+  const wardrobe: Costume[] = [...(ep.wardrobe ?? []), ...(scene.wardrobe ?? [])];
+  return [
+    { ...scene, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` },
+    ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
+    ...scene.beats.filter((b): b is MontageBeat => b.type === 'montage').flatMap((m) => m.shots.map((s, k) => ({ ...s, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: montage shot ${k + 1} at ${s.location}` }))),
+  ];
+}));
 
 describe('camera coverage on the current sets', () => {
   for (const scene of rerunScenes) test(`${scene.label} covers the cast and both sides of each conversation`, () => {
     stage.castGuests(scene.guests);
+    stage.setWardrobe(scene.wardrobe);
     stage.setLocation(scene.location, scene.time);
     for (const c of scene.cast) {
       expect(stage.current.marks[c.mark], `${c.character}/${c.mark}`).toBeDefined();
@@ -282,6 +288,18 @@ describe('camera coverage on the current sets', () => {
     director.closeup('ted');
     expect(director.current!.pos.z).toBeLessThan(stage.actors.ted.position.z);
     expectVisible(stage.actors.ted, 'student reverse');
+  });
+
+  test('a push-in creeps toward its subject for longer than a closeup, without losing them', () => {
+    stage.setWardrobe([]);
+    stage.setLocation('metro_news_one', 'day'); stage.place('ted', 'center'); stage.place('robin', 'anchor_left');
+    director.pushIn('ted', 'robin');
+    const from = camera.position.distanceTo(stage.actors.ted.headWorld);
+    for (let i = 0; i < 120; i++) {
+      director.update(0.05);
+      if (i % 20 === 19) expectVisible(stage.actors.ted, `push-in ${i}`);
+    }
+    expect(from - camera.position.distanceTo(stage.actors.ted.headWorld)).toBeGreaterThan(0.6);
   });
 
   test('long held shots stop pushing before they enter the set', () => {

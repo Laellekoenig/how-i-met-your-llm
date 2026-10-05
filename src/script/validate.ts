@@ -1,6 +1,6 @@
 import {
-  CHARACTER_IDS, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS,
-  GUEST_SKIN, GUEST_TOPS, LAUGHS, OUTFITS, SCENE_LOCATION_IDS, TRANSITIONS, isGuest, isKid,
+  CHARACTER_IDS, CHART_STYLES, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS,
+  GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OUTFITS, PROPS, SCENE_LOCATION_IDS, SHOTS, TRANSITIONS, isGuest, isKid,
 } from './types';
 import type { StageSet } from '../world/sets/common';
 
@@ -25,17 +25,31 @@ const MAX_CUTAWAY_BEATS = 24;
 const MAX_WORDS = 35;
 const LONG_WORDS = 25;
 
+const MAX_MONTAGE_SHOTS = 6;
+
 const BEAT_KEYS: Record<string, string[]> = {
-  say: ['character', 'line', 'to', 'emotion', 'gesture', 'laugh', 'delivery', 'interrupted'],
+  say: ['character', 'line', 'to', 'emotion', 'gesture', 'laugh', 'delivery', 'interrupted', 'chorus', 'react', 'shot'],
   narrate: ['line', 'laugh'],
   move: ['character', 'to'],
   enter: ['character', 'to'],
   exit: ['character'],
-  act: ['character', 'gesture', 'to', 'emotion'],
+  act: ['character', 'gesture', 'to', 'emotion', 'shot'],
+  hold: ['character', 'prop', 'shot'],
+  give: ['character', 'to', 'prop', 'shot'],
   laugh: ['laugh'],
   pause: ['seconds'],
+  freeze: ['line', 'character', 'gesture', 'to', 'emotion', 'laugh', 'shot'],
+  insert: ['kind', 'title', 'lines', 'messages', 'items', 'chart', 'character', 'line', 'laugh', 'react'],
   cutaway: ['style', 'label', 'location', 'time', 'cast', 'beats'],
+  montage: ['label', 'music', 'shots'],
 };
+
+/** Where an insert has room for what it shows. */
+const INSERT_NEEDS: Record<string, string> = {
+  text: '"messages" [{ "from", "text" }]', chart: '"items" [{ "label", "value" }]',
+  slides: 'a "title" or "lines"', sign: 'a "title" or "lines"', playbook: 'a "title" or "lines"',
+};
+const COSTUME_KEYS = ['character', 'topStyle', 'top', 'under', 'tie', 'vest', 'pants', 'shoes', 'boots', 'hairStyle', 'extras'];
 
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
 const list = (values: readonly string[]) => values.join(', ');
@@ -67,7 +81,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     return typeof v === 'string' && values.includes(v) ? v : undefined;
   };
 
-  keys(ep, '', ['code', 'title', 'logline', 'coldOpen', 'couch', 'guests', 'scenes']);
+  keys(ep, '', ['code', 'title', 'logline', 'coldOpen', 'couch', 'guests', 'wardrobe', 'scenes']);
   const code = text(ep, 'code', 'code');
   if (code && !/^S\d{2}E\d{2}$/.test(code)) err('code', `"${code}" should look like "S11E03"`);
   text(ep, 'title', 'title');
@@ -116,6 +130,41 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     }
   }
 
+  const color = (o: Obj, k: string, path: string) => {
+    const v = o[k];
+    if (v !== undefined && !(typeof v === 'string' && ((GUEST_COLORS as readonly string[]).includes(v) || /^#[0-9a-f]{6}$/.test(v)))) {
+      err(path, `"${k}": ${JSON.stringify(v)} must be #rrggbb or one of: ${list(GUEST_COLORS)}`);
+    }
+  };
+
+  /** Costumes for the regular cast: only what's mentioned changes. */
+  const wardrobe = (raw: unknown, path: string) => {
+    if (raw === undefined) return;
+    if (!Array.isArray(raw)) return err(path, 'must be an array of costumes');
+    const seen = new Set<unknown>();
+    raw.forEach((c, i) => {
+      const p = `${path}[${i}]`;
+      if (!isObj(c)) return err(p, 'a costume is { "character", ...what changes }');
+      keys(c, p, COSTUME_KEYS);
+      const who = c.character;
+      if (typeof who !== 'string' || !(CHARACTER_IDS as readonly string[]).includes(who) || isGuest(who) || isKid(who)) {
+        err(p, `costumes are for the regular cast, not ${JSON.stringify(who)} (guest stars are described in "guests"; the kids don't change)`);
+      }
+      if (seen.has(who)) err(p, `${String(who)} has two costumes here: merge them`);
+      seen.add(who);
+      oneOf(c, 'topStyle', GUEST_TOPS, p);
+      oneOf(c, 'hairStyle', GUEST_HAIR_STYLES, p);
+      for (const k of ['top', 'under', 'tie', 'vest', 'pants', 'shoes']) color(c, k, p);
+      if (c.boots !== undefined && typeof c.boots !== 'boolean') err(p, '"boots" is true or false');
+      if (c.extras !== undefined) {
+        if (!Array.isArray(c.extras)) err(p, '"extras" must be an array');
+        else for (const x of c.extras) if (!(GUEST_EXTRAS as readonly string[]).includes(x)) err(p, `extra ${JSON.stringify(x)} is not one of: ${list(GUEST_EXTRAS)}`);
+      }
+      if (Object.keys(c).length < 2) warn(p, 'a costume that changes nothing');
+    });
+  };
+  wardrobe(ep.wardrobe, 'wardrobe');
+
   const character = (v: unknown, path: string, what = 'character') => {
     if (typeof v !== 'string' || !(CHARACTER_IDS as readonly string[]).includes(v)) {
       err(path, `${what} ${JSON.stringify(v)} is not a character id (${list(CHARACTER_IDS.filter((c) => !isGuest(c)))}, or a cast guest slot)`);
@@ -132,6 +181,9 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   const speakers = new Set<string>();
   let kidBeats = 0;
   let cutaways = 0;
+  let montages = 0;
+  let inserts = 0;
+  let freezes = 0;
 
   interface Stage {
     location: string;
@@ -140,6 +192,8 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     at: Map<string, string | null>;
     /** A scene, not a cutaway. */
     real: boolean;
+    /** What people are holding. */
+    held: Map<string, string>;
   }
 
   const compartment = (st: Stage, mark: string) => st.set.entrances?.[mark] ?? st.set.door;
@@ -147,7 +201,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   const castOn = (raw: unknown, location: string, path: string, real: boolean): Stage | null => {
     const set = sets[location];
     if (!set) return null;
-    const st: Stage = { location, set, at: new Map(), real };
+    const st: Stage = { location, set, at: new Map(), real, held: new Map() };
     if (!Array.isArray(raw)) {
       err(path, '"cast" must be an array of { "character", "mark" }');
       return st;
@@ -216,7 +270,8 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       oneOf(b, 'laugh', LAUGHS, p, type === 'laugh');
       oneOf(b, 'delivery', DELIVERIES, p);
 
-      if (type === 'say' || type === 'narrate') {
+      oneOf(b, 'shot', SHOTS, p);
+      if (type === 'say' || type === 'narrate' || type === 'freeze' || (type === 'insert' && b.line !== undefined)) {
         const line = text(b, 'line', p);
         if (/[()*[\]{}<>]/.test(line)) err(p, 'no stage directions in lines: use beats, gestures, emotion and delivery instead');
         const n = words(line);
@@ -233,17 +288,42 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         }
       }
 
-      const who = type in { say: 1, move: 1, enter: 1, exit: 1, act: 1 } ? character(b.character, p) : undefined;
+      const who = type in { say: 1, move: 1, enter: 1, exit: 1, act: 1, hold: 1, give: 1 } || (type === 'freeze' && b.character !== undefined)
+        ? character(b.character, p) : undefined;
       const kid = !!who && isKid(who);
       if (kid) {
         if (type !== 'say' && type !== 'act') err(p, `${who} never leaves the 2030 couch: they can only say and act`);
         kidBeats++;
       }
       if (type === 'say' && who) speakers.add(who);
+      if (kid && type === 'say' && b.chorus !== undefined) {
+        // the kids can say something together on the couch, and that's all
+        if (!Array.isArray(b.chorus) || b.chorus.some((c) => !isKid(String(c)) || c === who)) err(p, '"chorus" on a kid\'s line is the other kid');
+      }
       if ((type === 'say' || type === 'act') && b.to !== undefined) {
         const to = character(b.to, p, '"to"');
         if (to && st && !kid && !st.at.has(to) && !isKid(to)) warn(p, `${who} talks to ${to}, who isn't on stage`);
       }
+
+      if (type === 'freeze' && who && kid) err(p, 'a freeze frame is on someone in the story, not the couch');
+      if (st && !kid && type === 'say') {
+        if (b.chorus !== undefined) {
+          if (!Array.isArray(b.chorus) || !b.chorus.length) err(p, '"chorus" is a list of everyone else saying the line');
+          else b.chorus.forEach((c, k) => {
+            const id = character(c, `${p}.chorus[${k}]`);
+            if (!id) return;
+            if (id === who) err(p, `${id} is already saying the line: "chorus" is everyone else`);
+            else if (isKid(id)) err(p, `${id} is on the 2030 couch and can't join a line in the story`);
+            else if (!st.at.has(id)) err(p, `${id} isn't on stage to join in`);
+          });
+        }
+      }
+      if (type === 'say' || type === 'insert') reactions(b.react, st, p, type === 'say' ? who : undefined);
+      if (type === 'insert') {
+        inserts++;
+        insert(b, p);
+      }
+      if (type === 'freeze') freezes++;
 
       if (!st || !who || kid) {
         // nothing to stage
@@ -256,6 +336,21 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         err(p, `${who} isn't on stage here: put them in the cast or give them an "enter" beat first`);
       } else if (type === 'exit') {
         st.at.delete(who);
+        st.held.delete(who);
+      } else if (type === 'hold') {
+        const prop = oneOf(b, 'prop', [...PROPS, 'none'], p, true);
+        if (prop === 'none') {
+          if (!st.held.has(who)) warn(p, `${who} isn't holding anything to put down`);
+          st.held.delete(who);
+        } else if (prop) st.held.set(who, prop);
+      } else if (type === 'give') {
+        const prop = oneOf(b, 'prop', PROPS, p) ?? st.held.get(who);
+        const to = character(b.to, p, '"to"');
+        if (!prop) err(p, `${who} isn't holding anything: "hold" it first, or say which "prop"`);
+        if (to === who) err(p, `${who} can't hand something to themselves`);
+        else if (to && (isKid(to) || !st.at.has(to))) err(p, `${to} isn't on stage to take it`);
+        st.held.delete(who);
+        if (to && prop) st.held.set(to, prop);
       } else if (type === 'move') {
         if (b.to === undefined) err(p, 'a move needs a "to" (a mark or a character on stage)');
         destination(st, who, b.to, p);
@@ -277,7 +372,92 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         else if (n < 3 || n > 10) warn(p, `${n} beats: cutaways land best with 3-10`);
         beats(b.beats, inner, `${p}.beats`, true, budget);
       }
+
+      if (type === 'montage') {
+        if (nested) return err(p, 'no montages inside a cutaway or another montage');
+        montages++;
+        oneOf(b, 'music', MONTAGE_MUSIC, p, true);
+        if (b.label !== undefined && (typeof b.label !== 'string' || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
+        if (!Array.isArray(b.shots)) return err(p, '"shots" must be an array of { "location", "time", "cast", "beats" }');
+        if (b.shots.length < 2 || b.shots.length > MAX_MONTAGE_SHOTS) err(p, `${b.shots.length} shots: a montage has 2-${MAX_MONTAGE_SHOTS}`);
+        b.shots.forEach((shot, k) => {
+          const sp = `${p}.shots[${k}]`;
+          if (!isObj(shot)) return err(sp, 'a shot is { "location", "time", "cast", "beats" }');
+          keys(shot, sp, ['location', 'time', 'label', 'cast', 'beats']);
+          oneOf(shot, 'time', ['day', 'night'], sp, true);
+          if (shot.label !== undefined && (typeof shot.label !== 'string' || shot.label.length > 40)) err(sp, '"label" is a little card like "Day 3" (40 characters max)');
+          const location = oneOf(shot, 'location', SCENE_LOCATION_IDS, sp, true);
+          const inner = location ? castOn(shot.cast, location, `${sp}.cast`, false) : null;
+          const n = Array.isArray(shot.beats) ? shot.beats.length : 0;
+          if (n > 3) err(sp, `${n} beats: a montage shot is quick (0-2 beats)`);
+          else if (n > 2) warn(sp, `${n} beats: montage shots land best with 1-2`);
+          if (Array.isArray(shot.beats) && shot.beats.some((x) => isObj(x) && isKid(String(x.character)))) err(sp, 'the kids stay on the couch: no couch cutaways inside a montage');
+          budget.left--;
+          beats(shot.beats, inner, `${sp}.beats`, true, budget);
+        });
+      }
     });
+  };
+
+  /** Listener reactions: people on stage, never the speaker or the kids. */
+  const reactions = (raw: unknown, st: Stage | null, p: string, speaker?: string) => {
+    if (raw === undefined) return;
+    if (!Array.isArray(raw) || !raw.length) return err(p, '"react" is a list of { "character", "emotion"?, "gesture"? }');
+    const seen = new Set<string>();
+    raw.forEach((r, k) => {
+      const rp = `${p}.react[${k}]`;
+      if (!isObj(r)) return err(rp, 'a reaction is { "character", "emotion"?, "gesture"? }');
+      keys(r, rp, ['character', 'emotion', 'gesture']);
+      oneOf(r, 'emotion', EMOTIONS, rp);
+      oneOf(r, 'gesture', GESTURES, rp);
+      const id = character(r.character, rp);
+      if (!id) return;
+      if (id === speaker) err(rp, `${id} said the line: reactions are the listeners`);
+      else if (isKid(id)) err(rp, `${id} reacts from the couch with a "say" or "act" beat, not a reaction`);
+      else if (st && !st.at.has(id)) err(rp, `${id} isn't on stage to react`);
+      if (seen.has(id)) err(rp, `${id} reacts twice: merge them`);
+      seen.add(id);
+      if (r.emotion === undefined && r.gesture === undefined) warn(rp, 'a reaction with no emotion or gesture just looks surprised');
+    });
+    if (raw.length > 6) err(p, 'at most 6 reactions');
+  };
+
+  /** A full-screen card needs something to show. */
+  const insert = (b: Obj, p: string) => {
+    const kind = oneOf(b, 'kind', INSERT_KINDS, p, true);
+    if (b.title !== undefined && (typeof b.title !== 'string' || b.title.length > 60)) err(p, '"title" is a short heading (60 characters max)');
+    if (b.character !== undefined) character(b.character, p);
+    if (b.lines !== undefined) {
+      if (!Array.isArray(b.lines) || b.lines.length > 6 || b.lines.some((l) => typeof l !== 'string' || !l.trim() || l.length > 90)) {
+        err(p, '"lines" is up to 6 short strings (90 characters max)');
+      }
+    }
+    if (b.messages !== undefined) {
+      if (!Array.isArray(b.messages) || !b.messages.length || b.messages.length > 6) err(p, '"messages" is 1-6 texts');
+      else b.messages.forEach((m, k) => {
+        if (!isObj(m) || typeof m.from !== 'string' || !m.from.trim() || typeof m.text !== 'string' || !m.text.trim()) err(`${p}.messages[${k}]`, 'a text is { "from": character id or name, "text" }');
+        else {
+          keys(m, `${p}.messages[${k}]`, ['from', 'text']);
+          if (m.text.length > 120) err(`${p}.messages[${k}]`, 'texts are short (120 characters max)');
+          if (isGuest(m.from) && !guests.has(m.from)) err(`${p}.messages[${k}]`, `${m.from} isn't cast`);
+        }
+      });
+    }
+    if (b.items !== undefined) {
+      if (!Array.isArray(b.items) || !b.items.length || b.items.length > 6) err(p, '"items" is 1-6 { "label", "value" }');
+      else b.items.forEach((it, k) => {
+        if (!isObj(it) || typeof it.label !== 'string' || !it.label.trim() || it.label.length > 24 || typeof it.value !== 'number' || it.value < 0) {
+          err(`${p}.items[${k}]`, 'a chart item is { "label": up to 24 characters, "value": a number >= 0 }');
+        } else keys(it, `${p}.items[${k}]`, ['label', 'value']);
+      });
+    }
+    oneOf(b, 'chart', CHART_STYLES, p);
+    if (b.chart !== undefined && kind !== 'chart') err(p, '"chart" is only for a chart');
+    if (kind === 'text' && b.messages === undefined) err(p, `a text insert needs ${INSERT_NEEDS.text}`);
+    if (kind === 'chart' && b.items === undefined) err(p, `a chart needs ${INSERT_NEEDS.chart}`);
+    if (kind && kind !== 'text' && kind !== 'chart' && b.title === undefined && b.lines === undefined) err(p, `a ${kind} insert needs ${INSERT_NEEDS[kind]}`);
+    if (kind !== 'text' && b.messages !== undefined) err(p, '"messages" are only for a text');
+    if (kind !== 'chart' && b.items !== undefined) err(p, '"items" are only for a chart');
   };
 
   // ---- the kids' reaction to the cold open
@@ -303,7 +483,8 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     scenes.forEach((s, i) => {
       const path = `scenes[${i}]`;
       if (!isObj(s)) return err(path, 'a scene is an object');
-      keys(s, path, ['location', 'time', 'transition', 'summary', 'cast', 'beats']);
+      keys(s, path, ['location', 'time', 'transition', 'summary', 'wardrobe', 'cast', 'beats']);
+      wardrobe(s.wardrobe, `${path}.wardrobe`);
       const location = oneOf(s, 'location', SCENE_LOCATION_IDS, path, true);
       oneOf(s, 'time', ['day', 'night'], path, true);
       oneOf(s, 'transition', TRANSITIONS, path);
@@ -332,6 +513,9 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   for (const [id, name] of guests) if (!speakers.has(id)) warn('guests', `${name} (${id}) never says a line`);
   if (kidBeats > 3) warn('', `${kidBeats} couch cutaways: keep Penny and Luke to 0-2 quick reactions per episode`);
   if (cutaways > 2) warn('', `${cutaways} cutaways: one or two per episode`);
+  if (montages > 1) warn('', `${montages} montages: one per episode at most`);
+  if (inserts > 3) warn('', `${inserts} inserts: two or three per episode`);
+  if (freezes > 1) warn('', `${freezes} freeze frames: one per episode at most`);
 
   return { errors, warnings };
 }

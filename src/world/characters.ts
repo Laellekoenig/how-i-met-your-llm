@@ -1,5 +1,5 @@
-import { GUEST_IDS, type CharacterId, type GuestStar, type LocationId, type Outfit } from '../script/types';
-import { guestDef, placeholderGuest } from './guests';
+import { GUEST_IDS, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
+import { costumeLook, guestDef, placeholderGuest } from './guests';
 
 export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
@@ -535,9 +535,11 @@ export function outfitAt(id: CharacterId, location: LocationId): Outfit {
   return CHARACTERS[id].work?.at.includes(location) ? 'work' : 'casual';
 }
 
-/** A character dressed in one of their outfits. */
-export function dressed(def: CharacterDef, outfit: Outfit): CharacterDef {
-  return outfit === 'work' && def.work ? { ...def, look: { ...def.look, ...def.work.look } } : def;
+/** A character dressed in one of their outfits, with this episode's or scene's costume (if any) over it. */
+export function dressed(def: CharacterDef, outfit: Outfit, costume?: Costume): CharacterDef {
+  const look = outfit === 'work' && def.work ? { ...def.look, ...def.work.look } : def.look;
+  if (!costume) return look === def.look ? def : { ...def, look };
+  return { ...def, look: costumeLook(look, costume) };
 }
 
 export function charName(id: string) {
