@@ -364,7 +364,7 @@ export class Player {
         } else if (item.coldOpen || item.couch?.length) {
           this.stage.setLocation('future', 'night');
           this.stage.seatKids();
-          this.director.wide(0, 0.02);
+          this.director.wide(0);
           audio.ambience('none');
           this.renderer.fade = 0;
           await this.fade(1, 0.6);
@@ -713,7 +713,7 @@ export class Player {
     st.cutToKids();
     audio.ambience('none');
     this.renderer.dream = this.renderer.memory = 0;
-    this.director.wide(0, 0.02);
+    this.director.wide(0);
     this.overlay.year(true);
     try {
       await this.wait(0.35);
@@ -797,7 +797,7 @@ export class Player {
           st.actors[id].lookAt = a.lookAt;
         }
         const delivery = b.delivery;
-        if (isKid(b.character)) chorus.length ? this.director.wide(0, 0.02) : this.director.onCouchLine(b.character);
+        if (isKid(b.character)) chorus.length ? this.director.wide(0) : this.director.onCouchLine(b.character);
         else if (b.shot) this.director.intent(b.shot, b.character, to);
         else if (chorus.length) this.director.group([b.character, ...chorus]);
         // a whisper is a two-shot secret; a shout gets the single
