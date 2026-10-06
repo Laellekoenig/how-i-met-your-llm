@@ -29,7 +29,7 @@ const player = new Player(stage, director, renderer, overlay, panel, syndication
 let onAir = requested >= 0;
 let airing: string | undefined;
 
-/** Air an episode from its cold open, from the guide or dev mode's episode picker; syndication carries on from there. */
+/** Air an episode from its cold open, picked in the guide; syndication carries on from there. */
 function tune(index: number) {
   closeGuide();
   syndication.seek(index);
@@ -38,7 +38,6 @@ function tune(index: number) {
   onAir = true;
 }
 const guide = new Guide($('guide'), EPISODES, tune);
-panel.episodes(EPISODES, tune);
 
 function openGuide() {
   if (guide.open) return;
@@ -61,7 +60,7 @@ function closeGuide() {
 
 player.onItem = (item: ShowItem) => {
   const meta: string[] = [];
-  if (item.kind === 'scene') meta.push(`scene ${item.index + 1}`, item.scene.location, item.scene.time);
+  if (item.kind === 'scene') meta.push(`scene ${item.index + 1}`, stage.sets[item.scene.location].name, item.scene.time);
   if (item.kind === 'episode-start') meta.push('cold open');
   if (item.kind === 'episode-end') meta.push('credits');
   panel.nowPlaying(item.episode, meta);
@@ -94,7 +93,9 @@ const pauseBtn = $('btn-pause');
 function setPaused(paused: boolean) {
   if (player.paused === paused) return;
   player.paused = paused;
-  pauseBtn.textContent = player.paused ? '▶' : '❚❚';
+  pauseBtn.classList.toggle('paused', player.paused);
+  pauseBtn.title = player.paused ? 'Play (space)' : 'Pause (space)';
+  pauseBtn.setAttribute('aria-label', player.paused ? 'Play' : 'Pause');
   if (player.paused) {
     speechSynthesis?.pause();
     void audio.ctx?.suspend();
@@ -115,11 +116,12 @@ function toggleFullscreen() {
   else void $('screen-wrap').requestFullscreen();
 }
 $('btn-full').addEventListener('click', toggleFullscreen);
+$('btn-guide').addEventListener('click', () => openGuide());
 
 // ---------------------------------------------------------------- dev mode
 
 // Regular mode is just the TV: the show plays on its own, letterboxed to fill the window.
-// Dev mode (?dev, or press D) brings back the transport, the transcript and all the settings.
+// Dev mode (?dev, or press D) adds the transport and settings bar and a panel with the transcript.
 const devMode = () => document.body.classList.contains('dev');
 function setDevMode(on: boolean) {
   document.body.classList.toggle('dev', on);

@@ -11,6 +11,11 @@ interface Listing {
 
 const SLOT_MS = 30 * 60 * 1000;
 const seasonOf = (code: string) => /^S(\d+)/i.exec(code)?.[1] ?? '?';
+/** "season 10, episode 1", as the guide and the dev panel spell an episode code. */
+export function episodeLabel(code: string) {
+  const [, s, e] = /^S(\d+)E(\d+)/i.exec(code) ?? [];
+  return s && e ? `season ${Number(s)}, episode ${Number(e)}` : code;
+}
 const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
@@ -207,8 +212,7 @@ export class Guide {
   /** The info panel: the selected programme, or the one under the mouse. */
   private describe(index: number) {
     const l = this.listings[index];
-    const [, s, e] = /^S(\d+)E(\d+)/i.exec(l.code) ?? [];
-    this.info.code.textContent = s && e ? `season ${Number(s)}, episode ${Number(e)}` : l.code;
+    this.info.code.textContent = episodeLabel(l.code);
     this.info.title.textContent = l.title;
     this.info.logline.textContent = l.logline;
   }

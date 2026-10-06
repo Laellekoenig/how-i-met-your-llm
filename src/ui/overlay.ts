@@ -2,6 +2,7 @@ import type { CutawayStyle, Delivery, EpisodeMeta, InsertBeat } from '../script/
 import { CHARACTERS, charName } from '../world/characters';
 import type { PhotoMotion } from '../show/mainTitles';
 import type { CreditCard } from '../show/credits';
+import { episodeLabel } from './guide';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -161,56 +162,14 @@ export class Overlay {
   }
 }
 
-/** Sidebar transcript + now-playing widgets. */
+/** Dev mode's side panel: what's on, and a running transcript. */
 export class Panel {
   private transcript = $('transcript');
-  private onAir = '';
-
-  /** The dev-mode episode picker: one entry per catalog episode; picking one airs it from the cold open. */
-  episodes(list: { code: string; title: string }[], onPick: (index: number) => void) {
-    $('episodes-count').textContent = `${list.length}`;
-    $('episode-list').replaceChildren(...list.map((ep, i) => {
-      const li = document.createElement('li');
-      const b = document.createElement('button');
-      b.dataset.code = ep.code;
-      b.title = `Play ${ep.code} from the cold open`;
-      const code = document.createElement('span');
-      code.className = 'code';
-      code.textContent = ep.code;
-      const title = document.createElement('span');
-      title.className = 'title';
-      title.textContent = ep.title;
-      b.append(code, title);
-      b.addEventListener('click', () => onPick(i));
-      li.append(b);
-      return li;
-    }));
-  }
 
   nowPlaying(ep: EpisodeMeta, meta: string[]) {
-    if (ep.id !== this.onAir) {
-      this.onAir = ep.id;
-      const list = $('episode-list');
-      for (const b of list.querySelectorAll<HTMLButtonElement>('button')) {
-        const on = b.dataset.code === ep.code;
-        b.setAttribute('aria-current', `${on}`);
-        // bring the new episode into view without scrolling the panel itself
-        if (on && (b.offsetTop < list.scrollTop || b.offsetTop + b.offsetHeight > list.scrollTop + list.clientHeight)) {
-          list.scrollTop = b.offsetTop - (list.clientHeight - b.offsetHeight) / 2;
-        }
-      }
-    }
-    $('now-code').textContent = ep.code;
+    $('now-code').textContent = episodeLabel(ep.code);
     $('now-title').textContent = ep.title;
-    $('now-logline').textContent = ep.logline;
-    const m = $('now-meta');
-    m.innerHTML = '';
-    for (const t of meta) {
-      const b = document.createElement('span');
-      b.className = 'badge';
-      b.textContent = t;
-      m.appendChild(b);
-    }
+    $('now-meta').textContent = meta.join(' · ');
   }
 
   line(kind: 'say' | 'narr' | 'stage' | 'laugh' | 'sep', text: string, name?: string, color?: string) {

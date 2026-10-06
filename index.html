@@ -52,46 +52,37 @@
         </div>
 
         <div id="transport">
-          <button id="btn-pause" title="Pause (space)">❚❚</button>
-          <button id="btn-back-ep" title="Previous episode (shift+←)">⏮ episode</button>
-          <button id="btn-back" title="Previous scene (←)">⏮ scene</button>
-          <button id="btn-skip" title="Skip scene (→)">⏭ scene</button>
-          <button id="btn-skip-ep" title="Skip episode (shift+→)">⏭ episode</button>
+          <svg class="icons" aria-hidden="true">
+            <symbol id="i-prev" viewBox="0 0 16 16"><path d="M3 3h2v10H3zM13 3v10L6 8z" /></symbol>
+            <symbol id="i-back" viewBox="0 0 16 16"><path d="M8 3v10L2 8zM15 3v10L9 8z" /></symbol>
+            <symbol id="i-pause" viewBox="0 0 16 16"><path d="M4 3h3v10H4zM9 3h3v10H9z" /></symbol>
+            <symbol id="i-play" viewBox="0 0 16 16"><path d="M4 2.5v11L13 8z" /></symbol>
+            <symbol id="i-skip" viewBox="0 0 16 16"><path d="M1 3v10l6-5zM8 3v10l6-5z" /></symbol>
+            <symbol id="i-next" viewBox="0 0 16 16"><path d="M3 3v10l7-5zM11 3h2v10h-2z" /></symbol>
+            <symbol id="i-full" viewBox="0 0 16 16"><path d="M2 2h5v2H4v3H2zM9 2h5v5h-2V4H9zM2 9h2v3h3v2H2zM12 9h2v5H9v-2h3z" /></symbol>
+          </svg>
+          <button id="btn-back-ep" title="Previous episode (shift+←)" aria-label="Previous episode"><svg><use href="#i-prev" /></svg></button>
+          <button id="btn-back" title="Previous scene (←)" aria-label="Previous scene"><svg><use href="#i-back" /></svg></button>
+          <button id="btn-pause" title="Pause (space)" aria-label="Pause"><svg class="pause"><use href="#i-pause" /></svg><svg class="play"><use href="#i-play" /></svg></button>
+          <button id="btn-skip" title="Next scene (→)" aria-label="Next scene"><svg><use href="#i-skip" /></svg></button>
+          <button id="btn-skip-ep" title="Next episode (shift+→)" aria-label="Next episode"><svg><use href="#i-next" /></svg></button>
+          <button id="btn-guide" class="text" title="TV guide (esc)">guide</button>
           <div class="spacer"></div>
-          <label class="vol">vol <input id="volume" type="range" min="0" max="1" step="0.05" value="0.8" /></label>
-          <button id="btn-full" title="Fullscreen">⛶</button>
+          <label class="opt" title="Stylized picture"><input id="opt-style" type="checkbox" checked /> stylized</label>
+          <label class="opt" title="Picture resolution"><input id="opt-res" type="range" min="160" max="540" step="10" value="270" /><span id="opt-res-v">270p</span></label>
+          <label class="opt" title="Volume">vol <input id="volume" type="range" min="0" max="1" step="0.05" value="0.8" /></label>
+          <button id="btn-full" title="Fullscreen (f)" aria-label="Fullscreen"><svg><use href="#i-full" /></svg></button>
         </div>
       </main>
 
       <aside id="panel">
-        <header>
-          <div class="logo small">how i met your <span class="llm">llm</span></div>
-          <div class="tagline">an endless sitcom, written by language models</div>
-        </header>
-
         <section id="now">
-          <h3>now playing</h3>
-          <div id="now-code">—</div>
-          <div id="now-title">—</div>
-          <div id="now-logline"></div>
+          <div id="now-code">off the air</div>
+          <div id="now-title"></div>
           <div id="now-meta"></div>
         </section>
 
-        <section id="episodes">
-          <h3>episodes <span class="sub" id="episodes-count"></span></h3>
-          <ol id="episode-list"></ol>
-        </section>
-
-        <section id="transcript-wrap">
-          <h3>transcript</h3>
-          <ol id="transcript"></ol>
-        </section>
-
-        <section id="settings">
-          <h3>picture &amp; sound</h3>
-          <label class="check"><input id="opt-style" type="checkbox" checked /> stylized picture</label>
-          <label class="slider">resolution <input id="opt-res" type="range" min="160" max="540" step="10" value="270" /><span id="opt-res-v">270p</span></label>
-        </section>
+        <ol id="transcript"></ol>
       </aside>
     </div>
     <script type="module" src="/src/main.ts"></script>
