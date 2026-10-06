@@ -6,6 +6,31 @@ import { buildEstablishing } from '../src/world/sets/establishing';
 const exterior = buildEstablishing();
 const facade = exterior.group.getObjectByName('exterior_walkup')!;
 
+describe('Atlantic City arrivals', () => {
+  test('all casino establishing requests use Atlantic City, and switching back hides it', () => {
+    const atlantic = exterior.group.getObjectByName('exterior_atlantic_city')!;
+    for (const time of ['day', 'night'] as const) for (const kind of ['skyline', 'exterior', 'atlantic_city'] as const) {
+      const shot = exterior.show(kind, 'atlantic_city_casino', time);
+      expect(atlantic.visible).toBe(true);
+      for (const sibling of exterior.group.children) if (sibling instanceof THREE.Group && sibling !== atlantic) expect(sibling.visible).toBe(false);
+      const camera = new THREE.PerspectiveCamera(shot.fov, 16 / 9, 0.1, 600);
+      const scenery = visibleMeshes();
+      for (const seconds of [0, 2, 4]) {
+        camera.position.copy(shot.pos).addScaledVector(shot.move, seconds);
+        camera.lookAt(shot.target.clone().addScaledVector(shot.look, seconds)); camera.updateMatrixWorld();
+        // An angled coastal shot must not run past the edge of a flat sky card.
+        const ray = new THREE.Raycaster();
+        for (const x of [-.98, 0, .98]) for (const y of [-.98, 0, .98]) {
+          ray.setFromCamera(new THREE.Vector2(x, y), camera);
+          expect(ray.intersectObjects(scenery, false).length, `${time}/${kind}/${seconds}/${x}/${y}`).toBeGreaterThan(0);
+        }
+      }
+    }
+    exterior.show('atlantic_city', 'limo', 'night'); expect(atlantic.visible).toBe(true);
+    exterior.show('exterior', 'maclarens', 'night'); expect(atlantic.visible).toBe(false); expect(facade.visible).toBe(true);
+  });
+});
+
 function visibleMeshes() {
   exterior.group.updateMatrixWorld(true);
   const meshes: THREE.Object3D[] = [];

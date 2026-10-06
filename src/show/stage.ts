@@ -21,6 +21,11 @@ import { buildWesleyanDorm } from '../world/sets/wesleyanDorm';
 import { buildHospital } from '../world/sets/hospital';
 import { buildElevator } from '../world/sets/elevator';
 import { buildCanadianMall } from '../world/sets/canadianMall';
+import { buildMaclarensSidewalk } from '../world/sets/maclarensSidewalk';
+import { buildHoserHut } from '../world/sets/hoserHut';
+import { buildCourtroom } from '../world/sets/courtroom';
+import { buildAtlanticCityCasino } from '../world/sets/atlanticCityCasino';
+import { buildLustyLeopard } from '../world/sets/lustyLeopard';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
@@ -79,6 +84,8 @@ export class Stage {
       metro_news_one: buildMetroNewsOne(), store: buildStore(), restaurant: buildRestaurant(), lecture_hall: buildLectureHall(),
       subway: buildSubway(), laser_tag: buildLaserTag(), wesleyan_dorm: buildWesleyanDorm(),
       hospital: buildHospital(), elevator: buildElevator(), canadian_mall: buildCanadianMall(),
+      maclarens_sidewalk: buildMaclarensSidewalk(), hoser_hut: buildHoserHut(), courtroom: buildCourtroom(),
+      atlantic_city_casino: buildAtlanticCityCasino(), lusty_leopard: buildLustyLeopard(),
     };
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;
@@ -148,6 +155,15 @@ export class Stage {
       s.group.add(a.root);
       this.extras.push({ actor: a, set, talkT: rand(0, 3), chatty, mark: markName });
     };
+    atMark('hoser_hut', 'bartender', 'Canadian bartender', { ...looks[0], top: '#6c3038', topStyle: 'flannel', plaid: ['#312b29', '#a67258'] });
+    atMark('hoser_hut', 'patron_left', 'Hockey fan', { ...looks[2], top: '#254974', topStyle: 'sweater' }, true);
+    atMark('hoser_hut', 'patron_right', 'Hockey fan', looks[1], true);
+    atMark('atlantic_city_casino', 'dealer', 'Dealer', { ...looks[0], top: '#eeeece', topStyle: 'shirt', vest: '#743641', tie: '#25212b' });
+    atMark('atlantic_city_casino', 'slots', 'Casino guest', looks[1]);
+    atMark('courtroom', 'judge', 'Judge', { ...looks[0], top: '#292831', topStyle: 'blazer', under: '#e8e0cd', hair: '#b9b5a6', height: 1.86 });
+    atMark('courtroom', 'jury', 'Juror', looks[1]);
+    atMark('lusty_leopard', 'patron_left', 'Lounge guest', { ...looks[0], top: '#3e3d4a', topStyle: 'blazer' }, true);
+    atMark('lusty_leopard', 'patron_right', 'Lounge guest', looks[1], true);
     atMark('store', 'cashier', 'Shopkeeper', { ...looks[0], top: '#567754' });
     atMark('metro_news_one', 'camera_operator', 'Camera operator', { ...looks[2], top: '#41464c', topStyle: 'tee' });
     atMark('restaurant', 'table_2_left', 'Diner', looks[0], true);
@@ -293,7 +309,7 @@ export class Stage {
   }
 
   /** Temporarily replace the story with an actor-free view of New York. Built only when first needed. */
-  establish(kind: 'skyline' | 'exterior', location: LocationId, time: TimeOfDay) {
+  establish(kind: 'skyline' | 'exterior' | 'atlantic_city', location: LocationId, time: TimeOfDay) {
     this.endEstablishing();
     if (!this.establishing) {
       this.establishing = buildEstablishing();

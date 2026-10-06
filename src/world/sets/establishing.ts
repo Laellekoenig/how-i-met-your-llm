@@ -4,6 +4,7 @@ import { facade, metroNewsLogo, sign, skyGradient, riverWater } from '../../engi
 import { keyLight, v3 } from './common';
 import type { LocationId, TimeOfDay } from '../../script/types';
 import { mulberry32, pick, rand } from '../../util';
+import { buildAtlanticCityExterior } from './atlanticCityExterior';
 import { buildCampusExterior } from './campusExterior';
 import { buildWalkupExterior } from './walkupExterior';
 
@@ -22,7 +23,7 @@ export interface EstablishingShot {
 
 export interface Establishing {
   group: THREE.Group;
-  show(kind: 'skyline' | 'exterior', location: LocationId, time: TimeOfDay): EstablishingShot;
+  show(kind: 'skyline' | 'exterior' | 'atlantic_city', location: LocationId, time: TimeOfDay): EstablishingShot;
   update(dt: number): void;
 }
 
@@ -61,7 +62,8 @@ export function buildEstablishing(): Establishing {
   const skyline = buildSkyline(dn, nightOnly);
   const street = buildStreet(dn, nightOnly, nightLights);
   const campus = buildCampusExterior(dn, nightLights);
-  g.add(skyline.group, street.group, campus);
+  const atlantic = buildAtlanticCityExterior(dn);
+  g.add(skyline.group, street.group, campus, atlantic.group);
 
   const hemi = new THREE.HemisphereLight('#8a9ac8', '#2a2420', 1.0);
   g.add(hemi);
@@ -88,9 +90,13 @@ export function buildEstablishing(): Establishing {
     group: g,
     show(kind, location, time) {
       setTime(time);
-      const atCampus = kind === 'exterior' && location === 'lecture_hall';
-      skyline.group.visible = kind === 'skyline';
-      street.group.visible = kind === 'exterior' && !atCampus;
+      const atAtlantic = kind === 'atlantic_city' || location === 'atlantic_city_casino';
+      atlantic.group.visible = atAtlantic;
+      // Interiors without an authored facade use New York geography, never the pub entrance.
+      const cityOnly = ['hoser_hut', 'courtroom', 'lusty_leopard'].includes(location);
+      const atCampus = !atAtlantic && kind === 'exterior' && location === 'lecture_hall';
+      skyline.group.visible = !atAtlantic && (kind === 'skyline' || cityOnly);
+      street.group.visible = !atAtlantic && !cityOnly && kind === 'exterior' && !atCampus;
       campus.visible = atCampus;
       // Keep the portico, steps and lawn inside the campus sun's shadow volume.
       sun.position.set(atCampus ? -24 : -14, atCampus ? 35 : 22, atCampus ? 24 : 18);
@@ -100,10 +106,13 @@ export function buildEstablishing(): Establishing {
       shadow.top = atCampus ? 35 : 20; shadow.bottom = atCampus ? -35 : -10;
       shadow.far = atCampus ? 110 : 60;
       shadow.updateProjectionMatrix();
+      if (atAtlantic) return shot(v3(-23, 10.2, 39), v3(2, 11, -8), 48, v3(.22, 0, -.11), v3(.06, 0, 0));
+      if (cityOnly) return skyline.framing();
       if (atCampus) return shot(v3(-6, 5.6, 49), v3(0, 5, -9), 38, v3(0.13, 0.015, -0.22), v3(0.04, 0, 0));
       return kind === 'skyline' ? skyline.framing() : street.framing(location);
     },
     update(dt) {
+      if (atlantic.group.visible) atlantic.update(dt);
       if (skyline.group.visible) skyline.update(dt);
       if (street.group.visible) street.update(dt);
     },

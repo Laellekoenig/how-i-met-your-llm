@@ -128,7 +128,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     },
     // Corporate lawyer at the firm and at GNB: a charcoal suit, white shirt, striped blue tie
     work: {
-      at: ['office', 'barneys_office'],
+      at: ['office', 'barneys_office', 'courtroom'],
       look: {
         top: '#3a3f47', topStyle: 'suit', plaid: undefined, under: '#f2f0ea',
         tie: '#2f5a8a', tiePattern: 'stripes', tieAccent: '#c9b27c', pants: '#3a3f47', shoes: '#1e1712',

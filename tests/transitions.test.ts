@@ -55,11 +55,21 @@ function playback(incoming: Scene) {
 
 describe('script compatibility and intentional time jumps', () => {
   test('new interiors and period locations do not inherit the Manhattan walk-up exterior', () => {
-    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const) {
+    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall', 'hoser_hut', 'courtroom', 'lusty_leopard'] as const) {
       expect(sceneTransition(scene({ location }), scene(), 1)).toBe('cut');
       expect(sceneTransition(scene({ location, transition: 'rewind' }), scene(), 1)).toBe('rewind');
     }
   });
+  test('casino arrivals establish Atlantic City, repeats cut, explicit transitions win', () => {
+    const casino = scene({ location: 'atlantic_city_casino' });
+    expect(sceneTransition(casino, null, 0)).toBe('atlantic_city');
+    expect(sceneTransition(casino, scene(), 1)).toBe('atlantic_city');
+    expect(sceneTransition(casino, casino, 2)).toBe('cut');
+    expect(sceneTransition({ ...casino, time: 'day' }, casino, 2)).toBe('atlantic_city');
+    expect(sceneTransition({ ...casino, transition: 'cut' }, scene(), 1)).toBe('cut');
+    expect(sceneTransition(scene({ location: 'limo', transition: 'atlantic_city' }), scene(), 1)).toBe('atlantic_city');
+  });
+
   test('legacy scenes establish time/location changes but never invent flashbacks', () => {
     expect(sceneTransition(scene(), null, 0)).toBe('skyline');
     expect(sceneTransition(scene({ time: 'day' }), scene(), 1)).toBe('skyline');
@@ -74,19 +84,19 @@ describe('script compatibility and intentional time jumps', () => {
     const sets = testStage().sets;
     const ep = rerun('The Understudy');
     const withTransition = (transition: unknown) => validateEpisode({ ...ep, scenes: [{ ...ep.scenes[0], transition }, ...ep.scenes.slice(1)] }, sets).errors;
-    for (const t of ['skyline', 'exterior', 'cut', 'rewind', undefined]) expect(withTransition(t)).toEqual([]);
+    for (const t of ['skyline', 'exterior', 'atlantic_city', 'cut', 'rewind', undefined]) expect(withTransition(t)).toEqual([]);
     for (const t of [' SKYLINE ', null, 2, 'dissolve', '__proto__']) expect(withTransition(t)).toHaveLength(1);
   });
 });
 
 describe('transition playback', () => {
-  test('narration starts over the exterior and is not repeated inside', async () => {
+  test.each(['exterior', 'atlantic_city'] as const)('%s: narration starts outside and is not repeated inside', async (transition) => {
     let finish!: () => void;
     const done = new Promise<void>((resolve) => { finish = resolve; });
     const spokenOutside: boolean[] = [];
     const speak = spyOn(speech, 'speak').mockImplementation(() => { spokenOutside.push(p.stage.outside); return { done }; });
     spies.push(speak);
-    const p = playback(scene({ transition: 'exterior', beats: [{ type: 'narrate', line: 'The next morning.' }] }));
+    const p = playback(scene({ transition, beats: [{ type: 'narrate', line: 'The next morning.' }] }));
     await eventually(() => speak.mock.calls.length === 1);
     expect(spokenOutside).toEqual([true]);
     await sleep(1950);
@@ -118,7 +128,7 @@ describe('transition playback', () => {
 
   test('skipping a narrated transition cancels both waits without leaking a later scene change', async () => {
     const speak = spyOn(speech, 'speak').mockReturnValue({ done: new Promise(() => {}) }); spies.push(speak);
-    const p = playback(scene({ transition: 'exterior', beats: [{ type: 'narrate', line: 'Meanwhile...' }] }));
+    const p = playback(scene({ transition: 'atlantic_city', beats: [{ type: 'narrate', line: 'Meanwhile...' }] }));
     await eventually(() => speak.mock.calls.length === 1);
     p.player.skip('episode');
     await eventually(p.finished);

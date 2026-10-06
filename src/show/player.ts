@@ -407,7 +407,7 @@ export class Player {
     const transition = sceneTransition(scene, this.previousScene, index);
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     let firstBeat = 0;
-    if (transition === 'skyline' || transition === 'exterior') {
+    if (transition === 'skyline' || transition === 'exterior' || transition === 'atlantic_city') {
       const shot = this.director.current;
       const ambience = this.stage.current.ambience;
       try {

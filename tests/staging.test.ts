@@ -199,6 +199,22 @@ describe('camera coverage on the current sets', () => {
     }
   });
 
+  test('added venues cover both directions of every conversation, with dressed reverse backgrounds', () => {
+    for (const location of ['maclarens_sidewalk', 'hoser_hut', 'courtroom', 'atlantic_city_casino', 'lusty_leopard'] as const) {
+      const names = Object.keys(stage.sets[location].marks).filter(m => m !== 'door');
+      for (const first of names) for (const second of names) if (first !== second) {
+        stage.setLocation(location, 'night');
+        stage.place('marshall', first); stage.place('lily', second);
+        for (const shot of ['twoShot', 'overShoulder'] as const) {
+          director[shot]('marshall', 'lily');
+          expectVisible(stage.actors.marshall, `${location}/${first}/${second}/${shot}`);
+          expectBackdrop(`${location}/${first}/${second}/${shot}`);
+          if (director.current!.kind === 'two') expectVisible(stage.actors.lily, `${location}/${second}/two`);
+        }
+      }
+    }
+  });
+
   test('car angles never leave the car: every wide and generated shot is shot from inside', () => {
     for (const set of Object.values(stage.sets).filter(s => s.cameraBounds)) {
       for (const [i, w] of set.wides.entries()) expect(set.cameraBounds!.containsPoint(w.pos), `${set.id}/wide ${i}`).toBe(true);
@@ -216,7 +232,7 @@ describe('camera coverage on the current sets', () => {
   });
 
   test('new master wides cover every mark, including short actors behind reception', () => {
-    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall'] as const) {
+    for (const location of ['subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall', 'maclarens_sidewalk', 'hoser_hut', 'courtroom', 'atlantic_city_casino', 'lusty_leopard'] as const) {
       for (const id of ['marshall', 'patrice'] as const) for (const name of Object.keys(stage.sets[location].marks)) {
         stage.setLocation(location, 'day');
         stage.place(id, name);

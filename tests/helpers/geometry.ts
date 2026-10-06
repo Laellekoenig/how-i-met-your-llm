@@ -8,7 +8,7 @@ export function walkingBlockers(set: StageSet, from: THREE.Vector3, to: THREE.Ve
   const midpoint = from.clone().lerp(to, 0.5);
   const floor = set.floorAt?.(midpoint.x, midpoint.z) ?? 0;
   set.group.traverse(o => {
-    if (!(o instanceof THREE.Mesh)) return;
+    if (!(o instanceof THREE.Mesh) || o.userData.cameraBackdrop) return;
     // Extras are actors, not part of the navigation scenery.
     for (let p = o.parent; p && p !== set.group; p = p.parent) if (p.name.startsWith('extra')) return;
     o.geometry.computeBoundingBox();
