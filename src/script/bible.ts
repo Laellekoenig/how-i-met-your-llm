@@ -107,6 +107,7 @@ Choose the incoming transition for each scene ("transition"; leave it out to cho
 - cut: straight into the scene on a short guitar sting. Best for immediate continuations and punchline reveals.
 - skyline: a brief day/night New York skyline shot with a guitar sting. Good after the titles or for time passing.
 - exterior: the outside of the destination building (or street traffic for a cab/limo), then cut inside. Good for a new location.
+  MacLaren's and the apartment share one building: location maclarens frames the sunken pub entrance; location apartment frames the raised residential stoop and doorway beside it. Use transition exterior with either location to establish that entrance.
 - rewind: a half-second blurred jump with a descending sound cue. ONLY for an actual flashback or a "let me back up" correction, never an ordinary location change. Start with a short narrate beat making the time jump explicit; use cut when returning to the present.
 An opening narrate beat plays over skyline/exterior footage before we cut inside. Keep it to one short sentence. No dialogue or character action happens outside. The kids' couch cutaways always remain straight cuts.
 

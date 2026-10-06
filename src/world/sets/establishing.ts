@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { toon, glow, box, mesh, cyl } from '../../engine/materials';
-import { brick, facade, metroNewsLogo, sign, skyGradient, riverWater } from '../../engine/textures';
+import { facade, metroNewsLogo, sign, skyGradient, riverWater } from '../../engine/textures';
 import { keyLight, v3 } from './common';
 import type { LocationId, TimeOfDay } from '../../script/types';
 import { mulberry32, pick, rand } from '../../util';
 import { buildCampusExterior } from './campusExterior';
+import { buildWalkupExterior } from './walkupExterior';
 
 // The show's scene transitions: between scenes HIMYM cuts to New York itself, the skyline across the river or
 // the outside of wherever we're headed, usually on a guitar sting, sometimes with Future Ted talking over it.
@@ -279,12 +280,16 @@ function buildStreet(
   g.add(sky);
 
   // ---- ground: avenue, sidewalks ------------------------------------------------------------------------
-  const road = mesh(new THREE.PlaneGeometry(140, 14), toon('#2a2a2e'), 0, 0, 2.6);
+  const road = mesh(new THREE.PlaneGeometry(140, 12.8), toon('#2a2a2e'), 0, 0, CURB + 6.4);
   road.rotation.x = -Math.PI / 2;
   road.castShadow = false;
   g.add(road);
   for (let x = -66; x < 66; x += 6) g.add(mesh(box(3, 0.01, 0.12), toon('#d8d0a0'), x, 0.006, 0, false)); // lane dashes
-  g.add(mesh(box(140, 0.16, CURB - FRONT), toon('#8a8682'), 0, 0.08, (FRONT + CURB) / 2));
+  // The walk-up supplies its own paving around the basement stairwell.
+  const sidewalk = toon('#8a8682');
+  for (const x of [-37.75, 37.75]) g.add(mesh(box(64.5, 0.16, CURB - FRONT), sidewalk, x, 0.08, (FRONT + CURB) / 2));
+  const centerPaving = mesh(box(11, 0.16, CURB - FRONT), sidewalk, 0, 0.08, (FRONT + CURB) / 2);
+  g.add(centerPaving);
   g.add(mesh(box(140, 0.18, 0.2), toon('#a8a49e'), 0, 0.09, CURB, false));
   g.add(mesh(box(140, 0.16, 2.5), toon('#8a8682'), 0, 0.08, 10.2)); // the near sidewalk, under the camera
 
@@ -306,8 +311,9 @@ function buildStreet(
   for (const [from, to] of [[-62, -5.5], [5.5, 62]] as const) {
     let x = from;
     let i = 0;
-    while (x < to - 3) {
-      const w = Math.min(to - x, 5 + r() * 4);
+    while (x < to - 0.01) {
+      const proposed = 5 + r() * 4;
+      const w = to - x - proposed < 3 ? to - x : proposed;
       neighbor(x, w, 600 + i + (from > 0 ? 50 : 0));
       x += w;
       i++;
@@ -322,7 +328,8 @@ function buildStreet(
 
   // ---- streetlamps along the far curb ---------------------------------------------------------------------
   const pole = toon('#2a2c30');
-  for (let x = -60; x <= 60; x += 12) {
+  // Leave the hero entrance unobstructed; these poles line up with the curb lights below.
+  for (let x = -54; x <= 54; x += 12) {
     g.add(mesh(cyl(0.07, 0.1, 4.6, 6), pole, x, 2.3, CURB + 0.35, false));
     g.add(mesh(box(0.06, 0.06, 1.1), pole, x, 4.55, CURB + 0.85, false));
     g.add(dn(mesh(box(0.2, 0.08, 0.36), toon('#b8b4a8'), x, 4.48, CURB + 1.35, false), toon('#b8b4a8'), glow('#ffd890', 1.6)));
@@ -337,7 +344,7 @@ function buildStreet(
   // ---- the hero buildings -----------------------------------------------------------------------------
   const heroes: Record<Hero, THREE.Group> = { walkup: new THREE.Group(), highrise: new THREE.Group(), glass: new THREE.Group(), store: new THREE.Group(), restaurant: new THREE.Group(), studio: new THREE.Group() };
   for (const [name, h] of Object.entries(heroes)) { h.name = `exterior_${name}`; g.add(h); }
-  const apt = buildWalkup(heroes.walkup, dn, nightLights, FRONT);
+  const apt = buildWalkupExterior(heroes.walkup, dn, nightLights, FRONT, CURB);
   buildHighrise(heroes.highrise, dn, FRONT);
   const gnb = buildGlassTower(heroes.glass, dn, FRONT);
   for (const kind of ['store', 'restaurant', 'studio'] as const) buildPublicExterior(heroes[kind], kind, dn, FRONT);
@@ -384,12 +391,10 @@ function buildStreet(
   }
 
   const framings: Record<string, () => EstablishingShot> = {
-    // street level on the pub's front, cabs whipping past
-    maclarens: () => shot(v3(-2.6, 1.5, 7.5), v3(-0.9, 2.5, FRONT), 48, v3(0.3, 0.02, -0.2), v3(0.28, 0.04, 0)),
-    // up the face of the building to the gang's window
-    apartment: () => shot(v3(-4.5, 1.3, 8), apt.window.clone().setY(apt.window.y - 2.4), 46, v3(0.1, 0, -0.1), v3(0, 0.75, 0)),
-    // way up to the roof and its water tower
-    rooftop: () => shot(v3(-3.4, 1.2, 8.5), v3(1, 9, FRONT), 54, v3(0, 0, -0.1), v3(0, 0.7, 0)),
+    // The same building establishes both destinations: the sunken pub, then the raised apartment stoop.
+    maclarens: () => shot(v3(-4.8, 3.1, 3.4), apt.pub.clone().add(v3(0.2, 0.25, 0)), 39, v3(0.09, 0, -0.08), v3(0.04, 0.01, 0)),
+    apartment: () => shot(v3(-3.3, 3.7, 6.3), apt.entrance.clone().add(v3(-0.5, -0.25, 0)), 44, v3(0.06, 0.015, -0.1), v3(0, 0.07, 0)),
+    rooftop: () => shot(v3(-3.4, 4, 12), apt.roof.clone().add(v3(0, -2, 0)), 54, v3(0, 0, -0.1), v3(0, 0.5, 0)),
     barneys: () => shot(v3(-3.6, 0.9, 8), v3(0, 7, FRONT), 56, v3(0.1, 0, -0.1), v3(0, 1.3, 0)),
     office: () => shot(v3(3.6, 1.0, 8), v3(0, 8, FRONT), 56, v3(-0.1, 0, -0.1), v3(0, 1.3, 0)),
     storefront: () => shot(v3(-3.5, 1.7, 8), v3(0, 2.9, FRONT), 48, v3(0.24, 0, -0.14)),
@@ -404,6 +409,7 @@ function buildStreet(
     group: g,
     framing(location: LocationId) {
       const hero = HERO[location] ?? 'walkup';
+      centerPaving.visible = hero !== 'walkup';
       for (const [k, grp] of Object.entries(heroes)) grp.visible = k === hero;
       gnb.visible = location === 'barneys_office';
       return (framings[FRAMING[location] ?? location] ?? framings.maclarens)();
@@ -466,79 +472,6 @@ function fireEscape(g: THREE.Group, x: number, w: number, floors: number, front:
       g.add(ladder);
     }
   }
-}
-
-/** Window with a cream frame and a stone lintel; returns the glass. */
-function streetWindow(g: THREE.Group, x: number, y: number, front: number, w = 1.0, h = 1.6) {
-  const frame = toon('#e9e2d0');
-  g.add(mesh(box(w + 0.12, h + 0.12, 0.06), frame, x, y, front + 0.03, false));
-  g.add(mesh(box(w + 0.3, 0.16, 0.16), toon('#b8b0a0'), x, y + h / 2 + 0.14, front + 0.08, false));
-  g.add(mesh(box(w + 0.2, 0.08, 0.2), toon('#b8b0a0'), x, y - h / 2 - 0.06, front + 0.1, false));
-  const glass = mesh(new THREE.PlaneGeometry(w - 0.1, h - 0.1), toon('#4a5a70'), x, y, front + 0.07, false);
-  g.add(glass);
-  g.add(mesh(box(w - 0.1, 0.05, 0.03), frame, x, y + 0.1, front + 0.08, false));
-  return glass;
-}
-
-/** The gang's building: a brick walk-up with MacLaren's on the ground floor and the apartment up on four. */
-function buildWalkup(g: THREE.Group, dn: (m: THREE.Mesh, day: THREE.Material, night: THREE.Material) => THREE.Mesh, nightLights: [THREE.Light, number][], FRONT: number) {
-  const r = mulberry32(42);
-  const W = 9, GROUND = 3.4, FLOOR = 2.7, FLOORS = 4;
-  const H = GROUND + FLOOR * FLOORS;
-  g.add(mesh(box(W, H, 8), toon('#ffffff', { map: brick('#7a3a28', '#4a3a32', [6, 9]) }), 0, H / 2, FRONT - 4, false));
-  g.add(mesh(box(W + 0.3, 0.55, 0.5), toon('#4a3a32'), 0, H - 0.1, FRONT + 0.2, false)); // cornice
-  for (let x = -W / 2 + 0.3; x < W / 2; x += 0.6) g.add(mesh(box(0.12, 0.2, 0.16), toon('#4a3a32'), x, H - 0.48, FRONT + 0.1, false)); // dentils
-
-  // upper floors: four windows a floor; the gang's is the one on four, second from the right
-  const dark = toon('#141420'), day = toon('#4a5a70');
-  const warm = glow('#f6d27a', 1.0), cool = glow('#9ad0ff', 0.8);
-  let aptWindow = v3(0, 0, 0);
-  for (let f = 0; f < FLOORS; f++)
-    for (const x of [-3.3, -1.1, 1.1, 3.3]) {
-      const y = GROUND + f * FLOOR + 1.35;
-      const glass = streetWindow(g, x, y, FRONT);
-      const theirs = f === 2 && x === 1.1;
-      if (theirs) aptWindow = v3(x, y, FRONT);
-      dn(glass, day, theirs ? warm : r() < 0.45 ? (r() < 0.8 ? warm : cool) : dark);
-    }
-  fireEscape(g, -2.2, 3.4, FLOORS, FRONT);
-
-  // the water tower on the roof (the one on the rooftop set)
-  for (const [dx, dz] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]] as const) g.add(mesh(box(0.1, 1.8, 0.1), toon('#2e3034'), 2.6 + dx, H + 0.9, FRONT - 2.6 + dz, false));
-  g.add(mesh(cyl(0.85, 0.85, 1.5, 12), toon('#7a5a3e'), 2.6, H + 2.55, FRONT - 2.6, false));
-  g.add(mesh(cyl(0.05, 0.95, 0.55, 12), toon('#3e3a36'), 2.6, H + 3.57, FRONT - 2.6, false));
-
-  // ---- MacLaren's: dark green wood frontage, amber windows, gold lettering --------------------------------
-  const green = toon('#1f3a2a');
-  const PUB_X0 = -W / 2, PUB_X1 = 2.5, pubMid = (PUB_X0 + PUB_X1) / 2;
-  g.add(mesh(box(PUB_X1 - PUB_X0, GROUND, 0.25), green, pubMid, GROUND / 2, FRONT + 0.12, false));
-  const amberDay = toon('#5a3a22'), amberNight = glow('#ffb860', 1.1);
-  for (const [x, w] of [[-2.85, 2.6], [1.0, 2.0]] as const) {
-    g.add(dn(mesh(new THREE.PlaneGeometry(w, 1.6), amberDay, x, 1.75, FRONT + 0.26, false), amberDay, amberNight));
-    for (let i = 1; i < 4; i++) g.add(mesh(box(0.05, 1.6, 0.04), green, x - w / 2 + (w * i) / 4, 1.75, FRONT + 0.28, false));
-    g.add(mesh(box(w, 0.05, 0.04), green, x, 2.15, FRONT + 0.28, false));
-    g.add(mesh(box(w + 0.2, 0.1, 0.2), green, x, 0.9, FRONT + 0.32, false));
-  }
-  g.add(mesh(box(1.0, 2.4, 0.08), toon('#2a1a10'), -0.8, 1.2, FRONT + 0.27, false));
-  g.add(dn(mesh(new THREE.PlaneGeometry(0.5, 0.6), amberDay, -0.8, 1.8, FRONT + 0.32, false), amberDay, amberNight));
-  // the sign board over the windows, and a little sign hanging off a bracket
-  const lettering = toon('#ffffff', { map: sign("MacLaren's", '#e8c46a', '#16301f', 256, 32, 'italic bold 24px Georgia') });
-  g.add(mesh(new THREE.PlaneGeometry(6.4, 0.6), lettering, pubMid, 2.95, FRONT + 0.26, false));
-  g.add(mesh(box(1.0, 0.05, 0.05), toon('#1a1a1a'), PUB_X0 + 0.4, 3.75, FRONT + 0.6, false).rotateY(Math.PI / 2));
-  const blade = toon('#ffffff', { map: sign("MacLaren's", '#e8c46a', '#16301f', 96, 48, 'italic bold 16px Georgia'), side: THREE.DoubleSide });
-  g.add(mesh(new THREE.PlaneGeometry(0.9, 0.5), blade, PUB_X0 + 0.4, 3.4, FRONT + 0.75, false).rotateY(Math.PI / 2));
-  const spill = new THREE.PointLight('#ffb070', 0, 8, 1.4);
-  spill.position.set(-1, 1.6, FRONT + 1.6);
-  g.add(spill);
-  nightLights.push([spill, 6]);
-
-  // the building's own front door, up a little stoop, with a lamp either side
-  g.add(mesh(box(1.1, 2.4, 0.08), toon('#5a1a14'), 3.55, 1.5, FRONT + 0.05, false));
-  g.add(dn(mesh(new THREE.PlaneGeometry(0.9, 0.3), toon('#4a5a70'), 3.55, 2.88, FRONT + 0.1, false), toon('#4a5a70'), warm));
-  for (let i = 0; i < 2; i++) g.add(mesh(box(1.6, 0.15, 0.35), toon('#8a847a'), 3.55, 0.08 + i * 0.15, FRONT + 0.2 + (1 - i) * 0.35));
-  for (const sx of [-0.8, 0.8]) g.add(dn(mesh(box(0.14, 0.22, 0.14), toon('#d8d0b8'), 3.55 + sx, 2.2, FRONT + 0.12, false), toon('#d8d0b8'), glow('#ffd890', 1.4)));
-
-  return { window: aptWindow };
 }
 
 /** Barney's building: a limestone luxury tower with a canopy out to the curb. */

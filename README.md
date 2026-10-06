@@ -189,6 +189,12 @@ The Season 10 episodes visit all four: **The Silent Auction** the store and rest
 
 The show-specific sets use these online visual references:
 
+- **MacLaren's / apartment exterior**: the [on-screen pub facade](https://media.decorsed.com/file/decorsed/howimetyourmother/maclarens-pub-exterior.jpg)
+  and [“Come On” episode still](https://www.imdb.com/title/tt0774239/mediaindex/).
+  One shared pale-brick building has the sunken pub entrance, green railing and illuminated sign,
+  with the apartment's tall stone stoop and paneled doorway beside it. An `exterior` transition to
+  `maclarens` frames the pub; one to `apartment` frames the residential entrance.
+  See [reference details](docs/maclarens-reference.md#shared-pub-and-apartment-exterior).
 - **Metro News One**: [Robin at the anchor desk in “Come On” (S01E22)](https://www.imdb.com/title/tt0774239/)
   ([reference still](https://m.media-amazon.com/images/M/MV5BZDM2MDFhY2MtZDUzMi00NTE4LWFmNzQtMTE5YmRmNjQ3ZmQ4XkEyXkFqcGc%40._V1_.jpg)).
   Dusk Manhattan backdrop, warm wood trim, dark desk, red mugs, and blue/yellow station branding.
