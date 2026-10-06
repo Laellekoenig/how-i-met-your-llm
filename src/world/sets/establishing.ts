@@ -9,7 +9,7 @@ import { buildCampusExterior } from './campusExterior';
 import { buildWalkupExterior } from './walkupExterior';
 
 // The show's scene transitions: between scenes HIMYM cuts to New York itself, the skyline across the river or
-// the outside of wherever we're headed, usually on a guitar sting, sometimes with Future Ted talking over it.
+// the outside of wherever we're headed, sometimes with Future Ted talking over it.
 // These are those shots: no marks and no actors, just a camera move.
 
 export interface EstablishingShot {

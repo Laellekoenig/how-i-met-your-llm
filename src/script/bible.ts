@@ -115,14 +115,14 @@ In the car, limo and taxi everyone is seated: "move" means sliding over to anoth
 # Scene transitions
 For subway, laser_tag, wesleyan_dorm, hospital, elevator, canadian_mall, hoser_hut, courtroom and lusty_leopard, use cut (or an intentional rewind); their interiors have no dedicated exterior.
 Choose the incoming transition for each scene ("transition"; leave it out to choose automatically from changes in time and place). Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
-- cut: straight into the scene on a short guitar sting. Best for immediate continuations and punchline reveals.
-- skyline: a brief day/night New York skyline shot with a guitar sting. Good after the titles or for time passing.
+- cut: straight into the scene without a sound cue. Best for immediate continuations and punchline reveals.
+- skyline: a brief day/night New York skyline shot. Good after the titles or for time passing.
 - atlantic_city: the ocean, boardwalk and period casino skyline; automatic for an Atlantic City casino arrival, also usable explicitly for a limo arriving there. Day/night supported.
 - exterior: the outside of the destination building (or street traffic for a car/cab/limo), then cut inside. Good for a new location.
   MacLaren's and the apartment share one building: location maclarens frames the sunken pub entrance; location apartment frames the raised residential stoop and doorway beside it. Use transition exterior with either location to establish that entrance.
 - rewind: a half-second blurred jump with a descending sound cue. ONLY for an actual flashback or a "let me back up" correction, never an ordinary location change. Start with a short narrate beat making the time jump explicit; use cut when returning to the present.
 An opening narrate beat plays over skyline/exterior/atlantic_city footage before we cut inside. Keep it to one short sentence. Establishing transitions have no actors. For outdoor dialogue, use the playable maclarens_sidewalk or rooftop location. The kids' couch cutaways always remain straight cuts.
-Scene changes come in on the guitar sting (a cut into the very first scene doesn't). The edit and the soundtrack are separate choices: "sound": "none" on a scene lands it silently (a hard cut into a quiet aftermath), or name another cue (${SOUND_CUES.join(', ')}). A scene "label" puts a card on screen as it starts ("Meanwhile", "Two weeks later", "9:14 PM"); most scenes need none.
+Ordinary scene changes have no automatic sound cue. The edit and the soundtrack are separate choices: name a scene "sound" to add a cue, or use "sound": "none" to silence the rewind transition too. Available cues (${SOUND_CUES.join(', ')}). A scene "label" puts a card on screen as it starts ("Meanwhile", "Two weeks later", "9:14 PM"); most scenes need none.
 
 # Cutaways
 A cutaway beat leaves the scene for a sequence on any set, then the show cuts back to exactly where it left off. It's how HIMYM visualizes a joke, a memory or a reveal. Two separate choices:
@@ -144,8 +144,9 @@ Give it a location and time, its own cast and marks (marks must exist at the cut
 "over": true on a narrate beat keeps Future Ted talking while the next beats play: people move, gesture, pick things up, a cutaway or a new scene starts under his sentence. The next line of dialogue (or narration) waits for him to finish. An "over" narration can't carry a laugh: put a laugh beat after.
 
 # Sound and music
-Nothing makes a sound unless the script asks for it, apart from the scene-change sting and things that make their own noise (doors, slaps, a text arriving).
-- sound: { "type": "sound", "sound": ${SOUND_CUES.map((c) => `"${c}"`).join(' | ')} } at the exact moment it should land: a shatter for a realization, a record scratch when everything stops, a harp into a daydream, a sting as a button. Freeze frames, inserts, cutaways, replays and split screens also take a "sound".
+Nothing makes a sound unless the script asks for it, apart from rewind transitions and things that make their own noise (doors, slaps, a text arriving).
+- sound: { "type": "sound", "sound": ${SOUND_CUES.map((c) => `"${c}"`).join(' | ')} } at the exact moment it should land: a shatter for a realization, a record scratch when everything stops, a harp into a daydream, a knock at the door. Freeze frames, inserts, cutaways, replays and split screens also take a "sound".
+- Apartment entrances automatically play a wooden knock instead of a doorbell. Use "knock" for a separately timed knock; "doorbell" remains available for places that have one.
 - score: { "type": "score", "music": ${SCORES.map((c) => `"${c}"`).join(' | ')} } starts underscore that carries across lines, cutaways and scene changes until another score beat: tender under a confession, tense under a scheme, upbeat under a caper. "none" stops the music; "silence" also drops the room tone, for a moment left bare (it lasts until the next score beat or scene).
 - A sung line is a cappella unless it has "accompanied": true (a guitar under it).
 
@@ -234,7 +235,7 @@ A scene:
   "location": "${SCENE_LOCATION_IDS.join('|')}", "time": "day|night",
   "transition": "${TRANSITIONS.join('|')}",   // optional
   "label": "Meanwhile",          // optional on-screen card
-  "sound": "none",               // optional: land silently, or another cue instead of the sting
+  "sound": "none",               // optional: place a cue, or silence a rewind with "none"
   "summary": "Writers' note: what happens and how it ends.",   // optional, not shown
   "wardrobe": [ ...costumes ],   // optional: this scene only, over the episode's
   "cast": [ { "character": "ted", "mark": "booth_end", "outfit": "${OUTFITS.join('|')}" } ],   // outfit optional

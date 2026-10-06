@@ -18,7 +18,7 @@ export class AudioEngine {
   private laughBus!: GainNode;
   private sfxBus!: GainNode;
   private musicBus!: GainNode;
-  private stingGain: GainNode | null = null;
+  private cueGain: GainNode | null = null;
   private ambBus!: GainNode;
   private reverb!: ConvolverNode;
   private noise!: AudioBuffer;
@@ -354,6 +354,7 @@ export class AudioEngine {
 
   door(kind: DoorSound) {
     if (kind === 'bell') this.doorbell();
+    else if (kind === 'knock') this.knock();
     else if (kind === 'car') this.carDoor();
     else if (kind === 'elevator') this.elevatorDing();
   }
@@ -631,7 +632,6 @@ export class AudioEngine {
   /** A cue the writer placed: the same sounds the show uses elsewhere, on demand. */
   cue(c: SoundCue) {
     switch (c) {
-      case 'sting': return void this.sting();
       case 'harp': return void this.dream(true);
       case 'rewind': return this.rewind();
       case 'whoosh': return this.whoosh();
@@ -639,7 +639,40 @@ export class AudioEngine {
       case 'shatter': return this.shatter();
       case 'scratch': return this.scratch();
       case 'chime': return this.textChime();
+      case 'knock': return this.knock();
       case 'doorbell': return this.doorbell();
+    }
+  }
+
+  /** Three knuckle raps on wood: a dry tap over short, hollow door resonances. */
+  knock() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.01;
+    for (const [delay, strength] of [[0, 1], [0.19, 0.85], [0.41, 0.95]]) {
+      const t = t0 + delay;
+      const pitch = rand(0.96, 1.04);
+      for (const [frequency, gain, decay] of [[180, 0.3, 0.14], [390, 0.16, 0.09], [720, 0.07, 0.055]]) {
+        const o = ctx.createOscillator();
+        o.frequency.value = frequency * pitch;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(gain * strength, t + 0.002);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+        g.gain.linearRampToValueAtTime(0, t + decay + 0.01);
+        o.connect(g).connect(this.sfxBus);
+        o.start(t);
+        o.stop(t + decay + 0.01);
+      }
+      const tap = ctx.createBiquadFilter();
+      tap.type = 'bandpass';
+      tap.frequency.value = 1400 * pitch;
+      tap.Q.value = 0.7;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.45 * strength, t + 0.001);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+      g.gain.linearRampToValueAtTime(0, t + 0.04);
+      this.noiseSrc(t, 0.04).connect(tap).connect(g).connect(this.sfxBus);
     }
   }
 
@@ -702,7 +735,7 @@ export class AudioEngine {
     s.start(t);
   }
 
-  private guitarOut(out = this.cueOutput()) {
+  private guitarOut(out: AudioNode) {
     const ctx = this.ctx!;
     const drive = ctx.createWaveShaper();
     const curve = new Float32Array(1024);
@@ -719,10 +752,10 @@ export class AudioEngine {
   }
 
   private cueOutput() {
-    this.stopSting();
+    this.stopCue();
     const out = this.ctx!.createGain();
     out.connect(this.musicBus);
-    this.stingGain = out;
+    this.cueGain = out;
     return out;
   }
 
@@ -787,10 +820,10 @@ export class AudioEngine {
   }
 
   /** Silence even scheduled notes when a viewer skips a scene or episode. */
-  stopSting() {
-    if (!this.ctx || !this.stingGain) return;
-    this.stingGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015);
-    this.stingGain = null;
+  stopCue() {
+    if (!this.ctx || !this.cueGain) return;
+    this.cueGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.015);
+    this.cueGain = null;
   }
 
   /** Original, short descending tape-like zip to punctuate an intentional flashback. */
@@ -922,36 +955,6 @@ export class AudioEngine {
     g.gain.setValueAtTime(gain, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     s.connect(f).connect(g).connect(out);
-  }
-
-  /** Upbeat jangly guitar transition riff. Returns duration. */
-  sting(variant: 'transition' | 'outro' = 'transition') {
-    if (!this.ctx) return 0;
-    const ctx = this.ctx;
-    const out = this.guitarOut();
-    const t0 = ctx.currentTime + 0.05;
-    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
-    const E = [40, 47, 52, 56, 59, 64];
-    const A = [45, 52, 57, 61, 64];
-    const B = [47, 54, 59, 63, 66];
-    const strum = (chord: number[], t: number, down = true, gain = 0.32) => {
-      const notes = down ? chord : [...chord].reverse();
-      notes.forEach((m, i) => this.note(this.pluck(hz(m), 1.8, 0.4), t + i * 0.012, gain, out));
-    };
-    const lick = (notes: number[], t: number, step: number) => notes.forEach((m, i) => this.note(this.pluck(hz(m), 1.0, 0.2), t + i * step, 0.45, out));
-    const beat = 0.21;
-    if (variant === 'outro') {
-      strum(A, t0);
-      strum(B, t0 + beat * 2);
-      strum(E, t0 + beat * 4, true, 0.4);
-      lick([76, 75, 71, 68], t0 + beat * 5, beat * 0.5);
-      return beat * 8 + 1;
-    }
-    strum(E, t0, true);
-    strum(E, t0 + beat, false);
-    lick([64, 68, 71, 73, 76], t0 + beat * 2, beat * 0.5);
-    strum(A, t0 + beat * 5, true, 0.25);
-    return beat * 6 + 0.6;
   }
 
   // ------------------------------------------------------------- ambience

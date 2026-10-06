@@ -334,7 +334,7 @@ export class Player {
       this.overlay.showTitle(null);
       this.overlay.credit(null);
       for (const id of GANG) st.actors[id].talking = false;
-      audio.stopSting();
+      audio.stopCue();
     }
   }
 
@@ -407,7 +407,7 @@ export class Player {
       });
     } finally {
       this.overlay.closingCredit(null);
-      audio.stopSting();
+      audio.stopCue();
     }
   }
 
@@ -430,7 +430,7 @@ export class Player {
     this.score = null;
     this.hushed = false;
     this.stage.frozen = this.director.held = false;
-    audio.stopSting();
+    audio.stopCue();
     audio.stopBed(0.05);
     for (const a of Object.values(this.stage.actors)) a.talking = false;
   }
@@ -550,11 +550,9 @@ export class Player {
     this.hushed = false;
     const transition = sceneTransition(scene, this.previousScene, index);
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // A scene change comes in on the guitar sting (a cut into the very first scene doesn't), unless the script
-    // asks for silence or another cue.
-    const cue = (sting: boolean) => {
+    // Ordinary scene changes only play a cue when the script asks for one.
+    const cue = () => {
       if (scene.sound && scene.sound !== 'none') audio.cue(scene.sound);
-      else if (!scene.sound && sting) audio.sting('transition');
     };
     let firstBeat = 0;
     if (transition === 'skyline' || transition === 'exterior' || transition === 'atlantic_city') {
@@ -564,7 +562,7 @@ export class Player {
         this.director.establish(this.stage.establish(transition, scene.location, scene.time), !reducedMotion);
         audio.ambience('none');
         this.renderer.fade = 1;
-        cue(true);
+        cue();
         const opening = scene.beats[0];
         if (opening?.type === 'narrate') {
           // Start Ted over the city, then cut inside when his setup lands. Never repeat this beat.
@@ -593,7 +591,7 @@ export class Player {
       } else this.stageScene(scene, card, scene.strand?.before);
     } else {
       this.stageScene(scene, card, scene.strand?.before);
-      if (transition === 'cut') cue(index > 0 && scene.location !== 'future');
+      if (transition === 'cut') cue();
     }
     this.renderer.fade = 1;
     this.previousScene = scene;
@@ -1165,7 +1163,7 @@ export class Player {
             v.speak(null);
           }
           for (const id of listeners) st.actors[id].listen(null);
-          if (delivery === 'sing' && b.accompanied) audio.stopSting();
+          if (delivery === 'sing' && b.accompanied) audio.stopCue();
         }
         this.overlay.hideCaption();
         if (b.react?.length && !b.interrupted) await this.react(b.react, b.character);

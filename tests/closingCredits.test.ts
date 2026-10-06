@@ -49,7 +49,7 @@ function playback() {
 describe('closing-credit playback', () => {
   test('plays a short crew sequence without episode metadata, then clears it for the next episode', async () => {
     const theme = spyOn(audio, 'theme');
-    const stop = spyOn(audio, 'stopSting');
+    const stop = spyOn(audio, 'stopCue');
     const ambience = spyOn(audio, 'ambience');
     spies.push(theme, stop, ambience);
     const p = playback();
@@ -76,7 +76,7 @@ describe('closing-credit playback', () => {
   for (const level of ['scene', 'episode'] as const) test(`pause freezes credits and ${level} skip clears them immediately`, async () => {
     // A short cue makes crossing a card boundary during pause observable without a long wait.
     const theme = spyOn(audio, 'theme').mockReturnValue({ beat: 0.2, duration: 0.4 });
-    const stop = spyOn(audio, 'stopSting');
+    const stop = spyOn(audio, 'stopCue');
     spies.push(theme, stop);
     const p = playback();
     await eventually(() => p.visible() !== null);
