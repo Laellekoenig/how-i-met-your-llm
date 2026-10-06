@@ -53,8 +53,21 @@ export const CHART_STYLES = ['bar', 'line', 'pie'] as const;
 export type ChartStyle = (typeof CHART_STYLES)[number];
 
 /** Music under a montage, or underscore the writer starts and stops with a `score` beat. */
-export const MONTAGE_MUSIC = ['upbeat', 'tender', 'tense'] as const;
+export const MONTAGE_MUSIC = ['upbeat', 'tender', 'tense', 'playful', 'romantic', 'melancholy', 'mysterious', 'jazzy', 'triumphant', 'dreamy'] as const;
 export type MontageMusic = (typeof MONTAGE_MUSIC)[number];
+/** Shared listening guide for the playground and episode writers. */
+export const MUSIC_DESCRIPTIONS = {
+  upbeat: 'Bright strummed guitar and drums for capers and busy montages',
+  tender: 'Gentle fingerpicked guitar for sincere confessions',
+  tense: 'Low muted strings and a ticking hat for pressure and schemes',
+  playful: 'Bouncy pizzicato and bells for comic sneaking and small mishaps',
+  romantic: 'Warm piano and soft sustained chords in a lilting six-beat rhythm for falling in love',
+  melancholy: 'Sparse minor-key piano for loneliness, regret and bittersweet goodbyes',
+  mysterious: 'Dark bass pulses and distant bells for clues and uncertain discoveries',
+  jazzy: 'Swung piano, walking bass and light brushed percussion for urbane banter',
+  triumphant: 'Rising brass-like chords and a marching beat for victories and grand reveals',
+  dreamy: 'Floating sustained chords and shimmering bells for fantasies and hazy memories',
+} as const satisfies Record<MontageMusic, string>;
 /** A `score` beat: start one of the beds, stop the music ("none"), or drop the music and the room tone ("silence"). */
 export const SCORES = [...MONTAGE_MUSIC, 'none', 'silence'] as const;
 export type Score = (typeof SCORES)[number];

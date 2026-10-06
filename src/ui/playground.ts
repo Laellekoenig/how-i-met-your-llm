@@ -12,7 +12,7 @@ import { validateEpisode, type Issue } from '../script/validate';
 import { sleep } from '../util';
 import {
   CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS,
-  GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, LOCATION_IDS, MONTAGE_MUSIC, OFFSCREEN,
+  GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, LOCATION_IDS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OFFSCREEN,
   OUTFITS, PAIRED_GESTURES, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isKid,
   type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GuestStar, type InsertKind, type LocationId,
   type Scene, type SceneLocationId, type ShowItem, type SoundCue, type TimeOfDay, type Transition,
@@ -130,16 +130,28 @@ interface Field {
 function form(fields: Field[], value: Record<string, unknown>, changed: () => void) {
   const box = h('div', { class: 'pg-form' });
   for (const f of fields) {
+    const description = f.key === 'music' ? note('') : null;
+    const describe = () => {
+      if (!description) return;
+      const music = value[f.key];
+      description.textContent = music === 'none' ? 'Stop the music; keep the room tone'
+        : music === 'silence' ? 'Stop the music and room tone'
+        : MUSIC_DESCRIPTIONS[music as keyof typeof MUSIC_DESCRIPTIONS] ?? '';
+    };
     const set = (v: unknown) => {
       if (v === '' || v === undefined || (Array.isArray(v) && !v.length && !f.required)) delete value[f.key];
       else value[f.key] = v;
       changed();
+      describe();
     };
     const cur = value[f.key];
     let control: HTMLElement;
     switch (f.kind) {
       case 'enum':
-        control = select(f.values!(), cur === undefined ? '' : String(cur), set, { blank: f.required ? undefined : '—', label: (v) => labelFor(f.key, v) });
+        control = select(f.values!(), cur === undefined ? '' : String(cur), set, {
+          blank: f.required ? undefined : '—', label: (v) => labelFor(f.key, v),
+          title: f.key === 'music' ? (v) => MUSIC_DESCRIPTIONS[v as keyof typeof MUSIC_DESCRIPTIONS] ?? '' : undefined,
+        });
         if (f.required && cur === undefined) set((control as HTMLSelectElement).value);
         break;
       case 'text':
@@ -189,6 +201,11 @@ function form(fields: Field[], value: Record<string, unknown>, changed: () => vo
     if (f.hint) r.title = f.hint;
     if (f.kind === 'json' || f.kind === 'multi' || f.kind === 'long') r.classList.add('wide');
     box.append(r);
+    if (description) {
+      describe();
+      description.classList.add('wide');
+      box.append(description);
+    }
   }
   return box;
 }
@@ -805,7 +822,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     ] },
     { name: 'Laughs', hint: 'Every laugh-track response', beats: () => LAUGHS.flatMap((l): Beat[] => [{ type: 'laugh', laugh: l }, { type: 'pause', seconds: 0.4 }]) },
     { name: 'Sound cues', hint: 'Every placed sound', beats: () => SOUND_CUES.flatMap((s): Beat[] => [{ type: 'sound', sound: s }, { type: 'pause', seconds: 1.2 }]) },
-    { name: 'Score', hint: 'Each music bed, then none, then silence', beats: () => SCORES.flatMap((m): Beat[] => [{ type: 'score', music: m }, { type: 'pause', seconds: 3 }]) },
+    { name: 'Score', hint: 'All ten music beds, then none, then silence', beats: () => SCORES.flatMap((m): Beat[] => [{ type: 'score', music: m }, { type: 'pause', seconds: 6 }]) },
     { name: 'Inserts', hint: 'A text thread, a chart in each style, slides, a sign, the Playbook', beats: () => [
       ...INSERT_KINDS.map((k) => ({ type: 'insert', kind: k, ...insertExample(k, st.a, st.b) }) as Beat),
       ...CHART_STYLES.filter((c) => c !== 'bar').map((c) => ({ type: 'insert', ...insertExample('chart', st.a, st.b), chart: c }) as Beat),

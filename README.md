@@ -145,7 +145,10 @@ The show's signature visual gags, all part of the episode file format (`bun run 
   around the room. A reaction can be a gesture, so a whole table can do a spit take.
 - **Freeze frames**: Future Ted narrates over a held, slightly drained frame, optionally caught mid-gesture.
 - **Montages**: two to six one- or two-beat shots on any sets, each with a small yellow card ("Day 2"), over an
-  upbeat or tender music bed; then back to the scene exactly as it was.
+  original music bed; then back to the scene exactly as it was. Scores and montages share ten moods:
+  `upbeat`, `tender`, `tense`, `playful`, `romantic`, `melancholy`, `mysterious`, `jazzy`, `triumphant` and `dreamy`.
+  They range from strummed and fingerpicked guitar to pizzicato, piano, bells, soft pads, walking bass and brass-like chords;
+  each has its own harmony and rhythm. The playground's music picker and `bun run bible` describe when to use each.
 - **Props**: `hold` / `give` with a phone, ring box, envelope, beer, scotch, flowers, book, yellow umbrella,
   pineapple, goat, gift, sword, briefcase, microphone, blue French horn, sandwich, laptop or videotape (`src/world/props.ts`). Small ones are held
   up in the hand, a briefcase or umbrella hangs at the side, big ones are cradled in both arms. Handing one over

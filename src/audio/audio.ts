@@ -2,6 +2,7 @@ import { TITLE_BEAT, TITLE_BEATS, TITLE_TAIL } from '../show/mainTitles';
 import type { LaughKind, MontageMusic, SoundCue } from '../script/types';
 import type { Ambience, DoorSound } from '../world/sets/common';
 import { rand, pick } from '../util';
+import { SCORE_BEDS, scoreEvents, type ScoreVoice } from './score';
 
 // Everything here is synthesized with WebAudio — no samples. A crowd laugh is
 // ~30 formant-filtered "ha-ha-ha" voices with jittered timing into a reverb.
@@ -27,6 +28,7 @@ export class AudioEngine {
   /** A montage's music, scheduled a little ahead at a time until it's stopped. */
   private bed: { out: GainNode; kind: MontageMusic; timer: ReturnType<typeof setInterval> } | null = null;
   private plucks = new Map<string, AudioBuffer>();
+  private tones = new Map<string, AudioBuffer>();
   private ambTimer: number | null = null;
   /** The room tone the show last asked for, kept while the context is locked so it can start on unlock. */
   private room: Ambience = 'none';
@@ -725,6 +727,41 @@ export class AudioEngine {
     return b;
   }
 
+  /** Cached additive instruments: decaying piano/bells, rounded bass, warm pads and soft brass. */
+  private scoreTone(voice: Exclude<ScoreVoice, 'pluck' | 'guitar'>, midi: number, duration: number) {
+    const key = `${voice}/${midi}/${duration}`;
+    const cached = this.tones.get(key);
+    if (cached) return cached;
+    const ctx = this.ctx!;
+    const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    const freq = 440 * Math.pow(2, (midi - 69) / 12);
+    const partials = {
+      piano: [[1, 1], [2.002, 0.35], [3.006, 0.18], [4.012, 0.08]],
+      bell: [[1, 1], [2.756, 0.5], [5.404, 0.25], [8.933, 0.1]],
+      pad: [[0.998, 0.5], [1.002, 0.5], [2, 0.12]],
+      bass: [[1, 1], [3, 0.11], [5, 0.04]],
+      brass: [[1, 1], [2, 0.45], [3, 0.25], [4, 0.12], [5, 0.06]],
+    }[voice].filter(([ratio]) => freq * ratio < ctx.sampleRate / 2);
+    const total = partials.reduce((sum, [, amplitude]) => sum + amplitude, 0);
+    const attack = { piano: 0.008, bell: 0.003, pad: 0.42, bass: 0.01, brass: 0.05 }[voice];
+    const decay = { piano: 2.6, bell: 2, pad: 0.12, bass: 6, brass: 0.6 }[voice];
+    const release = Math.min(duration / 3, voice === 'pad' ? 0.65 : 0.12);
+    for (const [ratio, amplitude] of partials) {
+      const phase = 2 * Math.PI * freq * ratio / ctx.sampleRate;
+      for (let i = 0; i < data.length; i++) {
+        const t = i / ctx.sampleRate;
+        data[i] += Math.sin(i * phase) * amplitude / total * Math.exp(-t * decay * (voice === 'piano' || voice === 'bell' ? Math.sqrt(ratio) : 1));
+      }
+    }
+    for (let i = 0; i < data.length; i++) {
+      const t = i / ctx.sampleRate;
+      data[i] *= Math.min(1, t / attack) * Math.max(0, Math.min(1, (duration - t) / release));
+    }
+    this.tones.set(key, buffer);
+    return buffer;
+  }
+
   private note(buf: AudioBuffer, t: number, gain: number, dest: AudioNode) {
     const ctx = this.ctx!;
     const s = ctx.createBufferSource();
@@ -765,46 +802,31 @@ export class AudioEngine {
   }
 
   /**
-   * Music under a montage or a stretch of story until stopBed(): a bright strummed power-pop loop, a tender
-   * fingerpicked one, or a low, ticking tense one. Scheduled a little ahead at a time, so a pause (which
-   * suspends the context) simply holds it.
+   * Original music under a montage or a stretch of story until stopBed(). Each mood has its own arrangement.
+   * Scheduled a little ahead at a time, so a pause (which suspends the context) simply holds it.
    */
   montage(kind: MontageMusic) {
     this.stopBed(0.05);
     if (!this.ctx) return;
     const ctx = this.ctx;
     const out = ctx.createGain();
-    out.gain.value = kind === 'upbeat' ? 0.75 : kind === 'tense' ? 0.8 : 0.9;
+    const { step, gain } = SCORE_BEDS[kind];
+    out.gain.value = gain;
     out.connect(this.musicBus);
     const gtr = kind === 'upbeat' ? this.guitarOut(out) : out;
-    const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
-    const bars = kind === 'upbeat' ? [E, B, Cs, A] : [E, Cs, A, B];
-    const lead = [76, 0, 75, 76, 78, 0, 76, 73, 75, 0, 71, 0, 73, 71, 68, 0];
-    const step = kind === 'upbeat' ? 0.22 : kind === 'tense' ? 0.26 : 0.3;
-    // a low muted ostinato that never resolves, a high note now and then, a ticking hat
-    const ostinato = [40, 40, 43, 40, 46, 40, 43, 39];
     let i = 0, next = ctx.currentTime + 0.05;
     const schedule = () => {
       for (; next < ctx.currentTime + 1.2; i++, next += step) {
-        const chord = bars[Math.floor(i / 8) % bars.length], k = i % 8, t = next;
-        if (kind === 'tense') {
-          this.note(this.plucked(ostinato[k], 0.45, 0.15), t, 0.26, out);
-          if (k === 0 && Math.floor(i / 8) % 2) this.note(this.plucked(Math.floor(i / 16) % 2 ? 71 : 70, 1.6, 0.3), t, 0.09, out);
-          this.hit(t, 0.03, 8000, k % 2 ? 0.025 : 0.04, out);
-          continue;
+        for (const event of scoreEvents(kind, i)) {
+          const t = next + event.offset;
+          if ('midi' in event) {
+            const buffer = event.voice === 'pluck' || event.voice === 'guitar' ? this.plucked(event.midi, event.duration, event.bright)
+              : this.scoreTone(event.voice, event.midi, event.duration);
+            this.note(buffer, t, event.gain, event.voice === 'guitar' ? gtr : out);
+          } else if (event.voice === 'kick') this.kick(t, out, event.gain);
+          else if (event.voice === 'snare') this.hit(t, 0.14, 1800, event.gain, out);
+          else this.hit(t, kind === 'tense' ? 0.03 : 0.04, kind === 'tense' ? 8000 : 7000, event.gain, out);
         }
-        if (kind === 'tender') {
-          if (k === 0) this.note(this.plucked(chord[0], 2, 0.25), t, 0.2, out);
-          this.note(this.plucked(chord[[1, 3, 2, 4, 1, 3, 2, 4][k] % chord.length] + 12, 1.4, 0.3), t, 0.13, out);
-          continue;
-        }
-        const open = k === 0 || k === 3 || k === 4 || k === 6;
-        (open ? chord : chord.slice(0, 3)).forEach((m, j) => this.note(this.plucked(m, open ? 1.2 : 0.22, 0.4), t + j * 0.011, open ? 0.2 : 0.16, gtr));
-        const m = lead[i % lead.length];
-        if (Math.floor(i / 16) % 2 && m) this.note(this.plucked(m, 0.9, 0.25), t, 0.22, gtr);
-        if (k % 4 === 0) this.kick(t, out);
-        if (k % 4 === 2) this.hit(t, 0.14, 1800, 0.25, out);
-        this.hit(t, 0.04, 7000, k % 2 ? 0.04 : 0.06, out);
       }
     };
     schedule();
@@ -931,13 +953,13 @@ export class AudioEngine {
     return { beat, duration };
   }
 
-  private kick(t: number, out: AudioNode) {
+  private kick(t: number, out: AudioNode, gain = 1) {
     const ctx = this.ctx!;
     const o = ctx.createOscillator();
     o.frequency.setValueAtTime(130, t);
     o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.55, t);
+    g.gain.setValueAtTime(0.55 * gain, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
     o.connect(g).connect(out);
     o.start(t);
