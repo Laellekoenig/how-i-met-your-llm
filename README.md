@@ -1,10 +1,11 @@
 # how i met your LLM
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
-Low-poly puppets perform pre-written episodes, written by AI agents, on eighteen sets (MacLaren's, the apartment,
+Low-poly puppets perform pre-written episodes, written by AI agents, on twenty-three sets (MacLaren's, the apartment,
 Barney's place, the roof, Barney's office, a generic office, Metro News One, a neighborhood store, a restaurant,
 Ted's lecture hall, Barney's limo, a cab, the subway, a laser-tag arena, a Wesleyan dorm, a hospital waiting room,
-an elevator and a Canadian mall), framed by Future Ted telling
+an elevator, a Canadian mall, MacLaren’s sidewalk, the Hoser Hut, a courtroom, an Atlantic City casino,
+and the Lusty Leopard), framed by Future Ted telling
 the story to his bored kids on the couch in 2030, with browser TTS voices,
 a synthesized laugh track, multi-camera sitcom coverage, and a crunchy pixel/dither post-process.
 
@@ -230,6 +231,34 @@ The show-specific sets use these online visual references:
 
 These are original procedural interpretations. Reference images are not bundled or fetched by the app;
 the store, restaurant, and other destination exteriors are generic original designs.
+
+## More locations from the show
+
+[Location screenshots](docs/screenshots/new-locations.jpg) · [Atlantic City transition frames](docs/screenshots/atlantic-city-transition.jpg)
+
+Open `/?set=maclarens_sidewalk&mute` for a silent location tour. The selector visits all five additions
+and the Atlantic City arrival; the camera menu includes master/conversation/reverse wides, close-ups,
+two-shots and both shoulder angles. `&time=day` switches exterior lighting. These sets are available
+to episode JSON through the IDs below; this addition does not change the existing episode stories.
+
+| Location ID | References inspected | Modeled details |
+| --- | --- | --- |
+| `maclarens_sidewalk` | [On-screen facade](https://media.decorsed.com/file/decorsed/howimetyourmother/maclarens-pub-exterior.jpg), [“Come On” gallery](https://www.imdb.com/title/tt0774239/mediaindex/) | Reuses the existing pale-brick facade: recessed pub entrance, green rail, frosted window, raised apartment stoop, galvanized bins, autumn tree and parking meter. Actor marks stay on the sidewalk. Opposite buildings support street-facing coverage. |
+| `hoser_hut` | [“Duel Citizenship” still and context](https://www.thecurlingnews.com/news/blog/how-i-met-your-mother), [location/episode guide](https://how-i-met-your-mother.fandom.com/wiki/Hoser_Hut) | Rust brick, dark timber, left-hand bar, round red stools, hockey sweaters, maple flag, mounted antlers, small tables and karaoke corner. |
+| `courtroom` | [“Twelve Horny Women” gallery](https://www.imdb.com/title/tt2445770/mediaindex/), [episode synopsis](https://tv.apple.com/gb/episode/twelve-horny-women/umc.cmc.5lencmwg6xz25i3rmf2587wjd) | Tall diamond-lattice windows, square wood paneling, brass sconces, raised judge’s bench, witness box, separate counsel tables, jury box and railed gallery. Marshall wears his work suit. |
+| `atlantic_city_casino` | [CBS photo of the casino scene in “The Bro Mitzvah”](https://www.cbsnews.com/news/himym-cast-opens-up-about-the-final-season/), [“Atlantic City” episode](https://www.imdb.com/title/tt0885871/) | Burgundy patterned walls, gold pilasters and marquee bulbs, upright slots, red chairs, green Xing Hai Shi Bu Xing table, chip stacks, tiles, dealer rack and peg towers. |
+| `lusty_leopard` | [“Karma” episode gallery](https://www.imdb.com/title/tt2247489/mediaindex/), [episode synopsis](https://tv.apple.com/us/episode/karma/umc.cmc.5dbvr1cv8ay01icw5pwbxybzi) | Red carpet and walls, black trim with leopard-print inlays, chrome café chairs, small round tables, brass stage rail and pole, round “Girls” neon, green-backed bar shelves, sunburst mirror and beaded curtain. |
+
+The `atlantic_city` transition establishes the ocean, boardwalk, period casino towers and Taj Mahal-style
+domes. It is automatic for new casino arrivals and time changes; repeated scenes at the same time cut directly.
+An explicit `transition: "atlantic_city"` also works for a limo arriving there. Existing `skyline` and `exterior`
+requests for the casino use Atlantic City geography. Opening narration plays over the arrival once, with the
+same pause, skip and reduced-motion handling as other establishing shots.
+
+The coastal composition is an original interpretation, supplemented by [Gensler’s period House of Blues / Taj Mahal
+architecture photographs](https://www.gensler.com/projects/house-of-blues-atlantic-city), rather than an identified
+frame-for-frame episode establishing shot. Interior dimensions and unseen reverse walls are adapted for the
+puppets and camera system. All geometry and textures are procedural; reference photographs are not shipped.
 
 ## City interiors and period flashbacks
 

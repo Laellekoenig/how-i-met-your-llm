@@ -603,3 +603,9 @@ body.guide-open #transport button:not(#btn-full) { opacity: 0.35; pointer-events
   body.dev #screen-wrap { flex: none; height: 56vw; }
   body.dev #panel { height: 60vh; }
 }
+
+/* The optional location tour is also useful when reviewing a new set. */
+.set-preview { position: fixed; z-index: 100; left: 18px; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 10px; width: fit-content; max-width: calc(100% - 36px); flex-wrap: wrap; padding: 12px 15px; border: 1px solid #8f785047; border-radius: 8px; background: #151b20ee; color: #e5d7ba; font: 12px var(--mono); box-shadow: 0 4px 22px #0006; }
+.set-preview > span { font-size: 10px; letter-spacing: .16em; color: #c9ad73; margin-right: 5px; }
+.set-preview select, .set-preview button { max-width: 100%; border: 1px solid #756348; border-radius: 4px; padding: 7px 9px; color: #eee3cf; background: #242930; font: inherit; cursor: pointer; }
+.set-preview a { color: #c9ad73; padding: 7px; }

@@ -4,6 +4,7 @@ import { Stage } from './show/stage';
 import { Director } from './show/director';
 import { Player } from './show/player';
 import { Overlay, Panel } from './ui/overlay';
+import { setPreview } from './ui/setPreview';
 import { Guide } from './ui/guide';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
@@ -40,6 +41,10 @@ function tune(index: number) {
 const guide = new Guide($('guide'), EPISODES, tune);
 
 function openGuide() {
+  if (new URLSearchParams(location.search).has('set') && document.querySelector('.set-preview')) {
+    location.assign(new URLSearchParams(location.search).has('mute') ? '/?mute' : '/');
+    return;
+  }
   if (guide.open) return;
   if (onAir) {
     onAir = false;
@@ -179,8 +184,11 @@ function unlockSound() {
 }
 window.addEventListener('pointerdown', unlockSound, true);
 window.addEventListener('keydown', unlockSound, true);
-if (!onAir) openGuide();
-void player.run();
+const touring = setPreview(stage, director);
+if (!touring) {
+  if (!onAir) openGuide();
+  void player.run();
+}
 
 // ---------------------------------------------------------------- frame loop
 
