@@ -3,6 +3,9 @@ import type { Director } from '../show/director';
 import type { CharacterId, LocationId } from '../script/types';
 
 const previews = {
+  car: [['marshall','driver'],['ted','front_passenger'],['lily','back_middle'],['robin','back_left'],['barney','back_right']],
+  taxi: [['ted','back_left'],['robin','back_right'],['lily','back_middle'],['barney','front_passenger'],['ranjit','driver']],
+  limo: [['barney','rear_seat_left'],['robin','rear_seat_right'],['ted','bench_1'],['lily','bench_2'],['marshall','bench_3'],['ranjit','driver']],
   maclarens_sidewalk: [['ted','pub'],['robin','friend'],['marshall','stoop'],['lily','stoop_friend'],['barney','curb']],
   hoser_hut: [['robin','table_left'],['marshall','table_right'],['lily','friend'],['barney','bar_stool']],
   courtroom: [['marshall','counsel'],['lily','client'],['brad','opposing_counsel'],['ted','gallery_left'],['barney','gallery_right']],
@@ -47,7 +50,7 @@ export function setPreview(stage: Stage, director: Director) {
     }else{
       shots.disabled=false;stage.setLocation(current,time);
       for(const [id,mark]of previews[current])stage.place(id,mark);
-      const options:[string,string][]=[...stage.sets[current].wides.map((_,i):[string,string]=>[`wide:${i}`,i===0?'Master wide':i===1?'Conversation wide':`Reverse wide ${i-1}`]),
+      const options:[string,string][]=[...stage.sets[current].wides.map((w,i):[string,string]=>[`wide:${i}`,w.label ?? (i===0?'Master wide':i===1?'Conversation wide':`Reverse wide ${i-1}`)]),
         ...previews[current].map(([id]):[string,string]=>[`close:${id}`,`${stage.actors[id].def.name} · Close-up`]),
         ['two:forward','Two-shot'],['two:reverse','Reverse two-shot'],['shoulder:forward','Over the shoulder'],['shoulder:reverse','Reverse shoulder']];
       for(const [value,name]of options){const option=document.createElement('option');option.value=value;option.textContent=name;shots.append(option);}

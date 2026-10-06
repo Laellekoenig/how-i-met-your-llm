@@ -3,7 +3,7 @@
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
 Low-poly puppets perform pre-written episodes, written by AI agents, on twenty-three sets (MacLaren's, the apartment,
 Barney's place, the roof, Barney's office, a generic office, Metro News One, a neighborhood store, a restaurant,
-Ted's lecture hall, Barney's limo, a cab, the subway, a laser-tag arena, a Wesleyan dorm, a hospital waiting room,
+Ted's lecture hall, an ordinary car, Barney's limo, a cab, the subway, a laser-tag arena, a Wesleyan dorm, a hospital waiting room,
 an elevator, a Canadian mall, MacLaren’s sidewalk, the Hoser Hut, a courtroom, an Atlantic City casino,
 and the Lusty Leopard), framed by Future Ted telling
 the story to his bored kids on the couch in 2030, with browser TTS voices,
@@ -78,7 +78,7 @@ bun run episodes fmt [file…]       # canonical layout: one beat per line
   The app bundles the files at build time (`catalog.ts`).
 - **The stage** (`src/world/`, `src/show/`): procedural low-poly characters (no model files) with walk/sit/talk
   animation (including sitting cross-legged or slouched), facial expressions and gestures; sets with named marks and a tiny nav graph; a director that cuts between
-  wides, close-ups, two-shots and over-the-shoulders while avoiding occluded angles. The limo and the cab are `seated`
+  wides, close-ups, two-shots and over-the-shoulders while avoiding occluded angles. The car, limo and cab are `seated`
   sets: the city scrolls past outside, and people slide between seats and climb in and out instead of walking.
 - **The look** (`src/engine/renderer.ts`): renders at ~270p, then applies depth-based ink outlines, posterize + Bayer
   dithering, chromatic aberration, scanlines, grain and vignette. Toggle/tune under *picture & sound*.
@@ -292,3 +292,20 @@ Visual references used for the original geometry (no reference photos are loaded
 - [“Zip, Zip, Zip” laser-tag scene](https://www.imdb.com/title/tt0606119/): fluorescent arena colors and industrial barrels.
 
 The hospital and elevator are original generic interiors.
+
+
+### Car scenes
+
+`car` is an unbranded sedan with front bucket seats and a three-person rear bench. Cast the
+`driver` explicitly (there is no automatic chauffeur), then use `front_passenger`, `back_left`,
+`back_middle` and `back_right`. Each row has its own entry door; everyone stays seated.
+
+Vehicle coverage follows [the series references and episode audit](docs/car-reference.md):
+locked windshield front-seat two-shots, rear-seat coverage, matching singles and separate driver
+reactions. The limo uses dark leather and warm cabin light. Shoulder requests resolve to matching
+singles from the vehicle's fixed mounts. Existing cab/limo stories keep their original locations.
+
+Silent previews, including every camera and the day/night switch:
+- [Ordinary car](http://localhost:5173/?set=car&time=day&mute)
+- [Taxi](http://localhost:5173/?set=taxi&mute)
+- [Limo](http://localhost:5173/?set=limo&mute)

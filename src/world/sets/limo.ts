@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
-import { street, road, skyline, tufted, speckle } from '../../engine/textures';
+import { street, road, skyline, speckle } from '../../engine/textures';
 import { type StageSet, mark, nodes, bottles, keyLight, v3 } from './common';
 import { scroll, lampposts } from './vehicle';
 
 // Barney's stretch limo, cruising through Manhattan with Ranjit at the wheel, front of the car to +x.
-// A closed car, shot from inside the cabin: the long leather bench along the far side, the rear bench
+// A closed car, shot from fixed cabin and windshield mounts: the long leather bench along the far side, the rear bench
 // across the back, the bar by the partition with a side seat facing back down the cabin, a low console
-// under the near windows, and through the open partition window, Ranjit. Purple LED strips, a
-// starlight ceiling. Out of the tinted windows on both sides the street slides by and the streetlamps
+// under the near windows, and through the open partition window, Ranjit. Dark leather and
+// restrained cabin trim. Out of the tinted windows on both sides the street slides by and the streetlamps
 // sweep light through the car. Everyone sits: people slide between seats, and get in and out by the
 // door in the far side.
 export function buildLimo(): StageSet {
@@ -21,11 +21,11 @@ export function buildLimo(): StageSet {
   const paint = toon('#0c0c0e');
   const paintHi = toon('#1c1c22');
   const chrome = toon('#c4c8ce');
-  const leather = toon('#2a2220');
-  const leatherHi = toon('#3a302c');
+  const leather = toon('#25292f');
+  const leatherHi = toon('#373c43');
   const trim = toon('#4a2a1a'); // burl wood
-  const purple = glow('#a070ff', 1.3);
-  const tint = new THREE.MeshBasicMaterial({ color: '#2a2a3a', transparent: true, opacity: 0.35, depthWrite: false });
+  const cabinTrim = toon('#8c8170');
+  const tint = new THREE.MeshBasicMaterial({ color: '#677887', transparent: true, opacity: 0.18, depthWrite: false });
 
   // ---- the street ------------------------------------------------------------------------------
   // Buildings down both sides of the avenue, facing each other across the road, and the avenue
@@ -74,12 +74,6 @@ export function buildLimo(): StageSet {
   const ceiling = mesh(new THREE.PlaneGeometry(NOSE - REAR, NEAR - FAR), toon('#141018'), (REAR + NOSE) / 2, ROOF - 0.005, 0, false);
   ceiling.rotation.x = Math.PI / 2;
   g.add(ceiling);
-  // starlight ceiling
-  for (let i = 0; i < 40; i++) {
-    const x = REAR + 0.2 + ((i * 0.6180339) % 1) * (PART - REAR - 0.4);
-    const z = FAR + 0.15 + ((i * 0.381966 + 0.2) % 1) * (NEAR - FAR - 0.3);
-    g.add(mesh(box(0.015, 0.005, 0.015), glow('#e8e0ff', 1.6), x, ROOF - 0.01, z, false));
-  }
   // under the car: sill and chassis, the near-side wheels
   g.add(mesh(box(NOSE - REAR + 1.8, 0.3, NEAR - FAR), paint, (REAR + NOSE) / 2 + 0.2, -0.15, 0, false));
   for (const x of [REAR - 0.1, NOSE + 0.6]) {
@@ -105,7 +99,7 @@ export function buildLimo(): StageSet {
   }
   // rear wall with its little window onto the avenue behind, the back of the car
   g.add(mesh(box(0.1, ROOF, NEAR - FAR), leather, REAR - 0.05, ROOF / 2, 0, false));
-  const rearWindow = mesh(new THREE.PlaneGeometry(1.1, 0.4), aheadNight, REAR + 0.005, 1.15, 0, false).rotateY(Math.PI / 2);
+  const rearWindow = mesh(new THREE.PlaneGeometry(1.52, 0.55), aheadNight, REAR + 0.005, 1.15, 0, false).rotateY(Math.PI / 2);
   g.add(rearWindow);
   g.add(mesh(roundedBox(0.95, 0.55, NEAR - FAR + 0.05, 0.08), paint, REAR - 0.5, 0.25, 0, false)); // trunk
   for (const z of [FAR + 0.2, NEAR - 0.2]) g.add(mesh(box(0.04, 0.12, 0.3), glow('#ff3030', 1.2), REAR - 0.98, 0.35, z, false));
@@ -114,11 +108,11 @@ export function buildLimo(): StageSet {
   g.add(mesh(box(CX1 - CX0, 0.42, 0.22), paintHi, (CX0 + CX1) / 2, 0.21, CZ));
   g.add(mesh(box(CX1 - CX0 + 0.02, 0.03, 0.24), trim, (CX0 + CX1) / 2, 0.435, CZ, false));
   for (const x of [-0.6, 0.35]) g.add(mesh(cyl(0.035, 0.035, 0.01, 8), toon('#0a0a0c'), x, 0.452, CZ, false)); // cup holders
-  // LED strips
-  g.add(mesh(box(PART - REAR, 0.02, 0.02), purple, (REAR + PART) / 2, ROOF - 0.04, FAR + 0.06, false));
-  g.add(mesh(box(PART - REAR, 0.02, 0.02), purple, (REAR + PART) / 2, ROOF - 0.04, NEAR - 0.06, false));
-  g.add(mesh(box(PART - REAR, 0.015, 0.015), purple, (REAR + PART) / 2, 0.03, FAR + 0.58, false));
-  g.add(mesh(box(CX1 - CX0, 0.015, 0.015), purple, (CX0 + CX1) / 2, 0.38, CZ - 0.115, false));
+  // Restrained champagne-colored trim, as in the rear-bench reference.
+  g.add(mesh(box(PART - REAR, 0.02, 0.02), cabinTrim, (REAR + PART) / 2, ROOF - 0.04, FAR + 0.06, false));
+  g.add(mesh(box(PART - REAR, 0.02, 0.02), cabinTrim, (REAR + PART) / 2, ROOF - 0.04, NEAR - 0.06, false));
+  g.add(mesh(box(PART - REAR, 0.015, 0.015), cabinTrim, (REAR + PART) / 2, 0.03, FAR + 0.58, false));
+  g.add(mesh(box(CX1 - CX0, 0.015, 0.015), cabinTrim, (CX0 + CX1) / 2, 0.38, CZ - 0.115, false));
 
   // ---- seats ----------------------------------------------------------------------------------------
   const SEAT = 0.42;
@@ -129,7 +123,7 @@ export function buildLimo(): StageSet {
     b.rotation.y = rotY;
     b.add(occluder(mesh(roundedBox(len, SEAT - 0.08, 0.55, 0.03), leather, 0, (SEAT - 0.08) / 2, 0)));
     b.add(mesh(roundedBox(len - 0.04, 0.1, 0.55, 0.04), leatherHi, 0, SEAT - 0.04, 0.01));
-    b.add(occluder(mesh(roundedBox(len, backTop - SEAT, 0.14, 0.04), toon('#ffffff', { map: tufted('#2a2220', [Math.round(len * 3), 2]) }), 0, (SEAT + backTop) / 2, -0.3)));
+    b.add(occluder(mesh(roundedBox(len, backTop - SEAT, 0.14, 0.04), leather, 0, (SEAT + backTop) / 2, -0.3)));
     b.add(mesh(box(len, 0.03, 0.03), trim, 0, SEAT - 0.1, 0.28, false));
     g.add(b);
   };
@@ -143,7 +137,7 @@ export function buildLimo(): StageSet {
   const BX0 = 1.48, BX1 = PART - 0.02, BZ0 = FAR + 0.02, BZ1 = FAR + 0.55;
   g.add(occluder(mesh(box(BX1 - BX0, 0.64, BZ1 - BZ0), paintHi, (BX0 + BX1) / 2, 0.32, (BZ0 + BZ1) / 2)));
   g.add(mesh(box(BX1 - BX0 + 0.02, 0.03, BZ1 - BZ0 + 0.02), trim, (BX0 + BX1) / 2, 0.655, (BZ0 + BZ1) / 2, false));
-  g.add(mesh(box(BX1 - BX0, 0.015, 0.015), purple, (BX0 + BX1) / 2, 0.6, BZ1 + 0.01, false));
+  g.add(mesh(box(BX1 - BX0, 0.015, 0.015), cabinTrim, (BX0 + BX1) / 2, 0.6, BZ1 + 0.01, false));
   bottles(g, BX0 + 0.12, 0.67, FAR + 0.15, 4, 0.13, 0, 88);
   for (const dx of [0.15, 0.32]) {
     const gl = toon('#c8dce8', { emissive: '#203040', emissiveIntensity: 0.3 });
@@ -171,11 +165,11 @@ export function buildLimo(): StageSet {
   g.add(mesh(box(0.35, 0.3, NEAR - FAR), paintHi, NOSE - 0.18, 0.72, PZ));
   g.add(mesh(box(0.38, 0.03, NEAR - FAR), trim, NOSE - 0.18, 0.88, PZ, false));
   g.add(mesh(box(0.02, 0.1, 0.3), glow('#6ad0ff', 0.9), NOSE - 0.36, 0.8, -0.42, false));
-  const wheel = mesh(new THREE.TorusGeometry(0.17, 0.02, 4, 12), toon('#141414'), NOSE - 0.45, 0.92, -0.42, false);
+  const wheel = mesh(new THREE.TorusGeometry(0.17, 0.02, 4, 12), toon('#141414'), NOSE - 0.13, 0.86, -0.42, false);
   wheel.rotation.y = Math.PI / 2;
   wheel.rotation.x = -0.4;
   g.add(wheel);
-  g.add(mesh(cyl(0.025, 0.025, 0.3, 4), toon('#141414'), NOSE - 0.35, 0.86, -0.42, false).rotateZ(1.1));
+  g.add(mesh(cyl(0.025, 0.025, 0.3, 4), toon('#141414'), NOSE - 0.09, 0.78, -0.42, false).rotateZ(1.1));
   // windshield and hood
   const ws = mesh(new THREE.PlaneGeometry(0.95, NEAR - FAR), tint, NOSE + 0.2, 1.25, PZ, false);
   ws.rotation.set(0, -Math.PI / 2, 0);
@@ -187,17 +181,17 @@ export function buildLimo(): StageSet {
   g.add(mesh(cyl(0.02, 0.02, 0.1, 4), chrome, NOSE + 1.4, 0.6, PZ, false)); // hood ornament
 
   // ---- lights -----------------------------------------------------------------------------------------
-  const hemi = new THREE.HemisphereLight('#a8a0d8', '#1a141c', 1.5);
+  const hemi = new THREE.HemisphereLight('#abb7ca', '#1a141c', 1.5);
   g.add(hemi);
-  const key = keyLight(g, '#e8e0ff', 1.0, [1, 6, 6], [0, 0.6, 0]);
+  const key = keyLight(g, '#f2e8d8', 1.0, [1, 6, 6], [0, 0.6, 0]);
   // the cabin lights, down the length of the car
   const cabin = [-2.1, -0.4, 1.0].map((x) => {
-    const l = new THREE.PointLight('#c8a0ff', 2.2, 3.5, 1.4);
+    const l = new THREE.PointLight('#ffe8cf', 2.2, 3.5, 1.4);
     l.position.set(x, 1.4, 0.3);
     g.add(l);
     return l;
   });
-  const barGlow = new THREE.PointLight('#b080ff', 1.8, 2.5, 1.4);
+  const barGlow = new THREE.PointLight('#ffe0b5', 1.8, 2.5, 1.4);
   barGlow.position.set(1.8, 0.9, -0.2);
   g.add(barGlow);
   const front = new THREE.PointLight('#ffe0c0', 1.2, 2.5, 1.4);
@@ -206,7 +200,7 @@ export function buildLimo(): StageSet {
 
   const N = nodes({ rear: [-2.55, 0.1], door: [-1.75, -0.4], bench_l: [-0.7, -0.45], bench_r: [0.9, -0.45], side: [1.5, 0.3], driver: [2.95, -0.42], driver_door: [2.95, -0.72] });
   const benchSeat = (x: number, hint: string) => mark(x, FAR + 0.47, 0, x < 0 ? 'bench_l' : 'bench_r', hint, { seat: SEAT });
-  const rearSeat = (z: number, hint: string) => mark(REAR + 0.47, z, Math.PI / 2 - 0.4, 'rear', hint, { seat: SEAT });
+  const rearSeat = (z: number, hint: string) => mark(REAR + 0.47, z, Math.PI / 2, 'rear', hint, { seat: SEAT });
   return {
     id: 'limo',
     name: "Barney's Limo",
@@ -223,22 +217,21 @@ export function buildLimo(): StageSet {
       bench_3: benchSeat(0.95, 'the long leather side bench, by the bar'),
       bar_seat: mark(PART - 0.47, 0.42, -Math.PI / 2 + 0.45, 'side', 'the side seat by the bar and the champagne, facing back down the limo', { seat: SEAT }),
       driver_door: mark(2.95, -0.72, Math.PI / 2, 'driver_door', 'driver compartment door', { seat: SEAT }),
-      driver: mark(2.97, -0.42, Math.PI / 2, 'driver', "the driver's seat beyond the open partition window (Ranjit's)", { seat: SEAT }),
+      driver: mark(2.97, -0.42, Math.PI / 2, 'driver', "the driver's seat beyond the open partition window (Ranjit's)", { seat: SEAT, pose: 'driving' }),
       door: mark(-1.75, FAR + 0.47, 0.3, 'door', 'the limo door in the far side, by the rear bench', { seat: SEAT }),
     },
     wides: [
-      // back down the cabin from the near front corner, by the bar seat: the rear bench and the long bench
-      { pos: v3(2.0, 1.42, 0.68), target: v3(-1.6, 0.85, -0.25), fov: 56 },
-      // up the cabin from the rear corner: the long bench, the bar seat and Ranjit through the partition
-      { pos: v3(-2.15, 1.42, 0.72), target: v3(1.2, 0.85, -0.25), fov: 60 },
-      // across from the console: the long bench and the street going by behind it
-      { pos: v3(0.1, 1.36, 0.74), target: v3(0.1, 0.92, -0.7), fov: 64 },
-      // the rear bench, from by the door
-      { pos: v3(-0.9, 1.38, 0.55), target: v3(-2.7, 0.95, 0.05), fov: 52 },
-      // the dashboard, back at Ranjit
-      { pos: v3(3.48, 1.24, -0.12), target: v3(2.95, 1.06, -0.42), fov: 62 },
+      { label: 'Cabin ensemble', pos: v3(2.0, 1.36, 0.68), target: v3(-1.6, 1.0, -0.25), fov: 56 },
+      { label: 'Reverse · Cabin ensemble', pos: v3(-2.15, 1.36, 0.72), target: v3(1.2, 1.0, -0.25), fov: 60 },
+      { label: 'Side bench · Three-shot', pos: v3(0.1, 1.3, 0.78), target: v3(0.1, 1.08, -0.47), fov: 64 },
+      { label: 'Rear bench · Two-shot', pos: v3(-0.85, 1.25, 0.025), target: v3(-2.55, 1.02, 0.025), fov: 40 },
+      { label: 'Ranjit · Windshield reverse', pos: v3(4.2, 1.27, -0.42), target: v3(2.95, 1.08, -0.42), fov: 38 },
     ],
-    cameraBounds: new THREE.Box3(v3(REAR + 0.12, 0.45, FAR + 0.1), v3(NOSE + 0.05, ROOF - 0.08, NEAR - 0.1)), // up to the windshield
+    dialogueCameras: [v3(-0.85, 1.3, -0.35), v3(-0.85, 1.3, 0.4), v3(-0.85, 1.3, 0.025),
+      v3(-0.75, 1.32, 0.78), v3(0.1, 1.32, 0.78), v3(0.95, 1.32, 0.78),
+      v3(-0.325, 1.32, 0.78), v3(0.525, 1.32, 0.78), v3(0.25, 1.32, 0.65),
+      v3(4.2, 1.32, -0.42), v3(4.2, 1.32, -0.65), v3(4.2, 1.5, -0.42)],
+    cameraBounds: new THREE.Box3(v3(REAR + 0.12, 0.75, FAR + 0.1), v3(4.4, ROOF - 0.08, NEAR - 0.1)),
     ambience: 'car',
     background: [{ character: 'ranjit', mark: 'driver' }],
     doorSound: 'car',
@@ -250,7 +243,7 @@ export function buildLimo(): StageSet {
       for (const m of [...ends, rearWindow]) m.material = night ? aheadNight : aheadDay;
       lampsFar.setNight(night);
       lampsNear.setNight(night);
-      hemi.color.set(night ? '#a8a0d8' : '#e8ecf8');
+      hemi.color.set(night ? '#abb7ca' : '#e8ecf8');
       hemi.intensity = night ? 1.5 : 2.4;
       key.intensity = night ? 0.8 : 2.0;
       for (const l of cabin) l.intensity = night ? 2.4 : 1.0;

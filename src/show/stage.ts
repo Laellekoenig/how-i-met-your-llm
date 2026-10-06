@@ -11,6 +11,7 @@ import { buildBarneysOffice } from '../world/sets/barneysOffice';
 import { buildOffice } from '../world/sets/office';
 import { buildLimo } from '../world/sets/limo';
 import { buildTaxi } from '../world/sets/taxi';
+import { buildCar } from '../world/sets/car';
 import { buildMetroNewsOne } from '../world/sets/metroNewsOne';
 import { buildStore } from '../world/sets/store';
 import { buildRestaurant } from '../world/sets/restaurant';
@@ -80,7 +81,7 @@ export class Stage {
   constructor(private scene: THREE.Scene) {
     this.sets = {
       maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), rooftop: buildRooftop(),
-      barneys_office: buildBarneysOffice(), office: buildOffice(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
+      barneys_office: buildBarneysOffice(), office: buildOffice(), car: buildCar(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
       metro_news_one: buildMetroNewsOne(), store: buildStore(), restaurant: buildRestaurant(), lecture_hall: buildLectureHall(),
       subway: buildSubway(), laser_tag: buildLaserTag(), wesleyan_dorm: buildWesleyanDorm(),
       hospital: buildHospital(), elevator: buildElevator(), canadian_mall: buildCanadianMall(),
@@ -143,7 +144,7 @@ export class Stage {
       skin: '#a8724c', height: 1.74, build: 1.15, extras: ['cap'],
     });
     const wheel = this.sets.taxi.marks.driver;
-    cabbie.place(wheel.pos.clone(), wheel.facing, wheel.seat);
+    cabbie.place(wheel.pos.clone(), wheel.facing, wheel.seat, { pose: wheel.pose });
     this.sets.taxi.group.add(cabbie.root);
     this.extras.push({ actor: cabbie, set: 'taxi', talkT: 0, chatty: false, mark: 'driver' });
 
