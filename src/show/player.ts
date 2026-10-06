@@ -916,46 +916,30 @@ export class Player {
     if (rest) await this.wait(rest);
   }
 
-  /**
-   * Cut to the thing itself, full screen: the text, the chart, the slide, the sign, the Playbook page. Its items
-   * come in one at a time while someone (or Future Ted) reads over it; then back to the room for the reaction.
-   */
+  /** Only the Playbook interrupts the picture. Legacy inserts keep their dialogue and reactions in the room. */
   private async insert(b: InsertBeat) {
-    if (b.line) await this.quiet();
-    this.hideCaption();
-    this.overlay.insert(b);
-    if (b.sound && b.sound !== 'none') audio.cue(b.sound);
-    this.panel.line('stage', insertText(b));
-    const n = this.overlay.revealInsert(0);
-    const words = [b.title, ...(b.lines ?? []), ...(b.messages ?? []).map((m) => m.text), ...(b.items ?? []).map((i) => i.label)]
-      .join(' ').split(/\s+/).filter(Boolean).length;
-    const step = b.kind === 'text' ? 1.1 : clamp(2.4 / Math.max(1, n), 0.35, 0.9);
-    let shown = 0;
-    const reveal = this.animate(0.3 + n * step, (u) => {
-      const k = Math.min(n, Math.floor((u * (0.3 + n * step)) / step) + (b.kind === 'text' ? 1 : 0));
-      if (k === shown) return;
-      shown = k;
-      this.overlay.revealInsert(k);
-      // the phone itself: each text arrives with its chime
-      if (b.kind === 'text' && b.sound !== 'none') audio.textChime();
-    });
+    if (b.kind === 'playbook') {
+      await this.quiet();
+      this.hideCaption();
+      this.overlay.insert(b);
+      if (b.sound && b.sound !== 'none') audio.cue(b.sound);
+      this.panel.line('stage', insertText(b));
+      const title = b.title?.trim() || b.lines?.[0]?.trim() || 'The Playbook';
+      try {
+        await this.wait(clamp(1.2 + title.split(/\s+/).length * 0.28, 2.6, 4));
+      } finally {
+        this.overlay.insert(null);
+      }
+    }
+    // Explain the play (or read an older insert's line) once we're back with the cast.
     const line = clean(b.line ?? '');
     const reader = isChar(b.character) && !isKid(b.character) ? b.character : undefined;
-    let read: Promise<unknown> = Promise.resolve();
+    await this.untilUnpaused();
     if (line && reader) {
-      const def = CHARACTERS[reader];
-      this.panel.line('say', line, def.name, def.color);
-      read = this.race(speech.speak(line, def.voice, () => this.overlay.showCaption(def.name, def.color, line)).done);
-    } else if (line) read = this.narrate(line);
-    try {
-      await Promise.all([reveal, read, this.wait(clamp(1.2 + words * 0.28, 2.6, 8))]);
-      this.overlay.hideCaption();
-      if (b.laugh && !b.react?.length) await this.laugh(b.laugh);
-    } finally {
-      this.overlay.insert(null);
-    }
-    if (b.react?.length) {
-      await this.react(b.react, reader);
+      await this.beat({ type: 'say', character: reader, line, react: b.react, laugh: b.laugh });
+    } else {
+      if (line) await this.narrate(line);
+      if (b.react?.length) await this.react(b.react, reader);
       if (b.laugh) await this.laugh(b.laugh);
     }
   }
@@ -1411,7 +1395,5 @@ function groupName(ids: CharacterId[], room: CharacterId[]) {
 
 /** The transcript's note for an insert. */
 function insertText(b: InsertBeat) {
-  const whose = b.character ? `${charName(b.character)}'s ` : '';
-  const what = { text: 'phone', chart: 'chart', slides: 'slideshow', sign: 'sign', playbook: 'Playbook' }[b.kind];
-  return `[${whose}${what}${b.title ? `: ${b.title}` : ''}]`;
+  return `[Playbook: ${b.title?.trim() || b.lines?.[0]?.trim() || 'The Playbook'}]`;
 }

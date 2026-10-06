@@ -267,12 +267,69 @@ function rig(items: ShowItem[], opts: { speak?: (line: string) => Promise<void> 
     const start = performance.now();
     while (requests <= items.length && performance.now() - start < 40000) await new Promise((r) => setTimeout(r, 20));
   };
-  return { stage, director, renderer, log, spoken, run };
+  return { stage, director, renderer, overlay, player, log, spoken, run };
 }
 
 const meta = { id: 'dev', code: 'S99E01', title: 'Devices', logline: '' };
 const scene = (beats: Beat[], more: Partial<Scene> = {}): Scene => ({ location: 'maclarens', time: 'night', transition: 'cut', cast: booth as Scene['cast'], beats, ...more });
 const sceneItem = (s: Scene, index = 1): ShowItem => ({ kind: 'scene', episode: meta, index, scene: s });
+
+describe('Playbook-only inserts', () => {
+  test('retired cards keep dialogue, narration and reactions in the scene without card sounds or reading delays', async () => {
+    const r = rig([]);
+    r.player.stageNow(scene([]));
+    const cards: InsertBeat[] = [
+      { type: 'insert', kind: 'text', character: 'ted', messages: [{ from: 'robin', text: 'Bar?' }], line: 'She said bar.', sound: 'chime' },
+      { type: 'insert', kind: 'chart', character: 'ted', title: 'Scores', items: [{ label: 'Ted', value: 1 }], line: 'One point.' },
+      { type: 'insert', kind: 'slides', character: 'ted', title: 'The plan', lines: ['Explain the plan.'], line: 'Here is the plan.' },
+      { type: 'insert', kind: 'sign', title: 'Closed', line: 'The sign said closed.', react: [{ character: 'robin', emotion: 'embarrassed' }], laugh: 'laugh' },
+      { type: 'insert', kind: 'sign', title: 'Silent sign' },
+    ];
+    const insert = spyOn(r.overlay, 'insert');
+    const cue = spyOn(audio, 'cue');
+    const chime = spyOn(audio, 'textChime');
+    const laugh = spyOn(audio, 'laugh').mockReturnValue(0);
+    const wait = spyOn(r.player as unknown as { wait(seconds: number): Promise<void> }, 'wait').mockResolvedValue();
+    spies.push(insert, cue, chime, laugh, wait);
+    await r.player.perform(cards);
+    expect(insert).not.toHaveBeenCalled();
+    expect(cue).not.toHaveBeenCalled();
+    expect(chime).not.toHaveBeenCalled();
+    expect(r.spoken.map(({ line, who, set }) => ({ line, who, set }))).toEqual([
+      { line: 'She said bar.', who: 'ted', set: 'maclarens' },
+      { line: 'One point.', who: 'ted', set: 'maclarens' },
+      { line: 'Here is the plan.', who: 'ted', set: 'maclarens' },
+      { line: 'The sign said closed.', who: 'future-ted', set: 'maclarens' },
+    ]);
+    expect(r.stage.actors.robin.emotion).toBe('embarrassed');
+    expect(laugh).toHaveBeenCalledWith('laugh');
+    expect(wait.mock.calls.every(([seconds]) => seconds < 2)).toBe(true);
+  });
+
+  test('a Playbook title clears before the explanation; legacy steps do not prolong it, and skip clears it', async () => {
+    const r = rig([]);
+    r.player.stageNow(scene([]));
+    const events: string[] = [];
+    const insert = spyOn(r.overlay, 'insert').mockImplementation(((card: InsertBeat | null) => events.push(card ? 'title' : 'clear')) as never);
+    const caption = spyOn(r.overlay, 'showCaption').mockImplementation(() => events.push('caption'));
+    const wait = spyOn(r.player as unknown as { wait(seconds: number): Promise<void> }, 'wait').mockResolvedValue();
+    spies.push(insert, caption, wait);
+    const card: InsertBeat = { type: 'insert', kind: 'playbook', title: 'The Wingman', character: 'ted', line: 'Have you met Ted?', lines: Array(6).fill('A lengthy step in the old Playbook that is no longer shown.') };
+    await r.player.perform([card]);
+    expect(events).toEqual(['title', 'clear', 'caption']);
+    expect(wait.mock.calls[0]).toEqual([2.6]);
+    expect(r.spoken.at(-1)).toMatchObject({ line: 'Have you met Ted?', who: 'ted', set: 'maclarens' });
+    events.length = 0;
+    // A skip during a paused title must still take it down and omit the explanation.
+    wait.mockRestore();
+    const pending = r.player.perform([card]);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    r.player.paused = true;
+    r.player.skip('scene');
+    await pending;
+    expect(events).toEqual(['title', 'clear', 'clear']);
+  });
+});
 
 describe('playback: nothing automatic', () => {
   test('laughter is the soundtrack only; cutaways, freezes, inserts and songs make no sound or look of their own', async () => {

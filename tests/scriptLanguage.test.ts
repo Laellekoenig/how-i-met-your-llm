@@ -8,7 +8,7 @@ import { Player } from '../src/show/player';
 import { speech } from '../src/audio/speech';
 import { audio } from '../src/audio/audio';
 import { CHARACTERS, setGuests } from '../src/world/characters';
-import { GESTURES, INSERT_KINDS, type Beat, type InsertBeat, type Scene, type ShowItem } from '../src/script/types';
+import { GESTURES, INSERT_KINDS, LEGACY_INSERT_KINDS, type Beat, type InsertBeat, type Scene, type ShowItem } from '../src/script/types';
 import { overlayStub } from './helpers/overlay';
 
 const spies: { mockRestore(): void }[] = [];
@@ -145,7 +145,8 @@ describe('the episodes use the new devices', () => {
   });
 
   test('every insert kind, a freeze frame, a montage, props, group lines, reactions, shots and wardrobe', () => {
-    expect(new Set(beats.flatMap((b) => b.type === 'insert' ? [b.kind] : []))).toEqual(new Set(INSERT_KINDS));
+    expect(INSERT_KINDS).toEqual(['playbook']);
+    expect(new Set(beats.flatMap((b) => b.type === 'insert' ? [b.kind] : []))).toEqual(new Set([...INSERT_KINDS, ...LEGACY_INSERT_KINDS]));
     for (const type of ['freeze', 'montage', 'hold', 'give'] as const) expect(beats.some((b) => b.type === type), type).toBe(true);
     expect(beats.some((b) => b.type === 'say' && b.chorus?.length && !b.chorus.includes('penny'))).toBe(true);
     expect(beats.some((b) => b.type === 'say' && b.chorus?.includes('penny'))).toBe(true);
@@ -237,7 +238,7 @@ describe('playback of the new beats', () => {
     const overlay = {
       ...overlayStub(), location: (t: string, s?: string) => log.push(`label:${t}:${s ?? ''}`),
       showCaption: (name: string) => log.push(`caption:${name}`),
-      insert: (c: InsertBeat | null) => log.push(c ? `insert:${c.kind}` : 'insert:off'), revealInsert: () => 3,
+      insert: (c: InsertBeat | null) => log.push(c ? `insert:${c.kind}` : 'insert:off'),
     };
     spies.push(spyOn(speech, 'speak').mockImplementation((_text, profile, onStart) => {
       onStart?.();
@@ -249,7 +250,7 @@ describe('playback of the new beats', () => {
     const stopBed = spyOn(audio, 'stopBed');
     spies.push(bed, stopBed);
     const beats = [
-        { type: 'insert', kind: 'text', character: 'ted', messages: [{ from: 'robin', text: 'Bar?' }], react: [{ character: 'marshall', gesture: 'jaw_drop' }] },
+        { type: 'insert', kind: 'playbook', character: 'ted', title: 'The Wingman', react: [{ character: 'marshall', gesture: 'jaw_drop' }] },
         { type: 'hold', character: 'ted', prop: 'ring' },
         { type: 'give', character: 'ted', to: 'robin' },
         { type: 'say', character: 'ted', line: 'Aww.', chorus: ['marshall', 'lily', 'robin'] },
@@ -277,7 +278,7 @@ describe('playback of the new beats', () => {
     const start = performance.now();
     while (requests <= items.length && performance.now() - start < 40000) await new Promise((r) => setTimeout(r, 20));
 
-    expect(log.filter((l) => l.startsWith('insert'))).toEqual(['insert:text', 'insert:off']);
+    expect(log.filter((l) => l.startsWith('insert'))).toEqual(['insert:playbook', 'insert:off']);
     expect(log).toContain('caption:Everyone');
     expect(log).toContain('speak:future-ted:maclarens:still=1:frozen=true');
     expect(log).toContain('speak:ted:store:still=0:frozen=false');

@@ -1,6 +1,6 @@
 import {
   CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS,
-  GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OFFSCREEN, OUTFITS, PROPS, SCENE_LOCATION_IDS,
+  GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LEGACY_INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OFFSCREEN, OUTFITS, PROPS, SCENE_LOCATION_IDS,
   SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isGuest, isKid,
 } from './types';
 import { replayBeats } from './strands';
@@ -616,7 +616,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
 
   /** A full-screen card needs something to show. */
   const insert = (b: Obj, p: string) => {
-    const kind = oneOf(b, 'kind', INSERT_KINDS, p, true);
+    const kind = oneOf(b, 'kind', [...INSERT_KINDS, ...LEGACY_INSERT_KINDS], p, true);
     if (b.title !== undefined && (typeof b.title !== 'string' || b.title.length > 60)) err(p, '"title" is a short heading (60 characters max)');
     if (b.character !== undefined) character(b.character, p);
     if (b.lines !== undefined) {
