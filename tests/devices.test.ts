@@ -83,7 +83,7 @@ describe('validating the new devices', () => {
         ],
       },
       { location: 'apartment', time: 'night', cast: [{ character: 'barney', mark: 'couch_left' }], beats: [say('barney', 'Meanwhile.')] },
-      { resume: 'booth', sound: 'sting', beats: [{ type: 'exit', character: 'robin' }, say('ted', 'Where did she go?'), { type: 'replay', of: 'booth', to: 2 }] },
+      { resume: 'booth', sound: 'chime', beats: [{ type: 'exit', character: 'robin' }, say('ted', 'Where did she go?'), { type: 'replay', of: 'booth', to: 2 }] },
     ];
     const marks = (loc: string) => Object.keys(sets[loc as keyof typeof sets].marks);
     // (the marks this test leans on exist)
@@ -276,7 +276,7 @@ const sceneItem = (s: Scene, index = 1): ShowItem => ({ kind: 'scene', episode: 
 
 describe('playback: nothing automatic', () => {
   test('laughter is the soundtrack only; cutaways, freezes, inserts and songs make no sound or look of their own', async () => {
-    const cues = ['cue', 'whoosh', 'freezeFrame', 'dream', 'rewind', 'serenade', 'sting'] as const;
+    const cues = ['cue', 'whoosh', 'freezeFrame', 'dream', 'rewind', 'serenade'] as const;
     const calls: string[] = [];
     for (const k of cues) spies.push(spyOn(audio, k).mockImplementation(((...args: unknown[]) => { calls.push(`${k}${args.length ? `:${args[0]}` : ''}`); return 0; }) as never));
     const faces: string[] = [];
@@ -288,8 +288,7 @@ describe('playback: nothing automatic', () => {
       say('lily', 'La la la.', { delivery: 'sing' }) as Beat,
       { type: 'say', character: 'lily', line: 'Again.', delivery: 'sing', accompanied: true },
       { type: 'sound', sound: 'shatter' },
-    // (and this scene change lands without the usual guitar sting)
-    ], { sound: 'none' }))]);
+    ]))]);
     const laugh = spyOn(audio, 'laugh').mockImplementation(() => {
       faces.push(r.stage.actors.robin.emotion);
       return 2;

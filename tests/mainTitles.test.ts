@@ -152,7 +152,7 @@ describe('main titles', () => {
   test('skipping a paused intro clears the photograph, grade and scheduled music', async () => {
     const { stage, director, renderer, overlay, shown } = rig();
     const player = new Player(stage, director, renderer as never, overlay as never, { line() {} } as never, { next: () => new Promise<ShowItem>(() => {}) });
-    const stop = spyOn(audio, 'stopSting');
+    const stop = spyOn(audio, 'stopCue');
     spies.push(stop);
     const titles = (player as unknown as { mainTitles(): Promise<void> }).mainTitles();
     await new Promise(r => setTimeout(r, 50));

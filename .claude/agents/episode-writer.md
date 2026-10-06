@@ -100,7 +100,7 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   carry anything finer. Don't write jokes about being AI, puppets or a TV show.
 - **The edit and the soundtrack are yours.** Nothing makes a sound unless you ask: `sound` beats for a cue at the
   exact moment (a shatter on a realization, a record scratch), `score` for underscore that carries across lines and
-  scenes (or `silence` to leave a moment bare), a scene `"sound": "none"` to land a cut without the sting, and
+  scenes (or `silence` to leave a moment bare), an optional scene `"sound"` for a transition cue (ordinary cuts are silent), and
   `accompanied` if a song needs a guitar. `narrate` with `over` keeps Future Ted talking while the action plays.
 - **More tools** (see the bible): `split` for a phone call or the same conversation in three places,
   `offscreen` for a voice down the line, a `look: "video"` cutaway for footage the gang watches, `wardrobe` on a cutaway or montage

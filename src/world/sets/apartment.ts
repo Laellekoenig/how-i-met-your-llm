@@ -517,6 +517,7 @@ export function buildApartment(): StageSet {
       { pos: v3(-0.4, 1.3, 2.9), target: v3(-0.4, 0.9, -1.3), fov: 46 },
     ],
     ambience: 'apartment',
+    doorSound: 'knock',
     background: [],
     floorAt,
     setTime(t) {

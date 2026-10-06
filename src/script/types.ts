@@ -66,8 +66,8 @@ export type Score = (typeof SCORES)[number];
 export const LAUGHS = ['chuckle', 'laugh', 'big', 'ooh', 'aww', 'applause', 'gasp'] as const;
 export type LaughKind = (typeof LAUGHS)[number];
 
-/** Sounds the writer places on purpose: nothing plays a cue unless a beat asks for it (scene changes aside). */
-export const SOUND_CUES = ['sting', 'harp', 'rewind', 'whoosh', 'shutter', 'shatter', 'scratch', 'chime', 'doorbell'] as const;
+/** Sounds the writer can place explicitly in beats and scene transitions. */
+export const SOUND_CUES = ['harp', 'rewind', 'whoosh', 'shutter', 'shatter', 'scratch', 'chime', 'knock', 'doorbell'] as const;
 export type SoundCue = (typeof SOUND_CUES)[number];
 
 export type TimeOfDay = 'day' | 'night';
@@ -129,7 +129,7 @@ export interface GuestStar {
 }
 
 /**
- * How we get into a scene, HIMYM-style. Most scenes just cut in on the guitar sting; now and then the show
+ * How we get into a scene, HIMYM-style. Most scenes just cut in; now and then the show
  * cuts to the New York skyline or the outside of the building first, or uses a rewind cue when Future Ted
  * is getting ahead of himself. An opening narrate beat can play over an establishing shot.
  */
@@ -361,7 +361,7 @@ export interface Scene {
   transition?: Transition;
   /** On-screen card as the scene starts ("Meanwhile", "Two weeks later", "9:14 PM"). */
   label?: string;
-  /** Scene changes come in on the guitar sting; "none" lands silently, or pick another cue. */
+  /** Optional scene-change cue. Silent by default except for rewind; "none" silences that too. */
   sound?: SoundCue | 'none';
   /** Costumes for this scene, over the episode's. */
   wardrobe?: Costume[];

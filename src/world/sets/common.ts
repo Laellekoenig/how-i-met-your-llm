@@ -23,7 +23,7 @@ export interface Shot {
 }
 
 export type Ambience = 'bar' | 'apartment' | 'penthouse' | 'city' | 'office' | 'car' | 'none';
-export type DoorSound = 'bell' | 'car' | 'elevator' | 'none';
+export type DoorSound = 'knock' | 'bell' | 'car' | 'elevator' | 'none';
 
 export interface StageSet {
   id: LocationId;

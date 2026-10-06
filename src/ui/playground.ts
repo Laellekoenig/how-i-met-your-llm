@@ -649,7 +649,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       case 'act': return { character: a, gesture: 'high_five', to: b };
       case 'laugh': return { laugh: 'laugh' };
       case 'pause': return { seconds: 1 };
-      case 'sound': return { sound: 'sting' };
+      case 'sound': return { sound: 'knock' };
       case 'score': return { music: 'upbeat' };
       case 'hold': return { character: a, prop: 'beer' };
       case 'give': return { character: a, to: b, prop: 'envelope' };
@@ -767,7 +767,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     out.append(h('h4', { textContent: `Queue · ${queued}` }), queued ? list : note('Queue beats to play them in a row, as a scene, or as an episode.'));
     out.append(h('div', { class: 'pg-grid' },
       row('transition', select(TRANSITIONS, st.scene.transition, (v) => { st.scene.transition = (v || undefined) as Transition; save(); }, { blank: 'auto' })),
-      row('sound', select([...SOUND_CUES, 'none'], st.scene.sound, (v) => { st.scene.sound = (v || undefined) as SoundCue; save(); }, { blank: 'sting' })),
+      row('sound', select([...SOUND_CUES, 'none'], st.scene.sound, (v) => { st.scene.sound = (v || undefined) as SoundCue; save(); }, { blank: 'automatic' })),
       row('label', h('input', { type: 'text', value: st.scene.label ?? '', placeholder: 'Meanwhile…', oninput: (e: Event) => {
         st.scene.label = (e.target as HTMLInputElement).value || undefined;
         save();

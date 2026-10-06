@@ -93,7 +93,7 @@ bun run episodes ledger            # continuity: eras, what's true now, bets and
   and [composer John Swihart's interview](https://goseetalk.com/interview-film-and-tv-composer-john-swihart/);
   these are original stylized interpretations, not recreations of specific shots or cues.
 - **The sound** (`src/audio/`): every laugh is ~10–40 formant-filtered synthetic "ha-ha" voices in a reverb;
-  applause, slaps, the guitar stings (Karplus–Strong) and bar ambience are synthesized too. Voices use the browser's
+  applause, slaps, wooden door knocks, guitar music (Karplus–Strong) and bar ambience are synthesized too. Voices use the browser's
   speech synthesis; Chrome/Edge on macOS or Windows have the best voice selection.
 
 Debug handle in the console: `himyllm` (`stage`, `director`, `player`, `audio`, …).
@@ -179,9 +179,10 @@ The show's rhythm comes from its edit and its unreliable narrator, so these are 
 - **Split screens and phone calls**: `split` puts two or three sets side by side, each framed once and held; an
   `offscreen` line is heard down the phone or from out of shot.
 - **Narration over action**: `narrate` with `over` keeps Future Ted talking while the next beats (and scenes) play.
-- **Sound and music**: nothing plays a cue unless asked, apart from the scene-change sting (which a scene can drop with
-  `"sound": "none"`). `sound` places a cue (a shatter, a record scratch, a harp) exactly; `score` starts underscore that
-  carries across scenes, stops it, or drops to silence.
+- **Sound and music**: ordinary scene changes have no automatic cue. Apartment entrances use a wooden knock;
+  other doors retain their own sounds. `sound` places a cue (a knock, a shatter, a record scratch, a harp) exactly;
+  `"sound": "none"` also silences a rewind transition. `score` starts underscore that carries across scenes, stops it,
+  or drops to silence.
 - **The laugh track** is restrained: no cheering or clapping at jokes, and it never changes anyone's face.
 - **Continuity**: optional `continuity` notes (era, facts, threads opened and closed) feed `bun run episodes ledger`,
   which flags a fact that quietly changes between episodes.

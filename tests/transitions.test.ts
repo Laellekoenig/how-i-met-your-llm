@@ -111,7 +111,7 @@ describe('transition playback', () => {
   });
 
   test('pause holds an establishing shot past its duration; skip restores the previous shot and cancels music', async () => {
-    const stop = spyOn(audio, 'stopSting'); spies.push(stop);
+    const stop = spyOn(audio, 'stopCue'); spies.push(stop);
     const p = playback(scene({ transition: 'skyline' }));
     await eventually(() => p.stage.outside);
     p.player.paused = true;
