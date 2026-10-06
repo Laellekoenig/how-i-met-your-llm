@@ -43,6 +43,28 @@ changing top style clears the slim tailoring and shirt stripes, and an explicit
 undershirt or tie color removes that garment's pattern. All geometry and textures
 are generated locally; the app does not fetch reference photos.
 
+## Lily Aldrin
+
+Lily's procedural model follows Alyson Hannigan's petite silhouette, green-hazel eyes,
+soft oval face, broad smile and long auburn layers. An off-centre part and tapered
+front locks replace the old red bob. The crown and face-framing locks follow the animated
+head; the back rests on her shoulders, preserving the existing expressions, gestures and lip sync.
+
+The outfit follows the CBS still from **“The Ashtray” (S08E17)** reproduced by
+[WornOnTV](https://wornontv.net/12207/)
+([inspected image](https://wornontv.net/uploads/2013/02/lilys-red-leather-jacket-green-bag.jpg)):
+a rust-red Joie Ailey leather jacket with a small collar, shoulder tabs and zipper
+details, over a charcoal dress with ivory/blush flowers and sage leaves. The long
+chain and pale oval pendant are modeled too. Dark tights and dark flats complete
+the outfit; the reference does not show the shoes clearly, so those are a neutral
+styling choice. The handheld green bag is omitted to keep her hands available for
+the show's animated props.
+
+The jacket stays solid while the bodice and skirt share a locally generated botanical
+print. An explicit undershirt color clears the matching dress print; trouser or suit
+costumes remove the skirt, and a different top style clears the jacket details and
+pendant. Reference photos are neither bundled nor fetched by the app.
+
 ## Returning cast
 
 Nine new recurring cast IDs: `loretta`, `mickey`, `hammond`, `stella`, `zoey`, `nora`,

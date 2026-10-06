@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { CHARACTERS } from '../src/world/characters';
+import { CHARACTERS, dressed } from '../src/world/characters';
 import { validateEpisode } from '../src/script/validate';
 import { testStage } from './helpers/sets';
 import { EPISODES, rerun } from './helpers/episodes';
@@ -67,5 +67,23 @@ describe('work wardrobe', () => {
     expect(dressed('work')).toEqual([]);
     expect(dressed('casual')).toEqual([]);
     expect(dressed('tux')).toHaveLength(1);
+  });
+});
+
+describe('Lily costume compatibility', () => {
+  test('a plain dress underlayer replaces the matching floral skirt print too', () => {
+    const { look } = dressed(CHARACTERS.lily, 'casual', { character: 'lily', under: 'blue' });
+    expect(look.skirt).toBe(look.under);
+    expect(look.underPrint).toBeUndefined();
+    expect(look.skirtPrint).toBeUndefined();
+    expect(look.jacketCut).toBe('zip');
+    expect(CHARACTERS.lily.look.underPrint).toBe('botanical');
+  });
+
+  test('a suit replaces the dress and jacket details while retaining her hair', () => {
+    const { look } = dressed(CHARACTERS.lily, 'casual', { character: 'lily', topStyle: 'suit', top: 'navy' });
+    expect(look.pants).toBe(look.top);
+    for (const key of ['underPrint', 'skirtPrint', 'skirt', 'legs', 'jacketCut', 'pendant'] as const) expect(look[key], key).toBeUndefined();
+    expect(look.hairStyle).toBe('feathered');
   });
 });

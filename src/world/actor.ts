@@ -297,6 +297,7 @@ export class Actor {
     const undershirt = (side?: THREE.Side) => L.underPlaid
       ? fabric(plaid(L.under ?? L.top, L.underPlaid[0], L.underPlaid[1]), 0.065, side)
       : L.underStripes ? fabric(shirtStripes(L.under ?? L.top, L.underStripes), 0.032, side)
+      : L.underPrint ? fabric(wardrobePrint(L.under ?? L.top, L.underPrint), 0.24, side)
       : toon(L.under ?? L.top, { side });
     const underMat = undershirt();
     const underDS = undershirt(DS);
@@ -364,6 +365,14 @@ export class Actor {
       ? [[-0.24, 0.182, 0.122, 0], [-0.08, 0.166, 0.11, 0], [0.1, 0.128, 0.09, 0], [0.4, 0.136, 0.096, 0.006], [0.63, 0.152, 0.12, 0.022], [0.84, 0.16, 0.1, 0], [0.94, 0.15, 0.082, -0.012], [1.0, 0.095, 0.06, -0.01], [1.05, 0, 0, -0.006]]
       : [[-0.24, 0.184, 0.118, 0], [-0.08, 0.174, 0.11, 0], [0.1, 0.15, 0.1, 0], [0.4, 0.153, 0.1, 0.002], [0.66, 0.16, 0.103, 0.004], [0.84, 0.166, 0.098, 0], [0.94, 0.156, 0.084, -0.01], [1.0, 0.102, 0.064, -0.012], [1.05, 0, 0, -0.008]]
     ).map(([y, rx, rz, zc]) => [y * tl, rx * bx, rz * bz, zc * bz]);
+    if (L.jacketCut === 'zip' && L.skirt) for (const k of T) {
+      // The dress must cover the pelvis underneath at the waist, including
+      // between profile knots; otherwise tights poke through the fitted jacket.
+      if (k[0] < 0.2 * tl) {
+        k[1] = Math.max(k[1], hipR + 0.004 * s);
+        k[2] = Math.max(k[2], 0.104 * bz);
+      }
+    }
     const torso = new Profile(T);
     // A slim suit follows the waist; the regular jacket hangs from the chest.
     const chestY = 0.66 * tl, chest = torso.at(chestY);
@@ -507,6 +516,32 @@ export class Actor {
       }
       case 'denim':
       case 'leather': {
+        if (L.jacketCut === 'zip') {
+          // Open, fitted zip-front jacket: a small standing collar, shoulder tabs
+          // and slanted zip pockets, rather than the generic jacket's wide lapels.
+          const open = byWidth(torso, 0.014, y => (0.045 + 0.019 * smoothstep(0.58 * tl, tl, y)) * s);
+          shell(0.014, -0.16 * tl, torso.yMax, open, topDS);
+          add(this.spine, collar(collarOpen(0.064 * s, 0.016), 0.016, 0.019 * s, topDS, 0.009));
+          const hardware = toon('#b7a887', { side: DS });
+          for (const sg of [-1, 1]) {
+            // Zipper tapes frame the floral underlayer without closing over it.
+            add(this.spine, mesh(surface(2, 18, (u, v, p) => {
+              const y = (-0.15 + v * 1.115) * tl;
+              torso.point(y, sg * (open(y) + u * 0.025), p, 0.018, E);
+            }), hardware), false);
+            add(this.spine, mesh(surface(2, 8, (u, v, p) => {
+              torso.point((0.18 + 0.21 * v) * tl, sg * (0.8 + v * 0.1 + u * 0.035), p, 0.018, E);
+            }), hardware), false);
+            add(this.spine, mesh(surface(6, 4, (u, v, p) => {
+              torso.point((0.906 + 0.04 * v) * tl, sg * (0.93 + 1.1 * u), p, 0.023, E);
+            }), topDark), false);
+            const snap = mesh(ellipsoid(0.004 * s, 0.004 * s, 0.003 * s, 6, 4), hardware);
+            snap.position.copy(onTorso(0.926 * tl, sg * 1.03, 0.027)); add(this.spine, snap, false);
+          }
+          add(this.spine, placket(0.87 * tl, 0.99 * tl, y => 0.43 * Math.sqrt(ramp(0.87 * tl, 0.99 * tl, y)), 0.002, skin), false);
+          add(this.spine, mesh(torso.geometry({ seg: 26, rows: 3, e: E, y: [0.975 * tl, torso.yMax], inflate: 0.004 }), skin), false);
+          break;
+        }
         const open = (y: number) => 0.32 + 0.35 * smoothstep(0.5 * tl, 0.97 * tl, y);
         shell(0.016, -0.06 * tl, 0.98 * tl, open, topDS);
         shell(0.02, -0.06 * tl, 0.0, open, topDark); // waistband
@@ -652,6 +687,18 @@ export class Actor {
         add(this.spine, mesh(ellipsoid(0.011 * s, 0.012 * s, 0.011 * s, 6, 4), beads, x, y, torso.frontZ(x, y, E) + 0.03), false);
       }
     }
+    if (L.pendant) {
+      const metal = toon(L.pendant);
+      const points = Array.from({ length: 25 }, (_, i) => {
+        const a = Math.PI * i / 24, x = Math.cos(a) * 0.049 * s;
+        const y = (1.0 - 0.64 * Math.sin(a)) * tl;
+        return new THREE.Vector3(x, y, torso.frontZ(x, y, E) + 0.027 * s);
+      });
+      add(this.spine, mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 32, 0.0018 * s, 5, false), metal), false);
+      const y = 0.32 * tl, z = torso.frontZ(0, y, E) + 0.03 * s;
+      add(this.spine, mesh(ellipsoid(0.014 * s, 0.022 * s, 0.004 * s, 12, 8), metal, 0, y, z), false);
+      add(this.spine, mesh(ellipsoid(0.009 * s, 0.016 * s, 0.003 * s, 10, 6), toon('#eee5cf'), 0, y, z + 0.003 * s), false);
+    }
     if (L.boutonniere) {
       const flower = toon(L.boutonniere);
       const pos = onTorso(0.77 * tl, 0.65, 0.038, drape);
@@ -674,7 +721,8 @@ export class Actor {
     }
     if (L.skirt) {
       const sk = new Profile([[-thigh * 0.86, 0.205 * bx, 0.17 * bz], [-thigh * 0.5, 0.188 * bx, 0.152 * bz], [0, hipR * 1.04, 0.114 * bz], [0.1 * s, hipR * 0.93, 0.1 * bz], [0.13 * s, hipR * 0.82, 0.088 * bz]]);
-      const skirtMat = L.print ? fabric(wardrobePrint(L.skirt, L.print), 0.28, DS)
+      const skirtMat = L.skirtPrint ? fabric(wardrobePrint(L.skirt, L.skirtPrint), 0.24, DS)
+        : L.print ? fabric(wardrobePrint(L.skirt, L.print), 0.28, DS)
         : style === 'denim' ? fabric(denim(L.skirt), 0.09, DS) : toon(L.skirt, { side: DS });
       add(this.skirt!, mesh(sk.geometry({ seg: 24, rows: 12, e: 0.9, uv: [circ, thigh] }), skirtMat));
     }

@@ -77,7 +77,7 @@ const JACKETS = ['suit', 'blazer', 'cardigan', 'leather', 'hoodie'];
 export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
   const look: Look = { ...base, extras: [...(base.extras ?? [])] };
   if (c.topStyle && c.topStyle !== base.topStyle) {
-    for (const k of ['plaid', 'underPlaid', 'underStripes', 'suitFit', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
+    for (const k of ['plaid', 'underPlaid', 'underStripes', 'underPrint', 'jacketCut', 'pendant', 'suitFit', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
     look.topStyle = c.topStyle;
     if (JACKETS.includes(c.topStyle)) look.under ??= '#f2f0ea';
     if (base.topStyle === 'dress') {
@@ -92,6 +92,11 @@ export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
     look.under = guestColor(c.under, '#f2f0ea');
     delete look.underPlaid;
     delete look.underStripes;
+    delete look.underPrint;
+    if (base.underPrint && base.skirt === base.under && !c.pants) {
+      look.skirt = look.under;
+      delete look.skirtPrint;
+    }
   }
   if (c.tie) {
     look.tie = guestColor(c.tie, '#8a2a30');
@@ -100,6 +105,7 @@ export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
   }
   if (c.vest) look.vest = guestColor(c.vest, look.top);
   if (look.topStyle === 'dress') {
+    delete look.skirtPrint;
     look.skirt = look.top;
     look.pants = look.legs = look.skin;
     look.jeans = false;
@@ -108,6 +114,7 @@ export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
     look.pants = c.pants ? guestColor(c.pants, look.pants) : look.top;
     look.jeans = c.pants === 'denim';
     delete look.skirt;
+    delete look.skirtPrint;
     delete look.legs;
   }
   if (c.shoes) look.shoes = guestColor(c.shoes, look.shoes);

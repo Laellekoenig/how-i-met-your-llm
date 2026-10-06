@@ -294,7 +294,7 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       out.head.push(ponytail(c, 0.3 * (hh / 0.23)));
       break;
     case 'bob': {
-      // Lily: shoulder-length bob with side-swept bangs
+      // Shoulder-length bob with side-swept bangs.
       const line = sym([[0, 0.78], [0.6, 0.76], [1.0, 0.64], [1.5, 0.56], [Math.PI, 0.5]]);
       out.head.push(shell(c, {
         line: (a) => line(a) - 0.1 * gauss(a, 0.3, 0.38),
@@ -307,6 +307,42 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
         },
       }));
       out.head.push(drape(c, { top: 0.82, bottom: -0.2, open: (f) => 0.95 + 0.25 * smoothstep(0.5, -0.2, f), thick: 0.06, flare: 0.1, back: 0.08, curl: 0.04 }));
+      break;
+    }
+    case 'feathered': {
+      // Lily in S08E17: off-centre part, smooth crown and long tapered auburn
+      // layers. Face-framing locks turn with her head; the back rests on her shoulders.
+      const line = sym([[0, 0.85], [0.45, 0.83], [0.85, 0.71], [1.2, 0.58], [1.7, 0.5], [Math.PI, 0.43]]);
+      out.head.push(shell(c, {
+        line: a => line(a) - 0.05 * gauss(a, 0.5, 0.35),
+        thick: (f, a) => (0.055 + 0.026 * top(f) + 0.018 * gauss(a, 0.5, 0.6)
+          + 0.006 * Math.sin(a * 21 + f * 12)) * (1 - 0.6 * gauss(a, -0.3, 0.06)),
+        edge: () => 0.55,
+      }, 56, 24));
+      out.head.push(drape(c, { top: 0.85, bottom: -0.3,
+        open: f => 0.98 + 0.2 * smoothstep(0.5, -0.2, f),
+        thick: 0.065, flare: 0.11, wave: 0.012, back: 0.05 }, 40, 22));
+      const back = backSheet(c, c.neckBase + 0.11, 0.3 * (hh / 0.24), 0.009);
+      // A soft, uneven hem instead of a straight curtain across the back.
+      const positions = back.getAttribute('position');
+      const uv = back.getAttribute('uv');
+      for (let i = 0; i < positions.count; i++) {
+        const u = uv.getX(i), v = uv.getY(i);
+        positions.setY(i, positions.getY(i) + 0.022 * Math.cos(u * Math.PI * 6) * v * v);
+      }
+      back.computeVertexNormals(); out.back.push(back);
+      for (const sg of [-1, 1]) for (let layer = 0; layer < 3; layer++) {
+        out.head.push(surface(12, 22, (u, v, p) => {
+          const a = u * Math.PI * 2;
+          const taper = Math.pow(Math.sin(Math.PI * v), 0.65);
+          const x = sg * (0.31 + (0.09 + layer * 0.045) * smoothstep(0, 0.35, v)
+            + 0.065 * Math.sin(v * Math.PI) - 0.03 * v);
+          const y = 0.58 - (1.56 - layer * 0.1) * v;
+          const z = 0.035 + 0.52 * smoothstep(0.1, 0.75, v) - layer * 0.065;
+          p.set((x + Math.cos(a) * 0.066 * taper) * hh,
+            y * hh, (z + Math.sin(a) * 0.052 * taper) * hh);
+        }, { closed: true }));
+      }
       break;
     }
     case 'long': {
