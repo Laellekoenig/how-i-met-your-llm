@@ -119,6 +119,29 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
   const taper = (f: number) => 0.5 + 0.5 * smoothstep(0.62, 0.92, f);
   const out: HairParts = { head: [], back: [] };
   switch (style) {
+    case 'brushed': {
+      // Barney's close-cut sides and textured, brushed-up forelock. A shallow
+      // off-centre part and swept ridges keep this distinct from a smooth cap.
+      const line = sym([[0, 0.82], [0.4, 0.85], [0.7, 0.87], [1.0, 0.75],
+        [1.23, 0.59], [1.4, 0.61], [1.8, 0.57], [2.25, 0.3], [Math.PI, 0.22]]);
+      out.head.push(shell(c, {
+        line: a => line(a) + 0.015 * gauss(a, -0.5, 0.16),
+        thick: (f, a) => {
+          const lift = front(a, 1.15) * smoothstep(0.82, 0.91, f);
+          const ridges = 0.014 * (0.5 + 0.5 * Math.sin(a * 24 + f * 30));
+          return (0.028 + 0.065 * lift + 0.025 * top(f) + ridges * lift)
+            * (1 - 0.5 * gauss(a, -0.55, 0.075)) * taper(f);
+        },
+        edge: a => 0.2 + 0.35 * front(a),
+        warp: (f, a, _v, p) => {
+          const lift = front(a, 1.2) * smoothstep(0.83, 0.95, f);
+          p.x += 0.035 * hh * lift;
+          p.y += 0.035 * hh * lift;
+          p.z -= 0.018 * hh * lift;
+        },
+      }, 64, 26));
+      break;
+    }
     case 'tousled': {
       // Ted's irregular, lifted waves: short at the ears, full at the crown,
       // with an off-centre forelock and tapered sideburns (see the S05E01 still).

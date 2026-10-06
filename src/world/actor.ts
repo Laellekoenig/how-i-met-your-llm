@@ -3,7 +3,7 @@ import type { CharacterDef, Idle, Look, TalkStyle } from './characters';
 import type { LipTrack } from './lipsync';
 import type { Emotion, Gesture, Prop } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
-import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint } from '../engine/textures';
+import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint, shirtStripes } from '../engine/textures';
 import { Profile, limb, ellipsoid, surface, smoothstep } from '../engine/shapes';
 import { buildHairGeometry } from './hair';
 import { buildProp, GRIP } from './props';
@@ -296,6 +296,7 @@ export class Actor {
     const topDark = toon(shade(L.top, 0.72), { side: DS });
     const undershirt = (side?: THREE.Side) => L.underPlaid
       ? fabric(plaid(L.under ?? L.top, L.underPlaid[0], L.underPlaid[1]), 0.065, side)
+      : L.underStripes ? fabric(shirtStripes(L.under ?? L.top, L.underStripes), 0.032, side)
       : toon(L.under ?? L.top, { side });
     const underMat = undershirt();
     const underDS = undershirt(DS);
@@ -313,6 +314,7 @@ export class Actor {
     };
 
     const style = L.topStyle;
+    const slimSuit = style === 'suit' && L.suitFit === 'slim';
     const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie' || style === 'denim';
     const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee' || style === 'hoodie';
     const shortSleeves = style === 'tee' || style === 'polo';
@@ -363,9 +365,11 @@ export class Actor {
       : [[-0.24, 0.184, 0.118, 0], [-0.08, 0.174, 0.11, 0], [0.1, 0.15, 0.1, 0], [0.4, 0.153, 0.1, 0.002], [0.66, 0.16, 0.103, 0.004], [0.84, 0.166, 0.098, 0], [0.94, 0.156, 0.084, -0.01], [1.0, 0.102, 0.064, -0.012], [1.05, 0, 0, -0.008]]
     ).map(([y, rx, rz, zc]) => [y * tl, rx * bx, rz * bz, zc * bz]);
     const torso = new Profile(T);
-    // Tailored jackets hang straight from the chest instead of following the waist in.
+    // A slim suit follows the waist; the regular jacket hangs from the chest.
     const chestY = 0.66 * tl, chest = torso.at(chestY);
-    const drape = new Profile(T.map(([y, rx, rz, zc]) => y >= chestY ? [y, rx, rz, zc] : [y, Math.max(rx, 0.97 * chest.rx), Math.max(rz, chest.rz), chest.zc]));
+    const drape = new Profile(T.map(([y, rx, rz, zc]) => y >= chestY ? [y, rx, rz, zc]
+      : slimSuit ? [y, rx * (1 - 0.04 * Math.sin(Math.PI * clamp(y / chestY, 0, 1))), rz, zc]
+      : [y, Math.max(rx, 0.97 * chest.rx), Math.max(rz, chest.rz), chest.zc]));
     const circ = Math.PI * 2 * 0.16 * bx;
     const hem = untucked ? -0.17 * tl : L.skirt ? -0.04 * tl : 0.07 * s;
     add(this.spine, mesh(torso.geometry({ seg: 26, rows: 20, e: E, y: [hem, torso.yMax], uv: [circ, tl] }), jacketed ? underMat : topMat));
@@ -383,7 +387,7 @@ export class Actor {
         const rx = (r.rx + inflate) * (1 - k) + (nr + flare + 0.008) * k;
         const rz = (r.rz + inflate) * (1 - k) + (nr + flare + 0.012) * k;
         p.set(rx * Math.sin(a), y0 + (tl * 0.035 + height) * v, (r.zc * (1 - k) - 0.008 * k) + rz * Math.cos(a));
-      }, { uv: mat === underDS && L.underPlaid ? [Math.PI * 2 * nr, tl * 0.035 + height] : undefined }), mat);
+      }, { uv: mat === underDS && (L.underPlaid || L.underStripes) ? [Math.PI * 2 * nr, tl * 0.035 + height] : undefined }), mat);
     /** Strip down the chest, between angles ±w(y). */
     const placket = (y0: number, y1: number, w: (y: number) => number, inflate: number, mat: THREE.Material) =>
       mesh(surface(6, 8, (u, v, p) => {
@@ -399,8 +403,23 @@ export class Actor {
     };
 
     const shirtCollar = (mat: THREE.Material, inflate: number, open = 0.3) => {
-      add(this.spine, collar(open, inflate, 0.02 * s, mat));
+      if (slimSuit) {
+        add(this.spine, mesh(surface(24, 3, (u, v, p) => {
+          const a = open + u * (Math.PI * 2 - 2 * open);
+          p.set((nr + 0.008 * s) * Math.sin(a), tl + (0.003 + v * 0.021) * s,
+            -0.008 * s + (nr + 0.012 * s) * Math.cos(a));
+        }, { uv: [Math.PI * 2 * nr, 0.021 * s] }), mat));
+      } else add(this.spine, collar(open, inflate, 0.02 * s, mat));
       for (const sg of [1, -1]) {
+        if (slimSuit) {
+          const inner = onTorso(0.99 * tl, sg * 0.15, inflate + 0.006);
+          const outer = onTorso(0.97 * tl, sg * 0.65, inflate + 0.006);
+          const point = onTorso(0.87 * tl, sg * 0.33, inflate + 0.009);
+          add(this.spine, mesh(surface(6, 6, (u, v, p) => {
+            p.copy(inner).lerp(outer, u).lerp(point, v);
+          }, { uv: [0.05 * s, 0.07 * s] }), mat), false);
+          continue;
+        }
         const tip = mesh(ellipsoid(0.03 * s, 0.011 * s, 0.004 * s, 8, 4), mat);
         tip.position.copy(onTorso(0.965 * tl, sg * 0.26, inflate + 0.003));
         tip.rotation.set(-0.35, sg * 0.25, sg * 1.0);
@@ -411,10 +430,10 @@ export class Actor {
       const tieMat = L.tiePattern
         ? toon('#ffffff', { side: DS, map: tieWeave(L.tie!, L.tieAccent ?? '#ddd1b0', L.tiePattern) })
         : toon(L.tie!, { side: DS });
-      const y0 = 0.4 * tl, y1 = 0.955 * tl;
+      const y0 = (slimSuit ? 0.12 : 0.4) * tl, y1 = 0.955 * tl;
       add(this.spine, mesh(surface(4, 10, (u, v, p) => {
         const y = y0 + (y1 - y0) * v;
-        const w = (0.012 + 0.016 * (1 - v)) * s * smoothstep(0, 0.08, v);
+        const w = (0.012 + (slimSuit ? 0.011 : 0.016) * (1 - v)) * s * smoothstep(0, 0.08, v);
         const x = (u * 2 - 1) * w;
         p.set(x, y, torso.frontZ(x, y, E) + 0.009);
       }), tieMat), false);
@@ -439,7 +458,7 @@ export class Actor {
 
     switch (style) {
       case 'suit': {
-        const yb = 0.42 * tl;
+        const yb = (slimSuit ? 0.34 : 0.42) * tl;
         shirtCollar(collarDS, 0.004, 0.24);
         if (L.tie) tie();
         if (L.vest) {
@@ -450,12 +469,23 @@ export class Actor {
         const vTop = nr + 0.014 * s;
         const open = byWidth(drape, 0.016, (y) => (y > yb ? lerp(0.008 * s, vTop, ramp(yb, 0.97 * tl, y)) : 0.008 * s + 0.05 * s * smoothstep(yb, -0.22 * tl, y)));
         shell(0.016, -0.22 * tl, drape.yMax, open, topDS, drape);
-        lapels(0.016, open, yb, 0.3, toon(shade(L.top, 0.8), { side: DS }), drape);
+        lapels(0.016, open, yb, slimSuit ? 0.26 : 0.3, toon(shade(L.top, 0.8), { side: DS }), drape);
         add(this.spine, collar(collarOpen(vTop, 0.018), 0.018, 0.012 * s, topDS, 0.02));
         buttons([yb], 0.02, dark, 0, drape);
+        if (slimSuit) {
+          buttons([0.17 * tl], 0.023, dark, 0.17, drape);
+          // Flat pocket welts follow the jacket instead of floating in front.
+          for (const [a, y, width] of [[-0.83, 0.12, 0.48], [0.83, 0.12, 0.48], [0.64, 0.71, 0.38]]) {
+            add(this.spine, mesh(surface(8, 2, (u, v, p) => {
+              drape.point((y + v * 0.019) * tl, a + (u - 0.5) * width, p, 0.024, E);
+            }), topDark), false);
+          }
+        }
         if (L.extras?.includes('pocketsquare')) {
-          const sq = mesh(ellipsoid(0.03 * s, 0.014 * s, 0.006 * s, 8, 4), toon(L.pocketSquare ?? '#f4f4f4'));
-          sq.position.copy(onTorso(0.72 * tl, 0.62, 0.024, drape));
+          const sq = mesh(slimSuit ? surface(8, 2, (u, v, p) => {
+            drape.point((0.734 + v * 0.018 + u * 0.008) * tl, 0.46 + u * 0.36, p, 0.025, E);
+          }) : ellipsoid(0.03 * s, 0.014 * s, 0.006 * s, 8, 4), toon(L.pocketSquare ?? '#f4f4f4', { side: DS }));
+          if (!slimSuit) sq.position.copy(onTorso(0.72 * tl, 0.62, 0.024, drape));
           add(this.spine, sq, false);
         }
         break;
@@ -689,7 +719,7 @@ export class Actor {
       }
       if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under && !L.neckline)) {
         const cuffGeo = new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true);
-        if (L.underPlaid) {
+        if (L.underPlaid || L.underStripes) {
           const uv = cuffGeo.getAttribute('uv');
           for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * Math.PI * 2 * (wr + 0.007), uv.getY(i) * 0.022);
         }

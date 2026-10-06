@@ -174,12 +174,14 @@ describe('wardrobe and props on stage', () => {
     expect(look('ted')).toMatchObject({ topStyle: 'suit', boots: true, shoes: '#b8302e' });
     expect(look('barney')).toMatchObject({ topStyle: 'hoodie', top: '#7a7d82' });
     expect(look('barney').vest).toBeUndefined();
+    expect(look('barney').underStripes).toBeUndefined();
+    expect(look('barney').suitFit).toBeUndefined();
     stage.setLocation('maclarens', 'night');
     expect(look('ted')).toMatchObject({ topStyle: 'sweater', underPlaid: CHARACTERS.ted.look.underPlaid, boots: true });
     stage.setWardrobe([]);
     stage.setLocation('maclarens', 'night');
     expect(look('ted').boots).toBeUndefined();
-    expect(look('barney')).toMatchObject({ topStyle: 'suit', vest: '#3a3e47' });
+    expect(look('barney')).toEqual(CHARACTERS.barney.look);
   });
 
   test('a prop is dropped at a new location, but survives a cutaway', () => {

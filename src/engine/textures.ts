@@ -57,10 +57,18 @@ export function wardrobePrint(base: string, kind: 'floral' | 'sparkle' | 'stripe
 }
 
 /** Small woven tie motifs, with UVs spanning the length of the tie. */
-export function tieWeave(base: string, accent: string, pattern: 'stripes' | 'diamonds') {
+export function tieWeave(base: string, accent: string, pattern: 'stripes' | 'diamonds' | 'dots') {
   return canvas(32, 128, (g, w, h) => {
     g.fillStyle = base;
     g.fillRect(0, 0, w, h);
+    if (pattern === 'dots') {
+      g.fillStyle = accent;
+      for (let row = 0; row < 8; row++) {
+        const x = row % 2 ? 23 : 9, y = row * 16 + 8;
+        g.fillRect(x - 2, y - 1, 5, 2);
+      }
+      return;
+    }
     g.strokeStyle = accent;
     g.lineWidth = pattern === 'stripes' ? 2 : 1.5;
     for (let y = -32; y < h + 32; y += pattern === 'stripes' ? 18 : 12) {
@@ -69,6 +77,15 @@ export function tieWeave(base: string, accent: string, pattern: 'stripes' | 'dia
         g.beginPath(); g.moveTo(w, y); g.lineTo(0, y + 16); g.stroke();
       }
     }
+  });
+}
+
+/** Fine vertical stripes on a dress shirt; UVs use garment-space metres. */
+export function shirtStripes(base: string, accent: string) {
+  return canvas(32, 32, (g, w, h) => {
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+    g.fillStyle = accent;
+    for (let x = 0; x < w; x += 8) g.fillRect(x, 0, 2, h);
   });
 }
 
