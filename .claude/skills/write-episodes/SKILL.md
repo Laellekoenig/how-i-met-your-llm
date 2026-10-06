@@ -1,6 +1,9 @@
 ---
 name: write-episodes
-description: Write new episodes of How I Met Your LLM. Runs a quick pitch session, then launches episode-writer agents in parallel, one per episode, and checks their work. Use when asked to write, generate or add episodes. Args: a count ("3"), pitches ("Barney gets banned from Costco; Robin's hockey team"), or both.
+description: >-
+  Write new episodes of How I Met Your LLM. Runs a quick pitch session, then launches episode-writer agents in
+  parallel, one per episode, and checks their work. Use when asked to write, generate or add episodes.
+  Args: a count ("3"), pitches ("Barney gets banned from Costco; Robin's hockey team"), or both.
 ---
 
 # Write episodes
@@ -13,11 +16,17 @@ pick the stories, hand them out, and hold the bar.
 
 Run `bun run episodes list` to see what has aired and the next free code. Work out how many episodes to write: the
 number in the args, one per pitch given, or 1 if the args say neither.
+Read [the story-structure reference](../../../docs/story-structure-reference.md) for researched examples and
+the supported ways to open on the story, use narration, and cut to the kids.
 
 For each episode you'll write, settle on a premise. Use the user's pitches as given. For any others, brainstorm
 about twice as many as you need and keep the strongest and most varied set. Vary which character leads the A-story,
 the sets, the guest stars and the kind of comic engine (a scheme, a rule, a bet, a secret, a misunderstanding).
 Favor characters and sets the catalog has used least. Assign consecutive codes starting at the next free one.
+Read the openings and endings of a few recent episodes. For each pitch, choose an opening image/first speaker,
+where (if anywhere) the kids interrupt, and an ending device. Compare these across the batch: vary repeated
+defaults without a quota or rotation. A couch-free episode and an episode with only a middle couch interruption
+are both valid; Future Ted's voice-over does not require showing the kids.
 
 ## 2. Writers' room
 
@@ -25,14 +34,18 @@ Launch one `episode-writer` agent per episode, all in the same message so they r
 - its code, and the exact file name pattern `episodes/<code lowercased>-<slug>.json`
 - its premise (the pitch, a logline, or just a lead character and an engine; leave the writer room to find the story)
 - any characters or sets to feature
-- one line on each of the *other* episodes being written now, so they don't overlap
+- the proposed opening, couch placement and ending, with the story reason (the writer may improve them)
+- one line on each of the *other* episodes being written now, including their framing choices, so they don't overlap
 
 ## 3. Notes and sign-off
 
 When the writers report back:
 1. Run `bun run episodes check` (all episodes) and `bun test`. Every episode must have 0 errors and the tests must pass.
 2. Read each new episode with `bun run episodes read <file>`. Hold it to the bar: a real story, character-specific
-   jokes, every scene ending on a button, a heart beat, and a strong final Future Ted line. If an episode falls short,
+   jokes, every scene ending on a button, a heart beat, and an earned ending (dialogue, visual payoff, kids or narration).
+   Check that the opening hooks us, that every couch visit has a story trigger, and that narration adds something
+   beyond what we just saw. Compare the batch's first images and last beats; don't accept identical framing with
+   different nouns. If an episode falls short,
    send its writer specific notes with SendMessage, for example "scene 2 sags in the middle; Robin has nothing to
    play; the runner never pays off". Then re-check.
 3. Watch at least one new episode in the running app (`bun dev`, then open `/?ep=<CODE>&dev&mute`) and take

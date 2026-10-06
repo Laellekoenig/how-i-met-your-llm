@@ -267,9 +267,9 @@ export interface EpisodeScript {
   code: string;
   title: string;
   logline: string;
-  /** Future Ted over the kids on the couch in 2030: "Kids, ..." */
-  coldOpen: string;
-  /** The kids' reaction to the cold open: say beats by penny/luke and Future Ted's narrate answers. */
+  /** Optional Future Ted line over the 2030 couch. Omit along with couch to open in scenes[0]. */
+  coldOpen?: string;
+  /** Optional couch opening: penny/luke say beats and Future Ted narrate answers; can open without coldOpen. */
   couch?: Beat[];
   guests?: GuestStar[];
   /** Costumes worn all episode, over everyone's casual or work clothes. */
@@ -279,7 +279,7 @@ export interface EpisodeScript {
 
 // Items the player consumes, in order.
 export type ShowItem =
-  /** Future Ted's cold open over the kids on the couch, then any couch beats (the kids' reaction). */
-  | { kind: 'episode-start'; episode: EpisodeMeta; coldOpen: string; couch?: Beat[]; guests?: GuestStar[]; wardrobe?: Costume[] }
+  /** Couch opening or the first story scene, followed by the main titles. */
+  | { kind: 'episode-start'; episode: EpisodeMeta; coldOpen?: string; couch?: Beat[]; openingScene?: Scene; guests?: GuestStar[]; wardrobe?: Costume[] }
   | { kind: 'scene'; episode: EpisodeMeta; index: number; scene: Scene }
   | { kind: 'episode-end'; episode: EpisodeMeta };

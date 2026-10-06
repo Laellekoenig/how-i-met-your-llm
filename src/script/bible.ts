@@ -29,7 +29,10 @@ export function showBible(sets: Record<string, StageSet>) {
 "How I Met Your LLM" is an endless continuation of the sitcom How I Met Your Mother, performed by low-poly 3D puppets with text-to-speech voices, a synthesized laugh track and multi-camera sitcom coverage. Every episode is a pre-written JSON file in episodes/. This is everything the stage can perform.
 
 # Tone
-Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate bits, running gags, callbacks, friends roasting each other, Barney's absurd schemes, Marshall's big-hearted sincerity, Lily's meddling, Robin's dry Canadian deadpan, Ted's romantic over-thinking. Future Ted (the narrator, Ted in 2030 telling his kids the story) frames episodes with "Kids, ..." and drops wry asides. The timeline is loose and dreamy: it's an endless show.
+Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate bits, running gags, callbacks, friends roasting each other, Barney's absurd schemes, Marshall's big-hearted sincerity, Lily's meddling, Robin's dry Canadian deadpan, Ted's romantic over-thinking. Future Ted (the narrator, Ted in 2030 telling his kids the story) adds perspective, time jumps, misdirection and wry asides. His voice-over does not require showing the kids or starting with "Kids, ...". The timeline is loose and dreamy: it's an endless show.
+
+# Story shape and framing
+Read docs/story-structure-reference.md for researched examples from the show and the encoding guide. Choose the opening, couch visits and ending independently for the premise. Open with the gang already in a scene, narration over the story, an outcome followed by an explained rewind, or a couch exchange. The kids may appear only in the middle, only at the end, more than once when earned, or not at all. Future Ted remains the retrospective storyteller when the couch is absent. A closing character joke or visual payoff is as valid as narration; don't append a moral that repeats the action. Compare recent episodes and the current batch to avoid repeating the same first image, first speaker and ending device. There is no required ratio of couch openings.
 
 # Main cast
 - ted — Ted Mosby. Architect and part-time professor, hopeless romantic searching for "the one". Pretentious about words and buildings ("Actually, it's pronounced..."), says "Hi, I'm Ted Mosby, architect". Owns red cowboy boots. Gets carried away with grand gestures.
@@ -74,7 +77,7 @@ HIMYM runs on one-off characters: Ted's date of the week, the woman Barney is ru
 Future Ted is telling this whole story to his two teenagers, who sit on the couch in his living room in 2030, facing him. They are never in the story itself.
 - penny — Penny Mosby, Ted's daughter, about 15. Sharp and sarcastic, sees straight through Dad's stories: notices when Mom hasn't shown up yet, when he's sanitizing ("So... you were all 'eating sandwiches'?"), or when it's suspiciously about Aunt Robin again.
 - luke — Luke Mosby, Ted's son, about 13. Slumped, bored, deadpan; groans at long tangents and perks up for slaps, fights and anything gross.
-Any say or act beat by penny or luke in a scene cuts away to them on the couch for that moment; Future Ted narrate beats right after their line are his answer from the couch; then it cuts back to the story. Use them sparingly, as quick reaction buttons (0-2 per episode): a groan ("Dad!"), being grossed out, a pointed question, a deadpan one-liner. Never put them in a scene's cast and never move/enter/exit them. An episode's "couch" can also hold the kids' reaction to the cold open (about half of episodes).
+Any say or act beat by penny or luke in a scene cuts away to them on the couch. Consecutive kid beats, narrate answers, laughs and pauses stay there; the next story beat cuts back to the saved scene. A standalone narrate beat otherwise stays over the story. Use brief visits where a particular reveal, evasion or contradiction earns a reaction or question; omit them when they add nothing. The kids hear Dad's account, not our camera shots. Never put them in a scene's cast and never move/enter/exit them. Top-level "couch" is only for an opening exchange; middle and closing reactions belong at the relevant point in a scene's beats.
 
 # Sets and marks (where characters can stand or sit)
 ${marks}
@@ -152,12 +155,14 @@ One JSON file per episode: episodes/<code>-<slug>.json, e.g. episodes/s11e03-the
   "code": "S11E03",                 // unique; season 11 onward is new material
   "title": "The Slap Bet Inflation",
   "logline": "One or two sentences: the premise.",
-  "coldOpen": "Kids, ...",          // Future Ted over the kids on the couch, 1-3 sentences
-  "couch": [ ...beats ],            // optional: penny/luke "say" beats and Future Ted "narrate" answers
+  "coldOpen": "That winter, ...",   // optional: Future Ted over the couch, 1-3 sentences
+  "couch": [ ...beats ],            // optional opening: penny/luke "say" and Future Ted "narrate"; may stand alone
   "guests": [ ...guest stars ],     // optional, up to 3: guest1, guest2, guest3 in order
   "wardrobe": [ ...costumes ],      // optional: worn all episode
   "scenes": [ ...3-4 scenes ]
 }
+
+Omit both coldOpen and couch to open on scenes[0], which plays once before the main titles; the remaining scenes follow them. Start that scene with dialogue/action or a narrate beat over the set (or skyline/exterior transition). Use transition "cut" for an immediate interior opening. When coldOpen or a nonempty couch is present, that couch opening precedes the titles and all scenes follow. Do not use an empty coldOpen string to opt out: omit the field. Existing couch-opening files still play as written.
 
 A costume (only "character" is required; anything left out stays as it is):
 { "character": "ted", "topStyle": "${GUEST_TOPS.join('|')}", "top": <color>, "under": <color>, "tie": <color>, "vest": <color>,
@@ -208,6 +213,6 @@ Staging rules (\`bun run episodes check\` enforces them):
 - "to" on say/act is the character being addressed or gestured at; use it on most lines so people look at each other.
 - Lines are spoken aloud by text-to-speech: no stage directions, parentheses or asterisks in them. Mostly under 18 words, never over 35.
 - Put a "laugh" on real punchlines (roughly every 2-4 lines, varying the kind), never on setups. A laugh on a narrate beat works too.
-- At most 2 narrate beats per scene. The final scene ends with a Future Ted narrate button.
+- Keep narration purposeful: a time jump, reveal, correction, withheld detail or couch answer. Avoid explaining what we already see. End with the strongest earned button, whether dialogue, a visual payoff, kids or narration.
 - PG-13: innuendo OK, nothing explicit, no slurs, no real-world politics. Original jokes and plots; catchphrases in moderation.`;
 }
