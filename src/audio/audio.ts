@@ -28,12 +28,16 @@ export class AudioEngine {
   private bed: { out: GainNode; timer: ReturnType<typeof setInterval> } | null = null;
   private plucks = new Map<string, AudioBuffer>();
   private ambTimer: number | null = null;
+  /** The room tone the show last asked for, kept while the context is locked so it can start on unlock. */
+  private room: Ambience = 'none';
   volume = 0.8;
   /** Silent mode for automated testing: everything still runs, nothing reaches the speakers. */
   muted = false;
 
   /** A context the browser hasn't let start yet (autoplay policy): it goes live on the first user gesture. */
   private pending: AudioContext | null = null;
+  /** Called once the browser lets the audio graph start (right away, or on the first user gesture). */
+  onUnlock: (() => void) | null = null;
 
   /** Start the audio graph. Safe to call repeatedly; call it again from a user gesture to unlock autoplay. */
   init() {
@@ -99,6 +103,9 @@ export class AudioEngine {
       const env = t < 0.012 ? Math.exp(-t * 300) * (1 + Math.sin(t * 900)) * 0.5 + Math.exp(-t * 120) * 0.5 : Math.exp(-t * 120) * 0.5;
       cd[i] = (Math.random() * 2 - 1) * env;
     }
+    // the scene went on without sound until now: bring its room tone in
+    this.ambience(this.room);
+    this.onUnlock?.();
   }
 
   setVolume(v: number) {
@@ -860,6 +867,7 @@ export class AudioEngine {
   // ------------------------------------------------------------- ambience
 
   ambience(kind: Ambience) {
+    this.room = kind;
     if (!this.ctx) return;
     const ctx = this.ctx;
     for (const n of this.ambNodes) {
