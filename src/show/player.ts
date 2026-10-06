@@ -165,6 +165,40 @@ export class Player {
     this.wake?.();
   }
 
+  /** Something is on screen: an item from the source, or beats the playground is performing. */
+  get busy() {
+    return this.playing;
+  }
+
+  /** Dev playground: put a scene on stage at once, dressed and blocked, without playing any of it. */
+  stageNow(scene: Scene) {
+    this.cleanup();
+    this.episodeWardrobe = [];
+    this.dress(scene);
+    this.stageScene(scene, scene.label ? { label: scene.label } : undefined);
+    this.previousScene = scene;
+  }
+
+  /** Dev playground: play beats in the scene already on stage, without restaging it. Ignored while anything airs. */
+  async perform(beats: Beat[]) {
+    if (this.playing) return;
+    this.playing = true;
+    this.skipLevel = 'none';
+    try {
+      await this.playBeats(beats, this.stage.current.id === 'future');
+    } catch (e) {
+      if (!(e instanceof Skip)) console.error(e);
+      this.cleanup();
+    } finally {
+      this.playing = false;
+    }
+  }
+
+  /** Dev playground: take down captions, cards, graphics, looks and music left over from the last beats. */
+  reset() {
+    this.cleanup();
+  }
+
   private async nextItem(): Promise<ShowItem> {
     for (;;) {
       if (this.rewound.length) return this.rewound.shift()!;
