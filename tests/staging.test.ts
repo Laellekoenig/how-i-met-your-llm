@@ -306,6 +306,37 @@ describe('camera coverage on the current sets', () => {
     expectVisible(stage.actors.ted, 'student reverse');
   });
 
+  test('Marshall in the front booth seat leaves Lily visible in both outfits', () => {
+    // Fixed idle phases reproduce the shoulder overlap in the lower booth camera.
+    const cast = [
+      ['ted', 'booth_end', 47.06249302253127],
+      ['marshall', 'booth_right_front', 7.203507027588785],
+      ['lily', 'booth_right_back', 16.783609078265727],
+      ['robin', 'booth_left_front', 92.65821692533791],
+      ['barney', 'booth_left_back', 42.84091582521796],
+    ] as const;
+    stage.setWardrobe([]);
+    for (const outfit of ['casual', 'work'] as const) {
+      stage.setLocation('maclarens', 'night');
+      stage.dress('marshall', outfit);
+      const restore: (() => void)[] = [];
+      try {
+        for (const [id, mark, seed] of cast) {
+          const actor = stage.actors[id] as unknown as { seed: number };
+          const previous = actor.seed;
+          restore.push(() => { actor.seed = previous; });
+          actor.seed = seed;
+          stage.place(id, mark);
+        }
+        director.coverage(stage.castIds());
+        expect(director.current!.kind).toBe('wide');
+        for (const [id] of cast) expectVisible(stage.actors[id], `${outfit}/${id}/booth`);
+      } finally {
+        restore.forEach(reset => reset());
+      }
+    }
+  });
+
   test('a push-in creeps toward its subject for longer than a closeup, without losing them', () => {
     stage.setWardrobe([]);
     stage.setLocation('metro_news_one', 'day'); stage.place('ted', 'center'); stage.place('robin', 'anchor_left');

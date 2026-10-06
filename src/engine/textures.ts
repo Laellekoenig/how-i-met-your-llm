@@ -110,6 +110,22 @@ export function shirtStripes(base: string, accent: string) {
   });
 }
 
+/** Quiet stocking stitches; ribbing uses the same palette without a noisy print. */
+export function knit(base: string, ribbed = false) {
+  return canvas(32, 32, (g, w, h) => {
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+    g.strokeStyle = shade(base, 0.87); g.lineWidth = 1;
+    for (let x = 0; x < w; x += 4) {
+      if (ribbed) {
+        g.fillStyle = shade(base, 0.8); g.fillRect(x, 0, 1, h);
+        g.fillStyle = shade(base, 1.13); g.fillRect(x + 1, 0, 1, h);
+      } else for (let y = -4; y < h; y += 4) {
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x + 2, y + 3); g.lineTo(x + 4, y); g.stroke();
+      }
+    }
+  });
+}
+
 /** Original kitchenware/fruit print inspired by Judy's cream cooking apron. */
 export function kitchenPrint() {
   return canvas(64, 64, (g, w, h) => {

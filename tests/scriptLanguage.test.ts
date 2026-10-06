@@ -182,6 +182,20 @@ describe('wardrobe and props on stage', () => {
     stage.setLocation('maclarens', 'night');
     expect(look('ted').boots).toBeUndefined();
     expect(look('barney')).toEqual(CHARACTERS.barney.look);
+
+    // Replacing Marshall's shirt removes its third layer without mutating his normal outfit.
+    stage.setWardrobe([{ character: 'marshall', under: 'red' }]);
+    stage.setLocation('maclarens', 'night');
+    expect(look('marshall').cardigan?.tee).toBeUndefined();
+    expect(look('marshall').under).toBe('#b8302e');
+    stage.setWardrobe([{ character: 'marshall', topStyle: 'flannel', top: 'green' }]);
+    stage.setLocation('apartment', 'day');
+    expect(look('marshall').cardigan).toBeUndefined();
+    expect(look('marshall').plaid).toBeDefined();
+    stage.setWardrobe([]);
+    stage.setLocation('maclarens', 'night');
+    expect(look('marshall').cardigan?.tee).toBe(CHARACTERS.marshall.look.cardigan?.tee);
+    expect(look('marshall').cardigan?.tee).toBeDefined();
   });
 
   test('a prop is dropped at a new location, but survives a cutaway', () => {
