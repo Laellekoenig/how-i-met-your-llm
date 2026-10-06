@@ -11,10 +11,10 @@ import { resolveStrands } from '../script/strands';
 import { validateEpisode, type Issue } from '../script/validate';
 import { sleep } from '../util';
 import {
-  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GRAPHIC_KINDS, GUEST_COLORS,
+  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS,
   GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, LOCATION_IDS, MONTAGE_MUSIC, OFFSCREEN,
   OUTFITS, PAIRED_GESTURES, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isKid,
-  type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GraphicKind, type GuestStar, type InsertKind, type LocationId,
+  type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GuestStar, type InsertKind, type LocationId,
   type Scene, type SceneLocationId, type ShowItem, type SoundCue, type TimeOfDay, type Transition,
 } from '../script/types';
 
@@ -331,7 +331,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
   const transport = h('div', { class: 'pg-transport' },
     button('■ stop', () => void stop().then(() => say('stopped'))),
     button('restage', () => void restage(), 'Put the Stage tab back exactly as set up'),
-    button('clear overlays', () => player.reset(), 'Take down captions, inserts, graphics, looks and music'),
+    button('clear overlays', () => player.reset(), 'Take down captions, inserts, looks and music'),
   );
   root.append(h('header', { class: 'pg-head' }, h('b', { textContent: 'PLAYGROUND' }), transport), status, tabs, body);
   document.getElementById('panel')!.insertBefore(root, document.getElementById('transcript'));
@@ -593,11 +593,6 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     pause: [{ key: 'seconds', kind: 'number', required: true }],
     sound: [{ key: 'sound', kind: 'enum', values: () => SOUND_CUES, required: true }],
     score: [{ key: 'music', kind: 'enum', values: () => SCORES, required: true }],
-    graphic: [
-      { key: 'kind', kind: 'enum', values: () => GRAPHIC_KINDS, required: true }, { key: 'character', kind: 'enum', values: castIds },
-      { key: 'text', kind: 'text' }, { key: 'title', kind: 'text' }, { key: 'value', kind: 'number' }, { key: 'sets', kind: 'json', hint: '["one", "two"]' },
-      { key: 'middle', kind: 'text' }, { key: 'x', kind: 'text' }, { key: 'y', kind: 'text' }, { key: 'points', kind: 'json', hint: '[{ "label", "x": 0-10, "y": 0-10 }]' },
-    ],
     hold: [{ key: 'character', kind: 'enum', values: chars, required: true }, { key: 'prop', kind: 'enum', values: () => [...PROPS, 'none'], required: true }, { key: 'shot', kind: 'enum', values: () => SHOTS }],
     give: [
       { key: 'character', kind: 'enum', values: chars, required: true }, { key: 'to', kind: 'enum', values: chars, required: true },
@@ -631,12 +626,6 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
   };
   const BEAT_TYPES = Object.keys(BEAT_FIELDS) as BeatType[];
 
-  const graphicExample = (kind: GraphicKind, a: CharacterId): Record<string, unknown> => ({
-    tag: { character: a, text: 'Legen-dary' }, clock: { text: '8:14 PM' }, counter: { title: 'High fives', value: 3 },
-    venn: { title: 'Ted\'s type', sets: ['Architects', 'Redheads'], middle: 'Stella' },
-    axes: { title: 'The Hot/Crazy scale', x: 'Hot', y: 'Crazy', points: [{ label: 'Robin', x: 8, y: 4 }, { label: 'Barney', x: 7, y: 9 }] },
-    clear: {},
-  })[kind];
   const insertExample = (kind: InsertKind, a: CharacterId, b: CharacterId): Record<string, unknown> => ({
     text: { character: a, title: charName(b), messages: [{ from: b, text: 'Where are you?' }, { from: a, text: "MacLaren's. Booth." }, { from: b, text: 'Suit up.' }] },
     chart: { character: 'barney', chart: 'bar', title: 'Awesomeness by suit', items: [{ label: 'Gray', value: 7 }, { label: 'Navy', value: 9 }, { label: 'No suit', value: 1 }] },
@@ -662,10 +651,6 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       case 'pause': return { seconds: 1 };
       case 'sound': return { sound: 'sting' };
       case 'score': return { music: 'upbeat' };
-      case 'graphic': {
-        const kind = (GRAPHIC_KINDS as readonly string[]).includes(String(prev.kind)) ? prev.kind as GraphicKind : 'tag';
-        return { kind, ...graphicExample(kind, a) };
-      }
       case 'hold': return { character: a, prop: 'beer' };
       case 'give': return { character: a, to: b, prop: 'envelope' };
       case 'freeze': return { line: 'Kids, this was the moment everything changed.', character: a, gesture: 'jaw_drop' };
@@ -709,7 +694,6 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       case 'hold': return `hold · ${who}${b.prop}`;
       case 'give': return `give · ${who}${b.prop ?? 'it'} → ${b.to}`;
       case 'insert': return `insert · ${b.kind}${b.title ? ` "${b.title}"` : ''}`;
-      case 'graphic': return `graphic · ${b.kind}${b.text ? ` "${b.text}"` : b.title ? ` "${b.title}"` : ''}`;
       case 'cutaway': return `cutaway · ${b.style} at ${b.location} (${b.beats?.length ?? 0} beats)`;
       case 'montage': return `montage · ${b.shots?.length ?? 0} shots, ${b.music}`;
       case 'replay': return `replay · ${b.of}`;
@@ -758,7 +742,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     };
     out.append(pair(), h('div', { class: 'pg-grid' },
       row('beat', select(BEAT_TYPES, type, (v) => { st.draft = { type: v, ...template(v as BeatType) }; save(); render(); })),
-      h('div', { class: 'pg-buttons' }, button('template', () => { st.draft = { type, ...template(type, draft) }; save(); render(); }, 'Fill in an example for this beat (inserts and graphics: for the kind picked)')),
+      h('div', { class: 'pg-buttons' }, button('template', () => { st.draft = { type, ...template(type, draft) }; save(); render(); }, 'Fill in an example for this beat (inserts: for the kind picked)')),
     ));
     out.append(form(BEAT_FIELDS[type], draft, sync));
     sync();
@@ -802,16 +786,14 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
 
   // ---------------------------------------------------------------- sweeps tab
 
-  /** Put a name in the corner of the picture, so a sweep's screenshots say what they show. */
-  const card = (text: string): Beat => ({ type: 'graphic', kind: 'clock', text });
   const SWEEPS: { name: string; hint: string; beats?: () => Beat[]; run?: () => Promise<void> }[] = [
     { name: 'Camera angles', hint: 'Every angle on this set, 2 s each', run: sweepAngles },
     { name: 'Emotions', hint: 'A on each of the 19 emotions, in close-up', beats: () => EMOTIONS.map((e) => ({ type: 'say', character: st.a, line: `${e}.`, emotion: e, shot: 'closeup' })) },
-    { name: 'Gestures', hint: 'A does every gesture to B', beats: () => GESTURES.flatMap((g): Beat[] => [card(g), { type: 'act', character: st.a, gesture: g, to: st.b }, { type: 'pause', seconds: 0.4 }]) },
-    { name: 'Paired gestures', hint: 'High five, hug, slap, kiss, fist bump between A and B', beats: () => PAIRED_GESTURES.flatMap((g): Beat[] => [card(g), { type: 'act', character: st.a, gesture: g, to: st.b, shot: 'two' }, { type: 'pause', seconds: 0.5 }]) },
-    { name: 'Props', hint: 'A holds every prop, then hands the last one to B', beats: () => [...PROPS.flatMap((p): Beat[] => [card(p), { type: 'hold', character: st.a, prop: p, shot: 'closeup' }, { type: 'pause', seconds: 0.9 }]), { type: 'give', character: st.a, to: st.b }] },
+    { name: 'Gestures', hint: 'A does every gesture to B', beats: () => GESTURES.flatMap((g): Beat[] => [{ type: 'act', character: st.a, gesture: g, to: st.b }, { type: 'pause', seconds: 0.4 }]) },
+    { name: 'Paired gestures', hint: 'High five, hug, slap, kiss, fist bump between A and B', beats: () => PAIRED_GESTURES.flatMap((g): Beat[] => [{ type: 'act', character: st.a, gesture: g, to: st.b, shot: 'two' }, { type: 'pause', seconds: 0.5 }]) },
+    { name: 'Props', hint: 'A holds every prop, then hands the last one to B', beats: () => [...PROPS.flatMap((p): Beat[] => [{ type: 'hold', character: st.a, prop: p, shot: 'closeup' }, { type: 'pause', seconds: 0.9 }]), { type: 'give', character: st.a, to: st.b }] },
     { name: 'Deliveries', hint: 'Whisper, shout, sing, deadpan, fast, slow', beats: () => DELIVERIES.map((d) => ({ type: 'say', character: st.a, line: `This is how I say it: ${d}.`, delivery: d, to: st.b })) },
-    { name: 'Shot intents', hint: 'A line under each camera intent', beats: () => SHOTS.flatMap((s): Beat[] => [card(`shot: ${s}`), { type: 'say', character: st.a, line: `Shot: ${s}.`, shot: s, to: st.b }]) },
+    { name: 'Shot intents', hint: 'A line under each camera intent', beats: () => SHOTS.map((s): Beat => ({ type: 'say', character: st.a, line: `Shot: ${s}.`, shot: s, to: st.b })) },
     { name: 'Lines', hint: 'Reactions, a chorus, an interrupted line, offscreen phone and voice, a sung line', beats: () => [
       { type: 'say', character: st.a, line: "I'm moving to Chicago.", to: st.b, react: castIds().filter((id) => id !== st.a).map((id, i) => ({ character: id, emotion: (['surprised', 'sad', 'angry', 'confused'] as const)[i % 4], gesture: i === 0 ? 'jaw_drop' : undefined })) },
       { type: 'say', character: st.b, line: 'What?!', chorus: castIds().filter((id) => id !== st.a && id !== st.b) },
@@ -821,10 +803,9 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       { type: 'say', character: 'lily', line: 'I can hear you from the kitchen!', offscreen: 'voice' },
       { type: 'say', character: st.a, line: 'Let\'s go to the mall, today!', delivery: 'sing', accompanied: true },
     ] },
-    { name: 'Laughs', hint: 'Every laugh-track response', beats: () => LAUGHS.flatMap((l): Beat[] => [card(`laugh: ${l}`), { type: 'laugh', laugh: l }, { type: 'pause', seconds: 0.4 }]) },
-    { name: 'Sound cues', hint: 'Every placed sound', beats: () => SOUND_CUES.flatMap((s): Beat[] => [card(`sound: ${s}`), { type: 'sound', sound: s }, { type: 'pause', seconds: 1.2 }]) },
-    { name: 'Score', hint: 'Each music bed, then none, then silence', beats: () => SCORES.flatMap((m): Beat[] => [card(`score: ${m}`), { type: 'score', music: m }, { type: 'pause', seconds: 3 }]) },
-    { name: 'Graphics', hint: 'Tag, clock, counter, venn, axes, then clear', beats: () => GRAPHIC_KINDS.flatMap((k): Beat[] => [{ type: 'graphic', kind: k, ...graphicExample(k, st.a) } as Beat, { type: 'pause', seconds: 1.6 }]) },
+    { name: 'Laughs', hint: 'Every laugh-track response', beats: () => LAUGHS.flatMap((l): Beat[] => [{ type: 'laugh', laugh: l }, { type: 'pause', seconds: 0.4 }]) },
+    { name: 'Sound cues', hint: 'Every placed sound', beats: () => SOUND_CUES.flatMap((s): Beat[] => [{ type: 'sound', sound: s }, { type: 'pause', seconds: 1.2 }]) },
+    { name: 'Score', hint: 'Each music bed, then none, then silence', beats: () => SCORES.flatMap((m): Beat[] => [{ type: 'score', music: m }, { type: 'pause', seconds: 3 }]) },
     { name: 'Inserts', hint: 'A text thread, a chart in each style, slides, a sign, the Playbook', beats: () => [
       ...INSERT_KINDS.map((k) => ({ type: 'insert', kind: k, ...insertExample(k, st.a, st.b) }) as Beat),
       ...CHART_STYLES.filter((c) => c !== 'bar').map((c) => ({ type: 'insert', ...insertExample('chart', st.a, st.b), chart: c }) as Beat),
@@ -869,7 +850,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       { type: 'say', character: st.b, line: 'And we are back.' },
     ] },
     { name: 'Walk every mark', hint: 'A walks to every mark on the set (vehicles: slides between seats)', beats: () => marksOf().filter((m) => !st.cast.some((c) => c.mark === m && c.character !== st.a))
-      .flatMap((m): Beat[] => [card(m), { type: 'move', character: st.a, to: m }, { type: 'pause', seconds: 0.5 }]) },
+      .flatMap((m): Beat[] => [{ type: 'move', character: st.a, to: m }, { type: 'pause', seconds: 0.5 }]) },
     { name: 'Exit & enter', hint: 'A leaves through the door and comes back; someone new walks in', beats: () => [
       { type: 'exit', character: st.a }, { type: 'pause', seconds: 0.6 }, { type: 'enter', character: st.a, to: st.cast.find((c) => c.character === st.a)?.mark },
       { type: 'enter', character: (['ranjit', 'carl', 'wendy'] as CharacterId[]).find((id) => !castIds().includes(id)) ?? 'ranjit', to: st.a },
@@ -891,7 +872,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
         player.stageNow({ ...scene([]), cast: [{ character: id, mark, ...(outfit ? { outfit } : {}) }] });
         director.closeup(id);
         say(`${charName(id)} (${id})${outfit ? ` · ${outfit}` : ''}`);
-        await player.perform([card(`${id}${outfit ? ` · ${outfit}` : ''}`), { type: 'say', character: id, line: `I'm ${charName(id)}.`, shot: 'closeup' }]);
+        await player.perform([{ type: 'say', character: id, line: `I'm ${charName(id)}.`, shot: 'closeup' }]);
         if (run !== generation) return;
       }
     }

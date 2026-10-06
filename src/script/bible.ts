@@ -172,15 +172,6 @@ Leave coverage to the director, except when a shot is the joke. "shot" on a say,
 - montage (top-level only): "and that's how it went for three weeks". A "label" for the first card, "music" ${MONTAGE_MUSIC.join('|')}, and 2-6 "shots", each a location, time, its own cast, optional "wardrobe" (across the years), an optional little card ("Day 3") and 0-2 beats (gestures, props, very short lines). A narrate beat can set it up before and land it after. 0-1 per episode.
 - Footage the characters watch (Robin Sparkles on a VHS, Barney's video résumé, a news clip): a cutaway with "look": "video" plays as tape with a VCR's on-screen display; a freeze frame inside it is somebody hitting pause, and a replay with "look": "video" winds it back to watch again. Cut back to the viewers between them for their reactions.
 
-# Graphics over the scene
-A graphic beat draws on the picture while the actors stay in it, until it's cleared or the scene ends (cutaways hide it, and it comes back with the scene):
-- { "type": "graphic", "kind": "tag", "character": "barney", "text": "Not a lawyer" }: a label that follows someone around.
-- { "kind": "clock", "text": "9:14 PM" }: the time (or "Room 3") in the corner, for stories told room by room or minute by minute.
-- { "kind": "counter", "title": "Slaps", "value": 3 }: a running count; the same title again updates it.
-- { "kind": "venn", "title"?, "sets": ["Hot", "Crazy"] (2-3), "middle": "Barney's type" }, { "kind": "axes", "title"?, "x": "Crazy", "y": "Hot", "points": [{ "label": "Ted", "x": 2, "y": 7 }] (0-10) }: Marshall's diagrams, drawn over the right third of the frame beside the people arguing about them (clear it before a wide shot needs that side).
-- { "kind": "clear" } takes everything down; with "character", just that person's tag.
-For a full-screen chart, slide or text thread, use an insert instead.
-
 # Stagecraft vocabulary
 characters: ${CHARACTER_IDS.filter((c) => !isGuest(c) && !isKid(c)).join(', ')}; guest1-guest3 (this episode's guests); penny, luke (couch only)
 emotions: ${EMOTIONS.join(', ')}. An emotion shows in the face and the whole body (sad slumps, angry clenches fists, smug and proud stand hands on hips, scared hunches up, bored shifts from foot to foot, embarrassed and flirty blush, crying has tears) and holds for a few seconds before they relax back to their usual selves, so put it on the line where it lands; drunk lasts the scene. Listeners nod along and pick up a little of the speaker's mood on their own.
@@ -258,7 +249,6 @@ Beats (optional fields in brackets):
 { "type": "pause", "seconds": 1.5 }                                    // up to 5
 { "type": "sound", "sound": "${SOUND_CUES.join('|')}" }
 { "type": "score", "music": "${SCORES.join('|')}" }
-{ "type": "graphic", "kind": "tag|clock|counter|venn|axes|clear", ...its fields }
 { "type": "cutaway", ["id": "dorm"], "style": "${CUTAWAY_STYLES.join('|')}", ["label": "How Barney imagined it"], ["look": "${CUTAWAY_LOOKS.join('|')}"],
   ["transition": "${CUTAWAY_TRANSITIONS.join('|')}"], ["sound": ...], "location": "barneys_office", "time": "day", ["wardrobe": [...]],
   "cast": [ ...cast at that location ], "beats": [ ...beats, no montages ] }

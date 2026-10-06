@@ -205,17 +205,6 @@ if (inPlayground) {
 
 // ---------------------------------------------------------------- frame loop
 
-/** Where a tag goes: just above someone's head, in % of the picture, or null when they're out of shot. */
-function tagSpot(id: string) {
-  const a = stage.actors[id as keyof typeof stage.actors];
-  if (!a?.root.visible) return null;
-  const head = a.headWorld;
-  head.y += 0.32;
-  const v = head.project(renderer.camera);
-  if (v.z > 1 || Math.abs(v.x) > 0.95 || Math.abs(v.y) > 0.95) return null;
-  return { x: (v.x + 1) * 50, y: (1 - v.y) * 50 };
-}
-
 let last = performance.now();
 function frame(now: number) {
   const dt = Math.min(0.05, (now - last) / 1000);
@@ -225,7 +214,6 @@ function frame(now: number) {
     stage.update(dt, t);
     director.update(dt);
   }
-  overlay.trackTags(tagSpot);
   renderer.render(t);
   requestAnimationFrame(frame);
 }

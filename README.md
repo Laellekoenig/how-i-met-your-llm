@@ -52,7 +52,7 @@ bun run episodes ledger            # continuity: eras, what's true now, bets and
 - **The script language** (`src/script/types.ts`): a scene is a cast placement plus a list of beats:
   `say`, `narrate` (Future Ted), `move`, `enter`, `exit`, `act` (gestures like `high_five`, `slap`, `suit_up`),
   `hold` / `give` (props), `laugh` (chuckle / laugh / big / ooh / aww / applause / gasp), `pause`, `freeze`,
-  `insert`, `cutaway`, `replay`, `split`, `montage`, `graphic`, `sound` and `score`. A `say` can carry a `delivery`
+  `insert`, `cutaway`, `replay`, `split`, `montage`, `sound` and `score`. A `say` can carry a `delivery`
   (whisper / shout / sing / deadpan / fast / slow), be `interrupted` or `offscreen`, have a `chorus` saying it with
   them, and carry listener `react`ions; most beats take a `shot`. Scenes can be named and `resume`d (intercutting).
   See [Staging devices](#staging-devices) and [Time, memory and the edit](#time-memory-and-the-edit).
@@ -167,9 +167,6 @@ The show's signature visual gags, all part of the episode file format (`bun run 
   colors, tie, waistcoat, pants, shoes, boots, hair and extras. Costumes go over casual or work clothes, so Ted's red
   cowboy boots stay on when he suits up at the lecture hall. A scene costume with `keep` lasts the rest of the
   episode (the lost bet).
-- **Graphics over the scene**: `graphic` beats draw while the actors stay in shot: a `tag` that follows someone, a
-  `clock`, a running `counter`, a `venn` diagram or a pair of `axes` with people plotted on them. They last until
-  `clear`ed or the scene ends.
 
 ## Time, memory and the edit
 

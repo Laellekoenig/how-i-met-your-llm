@@ -1,4 +1,4 @@
-import type { CutawayLook, Delivery, EpisodeMeta, GraphicBeat, InsertBeat } from '../script/types';
+import type { CutawayLook, Delivery, EpisodeMeta, InsertBeat } from '../script/types';
 import { CHARACTERS, charName } from '../world/characters';
 import type { PhotoMotion } from '../show/mainTitles';
 import type { CreditCard } from '../show/credits';
@@ -20,7 +20,6 @@ export class Overlay {
   private yearEl = $('year');
   private insertEl = $('insert');
   private osdEl = $('osd');
-  private graphicsEl = $('graphics');
 
   showCaption(name: string, color: string, text: string, narration = false, delivery?: Delivery) {
     this.caption.className = '';
@@ -167,48 +166,6 @@ export class Overlay {
     this.osdEl.textContent = text ?? '';
   }
 
-  /** Draw (or update, or clear) a graphic over the scene. One of each kind, except tags (one per person). */
-  graphic(g: GraphicBeat) {
-    const layer = this.graphicsEl;
-    if (g.kind === 'clear') {
-      for (const e of [...layer.children] as HTMLElement[]) if (!g.character || e.dataset.who === g.character) e.remove();
-      return;
-    }
-    const key = g.kind === 'tag' ? `tag:${g.character}` : g.kind === 'counter' ? `counter:${g.title}` : g.kind === 'axes' ? 'venn' : g.kind;
-    const old = [...layer.children].find((e) => (e as HTMLElement).dataset.key === key) as HTMLElement | undefined;
-    const card = graphicCard(g, old);
-    card.dataset.key = key;
-    if (g.character) card.dataset.who = g.character;
-    if (old) old.replaceWith(card);
-    else layer.append(card);
-  }
-
-  clearGraphics() {
-    this.graphicsEl.replaceChildren();
-  }
-
-  /** Take the scene's graphics down for a cutaway; `restoreGraphics` puts them back afterward. */
-  stashGraphics(): Element[] {
-    const kept = [...this.graphicsEl.children];
-    this.graphicsEl.replaceChildren();
-    return kept;
-  }
-
-  restoreGraphics(kept: Element[]) {
-    this.graphicsEl.replaceChildren(...kept);
-  }
-
-  /** Keep each tag beside its person: `where` gives their head's spot on screen (in %), or null when out of shot. */
-  trackTags(where: (id: string) => { x: number; y: number } | null) {
-    for (const e of this.graphicsEl.querySelectorAll<HTMLElement>('.g-tag')) {
-      const p = where(e.dataset.who ?? '');
-      e.classList.toggle('offscreen', !p);
-      if (!p) continue;
-      e.style.left = `${p.x}%`;
-      e.style.top = `${p.y}%`;
-    }
-  }
-
   standby(on: boolean, msg?: string) {
     this.standbyEl.classList.toggle('hidden', !on);
     if (msg) this.standbyMsg.textContent = msg;
@@ -308,72 +265,6 @@ function insertCard(c: InsertBeat): HTMLElement {
       page.append(ol, el('footer', '', owner ? `property of ${owner}` : ''));
       return page;
     }
-  }
-}
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
-
-function svgEl(tag: string, attrs: Record<string, string | number>, text?: string, parent?: Element) {
-  const e = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
-  if (text) e.textContent = text;
-  parent?.append(e);
-  return e;
-}
-
-/** A graphic drawn over the scene, in Marshall's marker or a broadcast-style corner bug. */
-function graphicCard(g: GraphicBeat, old?: HTMLElement): HTMLElement {
-  switch (g.kind) {
-    case 'tag': {
-      const tag = el('div', 'g-tag', g.text ?? '');
-      if (old) Object.assign(tag.style, { left: old.style.left, top: old.style.top });
-      return tag;
-    }
-    case 'clock':
-      return el('div', 'g-clock', g.text ?? '');
-    case 'counter': {
-      const box = el('div', 'g-counter');
-      const n = el('b', '', String(g.value ?? 0));
-      // a new count pops
-      if (old && old.querySelector('b')?.textContent !== n.textContent) n.className = 'bump';
-      box.append(el('span', '', g.title ?? ''), n);
-      return box;
-    }
-    case 'venn': {
-      const card = el('div', 'g-diagram');
-      if (g.title) card.append(el('h3', '', g.title));
-      const svg = svgEl('svg', { viewBox: '0 0 300 230' });
-      const sets = (g.sets ?? []).slice(0, 3);
-      const spots = sets.length === 3 ? [[115, 95], [185, 95], [150, 155]] : [[110, 115], [190, 115]];
-      sets.forEach((label, i) => {
-        const [cx, cy] = spots[i];
-        svgEl('circle', { cx, cy, r: sets.length === 3 ? 62 : 75, fill: MARKERS[i], 'fill-opacity': 0.22, stroke: MARKERS[i], 'stroke-width': 4 }, undefined, svg);
-        const [lx, ly] = sets.length === 3 ? [[70, 30], [230, 30], [150, 228]][i] : [[60, 28], [240, 28]][i];
-        svgEl('text', { x: lx, y: ly, 'text-anchor': 'middle', fill: MARKERS[i] }, label, svg);
-      });
-      const [mx, my] = sets.length === 3 ? [150, 118] : [150, 120];
-      svgEl('text', { x: mx, y: my, 'text-anchor': 'middle', class: 'middle' }, g.middle ?? '', svg);
-      card.append(svg);
-      return card;
-    }
-    case 'axes': {
-      const card = el('div', 'g-diagram');
-      if (g.title) card.append(el('h3', '', g.title));
-      const svg = svgEl('svg', { viewBox: '0 0 300 230' });
-      const [left, right, top, base] = [40, 285, 15, 195];
-      svgEl('path', { d: `M${left},${top} L${left},${base} L${right},${base}`, class: 'axis' }, undefined, svg);
-      svgEl('text', { x: (left + right) / 2, y: 222, 'text-anchor': 'middle' }, g.x ?? '', svg);
-      svgEl('text', { x: 16, y: (top + base) / 2, 'text-anchor': 'middle', transform: `rotate(-90 16 ${(top + base) / 2})` }, g.y ?? '', svg);
-      (g.points ?? []).forEach((pt, i) => {
-        const x = left + (pt.x / 10) * (right - left), y = base - (pt.y / 10) * (base - top);
-        svgEl('circle', { cx: x, cy: y, r: 7, fill: MARKERS[i % MARKERS.length], stroke: '#1c1c1c', 'stroke-width': 2 }, undefined, svg);
-        svgEl('text', { x: Math.min(x + 10, right - 4), y: y - 9, 'text-anchor': x > right - 60 ? 'end' : 'start', class: 'point' }, pt.label, svg);
-      });
-      card.append(svg);
-      return card;
-    }
-    case 'clear':
-      return el('div');
   }
 }
 
