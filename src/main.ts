@@ -6,6 +6,7 @@ import { Player } from './show/player';
 import { Overlay, Panel } from './ui/overlay';
 import { setPreview } from './ui/setPreview';
 import { Guide } from './ui/guide';
+import { playground, Workbench } from './ui/playground';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
@@ -24,9 +25,12 @@ const panel = new Panel();
 
 // The show starts on the TV guide; pre-written episodes air back to back from the one picked there.
 // `?ep=S11E03` skips the guide and starts at a given episode.
+// `?playground` (dev mode) swaps the schedule for a workbench that airs only what the playground hands it.
 const requested = Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep'));
 const syndication = new Syndication(EPISODES, requested >= 0 ? requested : null);
-const player = new Player(stage, director, renderer, overlay, panel, syndication);
+const inPlayground = new URLSearchParams(location.search).has('playground');
+const bench = new Workbench();
+const player = new Player(stage, director, renderer, overlay, panel, inPlayground ? bench : syndication);
 let onAir = requested >= 0;
 let airing: string | undefined;
 
@@ -41,7 +45,7 @@ function tune(index: number) {
 const guide = new Guide($('guide'), EPISODES, tune);
 
 function openGuide() {
-  if (new URLSearchParams(location.search).has('set') && document.querySelector('.set-preview')) {
+  if (inPlayground || (new URLSearchParams(location.search).has('set') && document.querySelector('.set-preview'))) {
     location.assign(new URLSearchParams(location.search).has('mute') ? '/?mute' : '/');
     return;
   }
@@ -122,6 +126,12 @@ function toggleFullscreen() {
 }
 $('btn-full').addEventListener('click', toggleFullscreen);
 $('btn-guide').addEventListener('click', () => openGuide());
+// The playground and the show swap places: each keeps dev mode and ?mute.
+$('btn-playground').classList.toggle('on', inPlayground);
+$('btn-playground').addEventListener('click', () => {
+  const q = new URLSearchParams(location.search);
+  location.assign(`/?${inPlayground ? '' : 'playground&'}dev${q.has('mute') ? '&mute' : ''}`);
+});
 
 // ---------------------------------------------------------------- dev mode
 
@@ -133,10 +143,10 @@ function setDevMode(on: boolean) {
   const url = new URL(location.href);
   if (on) url.searchParams.set('dev', '');
   else url.searchParams.delete('dev');
-  history.replaceState(null, '', url.href.replace(/([?&])dev=(?=&|#|$)/, '$1dev'));
+  history.replaceState(null, '', url.href.replace(/([?&][^=&#]+)=(?=&|#|$)/g, '$1'));
   if (!on) setPaused(false);
 }
-setDevMode(new URLSearchParams(location.search).has('dev'));
+setDevMode(inPlayground || new URLSearchParams(location.search).has('dev'));
 
 window.addEventListener('keydown', (e) => {
   if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
@@ -184,8 +194,11 @@ function unlockSound() {
 }
 window.addEventListener('pointerdown', unlockSound, true);
 window.addEventListener('keydown', unlockSound, true);
-const touring = setPreview(stage, director);
-if (!touring) {
+const touring = !inPlayground && setPreview(stage, director);
+if (inPlayground) {
+  void player.run();
+  playground({ stage, director, renderer, player, bench });
+} else if (!touring) {
   if (!onAir) openGuide();
   void player.run();
 }
