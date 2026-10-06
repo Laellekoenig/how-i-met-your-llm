@@ -69,6 +69,21 @@ export function buildApartment(): StageSet {
   tiles.receiveShadow = true;
   g.add(tiles);
 
+  // The foreground chairs face the sofa. Give their reverse singles a matching
+  // fourth wall, visible only from inside the room so the master stays open.
+  const reverse = new THREE.Group();
+  reverse.position.set((LEFT + RIGHT) / 2, 0, FRONT);
+  reverse.rotation.y = Math.PI;
+  const reversePanel = (width: number, height: number, y: number, z: number, material: THREE.Material) => {
+    const panel = mesh(new THREE.PlaneGeometry(width, height), material, 0, y, z, false);
+    panel.userData.cameraBackdrop = true;
+    reverse.add(panel);
+  };
+  reversePanel(RIGHT - LEFT, H, H / 2, 0, wallMat);
+  for (const [y, h] of [[0.07, 0.14], [0.925, 0.05], [2.625, 0.05]]) reversePanel(RIGHT - LEFT, h, y, 0.01, trim);
+  reversePanel(RIGHT - LEFT, 0.1, H - 0.05, 0.01, white);
+  g.add(reverse);
+
   const leftWall = wall([LEFT, FRONT], [LEFT, -0.9], wallMat);
   const fireWall = wall([LEFT, -0.9], [AX0, AZM], wallMat);
   const tedWall = wall([AX0, AZM], [AX0, AZB], wallMat, { base: PH });

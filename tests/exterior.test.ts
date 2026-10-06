@@ -2,9 +2,33 @@ import { describe, expect, test } from 'bun:test';
 import * as THREE from 'three';
 import './helpers/sets'; // canvas shim for the procedural textures
 import { buildEstablishing } from '../src/world/sets/establishing';
+import { LOCATION_IDS } from '../src/script/types';
 
 const exterior = buildEstablishing();
 const facade = exterior.group.getObjectByName('exterior_walkup')!;
+
+describe('establishing frame edges', () => {
+  for (const location of LOCATION_IDS) test(`${location}: day and night moves stay within the scenery`, () => {
+    const camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.1, 600);
+    const ray = new THREE.Raycaster();
+    for (const time of ['day', 'night'] as const) for (const kind of ['exterior', 'skyline'] as const) {
+      const shot = exterior.show(kind, location, time);
+      const meshes = visibleMeshes();
+      camera.fov = shot.fov;
+      camera.updateProjectionMatrix();
+      for (const seconds of [0, 2, 4]) {
+        camera.position.copy(shot.pos).addScaledVector(shot.move, seconds);
+        camera.lookAt(shot.target.clone().addScaledVector(shot.look, seconds));
+        camera.updateMatrixWorld(true);
+        for (const x of [-0.99, -0.5, 0, 0.5, 0.99]) for (const y of [-0.99, -0.5, 0, 0.5, 0.99]) {
+          ray.setFromCamera(new THREE.Vector2(x, y), camera);
+          ray.far = camera.far;
+          expect(ray.intersectObjects(meshes, false).length, `${time}/${kind}/${seconds}/${x}/${y}`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+});
 
 describe('Atlantic City arrivals', () => {
   test('all casino establishing requests use Atlantic City, and switching back hides it', () => {

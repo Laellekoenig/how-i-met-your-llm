@@ -11,7 +11,9 @@ export function buildMaclarensSidewalk(): StageSet {
   const dn=(m:THREE.Mesh,day:THREE.Material,night:THREE.Material)=>{swaps.push({m,day,night});return m;};
   buildWalkupExterior(g,dn,lights,-3.2,2.4);
   // Neighbouring facades and the opposite block are needed for actual reverse dialogue shots.
-  for(const [x,z,w,rot]of [[-13,-4.4,15,0],[13,-4.4,15,0],[0,17,44,Math.PI],[-22,5,19,Math.PI/2],[22,5,19,-Math.PI/2]]){
+  // Overlap the corners of the block: separated flat cards expose strips of sky
+  // all the way down to the pavement in oblique and reverse angles.
+  for(const [x,z,w,rot]of [[-14,-4.4,17,0],[14,-4.4,17,0],[0,17,45,Math.PI],[-22,6.3,22,Math.PI/2],[22,6.3,22,-Math.PI/2]]){
     const day=toon('#ffffff',{map:facade(false,'#847768',23+Math.abs(x),Math.round(w),7)});
     const night=toon('#ffffff',{map:facade(true,'#605850',23+Math.abs(x),Math.round(w),7),emissive:'#d6b482',emissiveIntensity:.3});
     const p=dn(mesh(new THREE.PlaneGeometry(w,17),day,x,8.5,z,false).rotateY(rot),day,night);g.add(p);

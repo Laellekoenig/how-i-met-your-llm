@@ -193,8 +193,8 @@ describe('camera coverage on the current sets', () => {
     }
   });
 
-  test('two-shots and shoulder shots keep the speaker visible across every pair of marks', () => {
-    for (const set of Object.values(stage.sets)) {
+  for (const set of Object.values(stage.sets)) {
+    test(`${set.id}: two-shots and shoulder shots keep the speaker visible across every pair of marks`, () => {
       const marks = Object.keys(set.marks).filter(m => !m.includes('door'));
       for (const [i, first] of marks.entries()) for (const second of marks.slice(i + 1)) {
         stage.setLocation(set.id, 'day');
@@ -204,8 +204,8 @@ describe('camera coverage on the current sets', () => {
           expectVisible(stage.actors.ted, `${set.id}/${first}/${second}/${shot}`);
         }
       }
-    }
-  });
+    });
+  }
 
   test('added venues cover both directions of every conversation, with dressed reverse backgrounds', () => {
     for (const location of ['maclarens_sidewalk', 'hoser_hut', 'courtroom', 'atlantic_city_casino', 'lusty_leopard'] as const) {

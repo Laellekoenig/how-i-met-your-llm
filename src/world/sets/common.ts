@@ -82,23 +82,24 @@ export function room(g: THREE.Group, o: {
   w: number; d: number; h: number; floor: THREE.Material; back: THREE.Material; left?: THREE.Material; right?: THREE.Material; ceiling?: string;
 }) {
   const { w, d, h } = o;
-  const floor = mesh(new THREE.PlaneGeometry(w, d + 4), o.floor, 0, 0, 2 - 0);
+  // Carry the shell past the master camera, including the ceiling above it.
+  const backZ = -d / 2, frontZ = 16, depth = frontZ - backZ, centerZ = (frontZ + backZ) / 2;
+  const floor = mesh(new THREE.PlaneGeometry(w, depth), o.floor, 0, 0, centerZ);
   floor.rotation.x = -Math.PI / 2;
-  floor.position.z = -d / 2 + (d + 4) / 2 - 0.0;
   floor.castShadow = false;
   g.add(floor);
   const back = mesh(new THREE.PlaneGeometry(w, h), o.back, 0, h / 2, -d / 2);
   back.castShadow = false;
   g.add(back);
-  const left = mesh(new THREE.PlaneGeometry(d + 2, h), o.left ?? o.back, -w / 2, h / 2, 1);
+  const left = mesh(new THREE.PlaneGeometry(depth, h), o.left ?? o.back, -w / 2, h / 2, centerZ);
   left.rotation.y = Math.PI / 2;
   left.castShadow = false;
   g.add(left);
-  const right = mesh(new THREE.PlaneGeometry(d + 2, h), o.right ?? o.back, w / 2, h / 2, 1);
+  const right = mesh(new THREE.PlaneGeometry(depth, h), o.right ?? o.back, w / 2, h / 2, centerZ);
   right.rotation.y = -Math.PI / 2;
   right.castShadow = false;
   g.add(right);
-  const ceil = mesh(new THREE.PlaneGeometry(w, d + 2), toon(o.ceiling ?? '#2a221c'), 0, h, 1 - 0);
+  const ceil = mesh(new THREE.PlaneGeometry(w, depth), toon(o.ceiling ?? '#2a221c'), 0, h, centerZ);
   ceil.rotation.x = Math.PI / 2;
   ceil.castShadow = false;
   g.add(ceil);

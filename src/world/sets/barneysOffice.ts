@@ -129,7 +129,8 @@ export function buildBarneysOffice(): StageSet {
   // ---- the window: city beyond, silver vertical blinds ---------------------------------------------------
   const nightSky = toon('#ffffff', { map: skyline(true, 33), emissive: '#ffffff', emissiveIntensity: 0.9 });
   const daySky = toon('#ffffff', { map: skyline(false, 33), emissive: '#ffffff', emissiveIntensity: 0.85 });
-  const backdrop = mesh(new THREE.PlaneGeometry(16, 8), nightSky, (WIN[0] + WIN[1]) / 2, 1.0, BACK - 5, false);
+  // Oblique guest-chair angles look beyond the edge of the window opening.
+  const backdrop = mesh(new THREE.PlaneGeometry(32, 16), nightSky, (WIN[0] + WIN[1]) / 2, 1.0, BACK - 5, false);
   g.add(backdrop);
   // jambs and the blinds' headrail
   for (const x of [WIN[0], WIN[1]]) g.add(mesh(box(0.1, H, 0.25), wood, x, H / 2, BACK - 0.1, false));

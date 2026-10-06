@@ -13,7 +13,7 @@ export function buildOffice(): StageSet {
   const g = new THREE.Group();
   g.name = 'office';
   const H = 2.9;
-  const LEFT = -7, RIGHT = 7, BACK = -4.2, FRONT = 4.5;
+  const LEFT = -7, RIGHT = 7, BACK = -4.2, FRONT = 16;
 
   const wall = toon('#d8ceb8');
   const fabric = toon('#6a7480');

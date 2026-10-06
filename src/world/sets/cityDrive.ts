@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { toon, mesh } from '../../engine/materials';
+import { box, toon, mesh } from '../../engine/materials';
 import { street, road, skyline, speckle } from '../../engine/textures';
 import { scroll, lampposts } from './vehicle';
 
@@ -14,8 +14,8 @@ export function cityDrive(g: THREE.Group, GROUND: number) {
   roadMesh.receiveShadow = true;
   g.add(roadMesh);
   for (const s of [-1, 1]) {
-    const sw = mesh(new THREE.PlaneGeometry(3, RD_L), toon('#ffffff', { map: speckle('#6a6866', [1, 14], 59, 0.2) }), s * 6, GROUND + 0.15, -12, false);
-    sw.rotation.x = -Math.PI / 2;
+    // A raised plane leaves a slit under the curb in low window angles.
+    const sw = mesh(box(3, 0.15, RD_L), toon('#ffffff', { map: speckle('#6a6866', [1, 14], 59, 0.2) }), s * 6, GROUND + 0.075, -12, false);
     g.add(sw);
   }
   // buildings down both sides, sliding back
