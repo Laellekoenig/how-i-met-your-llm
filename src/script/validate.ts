@@ -86,8 +86,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   if (code && !/^S\d{2}E\d{2}$/.test(code)) err('code', `"${code}" should look like "S11E03"`);
   text(ep, 'title', 'title');
   text(ep, 'logline', 'logline');
-  const coldOpen = text(ep, 'coldOpen', 'coldOpen');
-  if (coldOpen && !/^kids\b/i.test(coldOpen.trim())) warn('coldOpen', 'Future Ted\'s cold open usually starts with "Kids, ..."');
+  if (ep.coldOpen !== undefined) text(ep, 'coldOpen', 'coldOpen');
 
   // ---- guest stars
   const guests = new Map<string, string>();
@@ -500,18 +499,15 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       if (top.length && top.length < 12) warn(path, `${top.length} beats: scenes usually run 16-30`);
       if (lines >= 6 && laughs < lines / 5) warn(path, `${laughs} laughs in ${lines} lines: land a punchline every 2-4 lines`);
       const narrations = top.filter((b) => b.type === 'narrate').length;
-      if (narrations > 2) warn(path, `${narrations} narrate beats: Future Ted gets at most 2 per scene`);
+      if (narrations > 2) warn(path, `${narrations} narrate beats: check that each adds a reveal, time shift, correction or couch answer`);
       if (s.transition === 'rewind' && top[0]?.type !== 'narrate') warn(path, 'a rewind starts with a narrate beat that makes the time jump explicit');
       const last = top.at(-1);
       if (last && !last.laugh && last.type !== 'laugh' && last.type !== 'pause') warn(path, 'end the scene on a button: put a laugh on the final beat');
-      if (i === scenes.length - 1 && !top.some((b, j) => b.type === 'narrate' && j >= top.length - 4)) {
-        warn(path, 'the final scene should end on a Future Ted narrate button (a kids\' reaction can top it)');
-      }
     });
   }
 
   for (const [id, name] of guests) if (!speakers.has(id)) warn('guests', `${name} (${id}) never says a line`);
-  if (kidBeats > 3) warn('', `${kidBeats} couch cutaways: keep Penny and Luke to 0-2 quick reactions per episode`);
+  if (kidBeats > 3) warn('', `${kidBeats} kids' reaction beats: check that each couch visit serves a specific story beat and stays brief`);
   if (cutaways > 2) warn('', `${cutaways} cutaways: one or two per episode`);
   if (montages > 1) warn('', `${montages} montages: one per episode at most`);
   if (inserts > 3) warn('', `${inserts} inserts: two or three per episode`);

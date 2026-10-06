@@ -84,6 +84,18 @@ describe('the validator', () => {
     expect(errors([], { scenes: [{ location: 'maclarens', time: 'night', cast: [{ character: 'penny', mark: 'booth_end' }], beats: [say('ted')] }] })).toContain('only ever on the 2030 couch');
   });
 
+  test('openings and endings are story choices, with optional but nonempty coldOpen text', () => {
+    const ep = episode([say('ted', 'The end.', { laugh: 'laugh' })], { coldOpen: undefined });
+    expect(messages(ep)).toEqual([]);
+    expect(messages({ ...ep, couch: [say('penny', 'What happened next?')] })).toEqual([]);
+    for (const coldOpen of ['', '  ', null, 42]) {
+      expect(messages({ ...ep, coldOpen }).join('\n')).toContain('"coldOpen" must be a non-empty string');
+    }
+    const report = validateEpisode({ ...ep, coldOpen: 'That winter, everything changed.' }, sets);
+    expect(report.warnings.some(w => w.path === 'coldOpen' || w.message.includes('Future Ted narrate button'))).toBe(false);
+    expect(messages({ ...ep, couch: [say('ted')] }).join('\n')).toContain('the couch is only');
+  });
+
   test('lines are performable: no stage directions, not too long, interruptions land', () => {
     expect(errors([say('ted', 'Well (sighs) okay.')])).toContain('no stage directions');
     expect(errors([say('ted', Array(36).fill('word').join(' '))])).toContain('36 words');
@@ -151,6 +163,19 @@ describe('the catalog', () => {
     const items = episodeItems(ep, 'x');
     expect(items.map((i) => i.kind)).toEqual(['episode-start', ...ep.scenes.map(() => 'scene'), 'episode-end']);
     expect(items[0].kind === 'episode-start' && items[0].guests?.map((g) => g.name)).toEqual(ep.guests!.map((g) => g.name));
+  });
+
+  test('without a couch opening the first scene airs once before titles, retaining later scene indices', () => {
+    const ep = { ...rerun('The Guest Lecture'), coldOpen: undefined, couch: undefined };
+    const items = episodeItems(ep, 'story-first');
+    expect(items[0]).toMatchObject({ kind: 'episode-start', openingScene: ep.scenes[0], guests: ep.guests });
+    expect(items.filter(i => i.kind === 'scene').map(i => i.index)).toEqual(ep.scenes.slice(1).map((_, i) => i + 1));
+    expect(items.filter(i => i.kind === 'scene').map(i => i.scene)).toEqual(ep.scenes.slice(1));
+    expect(items.at(-1)?.kind).toBe('episode-end');
+    expect(episodeItems({ ...ep, couch: [] }, 'empty-couch')[0]).toMatchObject({ openingScene: ep.scenes[0] });
+    const kidFirst = episodeItems({ ...ep, couch: [{ type: 'say', character: 'penny', line: 'Dad?' }] }, 'kid-first');
+    expect(kidFirst[0].kind === 'episode-start' && kidFirst[0].openingScene).toBeUndefined();
+    expect(kidFirst[1]).toMatchObject({ kind: 'scene', index: 0, scene: ep.scenes[0] });
   });
 });
 

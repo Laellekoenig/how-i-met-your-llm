@@ -347,7 +347,7 @@ export class Player {
   private async play(item: ShowItem) {
     switch (item.kind) {
       case 'episode-start': {
-        // Kids, ... : every episode opens on Penny and Luke on the couch in 2030, then the titles
+        // The script chooses a couch exchange or a story scene before the titles.
         this.currentEpisode = item.episode.id;
         this.previousScene = null;
         this.billing = openingCredits();
@@ -358,20 +358,26 @@ export class Player {
         // the titles show everyone in their usual clothes; the costumes go on in the first scene
         this.episodeWardrobe = item.wardrobe ?? [];
         this.stage.setWardrobe([]);
-        this.stage.setLocation('future', 'night');
-        this.stage.seatKids();
-        this.director.wide(0, 0.02);
-        audio.ambience('none');
-        this.renderer.fade = 0;
-        await this.fade(1, 0.6);
-        this.overlay.year(true);
-        await this.wait(0.8);
-        if (item.coldOpen) await this.narrate(item.coldOpen);
-        for (const b of item.couch ?? []) {
-          await this.untilUnpaused();
-          await this.beat(b);
+        if (item.openingScene) {
+          this.stage.setWardrobe(mergeWardrobe(this.episodeWardrobe, item.openingScene.wardrobe));
+          await this.playScene(item.openingScene, 0);
+        } else if (item.coldOpen || item.couch?.length) {
+          this.stage.setLocation('future', 'night');
+          this.stage.seatKids();
+          this.director.wide(0, 0.02);
+          audio.ambience('none');
+          this.renderer.fade = 0;
+          await this.fade(1, 0.6);
+          this.overlay.year(true);
+          await this.wait(0.8);
+          if (item.coldOpen) await this.narrate(item.coldOpen);
+          for (const b of item.couch ?? []) {
+            await this.untilUnpaused();
+            await this.beat(b);
+          }
+          await this.wait(0.3);
         }
-        await this.wait(0.3);
+        this.stage.setWardrobe([]);
         await this.mainTitles();
         break;
       }

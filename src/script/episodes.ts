@@ -7,9 +7,10 @@ export const byCode = (a: EpisodeScript, b: EpisodeScript) => a.code.localeCompa
 /** Everything the player needs to air one episode, from the cold open to the closing credits. */
 export function episodeItems(ep: EpisodeScript, id: string): ShowItem[] {
   const meta: EpisodeMeta = { id, code: ep.code, title: ep.title, logline: ep.logline };
+  const storyOpening = !ep.coldOpen && !ep.couch?.length;
   return [
-    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch, guests: ep.guests, wardrobe: ep.wardrobe },
-    ...ep.scenes.map((scene, index) => ({ kind: 'scene' as const, episode: meta, index, scene })),
+    { kind: 'episode-start', episode: meta, coldOpen: ep.coldOpen, couch: ep.couch, openingScene: storyOpening ? ep.scenes[0] : undefined, guests: ep.guests, wardrobe: ep.wardrobe },
+    ...ep.scenes.flatMap((scene, index) => storyOpening && index === 0 ? [] : [{ kind: 'scene' as const, episode: meta, index, scene }]),
     { kind: 'episode-end', episode: meta },
   ];
 }

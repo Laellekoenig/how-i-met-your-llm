@@ -7,7 +7,8 @@ import { BURSTS, GANG, TITLE_BEAT, TITLE_BEATS, TITLE_TAIL } from '../src/show/m
 import { openingCredits } from '../src/show/credits';
 import { speech } from '../src/audio/speech';
 import { audio } from '../src/audio/audio';
-import type { ShowItem } from '../src/script/types';
+import { episodeItems } from '../src/script/episodes';
+import type { EpisodeScript, ShowItem } from '../src/script/types';
 
 const spies: { mockRestore(): void }[] = [];
 afterEach(() => spies.splice(0).forEach((s) => s.mockRestore()));
@@ -19,7 +20,7 @@ function rig() {
   const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, snap: 0, trail: 0, photo: () => ({}) };
   const shown: { title: (boolean | null)[]; credits: [string, string][]; locations: string[] } = { title: [], credits: [], locations: [] };
   const overlay = {
-    hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, showCaption() {}, moveTitle() {},
+    hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, showCaption() {}, moveTitle() {}, insert() {},
     location: (t: string) => shown.locations.push(t),
     showTitle: (photo: unknown | null, name = false) => shown.title.push(photo ? name : null),
     credit: (c: { label?: string; name: string } | null, kind = 'cast') => c && shown.credits.push([kind, c.name]),
@@ -28,6 +29,61 @@ function rig() {
 }
 
 describe('main titles', () => {
+  test('story openings precede titles, narration stays in the story, and a later couch visit restores it', async () => {
+    const { stage, director, renderer, overlay } = rig();
+    const log: string[] = [];
+    spies.push(spyOn(speech, 'speak').mockImplementation((line, _p, onStart) => {
+      onStart?.();
+      log.push(`${stage.current.id}: ${line}`);
+      return { done: Promise.resolve() };
+    }));
+    const ep: EpisodeScript = {
+      code: 'S99E01', title: 'Test', logline: 'Test framing.',
+      scenes: [
+        { location: 'maclarens', time: 'night', transition: 'cut', cast: [{ character: 'ted', mark: 'booth_end' }], beats: [
+          { type: 'say', character: 'ted', line: 'The opening.' },
+        ] },
+        { location: 'apartment', time: 'night', transition: 'cut', cast: [{ character: 'ted', mark: 'couch_left' }], beats: [
+          { type: 'narrate', line: 'I was very dignified.' },
+          { type: 'say', character: 'penny', line: 'Really?' },
+          { type: 'narrate', line: 'Mostly.' },
+          { type: 'say', character: 'ted', line: 'Back in the story.' },
+        ] },
+      ],
+    };
+    const player = new Player(stage, director, renderer as never, overlay as never, { line() {} } as never, { next: () => new Promise<ShowItem>(() => {}) });
+    const playback = player as unknown as {
+      play(item: ShowItem): Promise<void>;
+      wait(seconds: number): Promise<void>;
+      animate(seconds: number, update: (u: number) => void): Promise<void>;
+      mainTitles(): Promise<void>;
+    };
+    spies.push(spyOn(playback, 'wait').mockResolvedValue());
+    spies.push(spyOn(playback, 'animate').mockImplementation(async (_s, update) => { update(1); }));
+    spies.push(spyOn(playback, 'mainTitles').mockImplementation(async () => { log.push('titles'); }));
+    const items = episodeItems(ep, 'story');
+    await playback.play(items[0]);
+    expect(log).toEqual(['maclarens: The opening.', 'titles']);
+    await playback.play(items[1]);
+    expect(log).toEqual([
+      'maclarens: The opening.', 'titles', 'apartment: I was very dignified.', 'future: Really?',
+      'future: Mostly.', 'apartment: Back in the story.',
+    ]);
+    expect(stage.markOf('ted')).toBe('couch_left');
+    expect(stage.inCutaway).toBe(false);
+
+    log.length = 0;
+    const kidFirst = { ...ep, couch: [{ type: 'say' as const, character: 'penny' as const, line: 'Tell us.' }] };
+    await playback.play(episodeItems(kidFirst, 'kid')[0]);
+    expect(log).toEqual(['future: Tell us.', 'titles']);
+
+    log.length = 0;
+    const narrated = structuredClone(ep);
+    narrated.scenes[0].beats = [{ type: 'narrate', line: 'That winter.' }];
+    await playback.play(episodeItems(narrated, 'narrated')[0]);
+    expect(log).toEqual(['maclarens: That winter.', 'titles']);
+  });
+
   test('every burst frames its subjects up close, with no scenery in the way', () => {
     const { stage, camera, director, renderer, overlay } = rig();
     const player = new Player(stage, director, renderer as never, overlay as never, { line() {} } as never, { next: () => new Promise<ShowItem>(() => {}) });

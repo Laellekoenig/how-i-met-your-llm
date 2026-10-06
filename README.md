@@ -29,6 +29,9 @@ Episodes are written ahead of time by agents, not live. In Claude Code, run `/wr
 `/write-episodes Barney gets banned from Costco`). It pitches premises, then launches one **episode-writer** agent per
 episode in parallel ([`.claude/agents/episode-writer.md`](.claude/agents/episode-writer.md), which holds the
 story and joke craft guide), and reviews what they write. You can also ask for the `episode-writer` agent directly.
+The [story-structure reference](docs/story-structure-reference.md) documents how the original show varies its
+openings, narration and kids' interruptions. Writers choose the opening, couch placement and ending for each
+story, then compare those choices across a batch. A couch appearance or final Future Ted moral is optional.
 
 The writers' tools, which work just as well by hand:
 
@@ -50,8 +53,9 @@ bun run episodes fmt [file…]       # canonical layout: one beat per line
   `insert`, `cutaway` and `montage`. A `say` can carry a `delivery` (whisper / shout / sing / deadpan / fast / slow),
   be `interrupted`, have a `chorus` saying it with them, and carry listener `react`ions; most beats take a `shot`.
   See [Staging devices](#staging-devices).
-- **The kids** (`src/world/sets/future.ts`): every episode opens on Penny and Luke on the black Chesterfield in Ted's
-  2030 living room while Future Ted narrates the cold open. Penny and Luke never appear in the story: any `say`/`act`
+- **The kids** (`src/world/sets/future.ts`): episodes can open on Penny and Luke on the black Chesterfield in Ted's
+  2030 living room, or directly on the story. They can interrupt later or stay offscreen for the whole episode.
+  Penny and Luke never appear in the story: any `say`/`act`
   beat of theirs hard-cuts to the couch (along with Future Ted's answer) and then straight back to the scene.
 - **The main titles** (`src/show/mainTitles.ts`): a twelve-second edit of six candid bar photographs, with close-ups,
   pairs and the whole gang. The white, loosely stacked serif name appears over the second photo; made-up creators
@@ -64,8 +68,10 @@ bun run episodes fmt [file…]       # canonical layout: one beat per line
   reprise of the original theme. Fictional crew names echo the show's billing; the creator aliases match the opening.
   There is no episode title, number or closing slogan. The cards pause and skip with playback.
   See [the closing-credit references](docs/closing-credits-reference.md).
-- **The episodes** (`episodes/`, `src/script/`): each file holds a title, logline, Future Ted cold open, the kids'
-  reaction, guest stars and 3–4 staged scenes. The show bible (`bible.ts`) holds the characters, catchphrases, every
+- **The episodes** (`episodes/`, `src/script/`): each file holds a title, logline, optional couch opening (`coldOpen`
+  and/or `couch`), guest stars and usually 3–4 staged scenes. Without a couch opening, the first scene plays before
+  the main titles. Ordinary `narrate` beats play over the story; kids' reactions can be placed within scene beats.
+  The show bible (`bible.ts`) holds the characters, catchphrases, every
   set's marks and the stagecraft vocabulary. The validator (`validate.ts`) replays each scene's blocking to check that
   everyone who speaks is on stage, marks exist and aren't double-booked, and that nobody slides through a limo partition.
   The app bundles the files at build time (`catalog.ts`).

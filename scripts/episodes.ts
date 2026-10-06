@@ -113,7 +113,12 @@ function read(ep: EpisodeScript) {
   }
   const out: string[] = [`${ep.code} — ${ep.title}`, ep.logline, ''];
   for (const g of ep.guests ?? []) out.push(`GUEST ${g.id}: ${g.name} — ${g.role}`);
-  out.push('', 'COLD OPEN', `  FUTURE TED: ${ep.coldOpen}`, ...beats(ep.couch ?? [], '  '));
+  const couchOpening = !!ep.coldOpen || !!ep.couch?.length;
+  if (couchOpening) {
+    out.push('', 'COUCH OPENING — 2030');
+    if (ep.coldOpen) out.push(...beats([{ type: 'narrate', line: ep.coldOpen }], '  '));
+    out.push(...beats(ep.couch ?? [], '  '), '', '[MAIN TITLES]');
+  }
   ep.scenes.forEach((s: Scene, i) => {
     const before = { lines, laughs };
     out.push('', `SCENE ${i + 1} — ${s.location}, ${s.time}${s.transition ? ` (${s.transition})` : ''}`);
@@ -121,6 +126,7 @@ function read(ep: EpisodeScript) {
     out.push(`  on stage: ${s.cast.map((c) => `${name(c.character).toLowerCase()} @ ${c.mark}`).join(', ')}`, '');
     out.push(...beats(s.beats, '  '));
     out.push(`  -- ${lines - before.lines} lines, ${laughs - before.laughs} laughs`);
+    if (!couchOpening && i === 0) out.push('', '[MAIN TITLES]');
   });
   out.push('', `TOTAL: ${ep.scenes.length} scenes, ${lines} lines, ${laughs} laughs (${(laughs / Math.max(1, lines)).toFixed(2)} per line)`);
   return out.join('\n');
