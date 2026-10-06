@@ -135,7 +135,7 @@ export const gestureDuration = (g: Motion) => GESTURE_DUR[g] ?? 0;
 const GESTURE_BEATS: Partial<Record<Motion, number[]>> = { slow_clap: [0.22, 0.42, 0.62, 0.82] };
 
 /** Little things people do while they wait their turn. */
-const IDLE_DUR: Record<Idle, number> = { shift: 3.2, glance: 1.4, scratch_head: 1.6, lapels: 1.2, arms_crossed: 4.5, rub_hands: 1.8, hair: 1.4, sip: 2 };
+const IDLE_DUR: Record<Idle, number> = { shift: 3.2, glance: 1.4, scratch_head: 2.4, lapels: 2.2, arms_crossed: 4.5, rub_hands: 2.6, hair: 2.2, sip: 2 };
 
 /** Gestures, plus `give`: holding something out to someone (or reaching to take it). */
 export type Motion = Gesture | 'give';
@@ -243,7 +243,8 @@ export class Actor {
   private jaw = 0;
   private spray: { drops: THREE.Group; vel: Float32Array; t: number } | null = null;
   private blinkT = rand(1, 4);
-  private accent = { t: 0, side: 1, dur: 0, kind: 'open' as Accent, amp: 1 };
+  /** The current talking hand gesture; `gap` is how long the hands rest after it before the next. */
+  private accent = { t: 0, side: 1, dur: 0, gap: 0, kind: 'open' as Accent, amp: 1 };
   private seed = Math.random() * 100;
   private pose = zeroPose();
   private bounce = 0;
@@ -1290,10 +1291,11 @@ export class Actor {
         if (!this.gesture && grip !== 'arms') this.arm(target, grip === 'hand' ? 1 : -1, ARM.shield, 0.9 * this.talkEnv);
       } else {
         this.accent.t -= dt;
-        if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving && grip !== 'arms') {
+        // the hands talk now and then, not on every phrase: a gesture, then a rest in the lap or at the sides
+        if (this.accent.t < -this.accent.gap && !this.gesture && !moving && grip !== 'arms') {
           // a hand holding something stays put
-          const dur = rand(0.7, 1.3);
-          this.accent = { t: dur, dur, side: grip === 'hand' || Math.random() < 0.5 ? 1 : -1, kind: this.accentKind(level), amp: this.accentAmp() };
+          const dur = rand(1.1, 1.7);
+          this.accent = { t: dur, dur, gap: rand(1.6, 4), side: grip === 'hand' || Math.random() < 0.5 ? 1 : -1, kind: this.accentKind(level), amp: this.accentAmp() };
         }
         if (this.accent.t > 0 && !this.gesture) this.applyAccent(target, grip === 'hand', t);
       }
@@ -1317,9 +1319,10 @@ export class Actor {
     // (not in a posed snapshot, like the main titles' photos)
     if (!snap) this.idleT -= dt;
     if (!this.idle && this.idleT < 0) {
-      this.idleT = rand(5, 12);
+      this.idleT = rand(8, 16);
       if (!this.talking && !this.gesture && !moving && this.talkEnv < 0.1) {
-        const pool: Idle[] = ['shift', 'glance', ...(this.def.manner?.idles ?? [])];
+        // mostly just a weight shift or a glance; their habits are the occasional thing
+        const pool: Idle[] = ['shift', 'shift', 'glance', 'glance', ...(this.def.manner?.idles ?? [])];
         if (this.holdingGlass && !this.prop) pool.push('sip', 'sip');
         let kind = pool[Math.floor(Math.random() * pool.length)];
         // sitting, there's no weight to shift; the habits need free hands, and a calm moment (nobody scratches
@@ -1337,7 +1340,7 @@ export class Actor {
       const u = I.t / I.dur;
       if (u >= 1) this.idle = null;
       else {
-        const a = Math.sin(Math.PI * u), hold = Math.min(1, u / 0.2, (1 - u) / 0.2);
+        const a = Math.sin(Math.PI * u), hold = smoothstep(0, 0.3, u) * (1 - smoothstep(0.7, 1, u));
         switch (I.kind) {
           case 'shift':
             this.hips.position.x += I.side * 0.03 * a * (1 - sb);
@@ -1349,7 +1352,7 @@ export class Actor {
             break;
           case 'scratch_head':
             this.arm(target, -1, ARM.scratch, hold);
-            target.rEl += Math.sin(I.t * 18) * 0.12 * hold;
+            target.rEl += Math.sin(I.t * 11) * 0.05 * hold;
             target.head[2] -= 0.1 * hold;
             break;
           case 'hair':
@@ -1358,8 +1361,8 @@ export class Actor {
             break;
           case 'lapels':
             for (const sd of [1, -1]) this.arm(target, sd, ARM.lapels, hold);
-            target.lSh[0] += Math.sin(I.t * 9) * 0.1 * hold;
-            target.rSh[0] += Math.sin(I.t * 9) * 0.1 * hold;
+            target.lSh[0] += Math.sin(I.t * 5) * 0.04 * hold;
+            target.rSh[0] += Math.sin(I.t * 5) * 0.04 * hold;
             target.spine[0] -= 0.05 * hold;
             break;
           case 'arms_crossed':
@@ -1367,8 +1370,8 @@ export class Actor {
             break;
           case 'rub_hands':
             for (const sd of [1, -1]) this.arm(target, sd, ARM.clasp, hold);
-            target.lSh[2] += Math.sin(I.t * 14) * 0.07 * hold;
-            target.rSh[2] += Math.sin(I.t * 14) * 0.07 * hold;
+            target.lSh[2] += Math.sin(I.t * 8) * 0.035 * hold;
+            target.rSh[2] += Math.sin(I.t * 8) * 0.035 * hold;
             break;
           case 'sip':
             break;
@@ -1438,8 +1441,14 @@ export class Actor {
     const mix3 = (a: V3, b: V3) => {
       a[0] += (b[0] - a[0]) * lam; a[1] += (b[1] - a[1]) * lam; a[2] += (b[2] - a[2]) * lam;
     };
-    mix3(p.lSh, target.lSh); mix3(p.rSh, target.rSh); mix3(p.spine, target.spine); mix3(p.head, target.head);
-    p.lEl += (target.lEl - p.lEl) * lam; p.rEl += (target.rEl - p.rEl) * lam;
+    mix3(p.spine, target.spine); mix3(p.head, target.head);
+    // arms ease more softly when they're only talking or idling; gestures and walking keep the snappier rate
+    const armLam = snap ? 1 : damp(this.gesture || moving ? 14 : 8, dt);
+    const mixArm = (a: V3, b: V3) => {
+      a[0] += (b[0] - a[0]) * armLam; a[1] += (b[1] - a[1]) * armLam; a[2] += (b[2] - a[2]) * armLam;
+    };
+    mixArm(p.lSh, target.lSh); mixArm(p.rSh, target.rSh);
+    p.lEl += (target.lEl - p.lEl) * armLam; p.rEl += (target.rEl - p.rEl) * armLam;
     const legLam = snap ? 1 : damp(18, dt);
     p.lHip += (target.lHip - p.lHip) * legLam; p.rHip += (target.rHip - p.rHip) * legLam;
     p.lKnee += (target.lKnee - p.lKnee) * legLam; p.rKnee += (target.rKnee - p.rKnee) * legLam;
@@ -1584,7 +1593,8 @@ export class Actor {
   private applyAccent(T: Pose, handBusy: boolean, t: number) {
     const A = this.accent;
     const p = 1 - A.t / A.dur;
-    const a = Math.sin(p * Math.PI) * this.talkEnv * A.amp;
+    // ease out, hold the shape on the words, ease back
+    const a = smoothstep(0, 0.3, p) * (1 - smoothstep(0.7, 1, p)) * this.talkEnv * A.amp;
     const sd = A.side;
     const sh = sd > 0 ? T.lSh : T.rSh;
     const bend = (v: number) => {
@@ -1593,33 +1603,33 @@ export class Actor {
     };
     switch (A.kind) {
       case 'open':
-        sh[0] -= 0.55 * a; bend(-0.9 * a); sh[2] += sd * 0.1 * a;
+        sh[0] -= 0.35 * a; bend(-0.55 * a); sh[2] += sd * 0.06 * a;
         break;
       case 'big':
         // both hands out, palms up: the pitch
-        T.lSh[0] -= 0.5 * a; T.lSh[2] += 0.3 * a; T.lEl -= 1.0 * a;
-        if (!handBusy) { T.rSh[0] -= 0.5 * a; T.rSh[2] -= 0.3 * a; T.rEl -= 1.0 * a; }
+        T.lSh[0] -= 0.32 * a; T.lSh[2] += 0.18 * a; T.lEl -= 0.65 * a;
+        if (!handBusy) { T.rSh[0] -= 0.32 * a; T.rSh[2] -= 0.18 * a; T.rEl -= 0.65 * a; }
         break;
       case 'finger':
         // "Actually..." one finger up, bobbing on the words
-        this.arm(T, sd, ARM.finger, Math.min(1, 1.3 * a));
-        sh[0] += Math.sin(p * Math.PI * 4) * 0.06 * a;
+        this.arm(T, sd, ARM.finger, 0.85 * a);
+        sh[0] += Math.sin(p * Math.PI * 4) * 0.03 * a;
         break;
       case 'chop': {
         const e = this.talkEnv * A.amp;
         const up = smoothstep(0, 0.35, p) * (1 - smoothstep(0.45, 0.6, p));
         const down = smoothstep(0.45, 0.6, p) * (1 - smoothstep(0.8, 1, p));
-        sh[0] -= (0.95 * up + 0.3 * down) * e; bend(-(1.5 * up + 0.35 * down) * e); sh[2] += sd * 0.1 * up * e;
+        sh[0] -= (0.6 * up + 0.2 * down) * e; bend(-(0.95 * up + 0.25 * down) * e); sh[2] += sd * 0.06 * up * e;
         break;
       }
       case 'neck':
-        this.arm(T, sd, ARM.neck, Math.min(1, 1.2 * a));
+        this.arm(T, sd, ARM.neck, a);
         T.head[0] += 0.08 * a;
         break;
       case 'wring':
         this.arm(T, 1, ARM.clasp, a);
         if (!handBusy) this.arm(T, -1, ARM.clasp, a);
-        T.lSh[2] += Math.sin(t * 9) * 0.06 * a;
+        T.lSh[2] += Math.sin(t * 6) * 0.03 * a;
         break;
     }
   }
