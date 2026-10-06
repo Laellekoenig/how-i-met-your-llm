@@ -1,7 +1,7 @@
 import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'sidewaves' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'swept' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'sidewaves' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
@@ -18,9 +18,10 @@ export interface Look {
   underStripes?: string; // fine vertical dress-shirt stripes
   underPrint?: 'botanical'; // print on the dress beneath a solid jacket
   jacketCut?: 'zip';
-  suitFit?: 'slim';
+  suitFit?: 'slim' | 'regular'; // detailed shirt collar, with optional waist shaping
   blazerFit?: 'fitted';
   underButtons?: string; // contrasting buttons on an open-neck blouse
+  cardigan?: { trim: string; tee?: string }; // open knit cardigan over a collared shirt, with an optional third layer
   collar?: string; // contrast shirt collar (defaults to `under`)
   tie?: string;
   tiePattern?: 'stripes' | 'diamonds' | 'dots';
@@ -54,7 +55,7 @@ export interface Look {
   boots?: boolean;
   pumps?: { toe: string }; // two-tone cap-toe pumps
   eyes?: string;
-  face?: { jaw?: number; chin?: number; long?: number; nose?: number; brow?: number; mouth?: number };
+  face?: { width?: number; jaw?: number; chin?: number; long?: number; nose?: number; brow?: number; mouth?: number };
   extras?: ('cap' | 'mustache' | 'goatee' | 'beard' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass' | 'earrings')[];
 }
 
@@ -129,18 +130,20 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#9be38c',
     main: true,
     look: {
-      // Jason Segel: very tall and big; untucked red flannel over a grey tee, khakis
+      // Jason Segel's promotional portrait: swept-back brown hair, broad jaw and smile;
+      // blue-edged navy cardigan, pale blue open shirt, heather-grey tee (docs/cast-reference.md).
       height: 1.95, build: 1.1, female: false,
-      skin: '#efc4a2', hair: '#5a3a24', hairStyle: 'shaggy', eyes: '#3a2a1c',
-      top: '#8a3328', topStyle: 'flannel', plaid: ['#2e1a16', '#d6b07a'], under: '#8d9299',
-      pants: '#a8916a', shoes: '#4a3424',
-      face: { long: 1.07, jaw: 1.1, nose: 1.1, brow: 1.2 },
+      skin: '#edc2a7', hair: '#443226', hairStyle: 'swept', eyes: '#674635',
+      top: '#29374e', topStyle: 'cardigan', under: '#c5d2e2',
+      cardigan: { trim: '#7188a8', tee: '#85878a' },
+      pants: '#3d414a', shoes: '#49372d',
+      face: { width: 1.09, long: 1.04, jaw: 1.18, chin: 1.25, nose: 1.22, brow: 0.95, mouth: 1.28 },
     },
     // Corporate lawyer at the firm and at GNB: a charcoal suit, white shirt, striped blue tie
     work: {
       at: ['office', 'barneys_office', 'courtroom'],
       look: {
-        top: '#3a3f47', topStyle: 'suit', plaid: undefined, under: '#f2f0ea',
+        top: '#3a3f47', topStyle: 'suit', suitFit: 'regular', cardigan: undefined, under: '#f2f0ea',
         tie: '#2f5a8a', tiePattern: 'stripes', tieAccent: '#c9b27c', pants: '#3a3f47', shoes: '#1e1712',
       },
     },

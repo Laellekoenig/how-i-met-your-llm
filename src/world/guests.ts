@@ -72,12 +72,12 @@ const JACKETS = ['suit', 'blazer', 'cardigan', 'leather', 'hoodie'];
 
 /**
  * Someone's usual look with a costume over it, in the guest-star vocabulary. A new kind of top drops the details
- * that belonged to the old one (Ted's checks, Marshall's plaid, Barney's tailoring); anything not mentioned stays.
+ * that belonged to the old one (Ted's checks, Marshall's layers, Barney's tailoring); anything not mentioned stays.
  */
 export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
   const look: Look = { ...base, extras: [...(base.extras ?? [])] };
   if (c.topStyle && c.topStyle !== base.topStyle) {
-    for (const k of ['plaid', 'underPlaid', 'underStripes', 'underButtons', 'underPrint', 'jacketCut', 'pendant', 'suitFit', 'blazerFit', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
+    for (const k of ['plaid', 'underPlaid', 'underStripes', 'underButtons', 'underPrint', 'jacketCut', 'pendant', 'suitFit', 'blazerFit', 'cardigan', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
     look.topStyle = c.topStyle;
     if (JACKETS.includes(c.topStyle)) look.under ??= '#f2f0ea';
     if (base.topStyle === 'dress') {
@@ -98,6 +98,7 @@ export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
       delete look.skirtPrint;
     }
     delete look.underButtons;
+    if (look.cardigan) look.cardigan = { trim: look.cardigan.trim };
   }
   if (c.tie) {
     look.tie = guestColor(c.tie, '#8a2a30');

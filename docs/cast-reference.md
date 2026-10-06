@@ -21,6 +21,34 @@ undershirt or top style removes the casual shirt's checks.
 All meshes and clothing textures are generated locally. No reference photos are bundled
 or fetched by the app.
 
+## Marshall Eriksen
+
+Marshall's model follows Jason Segel's swept-back brown hair, exposed forehead, short
+sideburns, broad lower face, fuller nose and wide smile. His tall, broad silhouette
+stays on the existing animated rig, including speech, expressions and seated poses.
+
+The casual layers match the [promotional portrait reproduced by Purepeople](https://www.purepeople.com/media/jason-segel-alias-marshall-dans-la_m530915)
+([inspected image](https://static1.purepeople.com/articles/7/70/41/7/@/530915-jason-segel-alias-marshall-dans-la-1200x0-2.jpg)):
+an open navy knit cardigan with ribbed bands and thin blue edging, a pale blue shirt
+with pointed collars and dark buttons, and a heather-gray crew-neck T-shirt. Shirt
+cuffs peek out below the ribbed sleeves. Charcoal trousers and brown shoes complete
+the model; those are complementary choices because the reference is a head-and-torso
+portrait. This replaces the previous generic red flannel and khakis.
+
+His charcoal lawyer's suit, white shirt and striped blue tie still appear at the
+office, GNB and courtroom, or with `"outfit": "work"`. It now has pointed shirt
+collars and a longer tie, while retaining the regular jacket fit. The updated face
+and hair carry across both outfits. Switching top style clears the cardigan details;
+overriding the shirt color removes the gray third layer. Geometry, knit stitches,
+and ribbing are generated locally; the app never downloads the reference photo.
+The booth's central camera is slightly higher so Lily remains visible when the
+taller Marshall sits in front of her, including through his small idle shifts.
+
+Running-app captures: [casual portrait](screenshots/marshall-casual.png),
+[seated dialogue with the TV filter](screenshots/marshall-booth.png),
+[adjusted booth wide](screenshots/marshall-booth-wide.png), and
+[lawyer's suit](screenshots/marshall-work.png).
+
 ## Barney Stinson
 
 Barney's procedural model follows Neil Patrick Harris's short, brushed-up dark-blond

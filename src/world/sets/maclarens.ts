@@ -343,7 +343,8 @@ export function buildMaclarens(): StageSet {
     },
     wides: [
       { pos: v3(0.2, 1.9, 7.4), target: v3(0.4, 1.15, -1.5), fov: 44 },
-      { pos: v3(BX, 1.6, BZ + 4.3), target: v3(BX, 1.05, BZ - 0.6), fov: 44 },
+      // See the inner seats over Marshall's layered shoulders as his idle pose shifts.
+      { pos: v3(BX, 1.8, BZ + 4.3), target: v3(BX, 1.05, BZ - 0.6), fov: 44 },
       { pos: v3(BX + 1.3, 1.45, BZ + 3.1), target: v3(BX - 0.1, 0.98, BZ - 0.5), fov: 42 },
       { pos: v3(1.8, 1.6, 4.0), target: v3(5.0, 1.1, -1.3), fov: 46 },
     ],

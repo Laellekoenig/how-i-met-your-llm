@@ -24,13 +24,14 @@ describe('work wardrobe', () => {
   test('Ted and Marshall suit up at their workplaces and change back everywhere else', () => {
     stage.setLocation('office', 'day');
     expect([style('ted'), style('marshall')]).toEqual(['suit', 'suit']);
-    expect(stage.actors.marshall.def.look.plaid).toBeUndefined();
+    expect(stage.actors.marshall.def.look.cardigan).toBeUndefined();
     stage.setLocation('lecture_hall', 'day');
-    expect([style('ted'), style('marshall')]).toEqual(['suit', 'flannel']);
+    expect([style('ted'), style('marshall')]).toEqual(['suit', 'cardigan']);
     stage.setLocation('barneys_office', 'day');
     expect([style('ted'), style('marshall')]).toEqual(['sweater', 'suit']);
     stage.setLocation('maclarens', 'night');
-    expect([style('ted'), style('marshall')]).toEqual(['sweater', 'flannel']);
+    expect([style('ted'), style('marshall')]).toEqual(['sweater', 'cardigan']);
+    expect(stage.actors.marshall.def.look.cardigan).toEqual(CHARACTERS.marshall.look.cardigan);
     expect(stage.actors.ted.def.look.underPlaid).toBeDefined();
   });
 

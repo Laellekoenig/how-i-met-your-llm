@@ -119,6 +119,31 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
   const taper = (f: number) => 0.5 + 0.5 * smoothstep(0.62, 0.92, f);
   const out: HairParts = { head: [], back: [] };
   switch (style) {
+    case 'swept': {
+      // Marshall's exposed forehead, soft temple recession and brushed-back waves.
+      // The swept ridges are part of one scalp-following shell, including the sideburns.
+      const line = sym([[0, 0.83], [0.35, 0.84], [0.7, 0.875], [0.98, 0.8],
+        [1.15, 0.65], [1.23, 0.44], [1.35, 0.45], [1.49, 0.61],
+        [1.85, 0.52], [2.3, 0.25], [Math.PI, 0.2]]);
+      out.head.push(shell(c, {
+        line: a => line(a) + 0.012 * Math.sin(a * 9) * front(a),
+        thick: (f, a) => {
+          const crown = smoothstep(0.8, 0.94, f);
+          const forelock = crown * (1 - smoothstep(0.96, 1, f));
+          const wave = 0.017 * Math.sin(a * 18 + f * 24) + 0.008 * Math.sin(a * 31 - f * 17);
+          return (0.035 + 0.027 * crown + 0.055 * front(a, 1.1) * forelock + wave * forelock)
+            * taper(f) * (1 - 0.48 * gauss(Math.abs(a), 1.29, 0.13));
+        },
+        edge: a => 0.22 + 0.3 * front(a) - 0.12 * gauss(Math.abs(a), 1.29, 0.13),
+        warp: (f, a, _v, p) => {
+          const sweep = front(a, 1.2) * smoothstep(0.8, 0.94, f) * (1 - smoothstep(0.97, 1, f));
+          p.x -= 0.045 * hh * sweep;
+          p.z -= 0.065 * hh * sweep;
+          p.y += 0.025 * hh * sweep;
+        },
+      }, 64, 26));
+      break;
+    }
     case 'brushed': {
       // Barney's close-cut sides and textured, brushed-up forelock. A shallow
       // off-centre part and swept ridges keep this distinct from a smooth cap.
@@ -236,7 +261,7 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       break;
     case 'shaggy':
     case 'messy':
-      // Marshall: thick, shaggy, over the tops of the ears, with sideburns
+      // Thick, shaggy hair over the tops of the ears, with sideburns.
       out.head.push(shell(c, {
         line: sym([[0, 0.76], [0.5, 0.74], [0.95, 0.64], [1.12, 0.6], [1.22, 0.44], [1.36, 0.44], [1.5, 0.58], [1.85, 0.54], [2.3, 0.2], [Math.PI, 0.12]]),
         thick: (f, a) => 0.075 + 0.022 * Math.sin(a * 9 + f * 11) + 0.035 * top(f) - 0.04 * gauss(Math.abs(a), 1.29, 0.12),
