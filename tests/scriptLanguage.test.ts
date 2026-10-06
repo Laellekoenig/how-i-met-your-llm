@@ -175,7 +175,7 @@ describe('wardrobe and props on stage', () => {
     expect(look('barney')).toMatchObject({ topStyle: 'hoodie', top: '#7a7d82' });
     expect(look('barney').vest).toBeUndefined();
     stage.setLocation('maclarens', 'night');
-    expect(look('ted')).toMatchObject({ topStyle: 'blazer', tweed: true, boots: true });
+    expect(look('ted')).toMatchObject({ topStyle: 'sweater', underPlaid: CHARACTERS.ted.look.underPlaid, boots: true });
     stage.setWardrobe([]);
     stage.setLocation('maclarens', 'night');
     expect(look('ted').boots).toBeUndefined();

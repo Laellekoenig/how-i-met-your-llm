@@ -162,6 +162,11 @@ bump; **The Guest Lecture** Ted's red boots, a slideshow, a fist bump, standing 
 
 ## Recurring cast and wardrobe references
 
+Ted has a tousled dark hairstyle and revised facial proportions, a navy sweater over a
+checked shirt with jeans for everyday scenes, and a charcoal-navy suit with a striped red tie.
+He suits up automatically at the office and lecture hall; `"outfit": "work"` on his cast entry
+selects the suit anywhere. See [Ted's inspected show references](docs/cast-reference.md#ted-mosby).
+
 Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
 Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voices and writer guidance.
 They appear in S10E05–S10E07. See [their inspected references and wardrobe notes](docs/cast-reference.md).

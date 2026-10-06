@@ -119,6 +119,36 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
   const taper = (f: number) => 0.5 + 0.5 * smoothstep(0.62, 0.92, f);
   const out: HairParts = { head: [], back: [] };
   switch (style) {
+    case 'tousled': {
+      // Ted's irregular, lifted waves: short at the ears, full at the crown,
+      // with an off-centre forelock and tapered sideburns (see the S05E01 still).
+      const line = sym([[0, 0.81], [0.45, 0.8], [0.9, 0.73], [1.1, 0.64],
+        [1.22, 0.45], [1.34, 0.44], [1.48, 0.61], [1.85, 0.53], [2.3, 0.25], [Math.PI, 0.18]]);
+      out.head.push(shell(c, {
+        line: a => line(a) - 0.035 * gauss(a, -0.2, 0.3),
+        thick: (f, a) => (0.05 + 0.055 * top(f) + 0.045 * front(a) * smoothstep(0.79, 0.91, f)
+          + 0.016 * Math.sin(a * 8 + f * 19) + 0.01 * Math.cos(a * 13 - f * 11)) * taper(f),
+        edge: a => 0.45 + 0.35 * front(a) - 0.3 * gauss(Math.abs(a), 1.29, 0.14),
+        warp: (f, a, _v, p) => {
+          const lift = front(a, 1.15) * smoothstep(0.82, 0.97, f);
+          p.x -= 0.065 * hh * lift;
+          p.y += 0.015 * hh * lift;
+        },
+      }, 48, 22));
+      // Flattened locks overlap the shell, breaking up its silhouette without
+      // becoming spikes or floating curls. All remain attached to the head rig.
+      for (const [x, y, z, rx, ry, rz, tilt] of [
+        [-0.18, 0.9, 0.19, 0.12, 0.105, 0.145, -0.45],
+        [-0.035, 0.97, 0.16, 0.135, 0.085, 0.15, -0.4],
+        [0.13, 0.92, 0.18, 0.11, 0.11, 0.13, -0.3],
+      ]) {
+        const lock = ellipsoid(rx * hh, ry * hh, rz * hh, 12, 8);
+        lock.rotateZ(tilt);
+        lock.translate(x * hh, y * hh, z * hh);
+        out.head.push(lock);
+      }
+      break;
+    }
     case 'updo': {
       // Victoria's swept, lifted crown and low bun, with a loose curl beside each ear.
       out.head.push(shell(c, {

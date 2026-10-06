@@ -293,8 +293,11 @@ export class Actor {
     const topMat = outer();
     const topDS = outer(DS);
     const topDark = toon(shade(L.top, 0.72), { side: DS });
-    const underMat = toon(L.under ?? L.top);
-    const underDS = toon(L.under ?? L.top, { side: DS });
+    const undershirt = (side?: THREE.Side) => L.underPlaid
+      ? fabric(plaid(L.under ?? L.top, L.underPlaid[0], L.underPlaid[1]), 0.065, side)
+      : toon(L.under ?? L.top, { side });
+    const underMat = undershirt();
+    const underDS = undershirt(DS);
     const collarDS = L.collar ? toon(L.collar, { side: DS }) : underDS;
     const pantsMat = L.jeans ? fabric(denim(L.pants), 0.06) : toon(L.pants);
     const legMat = L.legs ? toon(L.legs) : pantsMat;
@@ -379,7 +382,7 @@ export class Actor {
         const rx = (r.rx + inflate) * (1 - k) + (nr + flare + 0.008) * k;
         const rz = (r.rz + inflate) * (1 - k) + (nr + flare + 0.012) * k;
         p.set(rx * Math.sin(a), y0 + (tl * 0.035 + height) * v, (r.zc * (1 - k) - 0.008 * k) + rz * Math.cos(a));
-      }), mat);
+      }, { uv: mat === underDS && L.underPlaid ? [Math.PI * 2 * nr, tl * 0.035 + height] : undefined }), mat);
     /** Strip down the chest, between angles ±w(y). */
     const placket = (y0: number, y1: number, w: (y: number) => number, inflate: number, mat: THREE.Material) =>
       mesh(surface(6, 8, (u, v, p) => {
@@ -532,7 +535,23 @@ export class Actor {
         } else if (L.neckline === 'turtleneck') {
           add(this.spine, collar(0, 0.007, 0.044 * s, topDS, 0.002));
         } else {
-          if (L.under) shirtCollar(underDS, 0.006, 0.3);
+          if (L.underPlaid) {
+            // A close-fitting shirt collar folded over the crew neck. Keep the
+            // checked fabric near the neck instead of spreading over the shoulders.
+            add(this.spine, mesh(surface(20, 3, (u, v, p) => {
+              const a = 0.3 + u * (Math.PI * 2 - 0.6);
+              p.set((nr + 0.009 * s) * Math.sin(a), tl + (0.002 + v * 0.024) * s,
+                -0.008 * s + (nr + 0.012 * s) * Math.cos(a));
+            }, { uv: [Math.PI * 2 * nr, 0.024 * s] }), underDS));
+            for (const sg of [-1, 1]) {
+              const inner = new THREE.Vector3(sg * 0.016 * s, tl + 0.023 * s, 0.058 * s);
+              const outer = new THREE.Vector3(sg * 0.061 * s, tl + 0.014 * s, 0.03 * s);
+              const point = new THREE.Vector3(sg * 0.064 * s, 0.9 * tl, torso.frontZ(sg * 0.064 * s, 0.9 * tl, E) + 0.01);
+              add(this.spine, mesh(surface(6, 6, (u, v, p) => {
+                p.copy(inner).lerp(outer, u).lerp(point, v);
+              }, { uv: [0.07 * s, 0.08 * s] }), underDS), false);
+            }
+          } else if (L.under) shirtCollar(underDS, 0.006, 0.3);
           add(this.spine, collar(0, 0.006, 0.006 * s, topDark));
         }
         shell(0.006, hem, -0.1 * tl, () => 0, topDark);
@@ -668,7 +687,12 @@ export class Actor {
         ring.rotation.x = Math.PI / 2; add(el, ring, false);
       }
       if (style === 'suit' || style === 'blazer' || (style === 'sweater' && L.under && !L.neckline)) {
-        const cuff = mesh(new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true), underDS, 0, -fore + 0.05, 0);
+        const cuffGeo = new THREE.CylinderGeometry(wr + 0.006, wr + 0.007, 0.022, 12, 1, true);
+        if (L.underPlaid) {
+          const uv = cuffGeo.getAttribute('uv');
+          for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * Math.PI * 2 * (wr + 0.007), uv.getY(i) * 0.022);
+        }
+        const cuff = mesh(cuffGeo, underDS, 0, -fore + 0.05, 0);
         add(el, cuff, false);
       }
       // hand: palm faces the thigh, thumb forward
@@ -708,13 +732,16 @@ export class Actor {
     const F = L.face ?? {};
     const hh = this.headH;
     const hy = hh * (F.long ?? 1);
-    const jaw = F.jaw ?? 1, nose = F.nose ?? 1, brow = F.brow ?? 1;
+    const jaw = F.jaw ?? 1, chin = F.chin ?? 1, nose = F.nose ?? 1, brow = F.brow ?? 1;
     const narrow = L.female ? 0.95 : 1;
     const keys = [
       [0.0, 0.0, 0.0, 0.15], [0.012, 0.075, 0.06, 0.16], [0.05, 0.15, 0.13, 0.15], [0.15, 0.23, 0.24, 0.1],
       [0.32, 0.3, 0.34, 0.035], [0.52, 0.325, 0.395, -0.01], [0.72, 0.32, 0.41, -0.035], [0.88, 0.265, 0.35, -0.05],
       [0.96, 0.17, 0.24, -0.055], [0.995, 0.06, 0.09, -0.055], [1.0, 0, 0, -0.055],
-    ].map(([f, rx, rz, zc]) => [f * hy, rx * hh * narrow * (1 + (jaw - 1) * (1 - smoothstep(0.3, 0.6, f))), rz * hh, zc * hh]);
+    ].map(([f, rx, rz, zc]) => [f * hy,
+      rx * hh * narrow * (1 + (jaw - 1) * (1 - smoothstep(0.3, 0.6, f)))
+        * (1 + (chin - 1) * (1 - smoothstep(0.05, 0.25, f))),
+      rz * hh, zc * hh]);
     const head = new Profile(keys);
     const add = (m: THREE.Mesh, body = false) => {
       this.head.add(m);
@@ -779,6 +806,7 @@ export class Actor {
     // mouth
     const my = fy(0.24);
     const mouth = (this.mouth = new THREE.Group());
+    mouth.scale.x = F.mouth ?? 1;
     mouth.position.set(0, my, fz(0, my) - 0.006 * hh);
     this.head.add(mouth);
     // no lips: a dark line that opens into a mouth, with corners that curl up into a smile or down into a frown
