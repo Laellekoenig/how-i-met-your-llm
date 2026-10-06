@@ -70,8 +70,18 @@ export function buildProp(kind: Prop): THREE.Group {
       break;
     }
     case 'glass': {
-      part(g, cyl(0.036, 0.031, 0.085, 10), toon('#d9902a', { emissive: '#5a3008', emissiveIntensity: 0.6 }), 0, 0.03, 0);
-      part(g, cyl(0.03, 0.03, 0.012, 10), toon('#f2ead8'), 0, 0.075, 0);
+      // A hollow tumbler: the lip touches the mouth, with the drink below the rim.
+      const wall = new THREE.LatheGeometry([
+        new THREE.Vector2(0, -0.032), new THREE.Vector2(0.031, -0.032),
+        new THREE.Vector2(0.038, 0.09), new THREE.Vector2(0.033, 0.09),
+        new THREE.Vector2(0.026, -0.025), new THREE.Vector2(0, -0.025),
+      ], 16);
+      const glass = toon('#dbe9e9', { side: THREE.DoubleSide }).clone();
+      glass.transparent = true; glass.opacity = 0.32; glass.depthWrite = false;
+      part(g, wall, glass);
+      part(g, cyl(0.031, 0.027, 0.065, 16), toon('#c77d24', { emissive: '#5a3008', emissiveIntensity: 0.35 }), 0, 0.009, 0);
+      const rim = part(g, new THREE.TorusGeometry(0.0355, 0.0025, 6, 16), toon('#dbe9e9'), 0, 0.09, 0);
+      rim.rotation.x = Math.PI / 2;
       break;
     }
     case 'flowers': {
