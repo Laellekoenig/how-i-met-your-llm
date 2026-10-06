@@ -178,7 +178,7 @@
         { "type": "say", "character": "kevin", "to": "barney", "line": "Go on.", "delivery": "deadpan" },
         { "type": "say", "character": "barney", "to": "kevin", "line": "Every March I take one hour from every American. How else would I find time for all of this?", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "kevin", "line": "The gym. The tailor. Two dates a night. Eight hours of beauty sleep. Nobody fits that into a normal day.", "laugh": "laugh" },
-        { "type": "say", "character": "barney", "to": "kevin", "line": "But it's over. I'm retiring. You beat me, Kevin. Go home." },
+        { "type": "say", "character": "barney", "to": "kevin", "line": "But it's over. I'm retiring. You beat me, Kevin. Go home.", "emotion": "sad", "gesture": "head_in_hands" },
         { "type": "act", "character": "kevin", "gesture": "stand" },
         { "type": "say", "character": "kevin", "to": "barney", "line": "Barney. What do you do for a living?", "delivery": "slow" },
         { "type": "say", "character": "barney", "to": "kevin", "line": "Please.", "emotion": "smug" },

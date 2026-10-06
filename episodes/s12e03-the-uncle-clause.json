@@ -240,7 +240,7 @@
         { "type": "say", "character": "barney", "to": "marshall", "line": "I don't do true stories.", "emotion": "smug" },
         { "type": "say", "character": "ted", "to": "barney", "line": "We know.", "delivery": "deadpan", "laugh": "laugh", "chorus": ["robin", "lily", "marshall"] },
         { "type": "say", "character": "barney", "to": "marshall", "line": "Counteroffer. A mostly true story." },
-        { "type": "say", "character": "marshall", "to": "barney", "line": "They anticipated that. Ruby says, and I quote, we'll know.", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "They anticipated that. Ruby says, and I quote, we'll know.", "gesture": "air_quotes", "laugh": "chuckle" },
         { "type": "act", "character": "barney", "gesture": "stand" },
         { "type": "say", "character": "barney", "to": "marshall", "line": "Oh, she's good. TV, ice cream, my suit. Five hours of everything, so the one thing she wanted would feel cheap.", "emotion": "surprised", "shot": "push_in" },
         { "type": "say", "character": "barney", "to": "ted", "line": "She's nine, and she ran my own move on me. I've never been prouder or more broke.", "emotion": "happy", "laugh": "laugh" },

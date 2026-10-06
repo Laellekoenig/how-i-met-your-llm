@@ -228,7 +228,7 @@ export class Stage {
     for (const a of Object.values(this.actors)) {
       a.root.visible = false;
       a.place(new THREE.Vector3(0, 0, 0), 0, null);
-      a.emotion = 'neutral';
+      a.resetFace();
       a.holdingGlass = false;
       a.hold(null);
     }
@@ -263,7 +263,7 @@ export class Stage {
     old.hold(null);
     a.root.visible = false;
     a.place(new THREE.Vector3(0, 0, 0), 0, null);
-    a.emotion = 'neutral';
+    a.resetFace();
     a.holdingGlass = a.talking = false;
     a.lookAt = null;
     this.actors[id] = a;

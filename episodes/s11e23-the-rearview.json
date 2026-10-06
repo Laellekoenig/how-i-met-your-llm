@@ -198,7 +198,7 @@
         { "type": "say", "character": "guest1", "to": "guest2", "line": "I'm so sorry about this. I'm never stuck. I always have something at nine-fifteen.", "emotion": "nervous" },
         { "type": "say", "character": "guest2", "to": "guest1", "line": "I cleared my whole night. Ranjit said you've never had a night with nothing after it.", "laugh": "aww", "shot": "push_in" },
         { "type": "say", "character": "guest1", "to": "guest2", "line": "Cancel my nine-fifteen. And my ten. And all my Thursdays.", "emotion": "happy", "laugh": "chuckle" },
-        { "type": "say", "character": "ted", "to": "barney", "line": "Congratulations. You just gave them their how-we-met story.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Congratulations. You just gave them their how-we-met story.", "delivery": "deadpan", "gesture": "slow_clap", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "ted", "line": "I'm going to be in their wedding toast, aren't I?", "emotion": "sad" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Limo, you're going to be the whole toast.", "emotion": "happy", "laugh": "big" }
       ]

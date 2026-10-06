@@ -7,11 +7,13 @@ import { speech, deliveryRate, estimateDuration } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
 import {
   CHARACTER_IDS, KIDS, PAIRED_GESTURES, isKid,
-  type Beat, type CharacterId, type Costume, type CutawayBeat, type CutawayStyle, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind,
+  type Beat, type CharacterId, type Costume, type CutawayBeat, type CutawayStyle, type Emotion, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind,
   type MontageBeat, type Reaction, type Scene, type ShowItem,
 } from '../script/types';
 import { GRIP, PROP_NAME } from '../world/props';
-import { sleep, clamp, pick } from '../util';
+import { sleep, clamp, pick, rand } from '../util';
+import { lipTrack } from '../world/lipsync';
+import { gestureDuration, impliedEmotion } from '../world/actor';
 import { sceneTransition } from './transitions';
 import { BURSTS, GANG, HUDDLE_AT, TITLE_TAIL, type Burst } from './mainTitles';
 import { openingCredits, closingCredits, type CreditCard } from './credits';
@@ -593,7 +595,7 @@ export class Player {
       if (b.shot) this.director.intent(b.shot, who, to);
       else if (to) this.director.twoShot(who, to);
       else this.director.closeup(who);
-      const d = b.gesture ? this.gesture(who, b.gesture, to) : 0;
+      const d = b.gesture ? this.gesture(who, b.gesture, to, 0, b.emotion) : 0;
       // caught at the height of it
       await this.wait(d ? d * 0.45 : 0.4);
       rest = d * 0.55;
@@ -659,9 +661,17 @@ export class Player {
     const who = reactions.filter((r) => isChar(r.character) && r.character !== speaker && st.onStage(r.character));
     if (!who.length) return;
     let longest = 0;
-    for (const r of who) {
-      st.actors[r.character].setEmotion(r.emotion ?? (r.gesture ? undefined : 'surprised'));
-      if (r.gesture) longest = Math.max(longest, this.gesture(r.character, r.gesture, speaker && st.onStage(speaker) ? speaker : undefined));
+    // it lands on the first face at once, and on the others a beat apart
+    for (const [i, r] of who.entries()) {
+      const delay = i ? 0.08 + 0.1 * i + rand(0, 0.08) : 0;
+      const a = st.actors[r.character];
+      const emotion = r.emotion ?? (r.gesture ? undefined : 'surprised');
+      const d = r.gesture ? gestureDuration(r.gesture) : 0;
+      a.later(delay, () => {
+        a.setEmotion(emotion);
+        if (r.gesture) this.gesture(r.character, r.gesture, speaker && st.onStage(speaker) ? speaker : undefined, 0, r.emotion);
+      });
+      longest = Math.max(longest, d + delay);
     }
     this.panel.line('stage', `${groupName(who.map((r) => r.character), st.castIds())} ${who.length > 1 ? 'react' : 'reacts'}.`);
     const toward = speaker && st.onStage(speaker) ? speaker : undefined;
@@ -793,23 +803,30 @@ export class Player {
         const color = chorus.length ? '#ffffff' : def.color;
         this.panel.line('say', delivery && delivery !== 'fast' && delivery !== 'slow' ? `(${delivery}) ${text}` : text, name, color);
         const seconds = estimateDuration(text, def.voice.rate * deliveryRate(delivery));
-        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to, seconds);
+        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to, seconds, b.emotion);
         const level = delivery === 'shout' ? 1.6 : delivery === 'whisper' ? 0.45 : delivery === 'sing' ? 1.2 : 1;
+        // the mouth follows the words: spelled out over the line's length, kept in step by the voice
+        const track = lipTrack(text.replace(/[-–—]+$/, ''), seconds * (b.interrupted ? 0.88 : 1));
+        const listeners = st.onStageIds().filter((id) => !voices.includes(st.actors[id]));
+        for (const id of listeners) st.actors[id].listen(a.emotion);
         const h = speech.speak(text, def.voice, () => {
           for (const v of voices) {
             v.talking = true;
             v.talkLevel = level;
+            v.speak(track);
           }
           this.overlay.showCaption(name, color, text, false, delivery);
           if (delivery === 'sing') audio.serenade(seconds);
-        }, { delivery, cutOff: b.interrupted });
+        }, { delivery, cutOff: b.interrupted, onWord: (i) => voices.forEach((v) => v.syncWord(i)) });
         try {
           await this.race(h.done);
         } finally {
           for (const v of voices) {
             v.talking = false;
             v.talkLevel = 1;
+            v.speak(null);
           }
+          for (const id of listeners) st.actors[id].listen(null);
           if (delivery === 'sing') audio.stopSting();
         }
         this.overlay.hideCaption();
@@ -875,7 +892,7 @@ export class Player {
         } else if (b.shot) this.director.intent(b.shot, b.character, to);
         else if (to) this.director.twoShot(b.character, to);
         else if (Math.random() < 0.6) this.director.closeup(b.character);
-        const d = this.gesture(b.character, b.gesture, to);
+        const d = this.gesture(b.character, b.gesture, to, 0, b.emotion);
         await this.wait(Math.max(0.6, d * 0.85));
         break;
       }
@@ -944,9 +961,13 @@ export class Player {
     }
   }
 
-  /** Start a gesture (with a partner joining in, for the paired ones); `seconds` holds a phone call for a whole line. */
-  private gesture(id: CharacterId, g: Gesture, to?: CharacterId, seconds = 0) {
+  /**
+   * Start a gesture (with a partner joining in, for the paired ones); `seconds` holds a phone call for a whole line.
+   * Some gestures bring their own face (cracking up, sobbing) unless the beat gave an `emotion`.
+   */
+  private gesture(id: CharacterId, g: Gesture, to?: CharacterId, seconds = 0, emotion?: Emotion) {
     const a = this.stage.actors[id];
+    const implied = !emotion && g !== 'sit' && g !== 'stand' ? impliedEmotion(g) : undefined;
     const other = to ? this.stage.actors[to] : undefined;
     if (g === 'sit' || g === 'stand') {
       void (g === 'sit' ? this.stage.sitDown(id) : this.stage.standUp(id));
@@ -965,6 +986,7 @@ export class Player {
       else if (gg === 'fist_bump' && other) audio.bump();
       else if (gg === 'cheers') audio.clink();
       else if (gg === 'spit_take') audio.spray();
+      else if (gg === 'slow_clap') audio.clap();
     };
     const together = other && (g === 'high_five' || g === 'hug' || g === 'cheers' || g === 'kiss' || g === 'fist_bump');
     if (together) {
@@ -972,10 +994,15 @@ export class Player {
       other.lookAt = a.headWorld;
       other.doGesture(g, { partner: true });
     }
-    const held = g === 'phone_call' || g === 'lean_in' || g === 'arms_crossed' ? seconds : 0;
-    return a.doGesture(g, { partner: !!together, dur: held });
+    const held = HELD.includes(g) ? seconds : 0;
+    const d = a.doGesture(g, { partner: !!together, dur: held });
+    if (implied) a.later(d * implied.at, () => a.setEmotion(implied.emotion));
+    return d;
   }
 }
+
+/** Gestures that last as long as the line they're on. */
+const HELD: Gesture[] = ['phone_call', 'lean_in', 'arms_crossed', 'hands_on_hips', 'head_in_hands', 'sob'];
 
 /** Strip stage directions like (laughs) or *sighs* from spoken lines. */
 function clean(s: string) {

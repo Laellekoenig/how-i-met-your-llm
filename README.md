@@ -144,6 +144,13 @@ The show's signature visual gags, all part of the episode file format (`bun run 
 - **Gestures**: on top of the originals, `kiss` (with someone, or blown), `phone_call` (held for the whole line),
   `sit` / `stand` (into the nearest free seat, or up into the aisle), `lean_in`, `jaw_drop`, `fist_bump` and
   `spit_take` (with a spray of droplets).
+- **Expressions**: nineteen emotions (`embarrassed`, `disgusted`, `scared`, `suspicious`, `proud`, `laughing`,
+  `crying` and `drunk` on top of the originals) that show in narrowed or wide eyes, teeth, blushes, flushes and tears, and in
+  the whole body: a slump, a lean, hands on hips, shoulders up round the ears. A look holds a few seconds, then
+  they relax back into their own resting face (Barney's is a smirk). Eyes follow whoever they look at, mouths
+  follow each line's syllables, listeners nod, and everyone has their own talking hands and habits while they
+  wait (Ted's professor finger, Barney's lapels, Robin's crossed arms). Gestures `double_take`, `eye_roll`,
+  `crack_up`, `sob`, `slow_clap`, `hands_on_hips`, `head_in_hands`, `air_quotes`, `fist_pump` and `cover_mouth`.
 - **Wardrobe**: `wardrobe` on an episode (all episode) or a scene (over the episode's), in the guest-star
   vocabulary: top style and colors, tie, waistcoat, pants, shoes, boots, hair and extras. Costumes go over casual
   or work clothes, so Ted's red cowboy boots stay on when he suits up at the lecture hall.

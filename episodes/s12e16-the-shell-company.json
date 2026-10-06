@@ -258,7 +258,7 @@
         { "type": "say", "character": "robin", "to": "lily", "line": "That's actually the job.", "delivery": "deadpan", "emotion": "happy", "laugh": "aww" },
         { "type": "say", "character": "lily", "to": "barney", "line": "And Hazel drew you as the tooth fairy. She wrote, Mister Barney was the only one who listened about my tooth." },
         { "type": "pause", "seconds": 1 },
-        { "type": "say", "character": "barney", "to": "lily", "line": "Nailed it.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Nailed it.", "emotion": "proud", "gesture": "fist_pump", "laugh": "laugh" },
         { "type": "move", "character": "lily", "to": "booth_right_front" },
         { "type": "say", "character": "lily", "to": "ted", "line": "You know, I spend all day with five-year-olds and all night with you guys. Some nights I can't tell the difference.", "laugh": "chuckle" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "But today my kids looked at you and saw a man who loves buildings, a giant who believes, a woman who isn't scared of anything." },

@@ -204,7 +204,7 @@
         { "type": "say", "character": "robin", "to": "ted", "line": "Ted. She is lying about everything.", "delivery": "deadpan" },
         { "type": "say", "character": "ted", "to": "robin", "line": "That's exactly what someone with a crush would say.", "emotion": "smug", "laugh": "chuckle" },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Bigfoot, Ted. My wife. Bigfoot.", "emotion": "sad" },
-        { "type": "say", "character": "marshall", "to": "ted", "line": "I don't even know which one I'm crying about.", "emotion": "sad", "laugh": "big" }
+        { "type": "say", "character": "marshall", "to": "ted", "line": "I don't even know which one I'm crying about.", "emotion": "crying", "gesture": "sob", "laugh": "big" }
       ]
     },
     {
@@ -230,7 +230,7 @@
         { "type": "say", "character": "ted", "to": "barney", "line": "So untrain her." },
         { "type": "say", "character": "barney", "to": "ted", "line": "I can't. I lie to strangers so they never really know me. She's lying to the people who know her best.", "emotion": "sad", "shot": "push_in" },
         { "type": "say", "character": "barney", "to": "marshall", "line": "That's not legendary. That's just lonely.", "emotion": "sad" },
-        { "type": "say", "character": "robin", "to": "barney", "line": "Did you just have a feeling?", "delivery": "deadpan" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Did you just have a feeling?", "delivery": "deadpan", "emotion": "suspicious", "gesture": "double_take" },
         { "type": "say", "character": "barney", "to": "robin", "line": "I'll deny it under oath. Which is why I brought backup.", "emotion": "smug", "laugh": "chuckle" },
         { "type": "enter", "character": "guest1", "to": "water_tower" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Walt Krupnik. She beat me last Tuesday. I've been in therapy since Wednesday.", "delivery": "deadpan", "laugh": "laugh" },
