@@ -316,6 +316,9 @@ export class Actor {
 
     const style = L.topStyle;
     const slimSuit = style === 'suit' && L.suitFit === 'slim';
+    const fittedBlazer = style === 'blazer' && L.blazerFit === 'fitted';
+    const tailored = slimSuit || fittedBlazer;
+    const blouse = style === 'blazer' && !!L.underButtons;
     const jacketed = style === 'suit' || style === 'blazer' || style === 'leather' || style === 'cardigan' || style === 'hoodie' || style === 'denim';
     const untucked = style === 'flannel' || style === 'sweater' || style === 'polo' || style === 'tee' || style === 'hoodie';
     const shortSleeves = style === 'tee' || style === 'polo';
@@ -332,7 +335,7 @@ export class Actor {
       [-0.04 * s, hipR, 0.1 * bz], [0.06 * s, hipR * 0.97, 0.096 * bz], [0.1 * s, hipR * 0.6, 0.07 * bz], [0.11 * s, 0, 0],
     ]);
     add(this.hips, mesh(pelvis.geometry({ seg: 20, rows: 14, e: 0.9, uv: [0.9, 0.3] }), L.skirt ? legMat : pantsMat));
-    if (!untucked && !L.skirt && style !== 'suit' && style !== 'cardigan')
+    if (!untucked && !L.skirt && !blouse && style !== 'suit' && style !== 'cardigan')
       add(this.hips, mesh(pelvis.geometry({ seg: 20, rows: 2, e: 0.9, y: [0.025 * s, 0.06 * s], inflate: 0.006 }), toon('#2a1f18')));
 
     const hx = (fem ? 0.088 : 0.085) * bx;
@@ -344,7 +347,12 @@ export class Actor {
       add(hip, mesh(limb(0.082 * bx, 0.056 * ba, thigh, { bulge: 0.006, bulgeAt: 0.3, uv: true }), legMat));
       knee.position.y = -thigh;
       hip.add(knee);
-      add(knee, mesh(limb(0.056 * ba, 0.04 * s, shin - 0.075 * s, { bulge: 0.009 * ba, bulgeAt: 0.3, uv: true }), L.boots ? shoeMat : legMat));
+      const cuffed = L.jeans && L.cuffedJeans && !L.boots;
+      add(knee, mesh(limb(0.056 * ba, 0.04 * s, shin - (cuffed ? 0.14 : 0.075) * s, { bulge: 0.009 * ba, bulgeAt: 0.3, uv: true }), L.boots ? shoeMat : legMat));
+      if (cuffed) {
+        add(knee, mesh(new THREE.CylinderGeometry(0.038 * s, 0.032 * s, 0.125 * s, 12), skin, 0, -shin + 0.09 * s, 0));
+        add(knee, mesh(new THREE.CylinderGeometry(0.047 * s, 0.047 * s, 0.034 * s, 14), toon(shade(L.pants, 1.55)), 0, -shin + 0.145 * s, 0));
+      }
       if (L.boots) {
         const rim = mesh(new THREE.TorusGeometry(0.058 * ba, 0.008, 6, 14), soleMat, 0, -0.07, 0);
         rim.rotation.x = Math.PI / 2;
@@ -354,9 +362,32 @@ export class Actor {
       const foot = new THREE.Group();
       foot.position.y = -shin;
       knee.add(foot);
-      const flat = fem && !L.boots;
-      add(foot, mesh(ellipsoid(0.046 * s, (flat ? 0.03 : 0.042) * s, 0.122 * s), shoeMat, 0, (flat ? 0.028 : 0.04) * s, 0.045 * s));
-      add(foot, mesh(ellipsoid(0.05 * s, 0.013 * s, 0.128 * s), soleMat, 0, 0.011, 0.045 * s), false);
+      if (L.pumps && !L.boots) {
+        const toeMat = toon(L.pumps.toe, { side: DS });
+        add(foot, mesh(ellipsoid(0.038 * s, 0.029 * s, 0.092 * s), skin, 0, 0.057 * s, 0.015 * s));
+        const pump = (u: number, v: number, p: THREE.Vector3) => {
+          const a = u * Math.PI * 2, front = Math.max(0, Math.cos(a));
+          const z = (0.036 + 0.116 * Math.cos(a)) * s;
+          const width = (0.043 - 0.014 * front ** 3) * s;
+          const soleY = (0.014 + 0.037 * (1 - front)) * s;
+          const rimY = (0.044 + 0.043 * (1 - front)) * s;
+          p.set(Math.sin(a) * width * (1 - 0.18 * v), lerp(soleY, rimY, v), z);
+        };
+        add(foot, mesh(surface(32, 6, pump), toon(L.shoes, { side: DS })));
+        // The dark patent cap closes the pointed toe; the cream sides stay open.
+        add(foot, mesh(surface(16, 8, (u, v, p) => {
+          const a = -Math.PI / 2 + u * Math.PI;
+          const z = (0.09 + 0.063 * v) * s;
+          const width = 0.041 * s * Math.sqrt(1 - v * v);
+          p.set(Math.sin(a) * width, (0.014 + 0.035 * Math.cos(a)) * s, z);
+        }), toeMat));
+        add(foot, mesh(ellipsoid(0.043 * s, 0.007 * s, 0.108 * s), soleMat, 0, 0.018 * s, 0.04 * s), false);
+        add(foot, mesh(new THREE.CylinderGeometry(0.011 * s, 0.007 * s, 0.057 * s, 8), toeMat, 0, 0.03 * s, -0.054 * s), false);
+      } else {
+        const flat = fem && !L.boots;
+        add(foot, mesh(ellipsoid(0.046 * s, (flat ? 0.03 : 0.042) * s, 0.122 * s), shoeMat, 0, (flat ? 0.028 : 0.04) * s, 0.045 * s));
+        add(foot, mesh(ellipsoid(0.05 * s, 0.013 * s, 0.128 * s), soleMat, 0, 0.011, 0.045 * s), false);
+      }
     }
 
     // ---- torso
@@ -373,14 +404,17 @@ export class Actor {
         k[2] = Math.max(k[2], 0.104 * bz);
       }
     }
-    const torso = new Profile(T);
+    // An untucked blouse clears the separate animated pelvis at the waist.
+    const torsoKeys = T.map(([y, rx, rz, zc]) => blouse && y < 0.2 * tl
+      ? [y, Math.max(rx, hipR + 0.007 * s), Math.max(rz, 0.112 * bz), zc] : [y, rx, rz, zc]);
+    const torso = new Profile(torsoKeys);
     // A slim suit follows the waist; the regular jacket hangs from the chest.
     const chestY = 0.66 * tl, chest = torso.at(chestY);
-    const drape = new Profile(T.map(([y, rx, rz, zc]) => y >= chestY ? [y, rx, rz, zc]
-      : slimSuit ? [y, rx * (1 - 0.04 * Math.sin(Math.PI * clamp(y / chestY, 0, 1))), rz, zc]
+    const drape = new Profile(torsoKeys.map(([y, rx, rz, zc]) => y >= chestY ? [y, rx, rz, zc]
+      : tailored ? [y, rx * (1 - 0.04 * Math.sin(Math.PI * clamp(y / chestY, 0, 1))), rz, zc]
       : [y, Math.max(rx, 0.97 * chest.rx), Math.max(rz, chest.rz), chest.zc]));
     const circ = Math.PI * 2 * 0.16 * bx;
-    const hem = untucked ? -0.17 * tl : L.skirt ? -0.04 * tl : 0.07 * s;
+    const hem = untucked || blouse ? -0.17 * tl : L.skirt ? -0.04 * tl : 0.07 * s;
     add(this.spine, mesh(torso.geometry({ seg: 26, rows: 20, e: E, y: [hem, torso.yMax], uv: [circ, tl] }), jacketed ? underMat : topMat));
 
     const nr = (fem ? 0.044 : 0.052) * s * Math.sqrt(b);
@@ -412,7 +446,7 @@ export class Actor {
     };
 
     const shirtCollar = (mat: THREE.Material, inflate: number, open = 0.3) => {
-      if (slimSuit) {
+      if (tailored) {
         add(this.spine, mesh(surface(24, 3, (u, v, p) => {
           const a = open + u * (Math.PI * 2 - 2 * open);
           p.set((nr + 0.008 * s) * Math.sin(a), tl + (0.003 + v * 0.021) * s,
@@ -420,10 +454,11 @@ export class Actor {
         }, { uv: [Math.PI * 2 * nr, 0.021 * s] }), mat));
       } else add(this.spine, collar(open, inflate, 0.02 * s, mat));
       for (const sg of [1, -1]) {
-        if (slimSuit) {
-          const inner = onTorso(0.99 * tl, sg * 0.15, inflate + 0.006);
-          const outer = onTorso(0.97 * tl, sg * 0.65, inflate + 0.006);
-          const point = onTorso(0.87 * tl, sg * 0.33, inflate + 0.009);
+        if (tailored) {
+          const fold = blouse ? 0.014 : 0;
+          const inner = onTorso(0.99 * tl, sg * (blouse ? 0.25 : 0.15), inflate + 0.006 + fold);
+          const outer = onTorso(0.97 * tl, sg * (blouse ? 0.55 : 0.65), inflate + 0.006 + fold);
+          const point = onTorso((blouse ? 0.9 : 0.87) * tl, sg * 0.33, inflate + 0.009 + fold);
           add(this.spine, mesh(surface(6, 6, (u, v, p) => {
             p.copy(inner).lerp(outer, u).lerp(point, v);
           }, { uv: [0.05 * s, 0.07 * s] }), mat), false);
@@ -500,14 +535,26 @@ export class Actor {
         break;
       }
       case 'blazer': {
-        shirtCollar(underDS, 0.004, 0.28);
-        add(this.spine, placket(0.84 * tl, 0.99 * tl, (y) => 0.2 * ramp(0.84 * tl, 0.99 * tl, y), 0.002, skin), false);
+        shirtCollar(underDS, 0.004, blouse ? 0.4 : 0.28);
+        const neckY = (blouse ? 0.89 : 0.84) * tl;
+        add(this.spine, placket(neckY, (blouse ? 1.025 : 0.99) * tl, (y) => (blouse ? 0.33 : 0.2) * ramp(neckY, 0.99 * tl, y), 0.002, skin), false);
+        if (blouse) {
+          add(this.spine, placket(-0.16 * tl, neckY, () => 0.075, 0.004, toon(shade(L.under!, 0.91), { side: DS })), false);
+          buttons([-0.09, 0.1, 0.29, 0.48, 0.67, 0.86].map(y => y * tl), 0.009, toon(L.underButtons!));
+        }
         const vTop = nr + 0.016 * s;
-        const open = byWidth(drape, 0.015, (y) => lerp(0.03 * s, vTop, ramp(0.4 * tl, 0.97 * tl, y)));
+        const open = byWidth(drape, 0.015, (y) => fittedBlazer
+          ? lerp(0.048 * s, vTop, ramp(0.32 * tl, 0.97 * tl, y)) + 0.013 * s * smoothstep(0.18 * tl, -0.22 * tl, y)
+          : lerp(0.03 * s, vTop, ramp(0.4 * tl, 0.97 * tl, y)));
         shell(0.015, -0.22 * tl, drape.yMax, open, topDS, drape);
-        lapels(0.015, open, 0.4 * tl, 0.3, toon(shade(L.top, 0.78), { side: DS }), drape);
+        lapels(0.015, open, (fittedBlazer ? 0.32 : 0.4) * tl, fittedBlazer ? 0.25 : 0.3, toon(shade(L.top, fittedBlazer ? 1.18 : 0.78), { side: DS }), drape);
         add(this.spine, collar(collarOpen(vTop, 0.017), 0.017, 0.012 * s, topDS, 0.02));
-        if (L.extras?.includes('brass')) {
+        if (fittedBlazer) {
+          buttons([0.24 * tl], 0.025, dark, 0.52, drape);
+          for (const sg of [-1, 1]) add(this.spine, mesh(surface(8, 2, (u, v, p) => {
+            drape.point((0.13 + v * 0.025 + u * 0.045) * tl, sg * (0.69 + u * 0.43), p, 0.023, E);
+          }), topDark), false);
+        } else if (L.extras?.includes('brass')) {
           // double-breasted yachting blazer: two rows of gold buttons
           const brass = toon('#d4a83a', { emissive: '#3a2a08', emissiveIntensity: 0.5 });
           for (const a of [0.3, -0.3]) buttons([0.2 * tl, 0.3 * tl, 0.4 * tl], 0.02, brass, a, drape);

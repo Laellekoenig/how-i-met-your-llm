@@ -174,6 +174,10 @@ checked shirt with jeans for everyday scenes, and a charcoal-navy suit with a st
 He suits up automatically at the office and lecture hall; `"outfit": "work"` on his cast entry
 selects the suit anywhere. See [Ted's inspected show references](docs/cast-reference.md#ted-mosby).
 
+Robin wears the fitted black blazer, white buttoned blouse, cuffed dark jeans and
+two-tone pumps from “The Locket,” with shoulder-length side-parted waves and revised
+facial proportions. See [Robin's inspected outfit reference](docs/cast-reference.md#robin-scherbatsky).
+
 Loretta Stinson, Mickey Aldrin, Hammond Druthers, Stella Zinman, Zoey Pierson, Nora, Virginia Mosby,
 Punchy and Robin Sparkles are also fully cast, with characteristic clothing, voices and writer guidance.
 They appear in S10E05–S10E07. See [their inspected references and wardrobe notes](docs/cast-reference.md).

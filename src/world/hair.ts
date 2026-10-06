@@ -345,8 +345,57 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       }
       break;
     }
+    case 'sidewaves': {
+      // Robin's S09 shoulder-length cut: a deep side part, swept forehead,
+      // and separate loose S-waves. Everything moves with the animated head.
+      // One continuous surface from crown to tips avoids a cap/drape seam in reverses.
+      const line = sym([[0, 0.83], [0.55, 0.8], [0.9, 0.7], [1.07, 0.48],
+        [1.25, -0.31], [1.55, -0.36], [Math.PI, -0.38]]);
+      const center = new THREE.Vector3(0, 0.5 * hh, c.head.at(0.5 * hh).zc);
+      const dir = new THREE.Vector3();
+      out.head.push(surface(64, 36, (u, v, p) => {
+        const a = -Math.PI + u * Math.PI * 2;
+        const low = line(a) - 0.105 * gauss(a, -0.32, 0.48) + 0.025 * gauss(a, 0.5, 0.13);
+        const f = low + (1 - low) * (1 - (1 - v) ** 1.3);
+        c.head.point(Math.max(0.5, f) * hh, a, p);
+        dir.copy(p).sub(center).normalize();
+        const crown = smoothstep(0.93, 1, f), below = smoothstep(0.55, -0.3, f);
+        const detail = (0.065 + 0.025 * top(f) + 0.04 * gauss(a, -0.45, 0.65)
+          + 0.01 * Math.sin(a * 14 + f * 16)) * (1 - 0.6 * gauss(a, 0.5, 0.065));
+        const thickness = detail * (1 - crown) + 0.09 * crown + 0.09 * below
+          + 0.032 * Math.sin(a * 11 + f * 10) * below;
+        p.addScaledVector(dir, thickness * hh);
+        if (f < 0.5) p.y = f * hh + 0.04 * hh * Math.sin(a * 7) * smoothstep(0.1, -0.38, f);
+        p.z -= 0.035 * hh * below;
+        p.x -= 0.045 * hh * front(a, 1.1) * smoothstep(0.77, 0.9, f) * (1 - crown);
+      }, { closed: true }));
+      // Face-framing locks sweep out at cheek level and curl in at the shoulders.
+      for (const sg of [-1, 1]) for (let strand = 0; strand < 3; strand++) {
+        const points: THREE.Vector3[] = [];
+        for (let i = 0; i <= 14; i++) {
+          const t = i / 14;
+          const x = sg * (0.28 + smoothstep(0, 0.2, t) * (strand * 0.038 + 0.08 * Math.sin(t * Math.PI)
+            + 0.055 * Math.sin(t * 9 + strand * 0.6)));
+          points.push(new THREE.Vector3(x * hh, (0.78 - t * (1.12 - strand * 0.035)) * hh,
+            (0.19 - strand * 0.055 - 0.12 * t + 0.035 * Math.sin(t * 10)) * hh));
+        }
+        const path = new THREE.CatmullRomCurve3(points);
+        const lock = new THREE.TubeGeometry(path, 24,
+          (strand === 0 ? 0.052 : 0.043) * hh, 7, false);
+        const vertices = lock.getAttribute('position');
+        for (let i = 0; i < vertices.count; i++) {
+          const t = Math.floor(i / 8) / 24, center = path.getPointAt(t);
+          const taper = 0.1 + 0.9 * smoothstep(0, 0.16, t) * (1 - smoothstep(0.84, 1, t));
+          vertices.setXYZ(i, center.x + (vertices.getX(i) - center.x) * taper,
+            center.y + (vertices.getY(i) - center.y) * taper, center.z + (vertices.getZ(i) - center.z) * taper);
+        }
+        lock.computeVertexNormals();
+        out.head.push(lock);
+      }
+      break;
+    }
     case 'long': {
-      // Robin: long, dark, loose waves, parted slightly off-centre
+      // Long, dark, loose waves, parted slightly off-centre
       const line = sym([[0, 0.8], [0.6, 0.77], [1.0, 0.64], [1.5, 0.54], [Math.PI, 0.46]]);
       out.head.push(shell(c, {
         line,

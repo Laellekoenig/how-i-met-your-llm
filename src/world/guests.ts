@@ -77,7 +77,7 @@ const JACKETS = ['suit', 'blazer', 'cardigan', 'leather', 'hoodie'];
 export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
   const look: Look = { ...base, extras: [...(base.extras ?? [])] };
   if (c.topStyle && c.topStyle !== base.topStyle) {
-    for (const k of ['plaid', 'underPlaid', 'underStripes', 'underPrint', 'jacketCut', 'pendant', 'suitFit', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
+    for (const k of ['plaid', 'underPlaid', 'underStripes', 'underButtons', 'underPrint', 'jacketCut', 'pendant', 'suitFit', 'blazerFit', 'tweed', 'neckline', 'collar', 'vest', 'tie', 'tiePattern', 'tieAccent'] as const) delete look[k];
     look.topStyle = c.topStyle;
     if (JACKETS.includes(c.topStyle)) look.under ??= '#f2f0ea';
     if (base.topStyle === 'dress') {
@@ -97,6 +97,7 @@ export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
       look.skirt = look.under;
       delete look.skirtPrint;
     }
+    delete look.underButtons;
   }
   if (c.tie) {
     look.tie = guestColor(c.tie, '#8a2a30');
@@ -109,16 +110,19 @@ export function costumeLook(base: Look, c: Omit<Costume, 'character'>): Look {
     look.skirt = look.top;
     look.pants = look.legs = look.skin;
     look.jeans = false;
+    delete look.cuffedJeans;
   } else if (c.pants || (c.topStyle === 'suit' && base.topStyle !== 'suit')) {
     // a suit comes with its trousers; new trousers replace a skirt
     look.pants = c.pants ? guestColor(c.pants, look.pants) : look.top;
     look.jeans = c.pants === 'denim';
+    delete look.cuffedJeans;
     delete look.skirt;
     delete look.skirtPrint;
     delete look.legs;
   }
   if (c.shoes) look.shoes = guestColor(c.shoes, look.shoes);
   if (c.boots !== undefined) look.boots = c.boots;
+  if (c.shoes || c.boots !== undefined) delete look.pumps;
   if (c.hairStyle) look.hairStyle = c.hairStyle;
   for (const e of c.extras ?? []) if (!look.extras!.includes(e)) look.extras!.push(e);
   if (c.extras?.includes('apron')) look.apron ??= { bib: true };
