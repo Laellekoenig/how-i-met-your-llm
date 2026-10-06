@@ -65,6 +65,27 @@ print. An explicit undershirt color clears the matching dress print; trouser or 
 costumes remove the skirt, and a different top style clears the jacket details and
 pendant. Reference photos are neither bundled nor fetched by the app.
 
+## Robin Scherbatsky
+
+Robin's model follows Cobie Smulders's shoulder-length chestnut waves in Season 9:
+an off-centre part, swept hairline, loose face-framing curls, blue-green eyes,
+defined jaw, stronger brows and a wider mouth. The shorter hair moves with her head,
+including during dialogue, head turns and seated gestures.
+
+Her everyday outfit matches the CBS still from **“The Locket” (S09E01)** catalogued by
+[WornOnTV](https://wornontv.net/19310/)
+([inspected full outfit](https://wornontv.net/uploads/2013/09/robins-black-blazer-white-shirt-capped-heels.jpg)):
+a fitted black Helmut Lang Gala blazer over an untucked ivory-white blouse with
+contrasting dark buttons, ink-dark skinny jeans with rolled cuffs, and cream pumps
+with black toe caps, based on the listed Saint Laurent shoes. The procedural jacket
+has narrow lapels, angled pocket welts and one button; the blouse has a folded open
+collar, visible placket and white cuffs. Bare ankles separate the jeans from the heels.
+
+This is her default look in every location. Costume overrides clear garment-specific
+details when the blouse, jacket, trousers or shoes are replaced. Robin Sparkles keeps
+her separate flashback wardrobe. Geometry is generated locally; the reference photo
+is not bundled or fetched by the app.
+
 ## Returning cast
 
 Nine new recurring cast IDs: `loretta`, `mickey`, `hammond`, `stella`, `zoey`, `nora`,

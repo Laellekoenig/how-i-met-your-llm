@@ -1,7 +1,7 @@
 import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'sidewaves' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
@@ -19,6 +19,8 @@ export interface Look {
   underPrint?: 'botanical'; // print on the dress beneath a solid jacket
   jacketCut?: 'zip';
   suitFit?: 'slim';
+  blazerFit?: 'fitted';
+  underButtons?: string; // contrasting buttons on an open-neck blouse
   collar?: string; // contrast shirt collar (defaults to `under`)
   tie?: string;
   tiePattern?: 'stripes' | 'diamonds' | 'dots';
@@ -44,11 +46,13 @@ export interface Look {
   socks?: string;
   pants: string;
   jeans?: boolean;
+  cuffedJeans?: boolean;
   skirt?: string; // knee-length skirt (worn over `legs`)
   skirtPrint?: 'botanical';
   legs?: string; // tights
   shoes: string;
   boots?: boolean;
+  pumps?: { toe: string }; // two-tone cap-toe pumps
   eyes?: string;
   face?: { jaw?: number; chin?: number; long?: number; nose?: number; brow?: number; mouth?: number };
   extras?: ('cap' | 'mustache' | 'goatee' | 'beard' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass' | 'earrings')[];
@@ -168,12 +172,13 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#ffc46b',
     main: true,
     look: {
-      // Cobie Smulders: tall; long dark waves, brown leather jacket, blue top, skinny jeans, boots
-      height: 1.74, build: 0.94, female: true,
-      skin: '#f2c8a8', hair: '#3a2417', hairStyle: 'long', eyes: '#4a3a2a',
-      top: '#5a3420', topStyle: 'leather', under: '#3f6fb0',
-      pants: '#252c3e', jeans: true, shoes: '#2a1c14', boots: true,
-      face: { jaw: 0.95, long: 1.02, nose: 0.9 },
+      // "The Locket" (S09E01): fitted black blazer, white buttoned blouse,
+      // cuffed ink-dark jeans and cream/black cap-toe pumps. See docs/cast-reference.md.
+      height: 1.75, build: 0.92, female: true,
+      skin: '#efc6ae', hair: '#38291f', hairStyle: 'sidewaves', eyes: '#698d94',
+      top: '#202329', topStyle: 'blazer', blazerFit: 'fitted', under: '#f4f1e9', underButtons: '#27282d',
+      pants: '#20232e', jeans: true, cuffedJeans: true, shoes: '#d9c5a7', pumps: { toe: '#191a20' },
+      face: { jaw: 1.04, chin: 1.12, long: 1.04, nose: 1.02, brow: 1.18, mouth: 1.14 },
     },
     voice: { gender: 'female', pitch: 0.96, rate: 1.02 },
     manner: { rest: { emotion: 'bored', amount: 0.2 }, talk: 'chop', idles: ['arms_crossed', 'hair'] },
