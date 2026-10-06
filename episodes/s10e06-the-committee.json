@@ -48,7 +48,7 @@
         { "character": "barney", "mark": "booth_right_front" }
       ],
       "beats": [
-        { "type": "say", "character": "zoey", "line": "Benefit sold out. We saved the community garden.", "emotion": "excited", "laugh": "applause" },
+        { "type": "say", "character": "zoey", "line": "Benefit sold out. We saved the community garden.", "emotion": "excited" },
         { "type": "say", "character": "stella", "line": "And I made soccer. Lucy scored twice. I only negotiated one goal.", "emotion": "happy", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "nora", "line": "Nora, I have matured. I donated anonymously.", "emotion": "smug" },
         { "type": "say", "character": "nora", "to": "barney", "line": "The receipt says Anonymous Stinson.", "delivery": "deadpan", "laugh": "laugh" },

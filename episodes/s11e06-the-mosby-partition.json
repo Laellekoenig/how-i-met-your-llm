@@ -233,7 +233,7 @@
         { "type": "say", "character": "marshall", "to": "ted", "line": "It only locked from your side, Ted.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "So. Not minute one.", "emotion": "happy" },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Three in the morning, day nine." },
-        { "type": "say", "character": "ted", "to": "marshall", "line": "Best friends from day nine!", "emotion": "excited", "gesture": "fist_bump", "laugh": "woo", "chorus": ["marshall"] },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "Best friends from day nine!", "emotion": "excited", "gesture": "fist_bump", "laugh": "laugh", "chorus": ["marshall"] },
         { "type": "say", "character": "robin", "to": "barney", "line": "Great. Now the story has a third act.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Ted. There's just one thing left to do.", "emotion": "happy" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "Marshall, no.", "emotion": "nervous" },

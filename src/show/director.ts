@@ -3,7 +3,7 @@ import type { Stage } from './stage';
 import type { Actor } from '../world/actor';
 import type { EstablishingShot } from '../world/sets/establishing';
 import type { CharacterId, ShotIntent } from '../script/types';
-import { damp } from '../util';
+import { damp, mulberry32 } from '../util';
 
 type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing' | 'selfie';
 
@@ -38,8 +38,24 @@ export class Director {
   onCut: (() => void) | null = null;
   /** A freeze frame: the camera holds dead still, even mid-dolly. */
   held = false;
+  /** Coverage choices are seeded per beat, so a replayed beat is framed the way it was the first time. */
+  private rng: () => number = Math.random;
 
   constructor(private camera: THREE.PerspectiveCamera, private stage: Stage) {}
+
+  reseed(seed: number) {
+    this.rng = mulberry32(seed);
+  }
+
+  /** The next coverage coin toss. */
+  random() {
+    return this.rng();
+  }
+
+  /** The lens as the current shot has it, to hold on to (a split-screen panel). */
+  snapshot() {
+    return this.camera.clone();
+  }
 
   private cut(s: ActiveShot) {
     s.followRoot = s.follow?.root.getWorldPosition(new THREE.Vector3());
@@ -302,9 +318,9 @@ export class Director {
   onLine(speaker: CharacterId, to?: CharacterId) {
     const s = this.shot;
     const since = this.time - this.lastCut;
-    if (s && s.subject === speaker && s.kind !== 'wide' && Math.random() < 0.65) return;
+    if (s && s.subject === speaker && s.kind !== 'wide' && this.rng() < 0.65) return;
     if (s && s.subject === speaker && since < 2.5) return;
-    const r = Math.random();
+    const r = this.rng();
     const listener = to && to !== speaker && this.stage.onStage(to) ? to : undefined;
     const crowd = this.stage.castIds().length;
     if (listener) {
@@ -322,7 +338,7 @@ export class Director {
   onCouchLine(speaker: CharacterId) {
     const s = this.shot;
     if (s?.kind === 'closeup' && s.subject === speaker) return;
-    if (Math.random() < 0.3) this.closeup(speaker);
+    if (this.rng() < 0.3) this.closeup(speaker);
     else if (s?.kind !== 'wide') this.wide(0);
   }
 

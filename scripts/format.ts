@@ -8,7 +8,9 @@ export function formatEpisode(value: unknown): string {
   return format(value, '') + '\n';
 }
 
-const isBeat = (v: object) => 'type' in v && (v as { type: unknown }).type !== 'cutaway';
+/** Beats that hold other beats (a cutaway, a replay's changes, a split screen) open up like a scene. */
+const NESTING = ['cutaway', 'replay', 'split'];
+const isBeat = (v: object) => 'type' in v && !NESTING.includes(String((v as { type: unknown }).type));
 
 function format(value: unknown, indent: string): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);

@@ -7,7 +7,7 @@ import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
 import { EPISODES } from './helpers/episodes';
-import type { Costume, CutawayBeat, MontageBeat } from '../src/script/types';
+import type { Beat, Costume, Scene } from '../src/script/types';
 
 const stage = testStage();
 const camera = new THREE.PerspectiveCamera(45, 16 / 9, 0.05, 60);
@@ -134,13 +134,21 @@ describe('current set navigation', () => {
   });
 });
 
-// Every scene, cutaway and montage shot, in the clothes it's played in.
+/** Every set a scene's beats cut away to: cutaways (and the ones inside them), montage shots, split-screen panels. */
+const elsewhere = (beats: Beat[]): (Pick<Scene, 'location' | 'time' | 'cast' | 'wardrobe'> & { kind: string })[] => beats.flatMap((b) => {
+  if (b.type === 'cutaway') return [{ ...b, kind: `${b.style} cutaway` }, ...elsewhere(b.beats)];
+  if (b.type === 'montage') return b.shots.map((s, k) => ({ ...s, kind: `montage shot ${k + 1}` }));
+  if (b.type === 'split') return b.panels.map((p, k) => ({ ...p, kind: `split panel ${k + 1}` }));
+  return [];
+});
+
+// Every scene, cutaway, montage shot and split panel, in the clothes it's played in. (A resumed scene starts from
+// wherever its strand left everyone, so it has no cast of its own to frame.)
 const rerunScenes = EPISODES.flatMap((ep) => ep.scenes.flatMap((scene, i) => {
   const wardrobe: Costume[] = [...(ep.wardrobe ?? []), ...(scene.wardrobe ?? [])];
   return [
-    { ...scene, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` },
-    ...scene.beats.filter((b): b is CutawayBeat => b.type === 'cutaway').map((c) => ({ ...c, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${c.style} cutaway at ${c.location}` })),
-    ...scene.beats.filter((b): b is MontageBeat => b.type === 'montage').flatMap((m) => m.shots.map((s, k) => ({ ...s, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: montage shot ${k + 1} at ${s.location}` }))),
+    ...(scene.resume ? [] : [{ ...scene, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` }]),
+    ...elsewhere(scene.beats).map((c) => ({ ...c, guests: ep.guests, wardrobe: [...wardrobe, ...(c.wardrobe ?? [])], label: `${ep.code} ${ep.title} ${i + 1}: ${c.kind} at ${c.location}` })),
   ];
 }));
 

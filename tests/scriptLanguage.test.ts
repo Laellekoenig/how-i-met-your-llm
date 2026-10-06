@@ -9,6 +9,7 @@ import { speech } from '../src/audio/speech';
 import { audio } from '../src/audio/audio';
 import { CHARACTERS, setGuests } from '../src/world/characters';
 import { GESTURES, INSERT_KINDS, type Beat, type InsertBeat, type Scene, type ShowItem } from '../src/script/types';
+import { overlayStub } from './helpers/overlay';
 
 const spies: { mockRestore(): void }[] = [];
 afterEach(() => {
@@ -234,7 +235,7 @@ describe('playback of the new beats', () => {
     const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
     const log: string[] = [];
     const overlay = {
-      hideCaption() {}, hideCards() {}, standby() {}, hideLocation() {}, year() {}, location: (t: string, s?: string) => log.push(`label:${t}:${s ?? ''}`),
+      ...overlayStub(), location: (t: string, s?: string) => log.push(`label:${t}:${s ?? ''}`),
       showCaption: (name: string) => log.push(`caption:${name}`),
       insert: (c: InsertBeat | null) => log.push(c ? `insert:${c.kind}` : 'insert:off'), revealInsert: () => 3,
     };

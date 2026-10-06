@@ -207,7 +207,7 @@
         { "type": "say", "character": "kevin", "to": "marshall", "line": "I did not say—", "interrupted": true, "emotion": "confused" },
         { "type": "say", "character": "barney", "to": "marshall", "line": "Brave. I knew it.", "emotion": "happy", "gesture": "fist_bump", "laugh": "chuckle" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Stinson.", "delivery": "deadpan" },
-        { "type": "say", "character": "barney", "to": "guest1", "line": "Finally! Bev, I knew you'd come around.", "emotion": "excited", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Finally! Bev, I knew you'd come around.", "emotion": "excited", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Doctor needs to cut the suit off.", "delivery": "deadpan" },
         { "type": "say", "character": "barney", "to": "guest1", "line": "No. Bev, that suit survived the splits. It's a war hero.", "emotion": "sad" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Then it'll die a hero.", "delivery": "deadpan", "laugh": "laugh" },

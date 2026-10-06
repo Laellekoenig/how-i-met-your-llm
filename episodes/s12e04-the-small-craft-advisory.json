@@ -274,7 +274,7 @@
         { "type": "say", "character": "guest1", "to": "barney", "line": "Oh my God. You sound exactly like Sandy Rivers.", "emotion": "excited" },
         { "type": "say", "character": "sandy", "to": "guest1", "line": "He's my protégé.", "delivery": "slow", "emotion": "smug" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "My shift ends at eleven.", "emotion": "flirty" },
-        { "type": "say", "character": "barney", "to": "guest1", "line": "More at eleven.", "delivery": "slow", "emotion": "smug", "gesture": "suit_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "More at eleven.", "delivery": "slow", "emotion": "smug", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "narrate", "line": "Kids, Aunt Robin gave the toast at their wedding. She told them she loved them. Nobody asked her to. She volunteered.", "laugh": "aww" },
         { "type": "narrate", "line": "The invitations, of course, read: Sandy Rivers requests the honor of your presence at the wedding of Sandy Rivers.", "laugh": "big" }
       ]

@@ -134,7 +134,7 @@
         { "type": "say", "character": "lily", "to": "barney", "line": "A woman sees the same guy in a suit fourteen times, she doesn't think fate. She thinks pepper spray." },
         { "type": "say", "character": "barney", "to": "lily", "line": "Not if it's a really good suit.", "emotion": "smug", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "barney", "line": "Twenty bucks says not one woman calls it fate." },
-        { "type": "say", "character": "barney", "to": "robin", "line": "Challenge accepted. It was written.", "emotion": "smug", "gesture": "suit_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Challenge accepted. It was written.", "emotion": "smug", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "ted", "line": "So Thursday at six fifteen, at the center of your spiral, you'll finally talk to her?" },
         { "type": "say", "character": "ted", "to": "lily", "line": "Thursday at six fifteen, I'll let fate finish its sentence.", "emotion": "happy" },
         { "type": "pause", "seconds": 1 },

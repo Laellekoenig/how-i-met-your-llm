@@ -1,6 +1,7 @@
 import {
-  CHARACTER_IDS, CHART_STYLES, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_SKIN,
-  GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OUTFITS, PROPS, SCENE_LOCATION_IDS, SHOTS, TRANSITIONS, isGuest, isKid,
+  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR,
+  GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OUTFITS, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS,
+  isGuest, isKid,
 } from './types';
 import type { StageSet } from '../world/sets/common';
 
@@ -32,6 +33,7 @@ export function showBible(sets: Record<string, StageSet>) {
 Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate bits, running gags, callbacks, friends roasting each other, Barney's absurd schemes, Marshall's big-hearted sincerity, Lily's meddling, Robin's dry Canadian deadpan, Ted's romantic over-thinking. Future Ted (the narrator, Ted in 2030 telling his kids the story) adds perspective, time jumps, misdirection and wry asides. His voice-over does not require showing the kids or starting with "Kids, ...". The timeline is loose and dreamy: it's an endless show.
 
 # Story shape and framing
+There is no required scene count, scene length or cutaway count: the original cut between dozens of short scenes, returned to conversations, nested flashbacks and let comedy happen in the edit. Use as many scenes as the story needs (brief ones are fine), within the practical limits the checker enforces. A scene doesn't have to end on a laugh: an emotional ending, an unanswered question or a quiet visual beat can stand without a joke after it.
 Read docs/story-structure-reference.md for researched examples from the show and the encoding guide. Choose the opening, couch visits and ending independently for the premise. Open with the gang already in a scene, narration over the story, an outcome followed by an explained rewind, or a couch exchange. The kids may appear only in the middle, only at the end, more than once when earned, or not at all. Future Ted remains the retrospective storyteller when the couch is absent. A closing character joke or visual payoff is as valid as narration; don't append a moral that repeats the action. Compare recent episodes and the current batch to avoid repeating the same first image, first speaker and ending device. There is no required ratio of couch openings.
 
 # Main cast
@@ -120,24 +122,46 @@ Choose the incoming transition for each scene ("transition"; leave it out to cho
   MacLaren's and the apartment share one building: location maclarens frames the sunken pub entrance; location apartment frames the raised residential stoop and doorway beside it. Use transition exterior with either location to establish that entrance.
 - rewind: a half-second blurred jump with a descending sound cue. ONLY for an actual flashback or a "let me back up" correction, never an ordinary location change. Start with a short narrate beat making the time jump explicit; use cut when returning to the present.
 An opening narrate beat plays over skyline/exterior/atlantic_city footage before we cut inside. Keep it to one short sentence. Establishing transitions have no actors. For outdoor dialogue, use the playable maclarens_sidewalk or rooftop location. The kids' couch cutaways always remain straight cuts.
+Scene changes come in on the guitar sting (a cut into the very first scene doesn't). The edit and the soundtrack are separate choices: "sound": "none" on a scene lands it silently (a hard cut into a quiet aftermath), or name another cue (${SOUND_CUES.join(', ')}). A scene "label" puts a card on screen as it starts ("Meanwhile", "Two weeks later", "9:14 PM"); most scenes need none.
 
 # Cutaways
-A cutaway beat leaves the scene for a short sequence on any set, then the show cuts back to exactly where it left off. It's how HIMYM visualizes a joke:
-- style "imagined": a fantasy or hypothetical. How Barney pictures his play going, Ted's version of what he should have said, Marshall imagining the worst case, a character's lie as they tell it. Plays with a dreamy haze and a harp run.
-- style "flashback": something that really happened earlier ("Three years earlier", "College, 1998"). Future Ted can set it up with a narrate beat right before. Plays in faded sepia.
-Give it a short label for the on-screen card ("How Barney imagined it", "Wesleyan, 1996"), a location and time, its own cast and marks (marks must exist at the cutaway's location), and 3-10 beats. Characters can be in both the scene and the cutaway (Barney imagining himself). Put the setup line just before the cutaway and land the punchline right after it, back in the scene. Use at most one or two per episode, never inside another cutaway, and never cut away to the 2030 couch (that happens on its own when the kids speak).
+A cutaway beat leaves the scene for a sequence on any set, then the show cuts back to exactly where it left off. It's how HIMYM visualizes a joke, a memory or a reveal. Two separate choices:
+- "style" is what it really is, whether or not the audience knows yet: imagined (a fantasy, hypothetical or lie), prediction (how someone expects the future to go), flashback (really happened earlier), flash_forward (really happens later), meanwhile (happening right now, elsewhere), misremembered (a recollection that's wrong), sanitized (Future Ted's cleaned-up version for the kids: the "sandwiches").
+- How it's presented, all optional: "label" (an on-screen card; none by default), "look" (${CUTAWAY_LOOKS.join(', ')}; plain, normal color, by default: dream is a soft haze, memory faded sepia, video footage on a TV), "transition" (${CUTAWAY_TRANSITIONS.join(', ')}; a clean cut by default: whip is a quick pan, ripple a wavy dissolve, rewind a smear) and "sound" (a cue as it starts; silent by default).
+By default a cutaway is a clean, silent cut in normal color. Don't announce every fantasy with a haze and a harp: often the setup line ("Here's how Barney pictured it") is enough, and withholding the treatment can be the joke, as when what looked like the present turns out to be imagined. Use a look, card or cue when it helps.
+Give it a location and time, its own cast and marks (marks must exist at the cutaway's location), and beats (one quick beat is fine). Characters can be in both the scene and the cutaway (Barney imagining himself). Cutaways can nest three deep (a story inside a memory inside a story); never cut away to the 2030 couch (that happens on its own when the kids speak). "wardrobe" on a cutaway dresses its people for that time (Ted's college hair, Robin's mall-tour look) without touching the scene around it. An "id" lets a later replay show it again.
+
+# Replays, intercutting and time
+- replay: { "type": "replay", "of": <id of an earlier scene or cutaway> } plays it again from the start (or "from"/"to" beat numbers of the original), with the same blocking and the same camera coverage, then returns. "changes" alter one account: { "at": n, "replace": [beats] } swaps beat n of the original (an empty list cuts it), { "at": n, "insert": [beats] } adds beats just before beat n (n = its length adds them at the end). "add" puts people on their marks who were there all along but unseen. "style" says what this version is (misremembered, flashback, sanitized...), and label/look/transition/sound present it like a cutaway. The corrected account, the detail Ted left out, Barney under the table the whole time.
+- intercutting: give a scene an "id", cut away to another strand, then come back with a scene that has "resume": that id. It picks up exactly where it was left (same place and time, everyone where they stood, props in hand), so leave out location, time and cast; bring anyone new on with "enter". Going back to the same id again continues from the latest return. Short scenes and frequent returns are how the show builds a story across three conversations.
+- Use cutaway styles and scene labels for time: a flash_forward that is really going to happen versus a prediction that isn't, a meanwhile across town.
+
+# Split screens and phone calls
+- split: { "type": "split", "panels": [ { "location", "time", "cast" }, ... ], "beats": [...] } shows two or three sets side by side (each its own set, each with one to three people), framed once and held, then returns to the scene as it was. Its beats are lines, gestures, props, narration, laughs, pauses, sounds and inserts; nobody walks between panels. Lines can go back and forth across panels (use "to": the other end of the call). Good for a phone call, or the same conversation happening in three places at once.
+- "offscreen": "phone" (or "voice") on a say beat: we hear them without seeing them, down the line or from the next room. They aren't on stage; the camera stays on whoever's listening (put phone_call on the listener's line).
+
+# Narration over the action
+"over": true on a narrate beat keeps Future Ted talking while the next beats play: people move, gesture, pick things up, a cutaway or a new scene starts under his sentence. The next line of dialogue (or narration) waits for him to finish. An "over" narration can't carry a laugh: put a laugh beat after.
+
+# Sound and music
+Nothing makes a sound unless the script asks for it, apart from the scene-change sting and things that make their own noise (doors, slaps, a text arriving).
+- sound: { "type": "sound", "sound": ${SOUND_CUES.map((c) => `"${c}"`).join(' | ')} } at the exact moment it should land: a shatter for a realization, a record scratch when everything stops, a harp into a daydream, a sting as a button. Freeze frames, inserts, cutaways, replays and split screens also take a "sound".
+- score: { "type": "score", "music": ${SCORES.map((c) => `"${c}"`).join(' | ')} } starts underscore that carries across lines, cutaways and scene changes until another score beat: tender under a confession, tense under a scheme, upbeat under a caper. "none" stops the music; "silence" also drops the room tone, for a moment left bare (it lasts until the next score beat or scene).
+- A sung line is a cappella unless it has "accompanied": true (a guitar under it).
 
 # Delivery
 Most lines need no delivery. Use it when the performance is the joke:
 - delivery on a say beat: ${DELIVERIES.join(', ')}. whisper for secrets and being overheard, shout for outbursts across the room, sing for a few words of made-up lyrics (never real songs), deadpan for dry understatement, fast for panicked rambling, slow for melodrama.
 - interrupted: true when the next speaker cuts this line off. Write the line only up to where it's cut, ending with "—", and make the very next beat the interruption.
+- accompanied: true on a sung line puts a guitar under it.
+- offscreen: "phone" or "voice" for a line heard but not seen (see Split screens and phone calls).
 
 # Group lines and reactions
 - "chorus" on a say beat: everyone else saying the line at the same time ("ALL: What?!"). The caption reads "Ted & Marshall", or "Everyone" when it's the whole room. penny and luke can say a line together on the couch.
 - "react" on a say beat (or an insert) cuts to the listeners when it lands: [{ "character": "marshall", "gesture": "spit_take" }, { "character": "lily", "emotion": "surprised" }]. One reactor gets a closeup cheated toward the camera; a cluster gets a group shot; people spread around the room get quick cuts face to face. For reveals and big punchlines, not every line.
 
 # Props
-"hold" picks something up ("none" puts it down); "give" hands what they're holding (or "prop") to "to", walking over if needed. Props: ${PROPS.join(', ')}. Plots built around objects: the ring box, the envelope, the phone with the text, the Playbook (book), the yellow umbrella, the blue French horn, the goat. One thing at a time; props carry through cutaways and montages and are dropped at the next scene.
+"hold" picks something up ("none" puts it down); "give" hands what they're holding (or "prop") to "to", walking over if needed. Props: ${PROPS.join(', ')}. Plots built around objects: the ring box, the envelope, the phone with the text, the Playbook (book), the yellow umbrella, the blue French horn, the goat, the sandwich (what Future Ted says everyone was eating), a laptop or a videotape with something on it. One thing at a time; props carry through cutaways and montages and are dropped at the next scene. A resumed scene picks its props back up.
 
 # Camera
 Leave coverage to the director, except when a shot is the joke. "shot" on a say, act, hold, give or freeze beat: closeup (a single), two (a two-shot with "to"), push_in (a slow dolly in for a realization, confession or reveal), wide (the whole room). At most a few per scene.
@@ -145,15 +169,25 @@ Leave coverage to the director, except when a shot is the joke. "shot" on a say,
 # Inserts, freeze frames and montages
 - insert: a full-screen card of the thing itself. kind ${INSERT_KINDS.join('|')}: text (a thread on "character"'s phone: "messages" [{ "from", "text" }], theirs on the right; "title" is who it's with), chart (an easel chart in marker: "title", up to 6 "items" [{ "label", "value" }], "chart" ${CHART_STYLES.join('|')}), slides (a slide: "title" and up to 6 bullet "lines"), sign (a taped-up note: "title" and a couple of "lines"), playbook (a Playbook page: the play as "title", steps as "lines"). "character" is whose it is and reads "line" over it (Future Ted reads it without a character). The card is the punchline or the setup. 0-2 per episode.
 - freeze: Future Ted narrates "line" over a frozen frame. A "character" (with an optional gesture, "to" and emotion) freezes on them mid-action: Marshall mid-slap, a face mid-realization. 0-1 per episode.
-- montage (top-level only): "and that's how it went for three weeks". A "label" for the first card, "music" ${MONTAGE_MUSIC.join('|')}, and 2-6 "shots", each a location, time, its own cast, an optional little card ("Day 3") and 0-2 beats (gestures, props, very short lines). A narrate beat can set it up before and land it after. 0-1 per episode.
+- montage (top-level only): "and that's how it went for three weeks". A "label" for the first card, "music" ${MONTAGE_MUSIC.join('|')}, and 2-6 "shots", each a location, time, its own cast, optional "wardrobe" (across the years), an optional little card ("Day 3") and 0-2 beats (gestures, props, very short lines). A narrate beat can set it up before and land it after. 0-1 per episode.
+- Footage the characters watch (Robin Sparkles on a VHS, Barney's video résumé, a news clip): a cutaway with "look": "video" plays as tape with a VCR's on-screen display; a freeze frame inside it is somebody hitting pause, and a replay with "look": "video" winds it back to watch again. Cut back to the viewers between them for their reactions.
+
+# Graphics over the scene
+A graphic beat draws on the picture while the actors stay in it, until it's cleared or the scene ends (cutaways hide it, and it comes back with the scene):
+- { "type": "graphic", "kind": "tag", "character": "barney", "text": "Not a lawyer" }: a label that follows someone around.
+- { "kind": "clock", "text": "9:14 PM" }: the time (or "Room 3") in the corner, for stories told room by room or minute by minute.
+- { "kind": "counter", "title": "Slaps", "value": 3 }: a running count; the same title again updates it.
+- { "kind": "venn", "title"?, "sets": ["Hot", "Crazy"] (2-3), "middle": "Barney's type" }, { "kind": "axes", "title"?, "x": "Crazy", "y": "Hot", "points": [{ "label": "Ted", "x": 2, "y": 7 }] (0-10) }: Marshall's diagrams, drawn over the right third of the frame beside the people arguing about them (clear it before a wide shot needs that side).
+- { "kind": "clear" } takes everything down; with "character", just that person's tag.
+For a full-screen chart, slide or text thread, use an insert instead.
 
 # Stagecraft vocabulary
 characters: ${CHARACTER_IDS.filter((c) => !isGuest(c) && !isKid(c)).join(', ')}; guest1-guest3 (this episode's guests); penny, luke (couch only)
 emotions: ${EMOTIONS.join(', ')}. An emotion shows in the face and the whole body (sad slumps, angry clenches fists, smug and proud stand hands on hips, scared hunches up, bored shifts from foot to foot, embarrassed and flirty blush, crying has tears) and holds for a few seconds before they relax back to their usual selves, so put it on the line where it lands; drunk lasts the scene. Listeners nod along and pick up a little of the speaker's mood on their own.
-gestures: ${GESTURES.join(', ')}. Done to someone ("to"): high_five, hug, slap, kiss and fist_bump (the bro fist) bring the other person in; a kiss without "to" is blown. sit/stand: into the nearest free seat, or up out of it. phone_call holds a phone to their ear for the whole line. lean_in for secrets and flirting, jaw_drop for disbelief, spit_take (a sip sprayed across the room) works best as a reaction. double_take (looks, looks away, snaps back wide-eyed; best with "to" or as a reaction), eye_roll, crack_up (doubled over laughing), sob, slow_clap (sarcastic or sincere), hands_on_hips, head_in_hands, air_quotes, fist_pump, cover_mouth (a gasp). crack_up, sob, eye_roll, cover_mouth, fist_pump, head_in_hands and double_take bring their own face (laughing, crying, bored, surprised, excited, sad, surprised) unless the beat sets an emotion; hands_on_hips, head_in_hands and sob last the whole line they're on.
+gestures: ${GESTURES.join(', ')}. salute is Ted and Robin's (and the gang's) crisp salute. Done to someone ("to"): high_five, hug, slap, kiss and fist_bump (the bro fist) bring the other person in; a kiss without "to" is blown. sit/stand: into the nearest free seat, or up out of it. phone_call holds a phone to their ear for the whole line. lean_in for secrets and flirting, jaw_drop for disbelief, spit_take (a sip sprayed across the room) works best as a reaction. double_take (looks, looks away, snaps back wide-eyed; best with "to" or as a reaction), eye_roll, crack_up (doubled over laughing), sob, slow_clap (sarcastic or sincere), hands_on_hips, head_in_hands, air_quotes, fist_pump, cover_mouth (a gasp). crack_up, sob, eye_roll, cover_mouth, fist_pump, head_in_hands and double_take bring their own face (laughing, crying, bored, surprised, excited, sad, surprised) unless the beat sets an emotion; hands_on_hips, head_in_hands and sob last the whole line they're on.
 props: ${PROPS.join(', ')}
 shots: ${SHOTS.join(', ')}
-laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (huge laugh + applause), ooh (scandal/burn), aww (sweet moment), woo (crowd cheers, e.g. Barney's entrance), applause, gasp.
+laughs (laugh track): ${LAUGHS.join(', ')} — chuckle (small), laugh (normal), big (a long rolling laugh for the one or two biggest jokes), and, rarely, ooh (a scandal or burn), aww (a sweet moment), gasp (a real shock). The show's audience is restrained: it laughs, it doesn't whoop, cheer entrances or clap at jokes. applause is only for a crowd inside the story (an audience watching a performance, a lecture hall). The laugh track is the soundtrack only: it never changes anyone's face, so a humiliated or furious character stays that way through the laugh. Aww, ooh and gasp are exceptional choices, not standard punctuation for emotion; a sincere moment can play with no reaction at all.
 
 # Episode file format
 One JSON file per episode: episodes/<code>-<slug>.json, e.g. episodes/s11e03-the-slap-bet-inflation.json. Episodes air in code order, then loop.
@@ -166,7 +200,8 @@ One JSON file per episode: episodes/<code>-<slug>.json, e.g. episodes/s11e03-the
   "couch": [ ...beats ],            // optional opening: penny/luke "say" and Future Ted "narrate"; may stand alone
   "guests": [ ...guest stars ],     // optional, up to 3: guest1, guest2, guest3 in order
   "wardrobe": [ ...costumes ],      // optional: worn all episode
-  "scenes": [ ...3-4 scenes ]
+  "continuity": { ... },            // optional: notes for the continuity ledger (below)
+  "scenes": [ ...as many as the story needs ]
 }
 
 Omit both coldOpen and couch to open on scenes[0], which plays once before the main titles; the remaining scenes follow them. Start that scene with dialogue/action or a narrate beat over the set (or skyline/exterior transition). Use transition "cut" for an immediate interior opening. When coldOpen or a nonempty couch is present, that couch opening precedes the titles and all scenes follow. Do not use an empty coldOpen string to opt out: omit the field. Existing couch-opening files still play as written.
@@ -174,6 +209,14 @@ Omit both coldOpen and couch to open on scenes[0], which plays once before the m
 A costume (only "character" is required; anything left out stays as it is):
 { "character": "ted", "topStyle": "${GUEST_TOPS.join('|')}", "top": <color>, "under": <color>, "tie": <color>, "vest": <color>,
   "pants": <color>, "shoes": <color>, "boots": true, "hairStyle": <hair style>, "extras": [...] }
+On a scene's costume, "keep": true makes it stick for the rest of the episode (the tie from a lost bet), under later scenes' costumes, until another kept costume replaces it ({ "character": "marshall", "keep": true } with nothing else takes it off).
+
+Continuity notes (all optional) feed \`bun run episodes ledger\`, which shows each episode's era, what is true by now, and threads still open, and flags a fact that quietly changes between episodes:
+{ "era": "fall 2011", "facts": { "robin.job": "Metro News One anchor", "barney.dating": "quinn" },
+  "changes": ["barney.dating"],      // facts this episode changes on purpose (or tells unreliably)
+  "opens": [ { "id": "ducky-tie", "note": "Marshall wears the ducky tie until he wins a bet" } ],
+  "closes": ["slap-bet-4"] }
+Read the ledger before writing; record anything a later writer must not contradict, and any bet or promise you leave open.
 
 A guest star (every field required except under/tie/vest):
 { "id": "guest1", "name": "Elodie", "role": "Ted's date, a sommelier who whispers everything",
@@ -187,30 +230,41 @@ A guest star (every field required except under/tie/vest):
 Colors: ${GUEST_COLORS.join(', ')}, or "#rrggbb". "denim" pants are jeans; pants are ignored under a dress.
 
 A scene:
-{ "location": "${SCENE_LOCATION_IDS.join('|')}", "time": "day|night",
+{ "id": "the-booth",            // optional: so a later scene can resume it, or a replay show it again
+  "location": "${SCENE_LOCATION_IDS.join('|')}", "time": "day|night",
   "transition": "${TRANSITIONS.join('|')}",   // optional
+  "label": "Meanwhile",          // optional on-screen card
+  "sound": "none",               // optional: land silently, or another cue instead of the sting
   "summary": "Writers' note: what happens and how it ends.",   // optional, not shown
   "wardrobe": [ ...costumes ],   // optional: this scene only, over the episode's
   "cast": [ { "character": "ted", "mark": "booth_end", "outfit": "${OUTFITS.join('|')}" } ],   // outfit optional
   "beats": [ ...beats, in order ] }
+A resumed scene: { "resume": "the-booth", ["id"], ["label"], ["sound"], ["wardrobe"], "beats": [...] } (no location, time or cast).
 
 Beats (optional fields in brackets):
-{ "type": "say", "character": "barney", ["to": "ted"], "line": "...", ["delivery": "${DELIVERIES.join('|')}"], ["interrupted": true], ["emotion": ...], ["gesture": ...], ["laugh": ...],
+{ "type": "say", "character": "barney", ["to": "ted"], "line": "...", ["delivery": "${DELIVERIES.join('|')}"], ["accompanied": true], ["offscreen": "phone|voice"], ["interrupted": true], ["emotion": ...], ["gesture": ...], ["laugh": ...],
   ["chorus": ["ted", "marshall"]], ["react": [{ "character": "lily", ["emotion": ...], ["gesture": ...] }]], ["shot": "${SHOTS.join('|')}"] }
-{ "type": "narrate", "line": "Kids, ...", ["laugh": ...] }          // Future Ted voice-over
+{ "type": "narrate", "line": "Kids, ...", ["laugh": ...], ["over": true] }   // Future Ted voice-over
 { "type": "move", "character": "ted", "to": <mark or character id> }
 { "type": "enter", "character": "robin", ["to": <mark or character id>] }   // through the door
 { "type": "exit", "character": "robin" }
 { "type": "act", "character": "marshall", "gesture": "slap", ["to": "barney"], ["emotion": ...], ["shot": ...] }
 { "type": "hold", "character": "ted", "prop": "ring"|"none", ["shot": ...] }
 { "type": "give", "character": "ted", "to": "robin", ["prop": "ring"], ["shot": ...] }
-{ "type": "freeze", "line": "Kids, ...", ["character": "marshall"], ["gesture": ...], ["to": ...], ["emotion": ...], ["laugh": ...], ["shot": ...] }
+{ "type": "freeze", "line": "Kids, ...", ["character": "marshall"], ["gesture": ...], ["to": ...], ["emotion": ...], ["laugh": ...], ["shot": ...], ["sound": ...] }
 { "type": "insert", "kind": "${INSERT_KINDS.join('|')}", ["title": "..."], ["lines": [...]], ["messages": [{ "from": "barney", "text": "..." }]],
-  ["items": [{ "label": "Hot", "value": 9 }]], ["chart": "${CHART_STYLES.join('|')}"], ["character": "barney"], ["line": "..."], ["laugh": ...], ["react": [...]] }
-{ "type": "laugh", "laugh": "applause" }                              // a standalone laugh-track reaction
+  ["items": [{ "label": "Hot", "value": 9 }]], ["chart": "${CHART_STYLES.join('|')}"], ["character": "barney"], ["line": "..."], ["laugh": ...], ["react": [...]], ["sound": ... | "none"] }
+{ "type": "laugh", "laugh": "laugh" }                                 // a standalone laugh-track reaction
 { "type": "pause", "seconds": 1.5 }                                    // up to 5
-{ "type": "cutaway", "style": "${CUTAWAY_STYLES.join('|')}", "label": "How Barney imagined it", "location": "barneys_office", "time": "day",
-  "cast": [ ...cast at that location ], "beats": [ ...3-10 beats, no cutaways or montages ] }
+{ "type": "sound", "sound": "${SOUND_CUES.join('|')}" }
+{ "type": "score", "music": "${SCORES.join('|')}" }
+{ "type": "graphic", "kind": "tag|clock|counter|venn|axes|clear", ...its fields }
+{ "type": "cutaway", ["id": "dorm"], "style": "${CUTAWAY_STYLES.join('|')}", ["label": "How Barney imagined it"], ["look": "${CUTAWAY_LOOKS.join('|')}"],
+  ["transition": "${CUTAWAY_TRANSITIONS.join('|')}"], ["sound": ...], "location": "barneys_office", "time": "day", ["wardrobe": [...]],
+  "cast": [ ...cast at that location ], "beats": [ ...beats, no montages ] }
+{ "type": "replay", "of": "dorm", ["from": 0], ["to": 5], ["style": ...], ["label"], ["look"], ["transition"], ["sound"], ["wardrobe"],
+  ["add": [ ...cast revealed ]], ["changes": [ { "at": 2, "replace": [beats] }, { "at": 4, "insert": [beats] } ]] }
+{ "type": "split", ["label": "Meanwhile"], ["sound": ...], "panels": [ { "location", "time", "cast" }, ...2-3 ], "beats": [ ...lines, gestures, props ] }
 { "type": "montage", ["label": "Three weeks of canoe lessons"], "music": "${MONTAGE_MUSIC.join('|')}",
   "shots": [ { "location": ..., "time": ..., ["label": "Day 3"], "cast": [...], "beats": [ ...0-2 beats ] }, ...2-6 shots ] }
 
@@ -220,6 +274,6 @@ Staging rules (\`bun run episodes check\` enforces them):
 - "to" on say/act is the character being addressed or gestured at; use it on most lines so people look at each other.
 - Lines are spoken aloud by text-to-speech: no stage directions, parentheses or asterisks in them. Mostly under 18 words, never over 35.
 - Put a "laugh" on real punchlines (roughly every 2-4 lines, varying the kind), never on setups. A laugh on a narrate beat works too.
-- Keep narration purposeful: a time jump, reveal, correction, withheld detail or couch answer. Avoid explaining what we already see. End with the strongest earned button, whether dialogue, a visual payoff, kids or narration.
+- Keep narration purposeful: a time jump, reveal, correction, withheld detail or couch answer. Avoid explaining what we already see. End on the strongest earned beat, whether a joke, a visual payoff, kids, narration, or something sincere left unanswered.
 - PG-13: innuendo OK, nothing explicit, no slurs, no real-world politics. Original jokes and plots; catchphrases in moderation.`;
 }

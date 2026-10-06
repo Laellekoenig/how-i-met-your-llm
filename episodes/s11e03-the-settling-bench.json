@@ -24,7 +24,7 @@
         { "type": "say", "character": "ted", "to": "barney", "line": "Marvin is a true craftsman. The man builds whole cabinets without a single nail.", "emotion": "excited" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Ted, it's Friday night, and you just got excited about nails.", "emotion": "bored", "laugh": "laugh" },
         { "type": "enter", "character": "marvin", "to": "marshall" },
-        { "type": "say", "character": "marvin", "to": "marshall", "line": "Son!", "delivery": "shout", "emotion": "happy", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "marvin", "to": "marshall", "line": "Son!", "delivery": "shout", "emotion": "happy", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "act", "character": "marshall", "to": "marvin", "emotion": "happy", "gesture": "hug" },
         { "type": "say", "character": "marvin", "to": "robin", "line": "Hiya, son.", "emotion": "happy", "gesture": "wave" },
         { "type": "say", "character": "robin", "to": "marvin", "line": "I'm a woman, Mister Eriksen.", "emotion": "confused" },
@@ -126,7 +126,7 @@
         { "type": "say", "character": "robin", "to": "ted", "line": "It's a dream, Ted.", "delivery": "deadpan", "emotion": "happy", "laugh": "laugh" },
         { "type": "act", "character": "barney", "gesture": "stand" },
         { "type": "say", "character": "barney", "to": "ted", "line": "So. First one to make an Eriksen crack gets the bench.", "emotion": "smug", "gesture": "point" },
-        { "type": "say", "character": "barney", "line": "Challenge accepted.", "emotion": "excited", "laugh": "woo", "chorus": ["ted", "robin"] }
+        { "type": "say", "character": "barney", "line": "Challenge accepted.", "emotion": "excited", "laugh": "laugh", "chorus": ["ted", "robin"] }
       ]
     },
     {
@@ -182,7 +182,7 @@
         { "type": "say", "character": "lily", "to": "barney", "line": "Marshmallow.", "delivery": "fast", "emotion": "happy" },
         { "type": "say", "character": "barney", "to": "lily", "line": "Settling bench.", "delivery": "fast", "emotion": "smug", "gesture": "lean_in" },
         { "type": "say", "character": "lily", "to": "barney", "line": "Burn it with fire. Gorgeous! Beautiful. I meant gorgeous.", "delivery": "fast", "emotion": "nervous", "laugh": "big" },
-        { "type": "say", "character": "barney", "to": "ted", "line": "She cracked! The bench is mine!", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "She cracked! The bench is mine!", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "move", "character": "lily", "to": "barney" },
         { "type": "say", "character": "lily", "to": "barney", "line": "Say one word to Marshall, and I tell everyone what your face did when Marvin called you son.", "delivery": "whisper", "emotion": "angry", "gesture": "point", "laugh": "ooh" },
         { "type": "say", "character": "barney", "to": "lily", "line": "My face did nothing.", "emotion": "nervous" },

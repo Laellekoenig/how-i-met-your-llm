@@ -241,7 +241,7 @@
         { "type": "say", "character": "barney", "to": "nora", "line": "Do I have to be nice to the pudding guy?", "emotion": "nervous" },
         { "type": "say", "character": "nora", "to": "barney", "line": "He's catering my birthday.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "nora", "line": "Deal. Article Eighty-Nine.", "emotion": "happy", "gesture": "fist_bump" },
-        { "type": "say", "character": "nora", "to": "barney", "line": "No take-backs.", "emotion": "smug", "laugh": "woo" },
+        { "type": "say", "character": "nora", "to": "barney", "line": "No take-backs.", "emotion": "smug", "laugh": "laugh" },
         { "type": "move", "character": "barney", "to": "robin" },
         { "type": "say", "character": "barney", "to": "robin", "line": "And you. Neutral Canada. The whole time.", "emotion": "sad" },
         { "type": "say", "character": "robin", "to": "barney", "line": "Barney, I picked your side the first night. I just picked hers for lunch.", "emotion": "happy" },

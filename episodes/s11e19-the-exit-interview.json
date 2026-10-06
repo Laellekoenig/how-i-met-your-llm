@@ -272,7 +272,7 @@
         { "type": "say", "character": "stella", "to": "ted", "line": "Best five years of my life.", "delivery": "deadpan", "emotion": "smug", "laugh": "laugh" },
         { "type": "enter", "character": "barney", "to": "reception" },
         { "type": "hold", "character": "barney", "prop": "pineapple" },
-        { "type": "say", "character": "barney", "to": "stella", "line": "Four fifteen! I'm here for my standing appointment!", "delivery": "shout", "emotion": "excited", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "stella", "line": "Four fifteen! I'm here for my standing appointment!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Your appointment is that she doesn't see you.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "stella", "line": "And yet, here we are. Seeing each other.", "emotion": "flirty" },
         { "type": "say", "character": "stella", "to": "ted", "line": "I'm looking at Ted.", "delivery": "deadpan", "laugh": "laugh" },

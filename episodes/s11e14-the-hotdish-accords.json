@@ -38,7 +38,7 @@
         { "type": "say", "character": "robin", "to": "ted", "line": "Ted, you're blushing at a potato.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, it's perfect. And since Mom couldn't make it this year, nobody ever has to know.", "emotion": "happy" },
         { "type": "enter", "character": "judy", "to": "center" },
-        { "type": "say", "character": "judy", "to": "marshall", "line": "Happy birthday, sweetie!", "delivery": "shout", "emotion": "happy", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "judy", "to": "marshall", "line": "Happy birthday, sweetie!", "delivery": "shout", "emotion": "happy", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "act", "character": "marshall", "gesture": "stand" },
         { "type": "say", "character": "marshall", "to": "judy", "line": "Mom! You said you couldn't come!", "emotion": "surprised" },
         { "type": "say", "character": "judy", "to": "marshall", "line": "I said I couldn't come Tuesday, honey. It's Wednesday.", "emotion": "happy", "gesture": "hug", "laugh": "chuckle" },

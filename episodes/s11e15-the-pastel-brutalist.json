@@ -81,7 +81,7 @@
           "time": "night",
           "cast": [{ "character": "robin_sparkles", "mark": "stage" }, { "character": "guest1", "mark": "dancer_left" }],
           "beats": [
-            { "type": "say", "character": "guest1", "line": "Four hundred of you on a Tuesday, Glenhaven! The fire marshal is weeping! Please welcome Robin Sparkles!", "delivery": "shout", "emotion": "excited", "laugh": "woo" },
+            { "type": "say", "character": "guest1", "line": "Four hundred of you on a Tuesday, Glenhaven! The fire marshal is weeping! Please welcome Robin Sparkles!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },
             { "type": "hold", "character": "robin_sparkles", "prop": "microphone" },
             { "type": "say", "character": "robin_sparkles", "line": "Going up, going up, on the escalator of love! Hold the handrail, baby, it's the safety rule of love!", "delivery": "sing", "emotion": "excited", "gesture": "dance", "laugh": "laugh" },
             { "type": "say", "character": "robin_sparkles", "line": "Thank you, Glenhaven! You are the best mall in the entire province!", "emotion": "excited", "gesture": "wave" },
@@ -143,7 +143,7 @@
         { "type": "say", "character": "barney", "to": "robin", "line": "Glenny's unavailable. Scheduling conflict. And the pan flute man retired to Florida, where pan flutes go to die.", "emotion": "smug", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "robin", "line": "So no, don't go. It's beneath you. Just leave it to the beaver.", "emotion": "smug", "gesture": "shrug", "laugh": "chuckle" },
         { "type": "pause", "seconds": 1.2 },
-        { "type": "say", "character": "robin", "to": "barney", "line": "Book the limo.", "delivery": "deadpan", "emotion": "angry", "laugh": "woo", "shot": "closeup" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Book the limo.", "delivery": "deadpan", "emotion": "angry", "laugh": "laugh", "shot": "closeup" },
         { "type": "say", "character": "barney", "to": "robin", "line": "Already booked. Ranjit's been idling outside since Tuesday.", "emotion": "smug", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "robin", "line": "And while you're up there, maybe a few words about the cantilevered—", "interrupted": true, "emotion": "excited" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Ted. I'm not going to Canada to save a building. I'm going to beat a beaver.", "emotion": "angry", "gesture": "point" },
@@ -243,7 +243,7 @@
         { "character": "ranjit", "mark": "driver" }
       ],
       "beats": [
-        { "type": "say", "character": "marshall", "line": "Glenhaven, Ontario! Seven-oh-two! We made it!", "delivery": "shout", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "marshall", "line": "Glenhaven, Ontario! Seven-oh-two! We made it!", "delivery": "shout", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "Get ready to see the finest example of Pastel Brutalism in—", "interrupted": true, "emotion": "excited" },
         { "type": "say", "character": "lily", "to": "ted", "line": "Ted. Where's the mall?", "emotion": "confused" },
         { "type": "pause", "seconds": 1.5 },

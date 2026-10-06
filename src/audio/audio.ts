@@ -1,5 +1,5 @@
 import { TITLE_BEAT, TITLE_BEATS, TITLE_TAIL } from '../show/mainTitles';
-import type { LaughKind, MontageMusic } from '../script/types';
+import type { LaughKind, MontageMusic, SoundCue } from '../script/types';
 import type { Ambience, DoorSound } from '../world/sets/common';
 import { rand, pick } from '../util';
 
@@ -25,7 +25,7 @@ export class AudioEngine {
   private clapBuf!: AudioBuffer;
   private ambNodes: AudioNode[] = [];
   /** A montage's music, scheduled a little ahead at a time until it's stopped. */
-  private bed: { out: GainNode; timer: ReturnType<typeof setInterval> } | null = null;
+  private bed: { out: GainNode; kind: MontageMusic; timer: ReturnType<typeof setInterval> } | null = null;
   private plucks = new Map<string, AudioBuffer>();
   private ambTimer: number | null = null;
   /** The room tone the show last asked for, kept while the context is locked so it can start on unlock. */
@@ -277,10 +277,9 @@ export class AudioEngine {
         return crowd(26, 1.3, 2.6, 0.06, 0.35, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.15, 0.21]);
       }
       case 'big': {
+        // a long, rolling laugh, not a cheer: the show's audience doesn't whoop or clap at jokes
         this.crowdBed(t0, 3.8, 0.09);
-        const d = crowd(40, 2.0, 3.8, 0.065, 0.45, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.14, 0.2]);
-        if (Math.random() < 0.5) this.applause(t0 + 0.6, 2.6, 14, 0.25);
-        return d;
+        return crowd(40, 2.0, 3.8, 0.065, 0.45, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.14, 0.2]);
       }
       case 'ooh':
         this.crowdBed(t0, 1.6, 0.025, 500);
@@ -288,11 +287,7 @@ export class AudioEngine {
       case 'aww':
         this.crowdBed(t0, 1.8, 0.02, 600);
         return crowd(28, 1.4, 2.0, 0.045, 0.2, [VOWEL_AW], null, -0.2);
-      case 'woo': {
-        crowd(16, 0.8, 1.4, 0.05, 0.3, [VOWEL_OO], null, 0.6);
-        this.applause(t0, 3.2, 30, 0.35);
-        return 3.0;
-      }
+      // only ever a crowd in the story: the audience watching a performance
       case 'applause':
         this.applause(t0, 3.5, 36, 0.35);
         return 3.3;
@@ -579,6 +574,75 @@ export class AudioEngine {
     o.stop(t + 0.12);
   }
 
+  /** Glass breaking: a sharp crack, then shards tinkling down. */
+  shatter() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.01;
+    const crack = ctx.createBiquadFilter();
+    crack.type = 'highpass';
+    crack.frequency.value = 2200;
+    const cg = ctx.createGain();
+    cg.gain.setValueAtTime(0.5, t);
+    cg.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    this.noiseSrc(t, 0.3).connect(crack).connect(cg).connect(this.sfxBus);
+    for (let i = 0; i < 26; i++) {
+      const s = t + 0.03 + Math.pow(Math.random(), 1.6) * 0.7;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = rand(3000, 9500);
+      bp.Q.value = rand(6, 14);
+      const g = ctx.createGain();
+      const d = rand(0.04, 0.16);
+      g.gain.setValueAtTime(rand(0.25, 0.6), s);
+      g.gain.exponentialRampToValueAtTime(0.001, s + d);
+      this.noiseSrc(s, d + 0.02).connect(bp).connect(g).connect(this.sfxBus);
+    }
+  }
+
+  /** The needle dragged across a record: everything stops. */
+  scratch() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.01;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 4;
+    bp.frequency.setValueAtTime(600, t);
+    bp.frequency.exponentialRampToValueAtTime(2600, t + 0.12);
+    bp.frequency.exponentialRampToValueAtTime(400, t + 0.3);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.7, t + 0.03);
+    g.gain.setValueAtTime(0.7, t + 0.24);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    this.noiseSrc(t, 0.4).connect(bp).connect(g).connect(this.sfxBus);
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(180, t);
+    o.frequency.exponentialRampToValueAtTime(520, t + 0.12);
+    o.frequency.exponentialRampToValueAtTime(90, t + 0.32);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.06, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.36);
+    o.connect(og).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.4);
+  }
+
+  /** A cue the writer placed: the same sounds the show uses elsewhere, on demand. */
+  cue(c: SoundCue) {
+    switch (c) {
+      case 'sting': return void this.sting();
+      case 'harp': return void this.dream(true);
+      case 'rewind': return this.rewind();
+      case 'whoosh': return this.whoosh();
+      case 'shutter': return this.freezeFrame();
+      case 'shatter': return this.shatter();
+      case 'scratch': return this.scratch();
+      case 'chime': return this.textChime();
+      case 'doorbell': return this.doorbell();
+    }
+  }
+
   doorbell() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
@@ -662,26 +726,40 @@ export class AudioEngine {
     return out;
   }
 
+  /** The bed playing now, if any. */
+  get bedKind(): MontageMusic | null {
+    return this.bed?.kind ?? null;
+  }
+
   /**
-   * Music under a montage until stopBed(): a bright strummed power-pop loop, or a tender fingerpicked one.
-   * Scheduled a little ahead at a time, so a pause (which suspends the context) simply holds it.
+   * Music under a montage or a stretch of story until stopBed(): a bright strummed power-pop loop, a tender
+   * fingerpicked one, or a low, ticking tense one. Scheduled a little ahead at a time, so a pause (which
+   * suspends the context) simply holds it.
    */
   montage(kind: MontageMusic) {
     this.stopBed(0.05);
     if (!this.ctx) return;
     const ctx = this.ctx;
     const out = ctx.createGain();
-    out.gain.value = kind === 'upbeat' ? 0.75 : 0.9;
+    out.gain.value = kind === 'upbeat' ? 0.75 : kind === 'tense' ? 0.8 : 0.9;
     out.connect(this.musicBus);
     const gtr = kind === 'upbeat' ? this.guitarOut(out) : out;
     const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
     const bars = kind === 'upbeat' ? [E, B, Cs, A] : [E, Cs, A, B];
     const lead = [76, 0, 75, 76, 78, 0, 76, 73, 75, 0, 71, 0, 73, 71, 68, 0];
-    const step = kind === 'upbeat' ? 0.22 : 0.3;
+    const step = kind === 'upbeat' ? 0.22 : kind === 'tense' ? 0.26 : 0.3;
+    // a low muted ostinato that never resolves, a high note now and then, a ticking hat
+    const ostinato = [40, 40, 43, 40, 46, 40, 43, 39];
     let i = 0, next = ctx.currentTime + 0.05;
     const schedule = () => {
       for (; next < ctx.currentTime + 1.2; i++, next += step) {
         const chord = bars[Math.floor(i / 8) % bars.length], k = i % 8, t = next;
+        if (kind === 'tense') {
+          this.note(this.plucked(ostinato[k], 0.45, 0.15), t, 0.26, out);
+          if (k === 0 && Math.floor(i / 8) % 2) this.note(this.plucked(Math.floor(i / 16) % 2 ? 71 : 70, 1.6, 0.3), t, 0.09, out);
+          this.hit(t, 0.03, 8000, k % 2 ? 0.025 : 0.04, out);
+          continue;
+        }
         if (kind === 'tender') {
           if (k === 0) this.note(this.plucked(chord[0], 2, 0.25), t, 0.2, out);
           this.note(this.plucked(chord[[1, 3, 2, 4, 1, 3, 2, 4][k] % chord.length] + 12, 1.4, 0.3), t, 0.13, out);
@@ -697,7 +775,7 @@ export class AudioEngine {
       }
     };
     schedule();
-    this.bed = { out, timer: setInterval(schedule, 300) };
+    this.bed = { out, kind, timer: setInterval(schedule, 300) };
   }
 
   /** Fade the montage music out. */

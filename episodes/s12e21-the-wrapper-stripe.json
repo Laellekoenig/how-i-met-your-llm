@@ -354,7 +354,7 @@
         { "type": "say", "character": "barney", "to": "ted", "line": "Oh no. The Mosby is in my bloodstream.", "emotion": "nervous", "laugh": "laugh", "shot": "closeup" },
         { "type": "move", "character": "guest2", "to": "marshall" },
         { "type": "say", "character": "guest2", "to": "marshall", "line": "Hey. Is your wife a grape?" },
-        { "type": "say", "character": "marshall", "to": "guest2", "line": "She's a crayon!", "delivery": "shout", "laugh": "woo", "chorus": ["ted", "robin", "barney"], "react": [{ "character": "lily", "emotion": "happy" }] },
+        { "type": "say", "character": "marshall", "to": "guest2", "line": "She's a crayon!", "delivery": "shout", "laugh": "laugh", "chorus": ["ted", "robin", "barney"], "react": [{ "character": "lily", "emotion": "happy" }] },
         { "type": "say", "character": "guest2", "to": "marshall", "line": "Cool. Bigfoot's still way taller.", "gesture": "nod", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "guest2", "line": "Let it go, Hollis!", "delivery": "shout", "emotion": "angry", "laugh": "laugh" },
         { "type": "narrate", "line": "Kids, every Halloween since, we've been a broken box of crayons. Uncle Barney still comes as me. He's won eleven years running. I've never placed.", "laugh": "big" }

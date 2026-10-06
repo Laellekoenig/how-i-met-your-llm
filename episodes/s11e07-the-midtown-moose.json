@@ -241,7 +241,7 @@
         { "type": "say", "character": "robin", "to": "sandy", "line": "Sandy.", "emotion": "happy" },
         { "type": "say", "character": "sandy", "line": "So if it turns out to be fake, that's on her.", "emotion": "smug", "laugh": "laugh" },
         { "type": "pause", "seconds": 1 },
-        { "type": "say", "character": "robin", "line": "Fine. It's my story. And there is no doubt in my mind. Gary is out there.", "emotion": "smug", "laugh": "woo" },
+        { "type": "say", "character": "robin", "line": "Fine. It's my story. And there is no doubt in my mind. Gary is out there.", "emotion": "smug", "laugh": "laugh" },
         { "type": "act", "character": "marshall", "to": "lily", "emotion": "excited", "gesture": "high_five" },
         { "type": "say", "character": "guest1", "to": "robin", "line": "She's right. At six this morning, on the lot on 51st Street, I found a fresh print. A real hoof.", "emotion": "surprised" },
         { "type": "say", "character": "guest1", "to": "robin", "line": "Right next to it, half an everything bagel.", "delivery": "slow", "laugh": "gasp", "shot": "closeup" },

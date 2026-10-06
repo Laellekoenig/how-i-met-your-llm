@@ -125,7 +125,7 @@
         { "type": "say", "character": "ranjit", "line": "Red light!", "emotion": "happy" },
         { "type": "enter", "character": "marshall", "to": "bench_1" },
         { "type": "enter", "character": "robin", "to": "bench_2" },
-        { "type": "say", "character": "marshall", "to": "barney", "line": "Evening, Barney. Nice night for a drive.", "emotion": "smug", "laugh": "woo" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Evening, Barney. Nice night for a drive.", "emotion": "smug", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "ranjit", "line": "Ranjit!", "delivery": "shout", "emotion": "angry" },
         { "type": "say", "character": "ranjit", "to": "barney", "line": "It was red.", "emotion": "happy", "laugh": "laugh" },
         { "type": "say", "character": "ranjit", "line": "And now it is green! We are moving!", "emotion": "happy" },
@@ -191,7 +191,7 @@
         { "type": "say", "character": "marshall", "to": "lily", "line": "Safety, Lily! Someone could get slapped right off a building!", "emotion": "angry", "laugh": "chuckle" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "He's on the roof.", "gesture": "stand", "laugh": "gasp", "shot": "closeup" },
         { "type": "act", "character": "marshall", "gesture": "stand" },
-        { "type": "say", "character": "marshall", "to": "lily", "line": "Then let's go get my slap.", "emotion": "angry", "laugh": "woo" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Then let's go get my slap.", "emotion": "angry", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "Great. Let's walk. Slowly. Very, very slowly.", "delivery": "deadpan", "laugh": "laugh" }
       ]
     },
@@ -248,7 +248,7 @@
         { "type": "freeze", "character": "marshall", "to": "barney", "line": "Fifty-eight minutes of total silence later. After nine hundred and ninety-nine days, Uncle Barney could wait for it.", "emotion": "happy", "gesture": "slap" },
         { "type": "act", "character": "marshall", "to": "barney", "gesture": "slap", "shot": "wide" },
         { "type": "laugh", "laugh": "big" },
-        { "type": "say", "character": "barney", "to": "marshall", "line": "Dary.", "emotion": "happy", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Dary.", "emotion": "happy", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "lily", "line": "Eleven fifty-nine. The house always wins.", "emotion": "smug", "gesture": "cheers", "laugh": "chuckle" },
         { "type": "say", "character": "marshall", "to": "barney", "line": "See you in a thousand days, buddy.", "emotion": "happy" },
         { "type": "say", "character": "barney", "to": "marshall", "line": "Nine hundred and ninety-nine.", "emotion": "happy", "laugh": "aww" },

@@ -90,13 +90,105 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   animation: fadeinout 3.6s forwards;
 }
 @keyframes fadeinout { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
-/* cutaway cards: a fantasy gets a dreamy serif, a memory a faded typewriter tag */
+/* cutaway cards follow the cutaway's look: plain white, a fantasy's dreamy serif, a memory's faded typewriter
+   tag, or a tape label */
 #loc-label.cutaway { padding: 0.35em 0.8em; letter-spacing: 0.12em; text-shadow: none; }
-#loc-label.imagined {
+#loc-label.plain { background: rgba(0, 0, 0, 0.55); }
+#loc-label.dream {
   font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; text-transform: none; letter-spacing: 0.04em;
   color: #4a3a58; background: rgba(255, 246, 252, 0.88); border-radius: 999px; box-shadow: 0 0 18px rgba(255, 230, 250, 0.9);
 }
-#loc-label.flashback { color: #f4e6c8; background: rgba(40, 26, 12, 0.78); border: 1px solid rgba(244, 230, 200, 0.5); }
+#loc-label.memory { color: #f4e6c8; background: rgba(40, 26, 12, 0.78); border: 1px solid rgba(244, 230, 200, 0.5); }
+#loc-label.video { left: auto; right: 4%; top: auto; bottom: 22%; color: #1c1c1c; background: #f2ead2; border-left: 0.5em solid #c8302a; font-family: var(--hand); text-transform: none; letter-spacing: 0.02em; font-size: clamp(11px, 2cqw, 18px); }
+
+/* the VCR's on-screen display over footage */
+#osd {
+  position: absolute;
+  right: 4%;
+  top: 5%;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(12px, 2.6cqw, 26px);
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-shadow: 0.12em 0.12em 0 #0018a8, -0.06em 0 0 #ff2a2a;
+}
+
+/* graphics drawn over the scene, with the actors still in it */
+#graphics { position: absolute; inset: 0; pointer-events: none; container-type: size; }
+#graphics > * { position: absolute; animation: popin 0.25s ease-out; }
+@keyframes popin { from { opacity: 0; transform: scale(0.85); } }
+.g-tag {
+  z-index: 1;
+  transform: translate(-50%, -100%);
+  padding: 0.15em 0.6em 0.25em;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: clamp(11px, 2.4cqw, 24px);
+  white-space: nowrap;
+  color: #1c1c1c;
+  background: #fffdf4;
+  border: 0.14em solid #1c1c1c;
+  border-radius: 0.4em;
+  box-shadow: 0.12em 0.12em 0 rgba(0, 0, 0, 0.35);
+  animation: none !important;
+}
+.g-tag::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -0.55em;
+  border: 0.45em solid transparent;
+  border-top-color: #1c1c1c;
+  border-bottom: 0;
+  transform: translateX(-50%);
+}
+.g-tag.offscreen { display: none; }
+.g-clock {
+  right: 3.5%;
+  bottom: 21%;
+  padding: 0.2em 0.5em;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(12px, 2.4cqw, 24px);
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  border-left: 0.3em solid var(--umbrella);
+}
+.g-counter {
+  position: relative !important;
+  float: right;
+  clear: right;
+  margin: 1.2cqh 3.5% 0 0;
+  display: flex;
+  align-items: stretch;
+  font-family: var(--mono);
+  font-size: clamp(11px, 2.2cqw, 22px);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.g-counter span { padding: 0.25em 0.6em; color: #fff; background: rgba(0, 0, 0, 0.7); }
+.g-counter b { padding: 0.25em 0.6em; color: #1a1206; background: var(--umbrella); min-width: 1.4em; text-align: center; }
+.g-counter b.bump { animation: bump 0.5s ease-out; }
+@keyframes bump { 40% { transform: scale(1.35); } }
+.g-diagram {
+  right: 3%;
+  top: 50%;
+  width: 34%;
+  transform: translateY(-58%) rotate(-1deg);
+  padding: 1.2cqh 1.2cqw 0.6cqh;
+  color: #1c1c1c;
+  background: rgba(253, 250, 240, 0.94);
+  box-shadow: 0.5cqh 0.5cqh 0 rgba(0, 0, 0, 0.35);
+  font-family: var(--hand);
+  animation: none !important;
+}
+.g-diagram h3 { margin: 0; font-size: 4.2cqh; text-align: center; color: #8a1c1c; }
+.g-diagram svg { display: block; width: 100%; font-size: 17px; font-weight: 700; fill: #1c1c1c; }
+.g-diagram svg .middle { font-size: 15px; }
+.g-diagram svg .point { font-size: 14px; }
+.g-diagram svg .axis { fill: none; stroke: #1c1c1c; stroke-width: 3; stroke-linecap: round; }
 
 /* the show's "2030" stamp over the kids on the couch: plain white, bottom centre, clear of the subtitles */
 #year {

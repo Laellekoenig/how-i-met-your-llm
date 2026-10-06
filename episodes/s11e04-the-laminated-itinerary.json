@@ -205,7 +205,7 @@
         { "type": "say", "character": "luke", "line": "Dad. That's stalking.", "emotion": "bored" },
         { "type": "narrate", "line": "It was a study of the storefront, Luke. Architecturally, it's a very interesting window.", "laugh": "laugh" },
         { "type": "enter", "character": "patrice", "to": "center" },
-        { "type": "say", "character": "patrice", "line": "Surprise! The last stop on BFF Fun Day is... Robin's friends!", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "patrice", "line": "Surprise! The last stop on BFF Fun Day is... Robin's friends!", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "enter", "character": "robin", "to": "woven_chair" },
         { "type": "say", "character": "marshall", "to": "robin", "line": "Robin! You made it! Seventeen hours!", "emotion": "excited" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "Sixteen hours, fifty-four minutes. Not that anyone in this room is counting.", "delivery": "deadpan", "laugh": "chuckle" },

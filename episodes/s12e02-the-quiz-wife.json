@@ -283,7 +283,7 @@
         { "type": "say", "character": "ted", "to": "robin", "line": "Technically—", "interrupted": true, "emotion": "smug" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Don't. Thirty-two and oh.", "emotion": "happy" },
         { "type": "act", "character": "robin", "to": "marshall", "emotion": "happy", "gesture": "fist_bump" },
-        { "type": "laugh", "laugh": "woo" },
+        { "type": "laugh", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad. Do I still get the lasagna?", "emotion": "nervous" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "You threw Delaware. You get Delaware lasagna." },
         { "type": "say", "character": "marshall", "to": "lily", "line": "What's Delaware lasagna?", "emotion": "confused" },

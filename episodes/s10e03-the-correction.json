@@ -102,7 +102,7 @@
         },
         { "type": "say", "character": "ted", "to": "kevin", "line": "That’s absurd. I was a delight in third grade.", "emotion": "angry" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Just promise me. Not one word." },
-        { "type": "say", "character": "ted", "to": "robin", "line": "I’ll watch from home. Quietly. With a notepad.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "I’ll watch from home. Quietly. With a notepad.", "emotion": "smug", "gesture": "salute", "laugh": "laugh" },
         { "type": "act", "character": "kevin", "to": "robin", "emotion": "happy", "gesture": "kiss" },
         { "type": "say", "character": "ted", "to": "kevin", "line": "Guys. I’m right here. It’s a limo, not a hotel.", "delivery": "deadpan", "laugh": "laugh" }
       ]
@@ -134,7 +134,7 @@
         { "type": "insert", "character": "guest1", "laugh": "laugh", "kind": "chart", "chart": "line", "title": "Actually: Viewers", "items": [{ "label": "Mon", "value": 12 }, { "label": "Tue", "value": 30 }, { "label": "Wed", "value": 55 }, { "label": "Thu", "value": 140 }, { "label": "Fri", "value": 410 }] },
         { "type": "move", "character": "guest2", "to": "center" },
         { "type": "say", "character": "guest2", "line": "Actually. Metro News One has never once been number one.", "delivery": "slow", "laugh": "gasp" },
-        { "type": "say", "character": "guest1", "to": "guest2", "line": "Get that man a segment!", "delivery": "shout", "emotion": "excited", "laugh": "applause" },
+        { "type": "say", "character": "guest1", "to": "guest2", "line": "Get that man a segment!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },
         { "type": "act", "character": "guest1", "to": "guest2", "emotion": "excited", "gesture": "fist_bump" },
         { "type": "narrate", "line": "Hector’s segment ran for eleven years. Nobody ever corrected him.", "laugh": "laugh" },
         { "type": "say", "character": "luke", "line": "So you got cancelled by the camera guy.", "emotion": "bored" },

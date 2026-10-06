@@ -158,7 +158,7 @@
         { "type": "say", "character": "ted", "to": "barney", "line": "No." },
         { "type": "pause", "seconds": 1 },
         { "type": "say", "character": "ted", "to": "barney", "line": "There are four slides.", "laugh": "laugh" },
-        { "type": "say", "character": "barney", "to": "robin", "line": "Challenge accepted.", "gesture": "suit_up", "laugh": "woo" }
+        { "type": "say", "character": "barney", "to": "robin", "line": "Challenge accepted.", "gesture": "suit_up", "laugh": "laugh" }
       ]
     },
     {
@@ -219,7 +219,7 @@
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lily. He's in pain.", "delivery": "whisper", "gesture": "lean_in" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "He's in sneakers. He'll live.", "delivery": "whisper", "laugh": "chuckle" },
         { "type": "enter", "character": "barney", "to": "center" },
-        { "type": "say", "character": "barney", "to": "guest1", "line": "Lyle. Ladies. Ted. Daddy's home.", "emotion": "smug", "gesture": "suit_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Lyle. Ladies. Ted. Daddy's home.", "emotion": "smug", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "barney", "line": "Are you wearing cowboy boots?", "delivery": "deadpan" },
         { "type": "say", "character": "barney", "to": "robin", "line": "White ostrich. Custom made in Milan.", "emotion": "smug" },
         { "type": "say", "character": "lily", "to": "barney", "line": "They make cowboy boots in Milan?", "emotion": "confused" },

@@ -86,7 +86,7 @@
         { "type": "say", "character": "kevin", "to": "marshall", "line": "So this week, everybody got the full sixty. In protest." },
         { "type": "say", "character": "kevin", "to": "marshall", "line": "Mister Dworsky finally cried about his father. Minute fifty-four. He'd been six minutes away for nine years.", "laugh": "laugh" },
         { "type": "act", "character": "marshall", "gesture": "stand" },
-        { "type": "say", "character": "marshall", "to": "kevin", "line": "Twenty years I've been the only guy in the room. Now there's two of us!", "emotion": "excited", "gesture": "high_five", "laugh": "woo" },
+        { "type": "say", "character": "marshall", "to": "kevin", "line": "Twenty years I've been the only guy in the room. Now there's two of us!", "emotion": "excited", "gesture": "high_five", "laugh": "laugh" },
         { "type": "insert", "character": "kevin", "line": "Four suspects. Ranked by motive.", "laugh": "chuckle", "kind": "chart", "chart": "pie", "title": "Where Does The Hour Go?", "items": [{ "label": "Switzerland", "value": 35 }, { "label": "Big Sundial", "value": 25 }, { "label": "The Naval Observatory", "value": 20 }, { "label": "Brunch", "value": 20 }] },
         { "type": "say", "character": "marshall", "to": "kevin", "line": "Brunch. It steals from breakfast and lunch, and it only happens on Sundays!", "emotion": "surprised", "gesture": "jaw_drop", "laugh": "laugh" },
         { "type": "say", "character": "kevin", "to": "marshall", "line": "Saturday, two AM, your roof. I'm bringing forty synchronized clocks, two cameras, a thermos and a net." },

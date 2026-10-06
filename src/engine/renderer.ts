@@ -40,7 +40,7 @@ uniform vec2 screenRes;
 uniform float cameraNear;
 uniform float cameraFar;
 uniform float time;
-uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory, uSnap, uTrail, uStill;
+uniform float uOutline, uDither, uLevels, uScan, uVignette, uGrain, uAberr, uWarmth, uStylize, uFade, uRewind, uDream, uRipple, uMemory, uSnap, uTrail, uStill, uWhip, uVideo;
 uniform sampler2D tPrev;
 varying vec2 vUv;
 
@@ -78,6 +78,8 @@ void main() {
   vec2 uv = mix(vUv, (cell + 0.5) * px, uStylize);
   // the wavy dissolve into (and out of) somebody's imagination
   if (uRipple > 0.0) uv.x = clamp(uv.x + sin(uv.y * 38.0 + time * 9.0) * 0.012 * uRipple, 0.001, 0.999);
+  // tape: each line wobbles sideways a little
+  if (uVideo > 0.0) uv.x = clamp(uv.x + (hash(vec2(floor(vUv.y * lowRes.y), floor(time * 24.0))) - 0.5) * px.x * 1.6 * uVideo, 0.001, 0.999);
 
   // chromatic aberration grows toward the edges
   vec2 dir = (uv - 0.5);
@@ -95,6 +97,17 @@ void main() {
       smear += texture2D(tColor, sampleUv).rgb;
     }
     col = mix(col, smear / 9.0, uRewind);
+  }
+
+  // A whip pan: the picture tears sideways into a streak (-1..1 is the direction it travels).
+  if (uWhip != 0.0) {
+    float w = abs(uWhip);
+    vec2 base = uv + vec2(uWhip * 0.3, 0.0);
+    vec3 streak = vec3(0.0);
+    for (int i = -6; i <= 6; i++) {
+      streak += texture2D(tColor, clamp(base + vec2(float(i) * w * 0.035, 0.0), vec2(0.001), vec2(0.999))).rgb;
+    }
+    col = mix(col, streak / 13.0, smoothstep(0.0, 0.3, w));
   }
 
   // imagined: a soft bloom, as if remembered through a smudged lens
@@ -139,6 +152,17 @@ void main() {
     col = mix(col, col * 0.45, uMemory * smoothstep(0.08, 0.4, dot(cv, cv)));
   }
 
+  // footage on a TV: washed-out tape color, lifted blacks, a rolling tracking band and heavy lines
+  if (uVideo > 0.0) {
+    float l = dot(col, vec3(0.299, 0.587, 0.114));
+    vec3 tape = mix(vec3(l), col, 0.7) * vec3(1.04, 1.0, 0.9) * 0.86 + 0.07;
+    col = mix(col, tape, uVideo);
+    float band = 1.0 - smoothstep(0.0, 0.035, abs(fract(vUv.y + time * 0.09) - 0.5));
+    col += band * (hash(vec2(floor(vUv.x * lowRes.x * 0.5), floor(time * 30.0))) - 0.35) * 0.16 * uVideo;
+    col *= 1.0 - 0.22 * uVideo * step(0.5, fract(vUv.y * lowRes.y * 0.5));
+    col *= 1.0 - uVideo * smoothstep(0.1, 0.32, dot(cv * vec2(1.0, 1.3), cv * vec2(1.0, 1.3))) * 0.6;
+  }
+
   // a freeze frame: the color drains a little while Future Ted talks over it
   if (uStill > 0.0) {
     float l = dot(col, vec3(0.299, 0.587, 0.114));
@@ -163,6 +187,8 @@ void main() {
     float dd = linDepth(uv - vec2(0.0, px.y));
     float diff = max(max(dl - d, dr - d), max(du - d, dd - d));
     float edge = smoothstep(0.05, 0.12, diff / max(d, 0.001));
+    // the ink smears away with the picture in a whip pan or rewind
+    edge *= 1.0 - smoothstep(0.0, 0.3, max(abs(uWhip), uRewind));
     col = mix(col, vec3(0.07, 0.045, 0.04), edge * uOutline);
   }
 
@@ -202,6 +228,16 @@ export class Renderer {
   memory = 0;
   /** Freeze-frame grade (0..1). */
   still = 0;
+  /** A whip pan's streak (-1..1, the sign is the direction). */
+  whip = 0;
+  /** The look of footage playing on a TV (0..1). */
+  video = 0;
+  /**
+   * A split screen: each panel shows its own set and people through its own camera, side by side. `show` makes
+   * only that panel's set and people visible; `panelsDone` puts things back once they've all rendered.
+   */
+  panels: { camera: THREE.PerspectiveCamera; show(): void }[] | null = null;
+  panelsDone: (() => void) | null = null;
   /** The main titles' hot, glowing snapshot grade (0..1). */
   snap = 0;
   /** How much of the previous frame lingers (0..1): the smear of a fast-motion photo burst. */
@@ -249,6 +285,7 @@ export class Renderer {
         uVignette: { value: 0 }, uGrain: { value: 0 }, uAberr: { value: 0 }, uWarmth: { value: 0 },
         uStylize: { value: 1 }, uFade: { value: 1 }, uRewind: { value: 0 },
         uDream: { value: 0 }, uRipple: { value: 0 }, uMemory: { value: 0 }, uSnap: { value: 0 }, uTrail: { value: 0 }, uStill: { value: 0 },
+        uWhip: { value: 0 }, uVideo: { value: 0 },
         tPrev: { value: null },
       },
       depthTest: false,
@@ -326,6 +363,8 @@ export class Renderer {
     u.uRipple.value = this.ripple;
     u.uMemory.value = this.memory;
     u.uStill.value = this.still;
+    u.uWhip.value = this.whip;
+    u.uVideo.value = this.video;
     u.cameraNear.value = this.camera.near;
     u.cameraFar.value = this.camera.far;
 
@@ -333,7 +372,8 @@ export class Renderer {
     this.lastTime = time;
 
     this.gl.setRenderTarget(this.rt);
-    this.gl.render(this.scene, this.camera);
+    if (this.panels?.length) this.renderPanels(this.panels);
+    else this.gl.render(this.scene, this.camera);
     if (this.trail <= 0) {
       this.historyValid = false;
       u.uTrail.value = 0;
@@ -352,6 +392,37 @@ export class Renderer {
     this.gl.render(this.copyScene, this.postCam);
     this.history = [prev, next];
     this.historyValid = true;
+  }
+
+  /** Side-by-side strips of the low-res target, with a thin black bar between them. */
+  private renderPanels(panels: NonNullable<Renderer['panels']>) {
+    const rt = this.rt, w = rt.width, h = rt.height;
+    const gap = Math.max(1, Math.round(w * 0.008));
+    rt.scissorTest = true;
+    rt.viewport.set(0, 0, w, h);
+    rt.scissor.set(0, 0, w, h);
+    this.gl.setRenderTarget(rt);
+    this.gl.setClearColor(0x000000, 1);
+    this.gl.clear();
+    try {
+      panels.forEach((p, i) => {
+        const x = Math.round((i * w) / panels.length) + (i ? Math.ceil(gap / 2) : 0);
+        const right = Math.round(((i + 1) * w) / panels.length) - (i < panels.length - 1 ? Math.floor(gap / 2) : 0);
+        rt.viewport.set(x, 0, right - x, h);
+        rt.scissor.set(x, 0, right - x, h);
+        this.gl.setRenderTarget(rt);
+        p.show();
+        p.camera.aspect = (right - x) / h;
+        p.camera.updateProjectionMatrix();
+        this.gl.render(this.scene, p.camera);
+      });
+    } finally {
+      rt.scissorTest = false;
+      rt.viewport.set(0, 0, w, h);
+      rt.scissor.set(0, 0, w, h);
+      this.gl.setRenderTarget(rt);
+      this.panelsDone?.();
+    }
   }
 
   /** A frozen print; render faces at photo resolution, then restore the viewer's picture settings. */

@@ -1,7 +1,10 @@
 import {
-  CHARACTER_IDS, CHART_STYLES, CUTAWAY_STYLES, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS,
-  GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OUTFITS, PROPS, SCENE_LOCATION_IDS, SHOTS, TRANSITIONS, isGuest, isKid,
+  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GRAPHIC_KINDS, GUEST_COLORS, GUEST_EXTRAS,
+  GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OFFSCREEN, OUTFITS, PROPS, SCENE_LOCATION_IDS,
+  SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isGuest, isKid,
 } from './types';
+import { replayBeats } from './strands';
+import type { Beat } from './types';
 import type { StageSet } from '../world/sets/common';
 
 // Episode files are written by hand (or by an agent) and must be performable exactly as written:
@@ -24,12 +27,25 @@ const MAX_SCENE_BEATS = 70;
 const MAX_CUTAWAY_BEATS = 24;
 const MAX_WORDS = 35;
 const LONG_WORDS = 25;
+/** How deep cutaways and replays can nest: a memory inside a story inside a memory. */
+const MAX_DEPTH = 3;
+/** Practical runtime limits, not a house style: around twelve minutes of show, and room to cut back and forth. */
+const LONG_EPISODE_BEATS = 300;
+const MAX_SCENES = 40;
 
 const MAX_MONTAGE_SHOTS = 6;
+const PRESENTATION = ['label', 'look', 'transition', 'sound'];
+/** What a split screen can do: talk, gesture, hold things up. Nobody walks between the panels. */
+const SPLIT_BEATS = ['say', 'narrate', 'act', 'hold', 'laugh', 'pause', 'sound', 'score', 'insert'];
+const GRAPHIC_FIELDS: Record<string, string[]> = {
+  tag: ['character', 'text'], clock: ['text'], counter: ['title', 'value'], venn: ['title', 'sets', 'middle'],
+  axes: ['title', 'x', 'y', 'points'], clear: ['character'],
+};
+const SLUG = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
 
 const BEAT_KEYS: Record<string, string[]> = {
-  say: ['character', 'line', 'to', 'emotion', 'gesture', 'laugh', 'delivery', 'interrupted', 'chorus', 'react', 'shot'],
-  narrate: ['line', 'laugh'],
+  say: ['character', 'line', 'to', 'emotion', 'gesture', 'laugh', 'delivery', 'accompanied', 'offscreen', 'interrupted', 'chorus', 'react', 'shot'],
+  narrate: ['line', 'laugh', 'over'],
   move: ['character', 'to'],
   enter: ['character', 'to'],
   exit: ['character'],
@@ -38,10 +54,15 @@ const BEAT_KEYS: Record<string, string[]> = {
   give: ['character', 'to', 'prop', 'shot'],
   laugh: ['laugh'],
   pause: ['seconds'],
-  freeze: ['line', 'character', 'gesture', 'to', 'emotion', 'laugh', 'shot'],
-  insert: ['kind', 'title', 'lines', 'messages', 'items', 'chart', 'character', 'line', 'laugh', 'react'],
-  cutaway: ['style', 'label', 'location', 'time', 'cast', 'beats'],
+  sound: ['sound'],
+  score: ['music'],
+  graphic: ['kind', 'character', 'text', 'title', 'value', 'sets', 'middle', 'x', 'y', 'points'],
+  freeze: ['line', 'character', 'gesture', 'to', 'emotion', 'laugh', 'shot', 'sound'],
+  insert: ['kind', 'title', 'lines', 'messages', 'items', 'chart', 'character', 'line', 'laugh', 'react', 'sound'],
+  cutaway: ['id', 'style', ...PRESENTATION, 'location', 'time', 'wardrobe', 'cast', 'beats'],
   montage: ['label', 'music', 'shots'],
+  replay: ['of', 'style', 'from', 'to', ...PRESENTATION, 'add', 'changes', 'wardrobe'],
+  split: ['label', 'sound', 'panels', 'beats'],
 };
 
 /** Where an insert has room for what it shows. */
@@ -49,7 +70,7 @@ const INSERT_NEEDS: Record<string, string> = {
   text: '"messages" [{ "from", "text" }]', chart: '"items" [{ "label", "value" }]',
   slides: 'a "title" or "lines"', sign: 'a "title" or "lines"', playbook: 'a "title" or "lines"',
 };
-const COSTUME_KEYS = ['character', 'topStyle', 'top', 'under', 'tie', 'vest', 'pants', 'shoes', 'boots', 'hairStyle', 'extras'];
+const COSTUME_KEYS = ['character', 'keep', 'topStyle', 'top', 'under', 'tie', 'vest', 'pants', 'shoes', 'boots', 'hairStyle', 'extras'];
 
 const isObj = (v: unknown): v is Obj => !!v && typeof v === 'object' && !Array.isArray(v);
 const list = (values: readonly string[]) => values.join(', ');
@@ -58,8 +79,10 @@ const words = (line: string) => line.trim().split(/\s+/).filter(Boolean).length;
 export function validateEpisode(ep: unknown, sets: Sets): Report {
   const errors: Issue[] = [];
   const warnings: Issue[] = [];
-  const err = (path: string, message: string) => errors.push({ path, message });
-  const warn = (path: string, message: string) => warnings.push({ path, message });
+  // Staging a replay first walks through what happened before it, which was checked where it was written.
+  let muted = 0;
+  const err = (path: string, message: string) => { if (!muted) errors.push({ path, message }); };
+  const warn = (path: string, message: string) => { if (!muted) warnings.push({ path, message }); };
 
   if (!isObj(ep)) return { errors: [{ path: '', message: 'an episode is a JSON object' }], warnings };
 
@@ -81,7 +104,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     return typeof v === 'string' && values.includes(v) ? v : undefined;
   };
 
-  keys(ep, '', ['code', 'title', 'logline', 'coldOpen', 'couch', 'guests', 'wardrobe', 'scenes']);
+  keys(ep, '', ['code', 'title', 'logline', 'coldOpen', 'couch', 'guests', 'wardrobe', 'continuity', 'scenes']);
   const code = text(ep, 'code', 'code');
   if (code && !/^S\d{2}E\d{2}$/.test(code)) err('code', `"${code}" should look like "S11E03"`);
   text(ep, 'title', 'title');
@@ -136,8 +159,8 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     }
   };
 
-  /** Costumes for the regular cast: only what's mentioned changes. */
-  const wardrobe = (raw: unknown, path: string) => {
+  /** Costumes for the regular cast: only what's mentioned changes. `keep` only means something on a scene's. */
+  const wardrobe = (raw: unknown, path: string, keeps = false) => {
     if (raw === undefined) return;
     if (!Array.isArray(raw)) return err(path, 'must be an array of costumes');
     const seen = new Set<unknown>();
@@ -155,14 +178,18 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       oneOf(c, 'hairStyle', GUEST_HAIR_STYLES, p);
       for (const k of ['top', 'under', 'tie', 'vest', 'pants', 'shoes']) color(c, k, p);
       if (c.boots !== undefined && typeof c.boots !== 'boolean') err(p, '"boots" is true or false');
+      if (c.keep !== undefined && c.keep !== true) err(p, '"keep" is either true or left out');
+      else if (c.keep && !keeps) err(p, '"keep" is for a scene\'s costume that stays on for the rest of the episode');
       if (c.extras !== undefined) {
         if (!Array.isArray(c.extras)) err(p, '"extras" must be an array');
         else for (const x of c.extras) if (!(GUEST_EXTRAS as readonly string[]).includes(x)) err(p, `extra ${JSON.stringify(x)} is not one of: ${list(GUEST_EXTRAS)}`);
       }
-      if (Object.keys(c).length < 2) warn(p, 'a costume that changes nothing');
+      // (a kept costume with nothing in it takes the kept one off)
+      if (Object.keys(c).filter((k) => k !== 'keep').length < 2 && !c.keep) warn(p, 'a costume that changes nothing');
     });
   };
   wardrobe(ep.wardrobe, 'wardrobe');
+  continuity(ep.continuity, err, warn);
 
   const character = (v: unknown, path: string, what = 'character') => {
     if (typeof v !== 'string' || !(CHARACTER_IDS as readonly string[]).includes(v)) {
@@ -178,11 +205,8 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
 
   // ---- the stage, beat by beat: who is where, so every line, move and entrance can actually be performed
   const speakers = new Set<string>();
-  let kidBeats = 0;
-  let cutaways = 0;
-  let montages = 0;
-  let inserts = 0;
-  let freezes = 0;
+  /** Devices used, for the episode's craft notes. */
+  let count = { kids: 0, montages: 0, inserts: 0, freezes: 0, beats: 0 };
 
   interface Stage {
     location: string;
@@ -193,9 +217,49 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     real: boolean;
     /** What people are holding. */
     held: Map<string, string>;
+    /** A split screen: several sets at once, and nobody walks anywhere. */
+    split?: boolean;
   }
+  const clone = (st: Stage): Stage => ({ ...st, at: new Map(st.at), held: new Map(st.held) });
+
+  /** A scene or cutaway with an id: what a replay shows again and, for a scene, where a resume picks up. */
+  interface Strand { location: string; time: unknown; cast: unknown; before: unknown[]; beats: unknown[]; end?: Stage }
+  /** What each id names, for replays. */
+  const segments = new Map<string, Strand>();
+  /** How each scene's strand stood when we last left it, for the next scene that resumes it. */
+  const latest = new Map<string, Strand>();
+  const ids = new Set<string>();
+  /** Inside a replay: the original's own ids and cutaways were registered where they were written. */
+  let replaying = 0;
+  const named = (v: unknown, p: string) => {
+    if (v === undefined || replaying) return;
+    if (typeof v !== 'string' || !SLUG.test(v)) return err(p, '"id" is a short slug like "the-toast" or "bar_fight"');
+    if (ids.has(v)) err(p, `two scenes or cutaways are called "${v}"`);
+    ids.add(v);
+  };
 
   const compartment = (st: Stage, mark: string) => st.set.entrances?.[mark] ?? st.set.door;
+
+  /** One cast entry onto the stage (a scene's, a cutaway's, or someone a replay reveals). */
+  const castOne = (st: Stage, c: unknown, p: string) => {
+    const { set, location } = st;
+    if (!isObj(c)) return err(p, 'must be { "character", "mark" }');
+    keys(c, p, ['character', 'mark', 'outfit']);
+    const who = character(c.character, p);
+    if (who && isKid(who)) return err(p, `${who} is only ever on the 2030 couch: never cast them in a scene`);
+    oneOf(c, 'outfit', OUTFITS, p);
+    const mark = typeof c.mark === 'string' ? c.mark : '';
+    if (!set.marks[mark]) err(p, `mark ${JSON.stringify(c.mark)} doesn't exist at ${location} (marks: ${list(Object.keys(set.marks))})`);
+    else if (who) {
+      const taken = [...st.at].find(([, m]) => m === mark);
+      if (taken) err(p, `${who} and ${taken[0]} are both on "${mark}"`);
+      if (mark === set.door || compartment(st, mark) === mark) warn(p, `"${mark}" is a doorway: start them somewhere else, or have them enter`);
+    }
+    if (who) {
+      if (st.at.has(who)) err(p, `${who} is ${st.at.size ? 'already there' : 'cast twice'}`);
+      st.at.set(who, set.marks[mark] ? mark : null);
+    }
+  };
 
   const castOn = (raw: unknown, location: string, path: string, real: boolean): Stage | null => {
     const set = sets[location];
@@ -205,25 +269,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       err(path, '"cast" must be an array of { "character", "mark" }');
       return st;
     }
-    raw.forEach((c, i) => {
-      const p = `${path}[${i}]`;
-      if (!isObj(c)) return err(p, 'must be { "character", "mark" }');
-      keys(c, p, ['character', 'mark', 'outfit']);
-      const who = character(c.character, p);
-      if (who && isKid(who)) return err(p, `${who} is only ever on the 2030 couch: never cast them in a scene`);
-      oneOf(c, 'outfit', OUTFITS, p);
-      const mark = typeof c.mark === 'string' ? c.mark : '';
-      if (!set.marks[mark]) err(p, `mark ${JSON.stringify(c.mark)} doesn't exist at ${location} (marks: ${list(Object.keys(set.marks))})`);
-      else if (who) {
-        const taken = [...st.at].find(([, m]) => m === mark);
-        if (taken) err(p, `${who} and ${taken[0]} are both on "${mark}"`);
-        if (mark === set.door || compartment(st, mark) === mark) warn(p, `"${mark}" is a doorway: start them somewhere else, or have them enter`);
-      }
-      if (who) {
-        if (st.at.has(who)) err(p, `${who} is cast twice`);
-        st.at.set(who, set.marks[mark] ? mark : null);
-      }
-    });
+    raw.forEach((c, i) => castOne(st, c, `${path}[${i}]`));
     bothRobins(st, path);
     return st;
   };
@@ -255,21 +301,41 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     err(path, `"to": "${to}" is neither a mark at ${st.location} (${list(Object.keys(st.set.marks))}) nor a character on stage`);
   };
 
-  const beats = (raw: unknown, st: Stage | null, path: string, nested: boolean, budget: { left: number }) => {
+  /** A card, a look, an edit and a sound: each optional, each chosen on its own. */
+  const presentation = (b: Obj, p: string) => {
+    if (b.label !== undefined && (typeof b.label !== 'string' || !b.label.trim() || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
+    oneOf(b, 'look', CUTAWAY_LOOKS, p);
+    oneOf(b, 'transition', CUTAWAY_TRANSITIONS, p);
+    oneOf(b, 'sound', SOUND_CUES, p);
+  };
+
+  /**
+   * `depth` counts the cutaways and replays we're inside; `inside` is a montage shot or split screen, which hold
+   * simpler beats. `paths` names each beat when they aren't simply `path[i]` (a replay's mix of old and new).
+   */
+  const beats = (raw: unknown, st: Stage | null, path: string, depth: number, budget: { left: number }, paths?: string[], inside?: 'montage' | 'split') => {
     if (!Array.isArray(raw)) return err(path, '"beats" must be an array');
     raw.forEach((b, i) => {
-      const p = `${path}[${i}]`;
+      const p = paths?.[i] ?? `${path}[${i}]`;
       budget.left--;
+      if (!muted) count.beats++;
       if (!isObj(b)) return err(p, 'a beat is an object with a "type"');
       const type = typeof b.type === 'string' ? b.type : '';
       if (!BEAT_KEYS[type]) return err(p, `"type": ${JSON.stringify(b.type)} is not one of: ${list(Object.keys(BEAT_KEYS))}`);
       keys(b, `${p} (${type})`, ['type', ...BEAT_KEYS[type]]);
+      if (st?.split && !SPLIT_BEATS.includes(type)) return err(p, `a split screen holds ${list(SPLIT_BEATS)} beats: nobody walks between the panels`);
       oneOf(b, 'emotion', EMOTIONS, p);
       oneOf(b, 'gesture', GESTURES, p, type === 'act');
-      oneOf(b, 'laugh', LAUGHS, p, type === 'laugh');
+      if (b.laugh === 'woo') err(p, '"laugh": "woo" is gone: the studio audience laughs, it doesn\'t cheer (use "laugh", or "applause" for a crowd inside the story)');
+      else oneOf(b, 'laugh', LAUGHS, p, type === 'laugh');
       oneOf(b, 'delivery', DELIVERIES, p);
-
       oneOf(b, 'shot', SHOTS, p);
+      if (type === 'sound') oneOf(b, 'sound', SOUND_CUES, p, true);
+      else if (type === 'insert') oneOf(b, 'sound', [...SOUND_CUES, 'none'], p);
+      else if (type === 'freeze') oneOf(b, 'sound', SOUND_CUES, p);
+      if (type === 'score') oneOf(b, 'music', SCORES, p, true);
+      if (b.accompanied !== undefined && (b.accompanied !== true || b.delivery !== 'sing')) err(p, '"accompanied": true puts a guitar under a sung line ("delivery": "sing")');
+
       if (type === 'say' || type === 'narrate' || type === 'freeze' || (type === 'insert' && b.line !== undefined)) {
         const line = text(b, 'line', p);
         if (/[()*[\]{}<>]/.test(line)) err(p, 'no stage directions in lines: use beats, gestures, emotion and delivery instead');
@@ -286,15 +352,26 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
           }
         }
       }
+      if (type === 'narrate' && b.over !== undefined) {
+        if (b.over !== true) err(p, '"over" is either true or left out');
+        else if (b.laugh !== undefined) err(p, 'a voice-over under the action can\'t carry a laugh: put a laugh beat after it');
+      }
 
       const who = type in { say: 1, move: 1, enter: 1, exit: 1, act: 1, hold: 1, give: 1 } || (type === 'freeze' && b.character !== undefined)
         ? character(b.character, p) : undefined;
       const kid = !!who && isKid(who);
       if (kid) {
         if (type !== 'say' && type !== 'act') err(p, `${who} never leaves the 2030 couch: they can only say and act`);
-        kidBeats++;
+        if (st?.split) err(p, 'the kids can\'t interrupt a split screen');
+        if (!muted) count.kids++;
       }
       if (type === 'say' && who) speakers.add(who);
+      const offscreen = type === 'say' ? oneOf(b, 'offscreen', OFFSCREEN, p) : undefined;
+      if (offscreen && who) {
+        if (kid) err(p, 'the kids are on the couch, never offscreen');
+        else if (st?.at.has(who)) err(p, `${who} is on stage: "offscreen" is for a voice we hear but don't see`);
+        for (const k of ['chorus', 'gesture', 'shot']) if (b[k] !== undefined) err(p, `"${k}" needs them on screen: not with "offscreen"`);
+      }
       if (kid && type === 'say' && b.chorus !== undefined) {
         // the kids can say something together on the couch, and that's all
         if (!Array.isArray(b.chorus) || b.chorus.some((c) => !isKid(String(c)) || c === who)) err(p, '"chorus" on a kid\'s line is the other kid');
@@ -303,9 +380,10 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         const to = character(b.to, p, '"to"');
         if (to && st && !kid && !st.at.has(to) && !isKid(to)) warn(p, `${who} talks to ${to}, who isn't on stage`);
       }
+      if (st?.split && type === 'act' && (b.gesture === 'sit' || b.gesture === 'stand')) err(p, 'nobody sits down or gets up in a split screen');
 
       if (type === 'freeze' && who && kid) err(p, 'a freeze frame is on someone in the story, not the couch');
-      if (st && !kid && type === 'say') {
+      if (st && !kid && type === 'say' && !offscreen) {
         if (b.chorus !== undefined) {
           if (!Array.isArray(b.chorus) || !b.chorus.length) err(p, '"chorus" is a list of everyone else saying the line');
           else b.chorus.forEach((c, k) => {
@@ -319,12 +397,13 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       }
       if (type === 'say' || type === 'insert') reactions(b.react, st, p, type === 'say' ? who : undefined);
       if (type === 'insert') {
-        inserts++;
+        if (!muted) count.inserts++;
         insert(b, p);
       }
-      if (type === 'freeze') freezes++;
+      if (type === 'freeze' && !muted) count.freezes++;
+      if (type === 'graphic') graphic(b, st, p);
 
-      if (!st || !who || kid) {
+      if (!st || !who || kid || offscreen) {
         // nothing to stage
       } else if (type === 'enter') {
         if (st.at.has(who)) err(p, `${who} is already on stage: use "move"`);
@@ -358,23 +437,39 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       if (type === 'pause' && !(typeof b.seconds === 'number' && b.seconds > 0 && b.seconds <= 5)) err(p, '"seconds" must be a number between 0 and 5');
 
       if (type === 'cutaway') {
-        if (nested) return err(p, 'no cutaways inside a cutaway');
-        cutaways++;
+        if (inside) return err(p, `no cutaways inside a ${inside === 'split' ? 'split screen' : 'montage'}`);
+        if (depth >= MAX_DEPTH) return err(p, `cutaways and replays nest ${MAX_DEPTH} deep at most`);
+        named(b.id, p);
         oneOf(b, 'style', CUTAWAY_STYLES, p, true);
         oneOf(b, 'time', ['day', 'night'], p, true);
-        if (b.label !== undefined && (typeof b.label !== 'string' || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
-        if (!b.label) warn(p, 'give the cutaway an on-screen "label", e.g. "How Barney imagined it" or "Wesleyan, 1996"');
+        presentation(b, p);
+        wardrobe(b.wardrobe, `${p}.wardrobe`);
         const location = oneOf(b, 'location', SCENE_LOCATION_IDS, p, true);
         const inner = location ? castOn(b.cast, location, `${p}.cast`, false) : null;
         const n = Array.isArray(b.beats) ? b.beats.length : 0;
-        if (n > MAX_CUTAWAY_BEATS) err(p, `${n} beats: a cutaway has at most ${MAX_CUTAWAY_BEATS}`);
-        else if (n < 3 || n > 10) warn(p, `${n} beats: cutaways land best with 3-10`);
-        beats(b.beats, inner, `${p}.beats`, true, budget);
+        if (!n) err(p, 'a cutaway needs at least one beat');
+        else if (n > MAX_CUTAWAY_BEATS) err(p, `${n} beats: a cutaway has at most ${MAX_CUTAWAY_BEATS}`);
+        else if (n > 10) warn(p, `${n} beats: a cutaway this long might be its own scene`);
+        beats(b.beats, inner, `${p}.beats`, depth + 1, budget);
+        if (typeof b.id === 'string' && location && !muted && !replaying) {
+          segments.set(b.id, { location, time: b.time, cast: b.cast, before: [], beats: Array.isArray(b.beats) ? b.beats : [] });
+        }
+      }
+
+      if (type === 'replay') {
+        if (inside) return err(p, `no replays inside a ${inside === 'split' ? 'split screen' : 'montage'}`);
+        if (depth >= MAX_DEPTH) return err(p, `cutaways and replays nest ${MAX_DEPTH} deep at most`);
+        replay(b, p, depth, budget);
+      }
+
+      if (type === 'split') {
+        if (inside) return err(p, `no split screens inside a ${inside === 'split' ? 'split screen' : 'montage'}`);
+        split(b, p, depth, budget);
       }
 
       if (type === 'montage') {
-        if (nested) return err(p, 'no montages inside a cutaway or another montage');
-        montages++;
+        if (depth || inside) return err(p, 'no montages inside a cutaway or another montage');
+        if (!muted) count.montages++;
         oneOf(b, 'music', MONTAGE_MUSIC, p, true);
         if (b.label !== undefined && (typeof b.label !== 'string' || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
         if (!Array.isArray(b.shots)) return err(p, '"shots" must be an array of { "location", "time", "cast", "beats" }');
@@ -382,9 +477,10 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         b.shots.forEach((shot, k) => {
           const sp = `${p}.shots[${k}]`;
           if (!isObj(shot)) return err(sp, 'a shot is { "location", "time", "cast", "beats" }');
-          keys(shot, sp, ['location', 'time', 'label', 'cast', 'beats']);
+          keys(shot, sp, ['location', 'time', 'label', 'wardrobe', 'cast', 'beats']);
           oneOf(shot, 'time', ['day', 'night'], sp, true);
           if (shot.label !== undefined && (typeof shot.label !== 'string' || shot.label.length > 40)) err(sp, '"label" is a little card like "Day 3" (40 characters max)');
+          wardrobe(shot.wardrobe, `${sp}.wardrobe`);
           const location = oneOf(shot, 'location', SCENE_LOCATION_IDS, sp, true);
           const inner = location ? castOn(shot.cast, location, `${sp}.cast`, false) : null;
           const n = Array.isArray(shot.beats) ? shot.beats.length : 0;
@@ -392,10 +488,159 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
           else if (n > 2) warn(sp, `${n} beats: montage shots land best with 1-2`);
           if (Array.isArray(shot.beats) && shot.beats.some((x) => isObj(x) && isKid(String(x.character)))) err(sp, 'the kids stay on the couch: no couch cutaways inside a montage');
           budget.left--;
-          beats(shot.beats, inner, `${sp}.beats`, true, budget);
+          beats(shot.beats, inner, `${sp}.beats`, depth + 1, budget, undefined, 'montage');
         });
       }
     });
+  };
+
+  /**
+   * Show a scene or cutaway again: everyone stands where they were when the replayed part starts (plus anyone
+   * revealed), then the original beats play with the changes made. Errors in the original only count if a
+   * change caused them.
+   */
+  const replay = (b: Obj, p: string, depth: number, budget: { left: number }) => {
+    oneOf(b, 'style', CUTAWAY_STYLES, p);
+    presentation(b, p);
+    wardrobe(b.wardrobe, `${p}.wardrobe`);
+    const src = typeof b.of === 'string' ? segments.get(b.of) : undefined;
+    if (!src) {
+      const known = [...segments.keys()];
+      return err(p, `"of": ${JSON.stringify(b.of)} isn't the id of an earlier scene or cutaway${known.length ? ` (so far: ${list(known)})` : ''}`);
+    }
+    const original = src.beats;
+    const n = original.length;
+    const whole = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v);
+    const from = b.from ?? 0, to = b.to ?? n - 1;
+    if (!n) return err(p, `"${b.of}" has no beats to replay`);
+    if (!whole(from) || from < 0 || from >= n) return err(p, `"from" is a beat number of "${b.of}" (0-${n - 1})`);
+    if (!whole(to) || to < from || to >= n) return err(p, `"to" is a beat number of "${b.of}" (${from}-${n - 1})`);
+    const changes = b.changes ?? [];
+    if (!Array.isArray(changes)) return err(p, '"changes" is a list of { "at", "replace": [beats] } or { "at", "insert": [beats] }');
+    let ok = true;
+    const replaced = new Set<number>();
+    changes.forEach((c, k) => {
+      const cp = `${p}.changes[${k}]`;
+      const bad = (message: string) => { ok = false; err(cp, message); };
+      if (!isObj(c)) return bad('a change is { "at": beat number, "replace": [beats] } or { "at", "insert": [beats] }');
+      keys(c, cp, ['at', 'replace', 'insert']);
+      if (!whole(c.at) || c.at < from || c.at > to + 1) return bad(`"at" is a beat number of "${b.of}" from ${from} to ${to + 1}`);
+      if ((c.replace === undefined) === (c.insert === undefined)) return bad('a change either replaces beat "at" or inserts beats just before it');
+      const list = c.replace ?? c.insert;
+      if (!Array.isArray(list)) return bad('a change\'s beats are an array (an empty "replace" cuts the beat)');
+      if (c.insert !== undefined && !list.length) warn(cp, 'inserting nothing');
+      if (c.replace !== undefined) {
+        if (c.at > to) return bad(`there's no beat ${c.at} in the replayed part to replace`);
+        if (replaced.has(c.at)) return bad(`beat ${c.at} is replaced twice`);
+        replaced.add(c.at);
+      }
+    });
+    if (!ok) return;
+    if (!changes.length && b.add === undefined && b.label === undefined) warn(p, 'a replay with no changes: give it a reason to be seen again (a label, a change, someone revealed)');
+
+    // stand everyone where they were when the replayed part starts
+    muted++;
+    const counted = { ...count };
+    const st = castOn(src.cast, src.location, `${p}.cast`, false);
+    beats([...src.before, ...original.slice(0, from)], st, p, depth + 1, { left: Infinity });
+    count = counted;
+    muted--;
+    if (!st) return;
+    if (b.add !== undefined) {
+      if (!Array.isArray(b.add) || !b.add.length) err(p, '"add" is a list of { "character", "mark" }: people who were there all along');
+      else b.add.forEach((c, k) => castOne(st, c, `${p}.add[${k}]`));
+    }
+    const range = { from, to };
+    const composed = replayBeats(original as Beat[], { ...range, changes: changes as never });
+    const named = replayBeats(original.map((_, i) => `${p} (beat ${i} of "${b.of}")`) as never, {
+      ...range,
+      changes: changes.map((c: Obj, k) => ({
+        at: c.at as number,
+        replace: (c.replace as unknown[] | undefined)?.map((_, j) => `${p}.changes[${k}].replace[${j}]`),
+        insert: (c.insert as unknown[] | undefined)?.map((_, j) => `${p}.changes[${k}].insert[${j}]`),
+      })) as never,
+    }) as unknown as string[];
+    replaying++;
+    try {
+      beats(composed, st, p, depth + 1, budget, named);
+    } finally {
+      replaying--;
+    }
+  };
+
+  /** Two or three sets at once. Everyone in it stays put; lines can go back and forth between the panels. */
+  const split = (b: Obj, p: string, depth: number, budget: { left: number }) => {
+    if (b.label !== undefined && (typeof b.label !== 'string' || !b.label.trim() || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
+    oneOf(b, 'sound', SOUND_CUES, p);
+    if (!Array.isArray(b.panels) || b.panels.length < 2 || b.panels.length > 3) return err(p, '"panels" is 2-3 { "location", "time", "cast" }');
+    const set = { name: 'split screen', marks: {}, door: '' } as unknown as Sets[string];
+    const all: Stage = { location: 'a split screen', set, at: new Map(), real: false, held: new Map(), split: true };
+    const places = new Set<string>();
+    b.panels.forEach((panel, k) => {
+      const pp = `${p}.panels[${k}]`;
+      if (!isObj(panel)) return err(pp, 'a panel is { "location", "time", "cast" }');
+      keys(panel, pp, ['location', 'time', 'cast']);
+      oneOf(panel, 'time', ['day', 'night'], pp, true);
+      const location = oneOf(panel, 'location', SCENE_LOCATION_IDS, pp, true);
+      if (location && places.has(location)) err(pp, `two panels are both at ${location}: each panel is its own set`);
+      if (location) places.add(location);
+      const inner = location ? castOn(panel.cast, location, `${pp}.cast`, false) : null;
+      if (!inner) return;
+      if (!inner.at.size) err(pp, 'a panel needs someone in it');
+      else if (inner.at.size > 3) err(pp, 'a panel holds three people at most');
+      for (const id of inner.at.keys()) {
+        if (all.at.has(id)) err(pp, `${id} can't be in two panels at once`);
+        all.at.set(id, null);
+      }
+    });
+    if (!Array.isArray(b.beats) || !b.beats.length) return err(p, 'a split screen needs beats');
+    beats(b.beats, all, `${p}.beats`, depth, budget, undefined, 'split');
+  };
+
+  /** Drawn over the scene: each kind takes its own few fields. */
+  const graphic = (b: Obj, st: Stage | null, p: string) => {
+    const kind = oneOf(b, 'kind', GRAPHIC_KINDS, p, true);
+    if (!kind) return;
+    const fields = GRAPHIC_FIELDS[kind];
+    for (const k of Object.keys(b)) {
+      if (k !== 'type' && k !== 'kind' && !fields.includes(k)) err(p, `"${k}" isn't for a ${kind} (it takes: ${list(fields)})`);
+    }
+    const short = (k: string, max: number, required = false) => {
+      const v = b[k];
+      if (v === undefined) return required && err(p, `a ${kind} needs "${k}"`);
+      if (typeof v !== 'string' || !v.trim() || v.length > max) err(p, `"${k}" is a short string (${max} characters max)`);
+    };
+    if (kind === 'tag' && b.character === undefined) err(p, 'a tag needs the "character" it labels');
+    else if (b.character !== undefined) {
+      const id = character(b.character, p);
+      if (id && isKid(id)) err(p, 'the kids are in 2030: no tags on them');
+      else if (id && st && !st.at.has(id)) err(p, `${id} isn't on stage to ${kind === 'tag' ? 'tag' : 'untag'}`);
+    }
+    if (kind === 'tag') short('text', 40, true);
+    if (kind === 'clock') short('text', 24, true);
+    if (kind === 'counter') {
+      short('title', 30, true);
+      if (typeof b.value !== 'number' || !Number.isFinite(b.value)) err(p, 'a counter needs a number "value"');
+    }
+    if (kind === 'venn') {
+      short('title', 40);
+      short('middle', 30, true);
+      if (!Array.isArray(b.sets) || b.sets.length < 2 || b.sets.length > 3 || b.sets.some((x) => typeof x !== 'string' || !x.trim() || x.length > 24)) {
+        err(p, '"sets" is 2-3 circle labels (24 characters max)');
+      }
+    }
+    if (kind === 'axes') {
+      short('title', 40);
+      short('x', 20, true);
+      short('y', 20, true);
+      if (!Array.isArray(b.points) || !b.points.length || b.points.length > 6) err(p, '"points" is 1-6 { "label", "x", "y" } (0-10)');
+      else b.points.forEach((pt, k) => {
+        const ok = isObj(pt) && typeof pt.label === 'string' && pt.label.trim() && pt.label.length <= 20
+          && [pt.x, pt.y].every((v) => typeof v === 'number' && v >= 0 && v <= 10);
+        if (!ok) err(`${p}.points[${k}]`, 'a point is { "label": up to 20 characters, "x": 0-10, "y": 0-10 }');
+        else keys(pt, `${p}.points[${k}]`, ['label', 'x', 'y']);
+      });
+    }
   };
 
   /** Listener reactions: people on stage, never the speaker or the kids. */
@@ -469,51 +714,109 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       }
     });
     // (the couch reaction isn't one of the episode's couch cutaways)
-    const before = kidBeats;
-    beats(ep.couch, null, 'couch', true, { left: Infinity });
-    kidBeats = before;
+    const before = count.kids;
+    beats(ep.couch, null, 'couch', 0, { left: Infinity });
+    count.kids = before;
   }
 
   // ---- scenes
   const scenes = ep.scenes;
   if (!Array.isArray(scenes) || !scenes.length) err('scenes', 'an episode needs scenes');
   else {
-    if (scenes.length < 3 || scenes.length > 5) warn('scenes', `${scenes.length} scenes: episodes usually have 3-4`);
+    if (scenes.length > MAX_SCENES) err('scenes', `${scenes.length} scenes: ${MAX_SCENES} at most`);
     scenes.forEach((s, i) => {
       const path = `scenes[${i}]`;
       if (!isObj(s)) return err(path, 'a scene is an object');
-      keys(s, path, ['location', 'time', 'transition', 'summary', 'wardrobe', 'cast', 'beats']);
-      wardrobe(s.wardrobe, `${path}.wardrobe`);
-      const location = oneOf(s, 'location', SCENE_LOCATION_IDS, path, true);
-      oneOf(s, 'time', ['day', 'night'], path, true);
+      keys(s, path, ['id', 'resume', 'location', 'time', 'transition', 'label', 'sound', 'summary', 'wardrobe', 'cast', 'beats']);
+      wardrobe(s.wardrobe, `${path}.wardrobe`, true);
+      named(s.id, path);
       oneOf(s, 'transition', TRANSITIONS, path);
+      if (s.label !== undefined && (typeof s.label !== 'string' || !s.label.trim() || s.label.length > 60)) err(path, '"label" is a short on-screen card (60 characters max)');
+      oneOf(s, 'sound', [...SOUND_CUES, 'none'], path);
       if (s.summary !== undefined && typeof s.summary !== 'string') err(path, '"summary" is a string');
-      const st = location ? castOn(s.cast, location, `${path}.cast`, true) : null;
+      let st: Stage | null = null;
+      let resumed: Strand | undefined;
+      if (s.resume !== undefined) {
+        // intercutting: back to an earlier scene, everyone where we left them
+        resumed = typeof s.resume === 'string' ? latest.get(s.resume) : undefined;
+        if (!resumed) err(path, `"resume": ${JSON.stringify(s.resume)} isn't the id of an earlier scene${latest.size ? ` (so far: ${list([...latest.keys()])})` : ''}`);
+        if (s.cast !== undefined) err(path, 'a resumed scene picks up with everyone where they were: leave out "cast" (bring anyone new on with "enter")');
+        for (const k of ['location', 'time'] as const) {
+          if (s[k] !== undefined && resumed && s[k] !== resumed[k]) err(path, `"${k}" comes from "${String(s.resume)}": leave it out`);
+        }
+        st = resumed?.end ? clone(resumed.end) : null;
+      } else {
+        const location = oneOf(s, 'location', SCENE_LOCATION_IDS, path, true);
+        oneOf(s, 'time', ['day', 'night'], path, true);
+        st = location ? castOn(s.cast, location, `${path}.cast`, true) : null;
+      }
       const budget = { left: MAX_SCENE_BEATS };
-      beats(s.beats, st, `${path}.beats`, false, budget);
+      beats(s.beats, st, `${path}.beats`, 0, budget);
       if (budget.left < 0) err(path, `${MAX_SCENE_BEATS - budget.left} beats (counting cutaways): a scene has at most ${MAX_SCENE_BEATS}`);
+      if (st) {
+        const own: Strand = {
+          location: st.location, time: resumed?.time ?? s.time, cast: resumed?.cast ?? s.cast,
+          before: resumed ? [...resumed.before, ...resumed.beats] : [], beats: Array.isArray(s.beats) ? s.beats : [], end: st,
+        };
+        if (resumed) latest.set(s.resume as string, own);
+        if (typeof s.id === 'string') {
+          segments.set(s.id, own);
+          latest.set(s.id, own);
+        }
+      }
 
       const top = Array.isArray(s.beats) ? s.beats.filter(isObj) : [];
       const lines = top.filter((b) => b.type === 'say').length;
       const laughs = top.filter((b) => b.laugh !== undefined).length;
-      if (top.length && top.length < 12) warn(path, `${top.length} beats: scenes usually run 16-30`);
       if (lines >= 6 && laughs < lines / 5) warn(path, `${laughs} laughs in ${lines} lines: land a punchline every 2-4 lines`);
       const narrations = top.filter((b) => b.type === 'narrate').length;
       if (narrations > 2) warn(path, `${narrations} narrate beats: check that each adds a reveal, time shift, correction or couch answer`);
       if (s.transition === 'rewind' && top[0]?.type !== 'narrate') warn(path, 'a rewind starts with a narrate beat that makes the time jump explicit');
-      const last = top.at(-1);
-      if (last && !last.laugh && last.type !== 'laugh' && last.type !== 'pause') warn(path, 'end the scene on a button: put a laugh on the final beat');
     });
   }
 
   for (const [id, name] of guests) if (!speakers.has(id)) warn('guests', `${name} (${id}) never says a line`);
-  if (kidBeats > 3) warn('', `${kidBeats} kids' reaction beats: check that each couch visit serves a specific story beat and stays brief`);
-  if (cutaways > 2) warn('', `${cutaways} cutaways: one or two per episode`);
-  if (montages > 1) warn('', `${montages} montages: one per episode at most`);
-  if (inserts > 3) warn('', `${inserts} inserts: two or three per episode`);
-  if (freezes > 1) warn('', `${freezes} freeze frames: one per episode at most`);
+  if (count.kids > 3) warn('', `${count.kids} kids' reaction beats: check that each couch visit serves a specific story beat and stays brief`);
+  if (count.montages > 1) warn('', `${count.montages} montages: one per episode at most`);
+  if (count.inserts > 3) warn('', `${count.inserts} inserts: two or three per episode`);
+  if (count.freezes > 1) warn('', `${count.freezes} freeze frames: one per episode at most`);
+  if (count.beats > LONG_EPISODE_BEATS) warn('', `${count.beats} beats: that runs long (most episodes come in under ${LONG_EPISODE_BEATS})`);
 
   return { errors, warnings };
+}
+
+/** Continuity notes: the shape only. `bun run episodes ledger` compares them across the catalog. */
+function continuity(raw: unknown, err: (path: string, message: string) => void, warn: (path: string, message: string) => void) {
+  if (raw === undefined) return;
+  const p = 'continuity';
+  const fields = ['era', 'facts', 'changes', 'opens', 'closes'];
+  if (!isObj(raw)) return err(p, `continuity is { ${fields.map((f) => `"${f}"`).join(', ')} }, all optional`);
+  for (const k of Object.keys(raw)) if (!fields.includes(k)) err(p, `unknown field "${k}" (allowed: ${list(fields)})`);
+  if (raw.era !== undefined && (typeof raw.era !== 'string' || !raw.era.trim() || raw.era.length > 40)) err(p, '"era" is a short note like "fall 2011" (40 characters max)');
+  const facts = isObj(raw.facts) ? raw.facts : {};
+  if (raw.facts !== undefined && !isObj(raw.facts)) err(`${p}.facts`, 'facts are { "robin.job": "Metro News One anchor", ... }');
+  for (const [k, v] of Object.entries(facts)) {
+    const who = k.split('.')[0];
+    if (!/^[a-z0-9_]+\.[a-z0-9_.]+$/.test(k) || !(CHARACTER_IDS as readonly string[]).includes(who) || isGuest(who)) {
+      err(`${p}.facts`, `"${k}": a fact is "<character>.<thing>", like "ted.job" (regular characters only)`);
+    }
+    if (typeof v !== 'string' || !v.trim() || v.length > 80) err(`${p}.facts`, `"${k}" is a short string (80 characters max)`);
+  }
+  if (raw.changes !== undefined) {
+    if (!Array.isArray(raw.changes) || raw.changes.some((c) => typeof c !== 'string')) err(`${p}.changes`, '"changes" is a list of fact names');
+    else for (const c of raw.changes) if (!(c in facts)) warn(`${p}.changes`, `"${c}" changes to what? Put its new value in "facts"`);
+  }
+  if (raw.opens !== undefined) {
+    if (!Array.isArray(raw.opens)) err(`${p}.opens`, '"opens" is a list of { "id", "note" }');
+    else raw.opens.forEach((o, k) => {
+      if (!isObj(o) || typeof o.id !== 'string' || !SLUG.test(o.id) || typeof o.note !== 'string' || !o.note.trim() || o.note.length > 140) {
+        err(`${p}.opens[${k}]`, 'a thread is { "id": a slug like "ducky-tie", "note": what is owed or promised (140 characters max) }');
+      } else for (const key of Object.keys(o)) if (key !== 'id' && key !== 'note') err(`${p}.opens[${k}]`, `unknown field "${key}"`);
+    });
+  }
+  if (raw.closes !== undefined && (!Array.isArray(raw.closes) || raw.closes.some((c) => typeof c !== 'string' || !SLUG.test(c)))) {
+    err(`${p}.closes`, '"closes" is a list of thread ids');
+  }
 }
 
 /** Checks across the whole catalog: codes and titles are unique. */

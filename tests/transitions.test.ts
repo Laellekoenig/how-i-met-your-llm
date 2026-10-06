@@ -7,6 +7,7 @@ import { Player } from '../src/show/player';
 import { audio } from '../src/audio/audio';
 import { speech } from '../src/audio/speech';
 import type { Scene, ShowItem } from '../src/script/types';
+import { overlayStub } from './helpers/overlay';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const scene = (overrides: Partial<Scene> = {}): Scene => ({ location: 'maclarens', time: 'night', cast: [], beats: [], ...overrides });
@@ -43,7 +44,7 @@ function playback(incoming: Scene) {
     coverage() { this.current = { kind: 'wide' }; },
   };
   const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
-  const overlay = { hideCaption() {}, hideCards() {}, insert() {}, standby() {}, location() {}, hideLocation() {}, year() {}, showCaption() {} };
+  const overlay = overlayStub();
   const episode = { id: 'test', code: 'S1E1', title: 'Test', logline: '' };
   const item: ShowItem = { kind: 'scene', episode, index: 1, scene: incoming };
   let requests = 0;
@@ -122,7 +123,7 @@ describe('transition playback', () => {
     expect(p.stage.outside).toBe(false);
     expect(p.stage.current.id).toBe('apartment');
     expect(p.director.current.kind).toBe('wide');
-    expect(p.renderer).toEqual({ fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 });
+    expect(p.renderer).toEqual({ fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0, whip: 0, video: 0, panels: null, panelsDone: null });
     expect(stop).toHaveBeenCalled();
   });
 

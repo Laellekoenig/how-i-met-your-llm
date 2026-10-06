@@ -364,7 +364,7 @@
         { "type": "say", "character": "guest1", "to": "zoey", "line": "Forty years I've faced that bodega. And forty years, every customer, he looks up and waves at me.", "emotion": "happy", "laugh": "aww" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "He waves, Lily. Mortimer Fensky got a verb.", "emotion": "sad", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "marshall", "line": "Also, he owes me eleven dollars. Somebody has to keep an eye on him.", "delivery": "deadpan", "laugh": "laugh" },
-        { "type": "say", "character": "guest2", "line": "The conversation bench is approved. This committee has never been more tired.", "delivery": "deadpan", "laugh": "applause" },
+        { "type": "say", "character": "guest2", "line": "The conversation bench is approved. This committee has never been more tired.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Marshmallow. Come home. You can have the window side." },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, the window side faces the street.", "emotion": "sad" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "I know.", "emotion": "happy", "laugh": "aww" },

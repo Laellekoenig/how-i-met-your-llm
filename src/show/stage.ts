@@ -607,6 +607,32 @@ export class Stage {
     return this.moveTo(id, name);
   }
 
+  /** Gone, without walking to the door (a scene picked up after they left). */
+  leave(id: CharacterId) {
+    this.actors[id].root.visible = false;
+    this.actors[id].hold(null);
+    this.occupy(id, null);
+  }
+
+  /**
+   * Split screen: light up another set beside the current one, ready for its own people to be placed on its
+   * marks. Everyone already placed stays where they are (on their own set); `setLocation` or `thaw` ends it.
+   */
+  openPanel(id: LocationId, time: TimeOfDay) {
+    this.current = this.sets[id] ?? this.current;
+    this.current.group.visible = true;
+    this.current.setTime(time);
+    this.occupancy.clear();
+    this.actorMark.clear();
+    this.actorNode.clear();
+    this.syncExtras();
+  }
+
+  /** Look at one panel's set as the current one (for framing it), without moving anyone. */
+  focusPanel(id: LocationId) {
+    this.current = this.sets[id] ?? this.current;
+  }
+
   async exit(id: CharacterId) {
     if (!this.onStage(id)) return;
     const version = this.sceneVersion, door = this.entrance(this.actorMark.get(id));

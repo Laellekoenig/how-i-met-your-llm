@@ -29,7 +29,7 @@ export const GESTURES = [
   'high_five', 'suit_up', 'hands_up', 'nod', 'shake_head', 'dance', 'hug', 'slap', 'think',
   'kiss', 'phone_call', 'sit', 'stand', 'lean_in', 'jaw_drop', 'fist_bump', 'spit_take',
   'double_take', 'eye_roll', 'crack_up', 'sob', 'slow_clap', 'hands_on_hips', 'head_in_hands', 'air_quotes',
-  'fist_pump', 'cover_mouth',
+  'fist_pump', 'cover_mouth', 'salute',
 ] as const;
 export type Gesture = (typeof GESTURES)[number];
 /** Gestures done to someone else, who joins in (or gets slapped). */
@@ -38,7 +38,7 @@ export const PAIRED_GESTURES = ['high_five', 'hug', 'slap', 'kiss', 'fist_bump']
 /** Things people carry around and hand to each other. */
 export const PROPS = [
   'phone', 'ring', 'envelope', 'beer', 'glass', 'flowers', 'book', 'umbrella', 'pineapple', 'goat', 'gift', 'sword',
-  'briefcase', 'microphone', 'french_horn',
+  'briefcase', 'microphone', 'french_horn', 'sandwich', 'laptop', 'videotape',
 ] as const;
 export type Prop = (typeof PROPS)[number];
 
@@ -52,12 +52,23 @@ export type InsertKind = (typeof INSERT_KINDS)[number];
 export const CHART_STYLES = ['bar', 'line', 'pie'] as const;
 export type ChartStyle = (typeof CHART_STYLES)[number];
 
-/** Music under a montage. */
-export const MONTAGE_MUSIC = ['upbeat', 'tender'] as const;
+/** Music under a montage, or underscore the writer starts and stops with a `score` beat. */
+export const MONTAGE_MUSIC = ['upbeat', 'tender', 'tense'] as const;
 export type MontageMusic = (typeof MONTAGE_MUSIC)[number];
+/** A `score` beat: start one of the beds, stop the music ("none"), or drop the music and the room tone ("silence"). */
+export const SCORES = [...MONTAGE_MUSIC, 'none', 'silence'] as const;
+export type Score = (typeof SCORES)[number];
 
-export const LAUGHS = ['chuckle', 'laugh', 'big', 'ooh', 'aww', 'applause', 'woo', 'gasp'] as const;
+/**
+ * The studio audience. It laughs; it doesn't cheer entrances. `applause` is for a crowd inside the story
+ * (an audience watching a performance), and `aww`, `ooh` and `gasp` are exceptional, not standard punctuation.
+ */
+export const LAUGHS = ['chuckle', 'laugh', 'big', 'ooh', 'aww', 'applause', 'gasp'] as const;
 export type LaughKind = (typeof LAUGHS)[number];
+
+/** Sounds the writer places on purpose: nothing plays a cue unless a beat asks for it (scene changes aside). */
+export const SOUND_CUES = ['sting', 'harp', 'rewind', 'whoosh', 'shutter', 'shatter', 'scratch', 'chime', 'doorbell'] as const;
+export type SoundCue = (typeof SOUND_CUES)[number];
 
 export type TimeOfDay = 'day' | 'night';
 
@@ -65,9 +76,27 @@ export type TimeOfDay = 'day' | 'night';
 export const DELIVERIES = ['whisper', 'shout', 'sing', 'deadpan', 'fast', 'slow'] as const;
 export type Delivery = (typeof DELIVERIES)[number];
 
-/** A cutaway is either a character's fantasy / hypothetical, or an actual memory. */
-export const CUTAWAY_STYLES = ['imagined', 'flashback'] as const;
+/**
+ * What a cutaway (or a replay) really is, whether or not the audience knows it yet: a fantasy or hypothetical,
+ * a guess at the future, something that really happened earlier or really happens later, something happening
+ * at the same time elsewhere, a recollection that's wrong, or Future Ted's cleaned-up version for the kids.
+ */
+export const CUTAWAY_STYLES = ['imagined', 'prediction', 'flashback', 'flash_forward', 'meanwhile', 'misremembered', 'sanitized'] as const;
 export type CutawayStyle = (typeof CUTAWAY_STYLES)[number];
+/** How it looks on screen, chosen separately: normal color, a fantasy haze, faded film, or footage on a TV. */
+export const CUTAWAY_LOOKS = ['plain', 'dream', 'memory', 'video'] as const;
+export type CutawayLook = (typeof CUTAWAY_LOOKS)[number];
+/** The edit into it (and back out): a clean cut, a whip pan, a wavy dissolve, a rewind smear. */
+export const CUTAWAY_TRANSITIONS = ['cut', 'whip', 'ripple', 'rewind'] as const;
+export type CutawayTransition = (typeof CUTAWAY_TRANSITIONS)[number];
+
+/** Graphics drawn over the scene, alongside the actors (an insert takes over the whole screen instead). */
+export const GRAPHIC_KINDS = ['tag', 'clock', 'counter', 'venn', 'axes', 'clear'] as const;
+export type GraphicKind = (typeof GRAPHIC_KINDS)[number];
+
+/** A line heard without its speaker on screen: down the phone, or from the next room. */
+export const OFFSCREEN = ['phone', 'voice'] as const;
+export type Offscreen = (typeof OFFSCREEN)[number];
 
 // What a writer can say about a guest star's look, in plain words.
 export const GUEST_SKIN = ['fair', 'light', 'olive', 'tan', 'brown', 'dark'] as const;
@@ -122,6 +151,10 @@ export type Beat =
   | {
     type: 'say'; character: CharacterId; line: string; emotion?: Emotion; to?: string; gesture?: Gesture; laugh?: LaughKind;
     delivery?: Delivery;
+    /** A sung line gets a guitar under it only if the writer asks. */
+    accompanied?: boolean;
+    /** Heard, not seen: they're on the phone, or out of shot. They aren't on stage. */
+    offscreen?: Offscreen;
     /** The next beat cuts this line off: it ends on a dash and the next speaker jumps straight in. */
     interrupted?: boolean;
     /** Everyone else saying it at the same time ("ALL: What?!"). */
@@ -129,13 +162,19 @@ export type Beat =
     react?: Reaction[];
     shot?: ShotIntent;
   }
-  | { type: 'narrate'; line: string; laugh?: LaughKind }
+  /** Future Ted. With `over`, the next beats play while he talks (anyone who speaks waits for him to finish). */
+  | { type: 'narrate'; line: string; laugh?: LaughKind; over?: boolean }
   | { type: 'move'; character: CharacterId; to: string }
   | { type: 'enter'; character: CharacterId; to?: string }
   | { type: 'exit'; character: CharacterId }
   | { type: 'act'; character: CharacterId; gesture: Gesture; to?: string; emotion?: Emotion; shot?: ShotIntent }
   | { type: 'laugh'; laugh: LaughKind }
   | { type: 'pause'; seconds: number }
+  /** A sound placed exactly where the writer wants it. */
+  | { type: 'sound'; sound: SoundCue }
+  /** Start underscore that carries across lines, cutaways and scene changes until the next score beat. */
+  | { type: 'score'; music: Score }
+  | GraphicBeat
   /** Pick something up (or put it down with prop "none"). */
   | { type: 'hold'; character: CharacterId; prop: Prop | 'none'; shot?: ShotIntent }
   /** Hand what you're holding (or `prop`) to someone. */
@@ -143,7 +182,9 @@ export type Beat =
   | FreezeBeat
   | InsertBeat
   | CutawayBeat
-  | MontageBeat;
+  | MontageBeat
+  | ReplayBeat
+  | SplitBeat;
 
 /** Future Ted talks over a frozen frame, optionally caught mid-gesture ("Kids, this is the moment...") */
 export interface FreezeBeat {
@@ -156,6 +197,7 @@ export interface FreezeBeat {
   emotion?: Emotion;
   laugh?: LaughKind;
   shot?: ShotIntent;
+  sound?: SoundCue;
 }
 
 /** A full-screen card, held long enough to read, with an optional line read over it. */
@@ -177,6 +219,32 @@ export interface InsertBeat {
   line?: string;
   laugh?: LaughKind;
   react?: Reaction[];
+  /** A cue as the card appears; "none" also silences a text thread's chimes. */
+  sound?: SoundCue | 'none';
+}
+
+/**
+ * Something drawn over the scene with the actors still in it: a label on someone, the time, a running count,
+ * a Venn diagram, a pair of axes with people plotted on them. It stays up until cleared or the scene ends.
+ */
+export interface GraphicBeat {
+  type: 'graphic';
+  kind: GraphicKind;
+  /** A tag's (or a cleared tag's) person. */
+  character?: CharacterId;
+  /** A tag's label, or the clock's reading ("8:14 PM", "Room 3"). */
+  text?: string;
+  /** The counter's, Venn diagram's or chart's heading. */
+  title?: string;
+  /** The counter's count. */
+  value?: number;
+  /** A Venn diagram's two or three circles, and what goes where they overlap. */
+  sets?: string[];
+  middle?: string;
+  /** Axis names, and the points on them (0-10). */
+  x?: string;
+  y?: string;
+  points?: { label: string; x: number; y: number }[];
 }
 
 /** "And that's how it went for three weeks": quick shots across sets over music, then back to the scene. */
@@ -188,27 +256,89 @@ export interface MontageBeat {
   shots: MontageShot[];
 }
 
+/** How a cutaway, replay or split screen is presented, independent of what it is. All optional. */
+export interface Presentation {
+  /** Short on-screen card, e.g. "How Barney imagined it". No card without one. */
+  label?: string;
+  /** Default plain: in normal color. */
+  look?: CutawayLook;
+  /** Default cut. */
+  transition?: CutawayTransition;
+  /** Default silent. */
+  sound?: SoundCue;
+}
+
 /** One montage shot: one or two beats somewhere, with its own little card ("Day 3"). */
 export interface MontageShot {
   location: SceneLocationId;
   time: TimeOfDay;
   label?: string;
+  /** Clothes and hair for this shot only (another year, another look). */
+  wardrobe?: Costume[];
   cast: CastPlacement[];
   beats: Beat[];
 }
 
 /**
  * Leave the scene for a short sequence somewhere else ("Here's how Barney imagined it", "Three years earlier"),
- * then come back to exactly where we left it. Its beats can't contain another cutaway.
+ * then come back to exactly where we left it. Cutaways can nest (a memory inside a story inside a memory).
  */
-export interface CutawayBeat {
+export interface CutawayBeat extends Presentation {
   type: 'cutaway';
+  /** Names it, so a `replay` can show it again. */
+  id?: string;
   style: CutawayStyle;
-  /** Short on-screen card, e.g. "How Barney imagined it". */
-  label?: string;
+  location: SceneLocationId;
+  time: TimeOfDay;
+  /** Clothes and hair for the cutaway only, over the scene's: the right look for the year. */
+  wardrobe?: Costume[];
+  cast: CastPlacement[];
+  beats: Beat[];
+}
+
+/** One difference in a replay: beats in place of beat `at` of the original, or new beats just before it. */
+export interface ReplayChange {
+  /** An index into the original's beats (its length, to add beats at the end). */
+  at: number;
+  replace?: Beat[];
+  insert?: Beat[];
+}
+
+/**
+ * Play an earlier scene or cutaway again (by its id), from where it started, with the same blocking: the
+ * corrected account, the bit somebody left out, the version where Barney was under the table all along.
+ */
+export interface ReplayBeat extends Presentation {
+  type: 'replay';
+  /** The scene's or cutaway's id. */
+  of: string;
+  /** What this version is (default: the original's style, or flashback for a scene). */
+  style?: CutawayStyle;
+  /** The original's beats from `from` to `to` (inclusive); default all of them. */
+  from?: number;
+  to?: number;
+  /** People who were there all along but we never saw. */
+  add?: CastPlacement[];
+  changes?: ReplayChange[];
+  wardrobe?: Costume[];
+  /** Filled in when the episode airs: the scene or cutaway being replayed. */
+  strand?: Strand;
+}
+
+/** One side of a split screen: its own set and people. */
+export interface SplitPanel {
   location: SceneLocationId;
   time: TimeOfDay;
   cast: CastPlacement[];
+}
+
+/**
+ * Two or three places on screen at once (a phone call, three conversations about the same thing), then back
+ * to the scene. Its beats are lines, gestures and props; nobody walks around.
+ */
+export interface SplitBeat extends Pick<Presentation, 'label' | 'sound'> {
+  type: 'split';
+  panels: SplitPanel[];
   beats: Beat[];
 }
 
@@ -231,6 +361,8 @@ export interface CastPlacement {
  */
 export interface Costume {
   character: CharacterId;
+  /** On a scene's costume: keep wearing it for the rest of the episode (a lost bet), until another costume replaces it. */
+  keep?: boolean;
   topStyle?: (typeof GUEST_TOPS)[number];
   top?: string;
   under?: string;
@@ -244,15 +376,54 @@ export interface Costume {
 }
 
 export interface Scene {
+  /** Names the scene, so a later scene can `resume` it or a `replay` can show it again. */
+  id?: string;
+  /**
+   * Pick up a scene left earlier (intercutting), exactly as it was: same place, people where they were, props in
+   * hand. Location, time and cast come from that scene and are left out.
+   */
+  resume?: string;
   location: LocationId;
   time: TimeOfDay;
   summary?: string;
   /** Omit for automatic skyline/time-change, exterior/location-change, or same-location cut. */
   transition?: Transition;
+  /** On-screen card as the scene starts ("Meanwhile", "Two weeks later", "9:14 PM"). */
+  label?: string;
+  /** Scene changes come in on the guitar sting; "none" lands silently, or pick another cue. */
+  sound?: SoundCue | 'none';
   /** Costumes for this scene, over the episode's. */
   wardrobe?: Costume[];
   cast: CastPlacement[];
   beats: Beat[];
+  /** Filled in for a resumed scene when the episode airs: how its strand stood when we left it. */
+  strand?: Strand;
+}
+
+/** Where a scene or cutaway starts from, and everything that happened in it so far. */
+export interface Strand {
+  location: SceneLocationId;
+  time: TimeOfDay;
+  cast: CastPlacement[];
+  /** Beats already played: their blocking (entrances, moves, props) is replayed instantly. */
+  before: Beat[];
+  beats: Beat[];
+  style?: CutawayStyle;
+  wardrobe?: Costume[];
+}
+
+/**
+ * Continuity notes for the writers' ledger (`bun run episodes ledger`): where this episode sits in the timeline,
+ * what's true by its end, and threads (bets, promises, a costume someone has to keep wearing) left open or paid off.
+ */
+export interface Continuity {
+  era?: string;
+  /** "robin.job": "Metro News One anchor". Keys are "<character>.<thing>". */
+  facts?: Record<string, string>;
+  /** Facts this episode changes on purpose (a breakup, a new job) or tells unreliably. */
+  changes?: string[];
+  opens?: { id: string; note: string }[];
+  closes?: string[];
 }
 
 export interface EpisodeMeta {
@@ -274,6 +445,7 @@ export interface EpisodeScript {
   guests?: GuestStar[];
   /** Costumes worn all episode, over everyone's casual or work clothes. */
   wardrobe?: Costume[];
+  continuity?: Continuity;
   scenes: Scene[];
 }
 

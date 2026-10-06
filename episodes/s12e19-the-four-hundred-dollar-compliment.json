@@ -121,7 +121,7 @@
             { "type": "say", "character": "barney", "to": "lily", "line": "Lily. You're paying.", "emotion": "smug", "gesture": "suit_up" },
             { "type": "say", "character": "lily", "to": "barney", "line": "Please, Barney, have mercy! I'm just a simple kindergarten teacher with no cunning at all!", "delivery": "fast", "emotion": "sad", "laugh": "laugh" },
             { "type": "say", "character": "quinn", "to": "barney", "line": "Babe. You're a genius. And so much taller than I remembered.", "emotion": "flirty", "laugh": "laugh" },
-            { "type": "say", "character": "guest1", "to": "barney", "line": "The winner, and still champion of Ninth Avenue!", "delivery": "shout", "emotion": "excited", "laugh": "woo" },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "The winner, and still champion of Ninth Avenue!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },
             { "type": "act", "character": "barney", "emotion": "happy", "gesture": "dance" }
           ]
         },
@@ -242,7 +242,7 @@
         { "type": "say", "character": "lily", "to": "robin", "line": "I know. I've never been this relaxed and this angry at the same time.", "emotion": "angry", "laugh": "laugh" },
         { "type": "insert", "character": "ted", "line": "Commissioner's note: Quinn awarded one bonus point for asking about my serifs.", "laugh": "laugh", "kind": "chart", "chart": "bar", "title": "Final Round Standings", "items": [{ "label": "Quinn", "value": 4 }, { "label": "Lily", "value": 0 }, { "label": "Ted's handwriting", "value": 10 }] },
         { "type": "enter", "character": "barney", "to": "center" },
-        { "type": "say", "character": "barney", "to": "ted", "line": "Daddy's home! And yes, the suit was my idea.", "emotion": "excited", "gesture": "suit_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Daddy's home! And yes, the suit was my idea.", "emotion": "excited", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "enter", "character": "quinn", "to": "bulkhead" },
         { "type": "act", "character": "lily", "gesture": "stand" },
         { "type": "say", "character": "lily", "to": "barney", "line": "Barney. Quick question, for the man having the greatest week of his life.", "emotion": "smug" },
@@ -261,7 +261,7 @@
         { "type": "say", "character": "lily", "to": "barney", "line": "I've spent all week trying to get in your head, Barney. Make you doubt yourself. It didn't work. You beat me. Three times." },
         { "type": "say", "character": "barney", "to": "lily", "line": "I beat Lily Aldrin?", "emotion": "surprised", "gesture": "jaw_drop" },
         { "type": "say", "character": "ted", "to": "barney", "line": "The commissioner has reviewed the week. Barney Stinson, three. Lily, zero.", "emotion": "happy", "gesture": "nod" },
-        { "type": "say", "character": "barney", "to": "ted", "line": "Lily Aldrin, beaten by Barney Stinson! Ted! I need a plaque!", "delivery": "shout", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Lily Aldrin, beaten by Barney Stinson! Ted! I need a plaque!", "delivery": "shout", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Wait. Who wins my twenty bucks?", "emotion": "confused" },
         { "type": "say", "character": "ted", "to": "robin", "line": "Nobody bet on Barney. The house wins." },
         { "type": "say", "character": "robin", "to": "ted", "line": "You're the house.", "delivery": "deadpan" },

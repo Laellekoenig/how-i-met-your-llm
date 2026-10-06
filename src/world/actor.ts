@@ -146,7 +146,7 @@ const GESTURE_DUR: Record<Motion, number> = {
   thumbs_up: 1.4, high_five: 1.3, suit_up: 1.7, hands_up: 1.6, nod: 1.0, shake_head: 1.1, dance: 3.2,
   hug: 2.2, slap: 1.0, think: 2.2, kiss: 2.0, phone_call: 3.0, sit: 0, stand: 0, lean_in: 2.4, jaw_drop: 2.2,
   fist_bump: 1.4, spit_take: 2.0, give: 1.4, double_take: 1.7, eye_roll: 1.5, crack_up: 2.6, sob: 2.8, slow_clap: 3.2,
-  hands_on_hips: 2.8, head_in_hands: 2.6, air_quotes: 1.5, fist_pump: 1.4, cover_mouth: 1.8,
+  hands_on_hips: 2.8, head_in_hands: 2.6, air_quotes: 1.5, fist_pump: 1.4, cover_mouth: 1.8, salute: 1.7,
 };
 
 export class Actor {
@@ -1174,6 +1174,24 @@ export class Actor {
     });
   }
 
+  /** Be where the walk was going, at once: settled into the seat or the spot (for a scene picked up mid-way). */
+  arrive() {
+    const end = this.path.at(-1);
+    if (end) {
+      this.root.position.x = end.x;
+      this.root.position.z = end.z;
+    }
+    this.path = [];
+    this.onArrive?.();
+    this.walking = 0;
+    this.scooting = false;
+    this.facing = this.targetFacing;
+    this.root.rotation.y = this.facing;
+    this.sitBlend = this.seatHeight !== null ? 1 : 0;
+    this.update(0, 0, true);
+    this.root.updateWorldMatrix(true, true);
+  }
+
   /** Something held in the lap (a pillow to hug), carried by the hips. */
   private setLapProp(o: THREE.Object3D | null) {
     if (this.lapProp === o) return;
@@ -1878,6 +1896,13 @@ export class Actor {
         if (!this.prop) this.glass.visible = true;
         set('rSh', [-2.3, 0, -0.25]); el('rEl', -0.6);
         break;
+      case 'salute': {
+        // up to the brow, held a beat, then a crisp snap away
+        const snap = smoothstep(0.72, 0.9, u);
+        set('rSh', [lerp(-1.9, -1.55, snap), 0, lerp(-0.42, -0.95, snap)]); el('rEl', lerp(-2.4, -0.9, snap));
+        T.head[0] -= 0.08 * env; T.spine[0] -= 0.04 * env;
+        break;
+      }
       case 'thumbs_up':
         set('rSh', [-1.05, 0, -0.15]); el('rEl', -1.1); T.head[2] -= 0.1 * env;
         break;
