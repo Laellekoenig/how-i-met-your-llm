@@ -453,7 +453,8 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   overflow: hidden;
 }
 
-.guide-grid { position: relative; flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; overscroll-behavior: contain; }
+.guide-grid { position: relative; flex: 1; min-height: 0; overflow: auto; scrollbar-width: none; overscroll-behavior: contain; }
+.guide-grid::-webkit-scrollbar { display: none; }
 .guide-sheet { position: relative; width: max-content; padding-bottom: 0.6cqh; }
 .guide-ruler, .guide-row { display: flex; }
 .guide-ruler { position: sticky; top: 0; z-index: 4; height: max(20px, 4.6cqh); background: #121212; border-bottom: 1px solid var(--line); }
