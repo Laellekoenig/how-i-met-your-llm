@@ -665,6 +665,7 @@ body.playground #transcript { flex: 0 0 22%; border-top: 1px solid var(--line); 
 .pg-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
 .pg-form .pg-row { grid-template-columns: 68px minmax(0, 1fr); }
 .pg-form .pg-row.wide { grid-column: 1 / -1; grid-template-columns: 1fr; }
+.pg-form .pg-note { grid-column: 1 / -1; }
 .pg-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 8px 0; }
 .pg-buttons label { display: flex; align-items: center; gap: 4px; margin-right: 8px; }
 .pg-cast { display: flex; flex-direction: column; gap: 3px; }

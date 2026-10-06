@@ -1,6 +1,6 @@
 import {
   CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR,
-  GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OUTFITS, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS,
+  GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OUTFITS, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS,
   isGuest, isKid,
 } from './types';
 import type { StageSet } from '../world/sets/common';
@@ -148,6 +148,8 @@ Nothing makes a sound unless the script asks for it, apart from rewind transitio
 - sound: { "type": "sound", "sound": ${SOUND_CUES.map((c) => `"${c}"`).join(' | ')} } at the exact moment it should land: a shatter for a realization, a record scratch when everything stops, a harp into a daydream, a knock at the door. Freeze frames, inserts, cutaways, replays and split screens also take a "sound".
 - Apartment entrances automatically play a wooden knock instead of a doorbell. Use "knock" for a separately timed knock; "doorbell" remains available for places that have one.
 - score: { "type": "score", "music": ${SCORES.map((c) => `"${c}"`).join(' | ')} } starts underscore that carries across lines, cutaways and scene changes until another score beat: tender under a confession, tense under a scheme, upbeat under a caper. "none" stops the music; "silence" also drops the room tone, for a moment left bare (it lasts until the next score beat or scene).
+- The same ten original music beds work for scores and montages. Choose the mood for the story; each has its own instruments, harmony and rhythm:
+${MONTAGE_MUSIC.map((music) => `  - ${music}: ${MUSIC_DESCRIPTIONS[music]}.`).join('\n')}
 - A sung line is a cappella unless it has "accompanied": true (a guitar under it).
 
 # Delivery
