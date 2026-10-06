@@ -20,8 +20,9 @@ const panel = new Panel();
 
 // ---------------------------------------------------------------- programming
 
-// Pre-written episodes air back to back. `?ep=S11E03` starts at a given episode.
-const startAt = Math.max(0, Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep')));
+// Pre-written episodes air back to back, starting from a random one. `?ep=S11E03` starts at a given episode.
+const requested = Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep'));
+const startAt = requested >= 0 ? requested : Math.floor(Math.random() * EPISODES.length);
 const syndication = new Syndication(EPISODES, startAt);
 const player = new Player(stage, director, renderer, overlay, panel, syndication);
 
