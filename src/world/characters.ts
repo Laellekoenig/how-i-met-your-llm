@@ -1,7 +1,7 @@
 import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'tousled' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
@@ -15,9 +15,11 @@ export interface Look {
   topStyle: TopStyle;
   under?: string; // shirt / top under a jacket or cardigan; the dress for a skirt
   underPlaid?: [string, string]; // checks on the layered shirt, including its collar and cuffs
+  underStripes?: string; // fine vertical dress-shirt stripes
+  suitFit?: 'slim';
   collar?: string; // contrast shirt collar (defaults to `under`)
   tie?: string;
-  tiePattern?: 'stripes' | 'diamonds';
+  tiePattern?: 'stripes' | 'diamonds' | 'dots';
   tieAccent?: string;
   pocketSquare?: string;
   neckline?: 'v' | 'turtleneck';
@@ -175,12 +177,14 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#e6e6e6',
     main: true,
     look: {
-      // Neil Patrick Harris: three-piece charcoal suit, white shirt, tie, pocket square
-      height: 1.8, build: 1.0, female: false,
-      skin: '#f2c9a9', hair: '#d2b16e', hairStyle: 'neat', eyes: '#3a5a7a',
-      top: '#3a3e47', topStyle: 'suit', under: '#f4f4f2', vest: '#3a3e47', tie: '#9c2433',
-      pants: '#3a3e47', shoes: '#141414', extras: ['pocketsquare'],
-      face: { jaw: 1.0, long: 0.98, nose: 0.95 },
+      // NPH's promotional portrait: fitted navy two-piece, blue striped shirt,
+      // dark micro-motif tie and a straight white pocket square (docs/cast-reference.md).
+      height: 1.83, build: 0.94, female: false,
+      skin: '#efc5aa', hair: '#9b8159', hairStyle: 'brushed', eyes: '#668ca3',
+      top: '#293d59', topStyle: 'suit', suitFit: 'slim', under: '#dce6f2', underStripes: '#8ba6c8',
+      tie: '#20232d', tiePattern: 'dots', tieAccent: '#d6dde6', pocketSquare: '#f7f7f1',
+      pants: '#293d59', shoes: '#17191e', extras: ['pocketsquare'],
+      face: { jaw: 1.08, chin: 1.28, long: 1.08, nose: 1.08, brow: 0.88, mouth: 1.12 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.12 },
     manner: { rest: { emotion: 'smug', amount: 0.5 }, talk: 'chop', idles: ['lapels'] },

@@ -21,6 +21,28 @@ undershirt or top style removes the casual shirt's checks.
 All meshes and clothing textures are generated locally. No reference photos are bundled
 or fetched by the app.
 
+## Barney Stinson
+
+Barney's procedural model follows Neil Patrick Harris's short, brushed-up dark-blond
+hair, blue eyes, longer face, defined chin, and lean silhouette. His lifted forelock
+has swept ridges and close-cut sides; his existing smirk, gestures and lip sync remain animated.
+
+The clothing matches the [promotional portrait reproduced by GQ](https://www.gq.com/story/barney-stinson-how-i-met-your-mother-finale)
+([inspected image](https://media.gq.com/photos/55828b3f1177d66d68d5287c/4%3A3/w_1024%2Cc_limit/blogs-the-feed-how-i-met-your-mother-barney-stinson.jpg)):
+a fitted navy two-piece suit, pale blue shirt with fine vertical stripes, dark tie with
+small pale motifs, and a flat white pocket square. The jacket has narrow lapels,
+two buttons and pocket welts, with pointed shirt collars and striped cuffs.
+Matching trousers and black dress shoes complete the stylized outfit.
+
+[Heritage Auctions' screen-worn costume listing](https://entertainment.ha.com/itm/movie-tv-memorabilia/costumes/neil-patrick-harris-barney-stinson-2-pc-black-suit-white-shirt-and-plaid-tie-from-how-i-met-your-mother/a/7318-89775.s)
+also documents his narrow-lapelled, single-breasted two-piece tailoring; its black suit
+and plaid tie are a different episode outfit from the navy portrait used here.
+
+The suit is Barney's everyday look in every location. Costume overrides still work:
+changing top style clears the slim tailoring and shirt stripes, and an explicit
+undershirt or tie color removes that garment's pattern. All geometry and textures
+are generated locally; the app does not fetch reference photos.
+
 ## Returning cast
 
 Nine new recurring cast IDs: `loretta`, `mickey`, `hammond`, `stella`, `zoey`, `nora`,
