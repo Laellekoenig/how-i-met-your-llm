@@ -3,7 +3,7 @@ import type { Stage } from './stage';
 import type { Actor } from '../world/actor';
 import type { EstablishingShot } from '../world/sets/establishing';
 import type { CharacterId, ShotIntent } from '../script/types';
-import { damp, noise1 } from '../util';
+import { damp } from '../util';
 
 type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing' | 'selfie';
 
@@ -14,7 +14,7 @@ interface ActiveShot {
   fov: number;
   follow?: Actor;
   followOffset?: THREE.Vector3;
-  push: number; // dolly speed toward target, m/s
+  push: number; // dolly speed toward target, m/s; 0 for a locked-off shot
   /** How long the dolly keeps going after the cut (4 s unless it's a deliberate push-in). */
   pushFor?: number;
   subject?: CharacterId;
@@ -22,18 +22,21 @@ interface ActiveShot {
   subjects?: CharacterId[];
   /** Where the followed actor's body stood last frame; the camera tracks it, not the bobbing head. */
   followRoot?: THREE.Vector3;
+  /** The aim is easing onto a new framing after a big head move, like sitting down. */
+  reframing?: boolean;
   /** Where a jogged shot was originally framed. */
   base?: { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
 }
 
-/** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. */
+/** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. Shots are locked off
+ *  unless the script asks for a move (a push-in, an establishing pan). */
 export class Director {
   private shot: ActiveShot | null = null;
   private lastCut = 0;
   private time = 0;
   private ray = new THREE.Raycaster();
   onCut: (() => void) | null = null;
-  /** A freeze frame: the camera holds dead still, no sway, no dolly. */
+  /** A freeze frame: the camera holds dead still, even mid-dolly. */
   held = false;
 
   constructor(private camera: THREE.PerspectiveCamera, private stage: Stage) {}
@@ -46,7 +49,7 @@ export class Director {
     this.onCut?.();
   }
 
-  wide(index = 0, push = 0.04) {
+  wide(index = 0, push = 0) {
     const w = this.stage.current.wides[index] ?? this.stage.current.wides[0];
     this.cut({ kind: 'wide', pos: w.pos.clone(), target: w.target.clone(), fov: w.fov, push, subjects: this.stage.castIds() });
   }
@@ -133,7 +136,7 @@ export class Director {
       a.root.updateWorldMatrix(true, true);
       objects.push(...a.bodyMeshes);
     }
-    // Leave room for the small camera sway instead of accepting a ray that grazes a wall.
+    // Leave a small margin instead of accepting a ray that grazes a wall.
     for (const [dx, dy] of [[0, 0], [-0.025, 0], [0.025, 0], [0, -0.02], [0, 0.02]]) {
       const origin = from.clone().add(new THREE.Vector3(dx, dy, 0));
       dir.copy(to).sub(origin);
@@ -180,7 +183,7 @@ export class Director {
       const fov = pushIn ? 34 : dist < 0.7 ? 60 : dist < 1 ? 50 : dist < 1.5 ? 44 : 32;
       if (this.inside(pos) && this.covers({ pos, target, fov }, [a]) && this.hasBackdrop({ pos, target, fov })) {
         this.cut({ kind: 'closeup', pos, target, fov, follow: a, followOffset: new THREE.Vector3(0, -0.16, 0),
-          push: pushIn ? 0.32 : 0.02, pushFor: pushIn ? 6 : undefined, subject: id, subjects: [id] });
+          push: pushIn ? 0.32 : 0, pushFor: pushIn ? 6 : undefined, subject: id, subjects: [id] });
         return;
       }
     }
@@ -210,7 +213,7 @@ export class Director {
       const pos = mid.clone().addScaledVector(perp, d);
       pos.y = mid.y + 0.1;
       if (this.inside(pos) && this.covers({ pos, target, fov }, [A, B]) && this.hasBackdrop({ pos, target, fov }))
-        return this.cut({ kind: 'two', pos, target, fov, push: 0.03, subject: a, subjects: [a, b] });
+        return this.cut({ kind: 'two', pos, target, fov, push: 0, subject: a, subjects: [a, b] });
     }
     this.closeup(a, b);
   }
@@ -230,7 +233,7 @@ export class Director {
     const target = hs.clone().add(new THREE.Vector3(0, -0.08, 0));
     // Validate reverse angles against the current walls and furniture too.
     if (!this.inside(pos) || !this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
-    this.cut({ kind: 'ots', pos, target, fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0.01, subject: speaker, subjects: [speaker] });
+    this.cut({ kind: 'ots', pos, target, fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0, subject: speaker, subjects: [speaker] });
   }
 
   /** The shot the writer asked for, on `subject` (and `other`, for a two-shot). */
@@ -286,7 +289,7 @@ export class Director {
     const s = this.shot;
     if (s?.kind === 'closeup' && s.subject === speaker) return;
     if (Math.random() < 0.3) this.closeup(speaker);
-    else if (s?.kind !== 'wide') this.wide(0, 0.02);
+    else if (s?.kind !== 'wide') this.wide(0);
   }
 
   /** Right up in the gang's faces, like someone holding the camera at arm's length: for the main titles. */
@@ -364,8 +367,14 @@ export class Director {
         }
       }
       s.followRoot = root;
-      // Ease the aim slowly so sitting down or standing up is reframed, but idle motion isn't.
-      s.target.lerp(head.add(s.followOffset), dt ? damp(1.2, dt) : 1);
+      // Reframe for sitting down or standing up, but hold still through breathing, nods and gestures.
+      const aim = head.add(s.followOffset), off = aim.distanceTo(s.target);
+      if (!dt) s.target.copy(aim);
+      else {
+        if (off > 0.12) s.reframing = true;
+        if (s.reframing) s.target.lerp(aim, damp(1.2, dt));
+        if (off < 0.01) s.reframing = false;
+      }
     }
     if (dt > 0 && s.push && this.time - this.lastCut < (s.pushFor ?? 4)) {
       const dir = s.target.clone().sub(s.pos);
@@ -373,9 +382,7 @@ export class Director {
       const actors = (s.subjects ?? []).filter(id => this.stage.onStage(id)).map(id => this.stage.actors[id]);
       if (next.distanceTo(s.target) > 1 && this.covers({ ...s, pos: next }, actors)) s.pos.copy(next);
     }
-    const t = this.time;
-    const sway = new THREE.Vector3(noise1(t * 0.35) * 0.012, noise1(t * 0.3 + 5) * 0.008, 0);
-    this.camera.position.copy(s.pos).add(sway);
+    this.camera.position.copy(s.pos);
     if (this.camera.fov !== s.fov) {
       this.camera.fov = s.fov;
       this.camera.updateProjectionMatrix();
