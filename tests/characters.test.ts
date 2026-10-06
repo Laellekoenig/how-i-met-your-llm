@@ -28,23 +28,25 @@ describe('work wardrobe', () => {
     stage.setLocation('lecture_hall', 'day');
     expect([style('ted'), style('marshall')]).toEqual(['suit', 'flannel']);
     stage.setLocation('barneys_office', 'day');
-    expect([style('ted'), style('marshall')]).toEqual(['blazer', 'suit']);
+    expect([style('ted'), style('marshall')]).toEqual(['sweater', 'suit']);
     stage.setLocation('maclarens', 'night');
-    expect([style('ted'), style('marshall')]).toEqual(['blazer', 'flannel']);
-    expect(stage.actors.ted.def.look.tweed).toBe(true);
+    expect([style('ted'), style('marshall')]).toEqual(['sweater', 'flannel']);
+    expect(stage.actors.ted.def.look.underPlaid).toBeDefined();
   });
 
   test('a cast outfit overrides the location, and comes back after a cutaway', () => {
     stage.setLocation('maclarens', 'night');
-    stage.dress('marshall', 'work');
-    stage.place('marshall', 'booth_left_back');
-    expect(style('marshall')).toBe('suit');
+    stage.dress('ted', 'work');
+    stage.place('ted', 'booth_left_back');
+    expect(style('ted')).toBe('suit');
+    expect(stage.actors.ted.def.look.underPlaid).toBeUndefined();
+    expect(stage.actors.ted.def.look.jeans).toBe(false);
     const frozen = stage.freeze();
     stage.setLocation('apartment', 'day');
-    expect(style('marshall')).toBe('flannel');
+    expect(style('ted')).toBe('sweater');
     stage.thaw(frozen);
-    expect(style('marshall')).toBe('suit');
-    expect(stage.onStage('marshall')).toBe(true);
+    expect(style('ted')).toBe('suit');
+    expect(stage.onStage('ted')).toBe(true);
   });
 
   test('swapping outfits reuses the actors already built', () => {

@@ -1,7 +1,7 @@
 import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type HairStyle = 'swoop' | 'tousled' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
@@ -14,6 +14,7 @@ export interface Look {
   top: string; // outermost layer
   topStyle: TopStyle;
   under?: string; // shirt / top under a jacket or cardigan; the dress for a skirt
+  underPlaid?: [string, string]; // checks on the layered shirt, including its collar and cuffs
   collar?: string; // contrast shirt collar (defaults to `under`)
   tie?: string;
   tiePattern?: 'stripes' | 'diamonds';
@@ -43,7 +44,7 @@ export interface Look {
   shoes: string;
   boots?: boolean;
   eyes?: string;
-  face?: { jaw?: number; long?: number; nose?: number; brow?: number };
+  face?: { jaw?: number; chin?: number; long?: number; nose?: number; brow?: number; mouth?: number };
   extras?: ('cap' | 'mustache' | 'goatee' | 'beard' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass' | 'earrings')[];
 }
 
@@ -91,19 +92,22 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#7fb4ff',
     main: true,
     look: {
-      // Josh Radnor: tall and lean; tweed blazer over an oxford shirt, dark jeans
-      height: 1.82, build: 0.97, female: false,
-      skin: '#e9bc9a', hair: '#3a2416', hairStyle: 'swoop', eyes: '#4a2c1a',
-      top: '#6e5038', topStyle: 'blazer', tweed: true, under: '#8fb0d9',
-      pants: '#2b3448', jeans: true, shoes: '#4a2e1c',
-      face: { long: 1.03, jaw: 0.97, nose: 1.05 },
+      // Josh Radnor: thick, tousled dark hair, strong brows and a broad, rounded chin.
+      // MacLaren's in S06E01: navy crew-neck over a pale checked shirt, indigo jeans.
+      height: 1.82, build: 1.0, female: false,
+      skin: '#e5b99b', hair: '#261c18', hairStyle: 'tousled', eyes: '#513426',
+      top: '#30394f', topStyle: 'sweater', under: '#e3dfd3', underPlaid: ['#939da8', '#b6a598'],
+      pants: '#29394f', jeans: true, shoes: '#624631',
+      face: { long: 1.04, jaw: 1.1, chin: 1.35, nose: 1.18, brow: 1.3, mouth: 1.12 },
     },
-    // At the architecture firm and at the lectern: a navy suit, light blue shirt and a burgundy tie
+    // "Definitions" (S05E01): a charcoal-navy suit, blue shirt and red striped tie.
+    // Also selectable anywhere with outfit: 'work' on Ted's cast entry.
     work: {
       at: ['office', 'lecture_hall'],
       look: {
-        top: '#2e3a52', topStyle: 'suit', tweed: false, under: '#a9c4e4', tie: '#7a2a36',
-        pants: '#2e3a52', jeans: false, shoes: '#2a1a12',
+        top: '#303744', topStyle: 'suit', under: '#b3c8e2', underPlaid: undefined,
+        tie: '#a34843', tiePattern: 'stripes', tieAccent: '#dbc8a4',
+        pants: '#303744', jeans: false, shoes: '#241d1b',
       },
     },
     voice: { gender: 'male', pitch: 1.0, rate: 1.02 },

@@ -1,5 +1,28 @@
 # Family, returning characters, and Robin Sparkles
 
+## Ted Mosby
+
+Ted's updated procedural model follows Josh Radnor's dark, full, tousled hair with a lifted
+forelock and short sideburns, strong eyebrows, fuller nose, rounded chin and broad mouth.
+The hair stays on the animated head in both outfits; the face keeps the existing expressions
+and lip sync. These are stylized proportions, not a scanned likeness.
+
+| Outfit | Inspected show reference | Modeled details |
+| --- | --- | --- |
+| Casual | [S06E01 MacLaren's still](https://www.spotern.com/en/spot/tv/how-i-met-your-mother/71170/the-plaid-shirt-of-ted-mosby-josh-radnor-in-how-i-met-your-mother-s06e01) ([image](https://medias.spotern.com/spots/w640/71/71170-1532336916.jpg)) | Navy crew-neck sweater over a pale checked shirt, with the collar and cuffs showing. Dark indigo jeans and brown shoes complete the everyday outfit. |
+| Suit | [Prime Video's Season 5 imagery](https://www.primevideo.com/detail/How-I-Met-Your-Mother/0P557GI6F8MMATTJJ6RFJMCRWP) ([“Definitions” classroom still](https://m.media-amazon.com/images/S/pv-target-images/0fdcccda71080991962d8a8c686b849d1f67c29724b1bce49c6dd011d42e459a.jpg)) | Charcoal-navy two-piece suit, pale blue shirt, red tie with diagonal cream stripes and dark dress shoes. |
+
+Ted automatically wears the suit at `office` and `lecture_hall`. Set `"outfit": "work"`
+on his cast entry to choose it anywhere, or `"outfit": "casual"` to choose the sweater
+at work. Episode/scene costumes still layer over either outfit, including his red cowboy
+boots. Shirt or blazer variants can use the existing `wardrobe` vocabulary. Changing the
+undershirt or top style removes the casual shirt's checks.
+
+All meshes and clothing textures are generated locally. No reference photos are bundled
+or fetched by the app.
+
+## Returning cast
+
 Nine new recurring cast IDs: `loretta`, `mickey`, `hammond`, `stella`, `zoey`, `nora`,
 `virginia`, `punchy`, and `robin_sparkles`. Each has a procedural actor, caption color,
 voice profile and audition, name aliases, and a writers' guide entry with relationships,
