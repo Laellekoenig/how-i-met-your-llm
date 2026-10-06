@@ -27,7 +27,7 @@ const zeroPose = (): Pose => ({
 });
 
 /** How someone sits: upright, cross-legged hugging whatever is in their lap, or slouched with an arm along the backrest. */
-export type SitPose = 'upright' | 'cross_legged' | 'sprawl';
+export type SitPose = 'upright' | 'cross_legged' | 'sprawl' | 'driving';
 
 /**
  * Everything an emotion does to someone, face to feet. Faces have to read at 270 lines, so most of the work is done
@@ -1147,7 +1147,11 @@ export class Actor {
     target.spine = [0.02 + noise1(t * 0.3 + s) * 0.02, noise1(t * 0.2 + s * 2) * 0.04, noise1(t * 0.25 + s) * 0.025];
     this.spine.scale.y = 1 + Math.sin(t * 1.6 + s) * 0.008;
 
-    if (this.sitPose === 'cross_legged') {
+    if (this.sitPose === 'driving') {
+      target.lSh = [-1.15 * sb, 0, 0.05];
+      target.rSh = [-1.15 * sb, 0, -0.05];
+      target.lEl = target.rEl = -0.55 * sb;
+    } else if (this.sitPose === 'cross_legged') {
       // knees splayed out over the cushion, shins folded in and crossed in front, arms wrapped around the lap prop
       const k = sb;
       target.lHip = lerp(target.lHip, -Math.PI / 2 + 0.12, k);

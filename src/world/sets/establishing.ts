@@ -412,7 +412,7 @@ function buildStreet(
     cars: () => shot(v3(-9, 5.5, 9.5), v3(0, 1.4, -2), 50, v3(0.9, 0, 0)),
   };
   const HERO: Partial<Record<LocationId, Hero>> = { barneys: 'highrise', barneys_office: 'glass', office: 'glass', limo: 'highrise', metro_news_one: 'studio', store: 'store', restaurant: 'restaurant' };
-  const FRAMING: Partial<Record<LocationId, string>> = { barneys_office: 'office', limo: 'cars', taxi: 'cars', metro_news_one: 'studio', store: 'storefront', restaurant: 'storefront' };
+  const FRAMING: Partial<Record<LocationId, string>> = { barneys_office: 'office', limo: 'cars', taxi: 'cars', car: 'cars', metro_news_one: 'studio', store: 'storefront', restaurant: 'storefront' };
 
   return {
     group: g,

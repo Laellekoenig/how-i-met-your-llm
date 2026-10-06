@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
-import { street, road, skyline, sign, speckle } from '../../engine/textures';
+import { sign } from '../../engine/textures';
 import { type StageSet, mark, nodes, keyLight, v3 } from './common';
-import { scroll, lampposts } from './vehicle';
+import { cityDrive } from './cityDrive';
 
 // A yellow cab heading uptown, shot from inside or through the windshield from a hood mount: the cabbie at the wheel on the right
 // (a generic cabbie, unless Ranjit is driving), the front passenger seat on the left, and behind the
@@ -24,40 +24,7 @@ export function buildTaxi(): StageSet {
   const tint = new THREE.MeshBasicMaterial({ color: '#8aa0b8', transparent: true, opacity: 0.12, depthWrite: false });
   const plexi = new THREE.MeshBasicMaterial({ color: '#d0dce8', transparent: true, opacity: 0.14, depthWrite: false });
 
-  // ---- the avenue -------------------------------------------------------------------------------
-  const roadTex = road(58);
-  roadTex.repeat.set(10, 1);
-  roadTex.offset.y = 0.32; // the lane line off to the cab's left
-  const RD_L = 40;
-  const roadMesh = mesh(new THREE.PlaneGeometry(RD_L, 9), toon('#ffffff', { map: roadTex }), 0, GROUND, -12, false);
-  roadMesh.rotation.set(-Math.PI / 2, 0, Math.PI / 2);
-  roadMesh.receiveShadow = true;
-  g.add(roadMesh);
-  for (const s of [-1, 1]) {
-    const sw = mesh(new THREE.PlaneGeometry(3, RD_L), toon('#ffffff', { map: speckle('#6a6866', [1, 14], 59, 0.2) }), s * 6, GROUND + 0.15, -12, false);
-    sw.rotation.x = -Math.PI / 2;
-    g.add(sw);
-  }
-  // buildings down both sides, sliding back
-  const SIDE_L = 36;
-  const sides = [-1, 1].map((s) => {
-    const night = street(true, 53 + s), day = street(false, 53 + s);
-    for (const t of [night, day]) t.repeat.set(1.4, 1);
-    const matNight = toon('#ffffff', { map: night, emissive: '#ffffff', emissiveIntensity: 0.7 });
-    const matDay = toon('#ffffff', { map: day, emissive: '#ffffff', emissiveIntensity: 0.55 });
-    const m = mesh(new THREE.PlaneGeometry(SIDE_L, 9), matNight, s * 7.5, GROUND + 4.5 - 0.1, -12, false);
-    m.rotation.y = -s * Math.PI / 2;
-    g.add(m);
-    // the two planes face each other, so their textures run opposite ways along the street
-    return { m, night, day, matNight, matDay, dir: s };
-  });
-  // looking back down the avenue
-  const farNight = toon('#ffffff', { map: skyline(true, 77), emissive: '#ffffff', emissiveIntensity: 0.9 });
-  const farDay = toon('#ffffff', { map: skyline(false, 77), emissive: '#ffffff', emissiveIntensity: 0.85 });
-  const far = mesh(new THREE.PlaneGeometry(22, 12), farNight, 0, GROUND + 5.5, -30, false);
-  g.add(far);
-  const lampsL = lampposts(g, { axis: 'z', across: -5.2, armDir: 1, from: -26, to: 6, count: 2, ground: GROUND + 0.15 });
-  const lampsR = lampposts(g, { axis: 'z', across: 5.2, armDir: -1, from: -18, to: 14, count: 2, ground: GROUND + 0.15 });
+  const drive = cityDrive(g, GROUND);
 
   // ---- the body -----------------------------------------------------------------------------------
   const floor = mesh(new THREE.PlaneGeometry(R - L, DASH - REAR), toon('#2a2a2c'), 0, 0, (REAR + DASH) / 2);
@@ -189,15 +156,17 @@ export function buildTaxi(): StageSet {
       back_middle: mark(0, BZ + 0.05, 0, 'back', 'back seat, squeezed into the middle hump', { seat: BACK_SEAT + 0.03 }),
       back_right: mark(0.5, BZ + 0.05, -0.08, 'back', 'back seat, right (street side)', { seat: BACK_SEAT }),
       front_passenger: mark(-0.42, FZ + 0.05, 0, 'front', 'front passenger seat, beside the driver', { seat: SEAT }),
-      driver: mark(0.42, FZ + 0.05, 0, 'front', "the driver's seat (a cabbie drives unless the script puts someone else there, e.g. Ranjit)", { seat: SEAT }),
+      driver: mark(0.42, FZ + 0.05, 0, 'front', "the driver's seat (a cabbie drives unless the script puts someone else there, e.g. Ranjit)", { seat: SEAT, pose: 'driving' }),
       door: mark(-0.74, BZ + 0.05, 0.3, 'door', 'the curbside back door', { seat: BACK_SEAT }),
     },
     wides: [
-      { pos: v3(0, 1.42, 1.95), target: v3(0, 1.0, -0.5), fov: 50 },
-      { pos: v3(-0.15, 1.55, 1.9), target: v3(0, 1.15, -0.95), fov: 40 },
-      { pos: v3(0, 1.3, 1.9), target: v3(0, 1.05, 0.2), fov: 42 },
-      { pos: v3(0.5, 1.5, 2.1), target: v3(-0.25, 1.05, -0.7), fov: 44 },
+      { label: 'Windshield · Cab ensemble', pos: v3(0, 1.45, 1.65), target: v3(0, 1.22, -0.6), fov: 36 },
+      { label: 'Back seat · Three-shot', pos: v3(0, 1.43, -0.28), target: v3(0, 1.22, -1), fov: 68 },
+      { label: 'Windshield · Front seats', pos: v3(0, 1.3, 1.9), target: v3(0, 1.12, 0.2), fov: 34 },
+      { label: 'Windshield · Passenger reactions', pos: v3(0.5, 1.5, 2.1), target: v3(-0.25, 1.19, -0.7), fov: 38 },
     ],
+    dialogueCameras: [v3(-0.42, 1.36, 1.65), v3(0.42, 1.36, 1.65), v3(0, 1.38, 1.9),
+      v3(0, 1.48, -0.28), v3(-0.5, 1.48, -0.28), v3(0.5, 1.48, -0.28)],
     // in the cabin, or on the hood mount looking in through the windshield
     cameraBounds: new THREE.Box3(v3(L + 0.06, 0.75, REAR + 0.1), v3(R - 0.06, ROOF - 0.04, DASH + 1.6)),
     ambience: 'car',
@@ -207,25 +176,15 @@ export function buildTaxi(): StageSet {
     reserved: ['driver', 'front_door'],
     setTime(t) {
       const night = t === 'night';
-      for (const sd of sides) sd.m.material = night ? sd.matNight : sd.matDay;
-      far.material = night ? farNight : farDay;
+      drive.setNight(night);
       roofSign.material = night ? roofSignOn : roofSignOff;
-      lampsL.setNight(night);
-      lampsR.setNight(night);
       hemi.color.set(night ? '#a8b0d0' : '#eef2ff');
       hemi.intensity = night ? 1.2 : 2.3;
       key.intensity = night ? 0.9 : 2.2;
       dome.intensity = night ? 1.6 : 0;
     },
     update(dt, t) {
-      // the city slides back past both sides
-      for (const sd of sides) {
-        scroll(sd.night, SIDE_L, dt, sd.dir);
-        sd.day.offset.x = sd.night.offset.x;
-      }
-      scroll(roadTex, RD_L, dt, -1);
-      lampsL.update(dt, -1);
-      lampsR.update(dt, -1);
+      drive.update(dt);
       freshener.rotation.z = Math.sin(t * 1.7) * 0.15 + Math.sin(t * 4.1) * 0.05;
     },
   };

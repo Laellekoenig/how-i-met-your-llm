@@ -157,9 +157,36 @@ export class Director {
     this.closeup(id, toward, true);
   }
 
+  /** HIMYM car coverage uses fixed windshield/cabin mounts and maintains the seating axis. */
+  private vehicleShot(actors: Actor[], kind: 'closeup' | 'two') {
+    const mounts = this.stage.current.dialogueCameras;
+    if (!mounts) return false;
+    const target = actors.reduce((sum, a) => sum.add(a.headWorld), new THREE.Vector3()).divideScalar(actors.length);
+    target.y -= 0.16;
+    const forward = new THREE.Vector3(Math.sin(actors[0].facing), 0, Math.cos(actors[0].facing));
+    const candidates = mounts.map(pos => {
+      const angle = pos.clone().sub(target).setY(0).normalize().dot(forward);
+      // A rear passenger's single belongs in the rear compartment, not far away on the hood.
+      const score = (1 - angle) * 2 + (kind === 'closeup' ? Math.abs(pos.distanceTo(target) - 1.3) : 0);
+      return { pos, angle, score };
+    }).filter(c => c.angle > 0.35).sort((a, b) => a.score - b.score);
+    for (const { pos } of candidates) for (const fov of [24, 28, 32, 38, 44, 50, 58, 66]) {
+      if (!this.inside(pos) || !this.covers({ pos, target, fov }, actors) || !this.hasBackdrop({ pos, target, fov })) continue;
+      this.cut({ kind, pos: pos.clone(), target, fov, push: 0,
+        subject: actors[0].def.id, subjects: actors.map(a => a.def.id) });
+      return true;
+    }
+    return false;
+  }
+
   closeup(id: CharacterId, toward?: CharacterId, pushIn = false): void {
     const a = this.stage.actors[id];
     if (!a?.root.visible) return this.wide(0);
+    if (this.stage.current.dialogueCameras) {
+      // The camera stays bolted to the vehicle, including on an emphatic line.
+      if (this.vehicleShot([a], 'closeup')) return;
+      return this.coverage([id], false);
+    }
     const head = a.headWorld;
     const look = new THREE.Vector3(Math.sin(a.facing), 0, Math.cos(a.facing));
     if (toward && this.stage.onStage(toward)) {
@@ -194,6 +221,10 @@ export class Director {
   twoShot(a: CharacterId, b: CharacterId) {
     const A = this.stage.actors[a], B = this.stage.actors[b];
     if (!A?.root.visible || !B?.root.visible) return this.closeup(a);
+    if (this.stage.current.dialogueCameras) {
+      if (this.vehicleShot([A, B], 'two')) return;
+      return this.closeup(a, b);
+    }
     const ha = A.headWorld, hb = B.headWorld;
     const mid = ha.clone().add(hb).multiplyScalar(0.5);
     const sep = ha.distanceTo(hb);
@@ -222,6 +253,9 @@ export class Director {
   overShoulder(speaker: CharacterId, listener: CharacterId) {
     const S = this.stage.actors[speaker], L = this.stage.actors[listener];
     if (!S?.root.visible || !L?.root.visible) return this.closeup(speaker);
+    // Adjacent seats / separate rows use matching singles, as in the series. An orbit behind
+    // a listener would put the camera through a door, headrest or the driver's partition.
+    if (this.stage.current.dialogueCameras) return this.closeup(speaker, listener);
     const hs = S.headWorld, hl = L.headWorld;
     const back = hl.clone().sub(hs).setY(0);
     if (back.length() > 3.5 || back.length() < 0.5) return this.closeup(speaker, listener);

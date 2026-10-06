@@ -19,6 +19,7 @@ export interface Shot {
   pos: THREE.Vector3;
   target: THREE.Vector3;
   fov: number;
+  label?: string;
 }
 
 export type Ambience = 'bar' | 'apartment' | 'penthouse' | 'city' | 'office' | 'car' | 'none';
@@ -35,6 +36,8 @@ export interface StageSet {
   wides: Shot[];
   /** Closed sets (the cars): every generated angle keeps the camera inside this box, never outside the body. */
   cameraBounds?: THREE.Box3;
+  /** Fixed windshield / cabin mounts. Vehicles use these for dialogue instead of orbiting the actors. */
+  dialogueCameras?: THREE.Vector3[];
   /** Keep generated two-shots near the actors; distant pairs get singles instead. */
   maxTwoShotDistance?: number;
   ambience: Ambience;
