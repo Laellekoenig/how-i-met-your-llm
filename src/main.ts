@@ -133,7 +133,12 @@ function testingMuted() {
 // The show starts on load. Browsers may hold sound back until the viewer first interacts with the
 // page; the picture and captions run regardless, and the first click or key press brings in the audio.
 const muted = (audio.muted = speech.muted = testingMuted());
+// Regular mode has nothing to click, so say so while the sound is held back.
+const soundHint = $('sound-hint');
+audio.onUnlock = () => soundHint.classList.add('hidden');
 audio.init();
+// (an allowed context can take a moment to start; don't flash the hint at it)
+setTimeout(() => soundHint.classList.toggle('hidden', muted || !!audio.ctx), 600);
 audio.setVolume(Number(vol.value));
 function unlockSound() {
   window.removeEventListener('pointerdown', unlockSound, true);
