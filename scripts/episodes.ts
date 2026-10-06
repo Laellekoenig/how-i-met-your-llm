@@ -125,7 +125,6 @@ function read(ep: EpisodeScript) {
         case 'narrate': lines++; return [`${indent}FUTURE TED${b.over ? ' (over the action)' : ''}: ${b.line}${laugh}`];
         case 'sound': return [`${indent}  ♪ ${b.sound}`];
         case 'score': return [`${indent}  ♪ score: ${b.music}`];
-        case 'graphic': return [`${indent}  ▭ ${b.kind}${b.character ? ` on ${name(b.character).toLowerCase()}` : ''}${b.text ?? b.title ? `: ${b.text ?? b.title}` : ''}${b.value !== undefined ? ` ${b.value}` : ''}`];
         case 'freeze': lines++; return [`${indent}[FREEZE${b.character ? ` on ${name(b.character).toLowerCase()}` : ''}] FUTURE TED: ${b.line}${laugh}`];
         case 'insert': return [`${indent}[INSERT ${b.kind}${b.title ? ` "${b.title}"` : ''}]${b.line ? ` ${b.character ? name(b.character) : 'FUTURE TED'}: ${b.line}` : ''}${laugh}`];
         case 'replay': {

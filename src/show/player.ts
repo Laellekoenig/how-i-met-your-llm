@@ -8,7 +8,7 @@ import { CHARACTERS, FUTURE_TED_VOICE, charName, outfitAt } from '../world/chara
 import {
   CHARACTER_IDS, KIDS, PAIRED_GESTURES, isKid,
   type Beat, type CastPlacement, type CharacterId, type Costume, type CutawayBeat, type CutawayLook, type CutawayStyle, type CutawayTransition,
-  type Emotion, type FreezeBeat, type Gesture, type GraphicBeat, type InsertBeat, type LaughKind, type MontageBeat, type MontageMusic, type Reaction,
+  type Emotion, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind, type MontageBeat, type MontageMusic, type Reaction,
   type ReplayBeat, type Scene, type SceneLocationId, type Score, type ShowItem, type SoundCue, type SplitBeat, type TimeOfDay,
 } from '../script/types';
 import { replayBeats } from '../script/strands';
@@ -194,7 +194,7 @@ export class Player {
     }
   }
 
-  /** Dev playground: take down captions, cards, graphics, looks and music left over from the last beats. */
+  /** Dev playground: take down captions, cards, looks and music left over from the last beats. */
   reset() {
     this.cleanup();
   }
@@ -418,7 +418,6 @@ export class Player {
     this.overlay.insert(null);
     this.overlay.year(false);
     this.overlay.osd(null);
-    this.overlay.clearGraphics();
     const r = this.renderer;
     r.fade = 1;
     r.rewind = 0;
@@ -545,7 +544,6 @@ export class Player {
     this.hideCaption();
     this.overlay.hideLocation();
     this.overlay.year(false);
-    this.overlay.clearGraphics();
     this.overlay.osd(null);
     this.hushed = false;
     const transition = sceneTransition(scene, this.previousScene, index);
@@ -632,7 +630,7 @@ export class Player {
     const look = q.look ?? 'plain';
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const edit = reducedMotion ? 'cut' : q.transition ?? 'cut';
-    const outer = { look: this.look, dream: r.dream, memory: r.memory, video: r.video, graphics: this.overlay.stashGraphics() };
+    const outer = { look: this.look, dream: r.dream, memory: r.memory, video: r.video };
     const costumes = !!q.wardrobe?.length;
     this.hideCaption();
     const what = q.replay ? `Replay (${STYLE_NAME[q.style].toLowerCase()})` : STYLE_NAME[q.style];
@@ -663,7 +661,6 @@ export class Player {
       st.thaw(frozen);
       this.look = outer.look;
       this.overlay.osd(outer.look === 'video' ? '▶ PLAY' : null);
-      this.overlay.restoreGraphics(outer.graphics);
       this.overlay.year(st.current.id === 'future');
       this.room(ambience);
       this.director.resume(shot);
@@ -714,7 +711,6 @@ export class Player {
     const shot = this.director.current;
     const ambience = st.current.ambience;
     const frozen = st.freeze();
-    const graphics = this.overlay.stashGraphics();
     const groups: CharacterId[][] = [];
     this.hideCaption();
     this.panel.line('stage', `Split screen: ${b.panels.map((p) => st.sets[p.location].name).join(' | ')}.`);
@@ -766,7 +762,6 @@ export class Player {
       this.panelOf = null;
       st.thaw(frozen);
       this.overlay.hideLocation();
-      this.overlay.restoreGraphics(graphics);
       this.room(ambience);
       this.director.resume(shot);
     }
@@ -857,7 +852,6 @@ export class Player {
     const shot = this.director.current;
     const ambience = st.current.ambience;
     const frozen = st.freeze();
-    const graphics = this.overlay.stashGraphics();
     this.hideCaption();
     this.overlay.osd(null);
     this.panel.line('stage', `Montage${m.label ? `: ${m.label}` : ''}.`);
@@ -883,7 +877,6 @@ export class Player {
       st.thaw(frozen);
       this.overlay.hideLocation();
       this.overlay.osd(this.look === 'video' ? '▶ PLAY' : null);
-      this.overlay.restoreGraphics(graphics);
       this.overlay.year(st.current.id === 'future');
       this.room(ambience);
       this.director.resume(shot);
@@ -1019,7 +1012,6 @@ export class Player {
     const ambience = st.current.ambience;
     // 2030 is real: no fantasy haze, old-film grade or tape on the couch, and nothing drawn over it
     const grade = { dream: this.renderer.dream, memory: this.renderer.memory, video: this.renderer.video };
-    const graphics = this.overlay.stashGraphics();
     st.cutToKids();
     audio.ambience('none');
     this.overlay.osd(null);
@@ -1038,7 +1030,6 @@ export class Player {
       this.overlay.year(false);
       Object.assign(this.renderer, grade);
       this.overlay.osd(this.look === 'video' ? '▶ PLAY' : null);
-      this.overlay.restoreGraphics(graphics);
       this.room(ambience);
       this.director.resume(shot);
     }
@@ -1301,11 +1292,6 @@ export class Player {
         this.panel.line('stage', b.music === 'none' ? '[music out]' : b.music === 'silence' ? '[silence]' : `[${b.music} music]`);
         this.setScore(b.music);
         break;
-      case 'graphic':
-        this.panel.line('stage', graphicText(b));
-        this.overlay.graphic(b);
-        await this.wait(b.kind === 'clear' ? 0.1 : b.kind === 'venn' || b.kind === 'axes' ? 1.4 : 0.5);
-        break;
       case 'replay':
         if (!st.inCutaway) await this.playReplay(b);
         break;
@@ -1423,18 +1409,6 @@ function groupName(ids: CharacterId[], room: CharacterId[]) {
   const names = ids.map(charName);
   if (ids.length >= 3 && room.every((id) => ids.includes(id))) return 'Everyone';
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names.at(-1)}` : names[0] ?? '';
-}
-
-/** The transcript's note for a graphic. */
-function graphicText(g: GraphicBeat) {
-  switch (g.kind) {
-    case 'tag': return `[label on ${charName(g.character ?? '')}: ${g.text}]`;
-    case 'clock': return `[${g.text}]`;
-    case 'counter': return `[${g.title}: ${g.value}]`;
-    case 'venn': return `[Venn diagram: ${(g.sets ?? []).join(' / ')} → ${g.middle}]`;
-    case 'axes': return `[chart: ${g.y} vs ${g.x}]`;
-    case 'clear': return g.character ? `[label off ${charName(g.character)}]` : '[graphics off]';
-  }
 }
 
 /** The transcript's note for an insert. */

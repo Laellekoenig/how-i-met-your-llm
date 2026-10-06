@@ -1,5 +1,5 @@
 import {
-  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GRAPHIC_KINDS, GUEST_COLORS, GUEST_EXTRAS,
+  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS,
   GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OFFSCREEN, OUTFITS, PROPS, SCENE_LOCATION_IDS,
   SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isGuest, isKid,
 } from './types';
@@ -37,10 +37,6 @@ const MAX_MONTAGE_SHOTS = 6;
 const PRESENTATION = ['label', 'look', 'transition', 'sound'];
 /** What a split screen can do: talk, gesture, hold things up. Nobody walks between the panels. */
 const SPLIT_BEATS = ['say', 'narrate', 'act', 'hold', 'laugh', 'pause', 'sound', 'score', 'insert'];
-const GRAPHIC_FIELDS: Record<string, string[]> = {
-  tag: ['character', 'text'], clock: ['text'], counter: ['title', 'value'], venn: ['title', 'sets', 'middle'],
-  axes: ['title', 'x', 'y', 'points'], clear: ['character'],
-};
 const SLUG = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
 
 const BEAT_KEYS: Record<string, string[]> = {
@@ -56,7 +52,6 @@ const BEAT_KEYS: Record<string, string[]> = {
   pause: ['seconds'],
   sound: ['sound'],
   score: ['music'],
-  graphic: ['kind', 'character', 'text', 'title', 'value', 'sets', 'middle', 'x', 'y', 'points'],
   freeze: ['line', 'character', 'gesture', 'to', 'emotion', 'laugh', 'shot', 'sound'],
   insert: ['kind', 'title', 'lines', 'messages', 'items', 'chart', 'character', 'line', 'laugh', 'react', 'sound'],
   cutaway: ['id', 'style', ...PRESENTATION, 'location', 'time', 'wardrobe', 'cast', 'beats'],
@@ -401,7 +396,6 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         insert(b, p);
       }
       if (type === 'freeze' && !muted) count.freezes++;
-      if (type === 'graphic') graphic(b, st, p);
 
       if (!st || !who || kid || offscreen) {
         // nothing to stage
@@ -595,52 +589,6 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     });
     if (!Array.isArray(b.beats) || !b.beats.length) return err(p, 'a split screen needs beats');
     beats(b.beats, all, `${p}.beats`, depth, budget, undefined, 'split');
-  };
-
-  /** Drawn over the scene: each kind takes its own few fields. */
-  const graphic = (b: Obj, st: Stage | null, p: string) => {
-    const kind = oneOf(b, 'kind', GRAPHIC_KINDS, p, true);
-    if (!kind) return;
-    const fields = GRAPHIC_FIELDS[kind];
-    for (const k of Object.keys(b)) {
-      if (k !== 'type' && k !== 'kind' && !fields.includes(k)) err(p, `"${k}" isn't for a ${kind} (it takes: ${list(fields)})`);
-    }
-    const short = (k: string, max: number, required = false) => {
-      const v = b[k];
-      if (v === undefined) return required && err(p, `a ${kind} needs "${k}"`);
-      if (typeof v !== 'string' || !v.trim() || v.length > max) err(p, `"${k}" is a short string (${max} characters max)`);
-    };
-    if (kind === 'tag' && b.character === undefined) err(p, 'a tag needs the "character" it labels');
-    else if (b.character !== undefined) {
-      const id = character(b.character, p);
-      if (id && isKid(id)) err(p, 'the kids are in 2030: no tags on them');
-      else if (id && st && !st.at.has(id)) err(p, `${id} isn't on stage to ${kind === 'tag' ? 'tag' : 'untag'}`);
-    }
-    if (kind === 'tag') short('text', 40, true);
-    if (kind === 'clock') short('text', 24, true);
-    if (kind === 'counter') {
-      short('title', 30, true);
-      if (typeof b.value !== 'number' || !Number.isFinite(b.value)) err(p, 'a counter needs a number "value"');
-    }
-    if (kind === 'venn') {
-      short('title', 40);
-      short('middle', 30, true);
-      if (!Array.isArray(b.sets) || b.sets.length < 2 || b.sets.length > 3 || b.sets.some((x) => typeof x !== 'string' || !x.trim() || x.length > 24)) {
-        err(p, '"sets" is 2-3 circle labels (24 characters max)');
-      }
-    }
-    if (kind === 'axes') {
-      short('title', 40);
-      short('x', 20, true);
-      short('y', 20, true);
-      if (!Array.isArray(b.points) || !b.points.length || b.points.length > 6) err(p, '"points" is 1-6 { "label", "x", "y" } (0-10)');
-      else b.points.forEach((pt, k) => {
-        const ok = isObj(pt) && typeof pt.label === 'string' && pt.label.trim() && pt.label.length <= 20
-          && [pt.x, pt.y].every((v) => typeof v === 'number' && v >= 0 && v <= 10);
-        if (!ok) err(`${p}.points[${k}]`, 'a point is { "label": up to 20 characters, "x": 0-10, "y": 0-10 }');
-        else keys(pt, `${p}.points[${k}]`, ['label', 'x', 'y']);
-      });
-    }
   };
 
   /** Listener reactions: people on stage, never the speaker or the kids. */

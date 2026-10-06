@@ -90,10 +90,6 @@ export type CutawayLook = (typeof CUTAWAY_LOOKS)[number];
 export const CUTAWAY_TRANSITIONS = ['cut', 'whip', 'ripple', 'rewind'] as const;
 export type CutawayTransition = (typeof CUTAWAY_TRANSITIONS)[number];
 
-/** Graphics drawn over the scene, alongside the actors (an insert takes over the whole screen instead). */
-export const GRAPHIC_KINDS = ['tag', 'clock', 'counter', 'venn', 'axes', 'clear'] as const;
-export type GraphicKind = (typeof GRAPHIC_KINDS)[number];
-
 /** A line heard without its speaker on screen: down the phone, or from the next room. */
 export const OFFSCREEN = ['phone', 'voice'] as const;
 export type Offscreen = (typeof OFFSCREEN)[number];
@@ -174,7 +170,6 @@ export type Beat =
   | { type: 'sound'; sound: SoundCue }
   /** Start underscore that carries across lines, cutaways and scene changes until the next score beat. */
   | { type: 'score'; music: Score }
-  | GraphicBeat
   /** Pick something up (or put it down with prop "none"). */
   | { type: 'hold'; character: CharacterId; prop: Prop | 'none'; shot?: ShotIntent }
   /** Hand what you're holding (or `prop`) to someone. */
@@ -221,30 +216,6 @@ export interface InsertBeat {
   react?: Reaction[];
   /** A cue as the card appears; "none" also silences a text thread's chimes. */
   sound?: SoundCue | 'none';
-}
-
-/**
- * Something drawn over the scene with the actors still in it: a label on someone, the time, a running count,
- * a Venn diagram, a pair of axes with people plotted on them. It stays up until cleared or the scene ends.
- */
-export interface GraphicBeat {
-  type: 'graphic';
-  kind: GraphicKind;
-  /** A tag's (or a cleared tag's) person. */
-  character?: CharacterId;
-  /** A tag's label, or the clock's reading ("8:14 PM", "Room 3"). */
-  text?: string;
-  /** The counter's, Venn diagram's or chart's heading. */
-  title?: string;
-  /** The counter's count. */
-  value?: number;
-  /** A Venn diagram's two or three circles, and what goes where they overlap. */
-  sets?: string[];
-  middle?: string;
-  /** Axis names, and the points on them (0-10). */
-  x?: string;
-  y?: string;
-  points?: { label: string; x: number; y: number }[];
 }
 
 /** "And that's how it went for three weeks": quick shots across sets over music, then back to the scene. */

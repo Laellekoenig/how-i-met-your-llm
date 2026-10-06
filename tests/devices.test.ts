@@ -11,7 +11,7 @@ import { Player } from '../src/show/player';
 import { speech } from '../src/audio/speech';
 import { audio } from '../src/audio/audio';
 import { CHARACTERS } from '../src/world/characters';
-import type { Beat, EpisodeScript, GraphicBeat, ReplayBeat, Scene, ShowItem } from '../src/script/types';
+import type { Beat, EpisodeScript, ReplayBeat, Scene, ShowItem } from '../src/script/types';
 
 const spies: { mockRestore(): void }[] = [];
 afterEach(() => spies.splice(0).forEach((s) => s.mockRestore()));
@@ -58,12 +58,6 @@ describe('validating the new devices', () => {
           { type: 'score', music: 'tense' },
           { type: 'narrate', line: 'That night, Ted had a plan.', over: true },
           { type: 'act', character: 'ted', gesture: 'salute', to: 'robin' },
-          { type: 'graphic', kind: 'tag', character: 'ted', text: 'Has a plan' },
-          { type: 'graphic', kind: 'counter', title: 'Slaps', value: 3 },
-          { type: 'graphic', kind: 'clock', text: '9:14 PM' },
-          { type: 'graphic', kind: 'venn', sets: ['Hot', 'Crazy'], middle: 'Barney\'s type' },
-          { type: 'graphic', kind: 'axes', x: 'Crazy', y: 'Hot', points: [{ label: 'Ted', x: 2, y: 4 }] },
-          { type: 'graphic', kind: 'clear', character: 'ted' },
           say('barney', 'Pick up, Ted.', { offscreen: 'phone', to: 'ted' }),
           say('lily', 'La la la.', { delivery: 'sing', accompanied: true }),
           { type: 'sound', sound: 'shatter' },
@@ -155,23 +149,17 @@ describe('validating the new devices', () => {
 
   test('each new beat checks its own fields', () => {
     expect(errors([
-      { type: 'graphic', kind: 'tag', text: 'No one' },
-      { type: 'graphic', kind: 'clock', text: '9 PM', points: [] },
-      { type: 'graphic', kind: 'tag', character: 'barney', text: 'Not here' },
       say('ted', 'I am right here.', { offscreen: 'phone' }),
       say('ted', 'La.', { accompanied: true }),
       { type: 'narrate', line: 'Kids.', over: true, laugh: 'laugh' },
       { type: 'sound', sound: 'kazoo' },
       { type: 'score', music: 'polka' },
     ])).toEqual([
-      'scenes[0].beats[0]: a tag needs the "character" it labels',
-      expect.stringContaining('scenes[0].beats[1]: "points" isn\'t for a clock'),
-      'scenes[0].beats[2]: barney isn\'t on stage to tag',
-      'scenes[0].beats[3]: ted is on stage: "offscreen" is for a voice we hear but don\'t see',
-      'scenes[0].beats[4]: "accompanied": true puts a guitar under a sung line ("delivery": "sing")',
-      'scenes[0].beats[5]: a voice-over under the action can\'t carry a laugh: put a laugh beat after it',
-      expect.stringContaining('scenes[0].beats[6]: "sound": "kazoo" is not one of'),
-      expect.stringContaining('scenes[0].beats[7]: "music": "polka" is not one of'),
+      'scenes[0].beats[0]: ted is on stage: "offscreen" is for a voice we hear but don\'t see',
+      'scenes[0].beats[1]: "accompanied": true puts a guitar under a sung line ("delivery": "sing")',
+      'scenes[0].beats[2]: a voice-over under the action can\'t carry a laugh: put a laugh beat after it',
+      expect.stringContaining('scenes[0].beats[3]: "sound": "kazoo" is not one of'),
+      expect.stringContaining('scenes[0].beats[4]: "music": "polka" is not one of'),
     ]);
   });
 
@@ -259,14 +247,10 @@ function rig(items: ShowItem[], opts: { speak?: (line: string) => Promise<void> 
   const director = new Director(camera, stage);
   const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0, whip: 0, video: 0, panels: null as unknown[] | null, panelsDone: null };
   const log: string[] = [];
-  const graphics: GraphicBeat[] = [];
-  let cleared = 0;
   const overlay = {
     ...overlayStub(),
     location: (t: string, look?: string) => log.push(`card:${t}:${look ?? ''}`),
     osd: (t: string | null) => log.push(`osd:${t}`),
-    graphic: (g: GraphicBeat) => graphics.push(g),
-    clearGraphics: () => cleared++,
   };
   const spoken: { line: string; who: string; set: string; panels: number; shot?: THREE.Vector3; ted?: string; held?: string | null }[] = [];
   spies.push(spyOn(speech, 'speak').mockImplementation((line, profile, onStart) => {
@@ -283,7 +267,7 @@ function rig(items: ShowItem[], opts: { speak?: (line: string) => Promise<void> 
     const start = performance.now();
     while (requests <= items.length && performance.now() - start < 40000) await new Promise((r) => setTimeout(r, 20));
   };
-  return { stage, director, renderer, log, graphics, spoken, run, cleared: () => cleared };
+  return { stage, director, renderer, log, spoken, run };
 }
 
 const meta = { id: 'dev', code: 'S99E01', title: 'Devices', logline: '' };
@@ -403,19 +387,16 @@ describe('playback: time, memory and editing', () => {
     expect(order).toEqual(['start:That night, Ted moved.', 'narration done', 'start:Ted?']);
   }, 60000);
 
-  test('underscore carries across a scene change until the script stops it; graphics clear with the scene', async () => {
+  test('underscore carries across a scene change until the script stops it', async () => {
     const beds: string[] = [];
     spies.push(spyOn(audio, 'montage').mockImplementation((k) => { beds.push(k); }));
     spies.push(spyOn(audio, 'stopBed').mockImplementation(() => { beds.push('stop'); }));
     const r = rig([
-      sceneItem(scene([{ type: 'score', music: 'tense' }, { type: 'graphic', kind: 'clock', text: '9:14 PM' }, say('ted', 'One.') as Beat])),
+      sceneItem(scene([{ type: 'score', music: 'tense' }, say('ted', 'One.') as Beat])),
       sceneItem(scene([say('ted', 'Two.') as Beat, { type: 'score', music: 'none' }], { location: 'apartment', cast: [{ character: 'ted', mark: 'couch_left' }] }), 2),
     ]);
-    const before = r.cleared();
     await r.run();
     expect(beds.filter((b) => b !== 'stop')).toEqual(['tense']);
     expect(beds.at(-1)).toBe('stop');
-    expect(r.graphics.map((g) => g.text)).toEqual(['9:14 PM']);
-    expect(r.cleared() - before).toBeGreaterThanOrEqual(2);
   }, 60000);
 });

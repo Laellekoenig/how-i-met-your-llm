@@ -103,8 +103,7 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   scenes (or `silence` to leave a moment bare), a scene `"sound": "none"` to land a cut without the sting, and
   `accompanied` if a song needs a guitar. `narrate` with `over` keeps Future Ted talking while the action plays.
 - **More tools** (see the bible): `split` for a phone call or the same conversation in three places,
-  `offscreen` for a voice down the line, `graphic` for labels, a clock, a running count or Marshall's diagrams
-  drawn over the scene, a `look: "video"` cutaway for footage the gang watches, `wardrobe` on a cutaway or montage
+  `offscreen` for a voice down the line, a `look: "video"` cutaway for footage the gang watches, `wardrobe` on a cutaway or montage
   shot for another year's look, and a scene costume with `keep` for a consequence that lasts the episode.
 - PG-13, original jokes and plots, no real-world politics. Don't retell existing HIMYM episodes.
 
