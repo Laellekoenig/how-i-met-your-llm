@@ -18,8 +18,8 @@ with no controls. Browsers may hold the sound back until you first click or pres
 Add `mute` (`/?mute`, `/?dev&mute`) to play everything silently. Automated browsers (`navigator.webdriver`) and
 the T3 Code preview browser are muted automatically, so agents testing the show stay quiet; `?sound` overrides that.
 
-Every episode is a JSON file in `episodes/`; they air in code order, back to back, on a loop. Open `/?ep=S10E03`
-to start at a particular episode.
+Every episode is a JSON file in `episodes/`; each visit starts at a random one, then they air in code order, back to back, on a loop.
+Open `/?ep=S10E03` to start at a particular episode.
 
 Keys: `d` toggle dev mode · `f` fullscreen · dev mode only: `space` pause · `→` skip scene.
 
