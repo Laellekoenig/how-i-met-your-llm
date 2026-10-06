@@ -87,7 +87,7 @@ export class AudioEngine {
       }
       return n;
     };
-    this.laughBus = mk(0.9, 0.9);
+    this.laughBus = mk(2.8, 0.9);
     this.sfxBus = mk(0.8, 0.3);
     this.musicBus = mk(0.55, 0.4);
     this.ambBus = mk(0.5, 0.2);
@@ -269,21 +269,21 @@ export class AudioEngine {
     };
     switch (kind) {
       case 'chuckle': {
-        this.crowdBed(t0, 1.2, 0.03);
-        return crowd(10, 0.6, 1.3, 0.05, 0.25, [VOWEL_A, VOWEL_AE], [0.17, 0.24]);
+        this.crowdBed(t0, 1.2, 0.06);
+        return crowd(10, 0.6, 1.3, 0.1, 0.25, [VOWEL_A, VOWEL_AE], [0.17, 0.24]);
       }
       case 'laugh': {
-        this.crowdBed(t0, 2.4, 0.06);
-        return crowd(26, 1.3, 2.6, 0.06, 0.35, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.15, 0.21]);
+        this.crowdBed(t0, 2.4, 0.11);
+        return crowd(26, 1.3, 2.6, 0.11, 0.35, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.15, 0.21]);
       }
       case 'big': {
         // a long, rolling laugh, not a cheer: the show's audience doesn't whoop or clap at jokes
-        this.crowdBed(t0, 3.8, 0.09);
-        return crowd(40, 2.0, 3.8, 0.065, 0.45, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.14, 0.2]);
+        this.crowdBed(t0, 3.8, 0.16);
+        return crowd(40, 2.0, 3.8, 0.12, 0.45, [VOWEL_A, VOWEL_AE, VOWEL_AW], [0.14, 0.2]);
       }
       case 'ooh':
-        this.crowdBed(t0, 1.6, 0.025, 500);
-        return crowd(28, 1.3, 1.9, 0.045, 0.2, [VOWEL_OO], null, 0.25);
+        this.crowdBed(t0, 1.6, 0.018, 500);
+        return crowd(28, 1.3, 1.9, 0.03, 0.2, [VOWEL_OO], null, 0.25);
       case 'aww':
         this.crowdBed(t0, 1.8, 0.02, 600);
         return crowd(28, 1.4, 2.0, 0.045, 0.2, [VOWEL_AW], null, -0.2);
