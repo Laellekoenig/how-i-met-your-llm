@@ -11,10 +11,10 @@ import { resolveStrands } from '../script/strands';
 import { validateEpisode, type Issue } from '../script/validate';
 import { sleep } from '../util';
 import {
-  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS,
+  CHARACTER_IDS, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS,
   GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, LOCATION_IDS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OFFSCREEN,
   OUTFITS, PAIRED_GESTURES, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isKid,
-  type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GuestStar, type InsertKind, type LocationId,
+  type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GuestStar, type LocationId,
   type Scene, type SceneLocationId, type ShowItem, type SoundCue, type TimeOfDay, type Transition,
 } from '../script/types';
 
@@ -621,10 +621,9 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       { key: 'shot', kind: 'enum', values: () => SHOTS }, { key: 'sound', kind: 'enum', values: () => SOUND_CUES },
     ],
     insert: [
-      { key: 'kind', kind: 'enum', values: () => INSERT_KINDS, required: true }, { key: 'title', kind: 'text' }, { key: 'character', kind: 'enum', values: chars },
-      { key: 'line', kind: 'long' }, { key: 'chart', kind: 'enum', values: () => CHART_STYLES }, { key: 'laugh', kind: 'enum', values: () => LAUGHS },
-      { key: 'sound', kind: 'enum', values: () => [...SOUND_CUES, 'none'] }, { key: 'lines', kind: 'json', hint: '["bullet", ...]' },
-      { key: 'messages', kind: 'json', hint: '[{ "from", "text" }]' }, { key: 'items', kind: 'json', hint: '[{ "label", "value" }]' }, { key: 'react', kind: 'json' },
+      { key: 'kind', kind: 'enum', values: () => INSERT_KINDS, required: true }, { key: 'title', kind: 'text', required: true, hint: 'Only the play name appears on the card' },
+      { key: 'character', kind: 'enum', values: chars }, { key: 'line', kind: 'long', hint: 'Spoken back in the scene after the title card' },
+      { key: 'laugh', kind: 'enum', values: () => LAUGHS }, { key: 'sound', kind: 'enum', values: () => [...SOUND_CUES, 'none'] }, { key: 'react', kind: 'json' },
     ],
     cutaway: [
       { key: 'id', kind: 'text', hint: 'name it so a replay can show it again' }, { key: 'style', kind: 'enum', values: () => CUTAWAY_STYLES, required: true },
@@ -643,15 +642,9 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
   };
   const BEAT_TYPES = Object.keys(BEAT_FIELDS) as BeatType[];
 
-  const insertExample = (kind: InsertKind, a: CharacterId, b: CharacterId): Record<string, unknown> => ({
-    text: { character: a, title: charName(b), messages: [{ from: b, text: 'Where are you?' }, { from: a, text: "MacLaren's. Booth." }, { from: b, text: 'Suit up.' }] },
-    chart: { character: 'barney', chart: 'bar', title: 'Awesomeness by suit', items: [{ label: 'Gray', value: 7 }, { label: 'Navy', value: 9 }, { label: 'No suit', value: 1 }] },
-    slides: { character: 'barney', title: 'Operation Wingman', lines: ['Phase 1: Suit up', 'Phase 2: Have you met Ted?', 'Phase 3: ???'] },
-    sign: { title: 'CLOSED', lines: ['for a private event'] },
-    playbook: { character: 'barney', title: 'The Lorenzo Von Matterhorn', lines: ['Set up the websites', 'Tell her to Google me', 'Wait for it'] },
-  })[kind];
+  const playbookExample = { character: 'barney', title: 'The Lorenzo Von Matterhorn' } as const;
 
-  function template(type: BeatType, prev: Record<string, unknown> = {}): Record<string, unknown> {
+  function template(type: BeatType): Record<string, unknown> {
     const { a, b } = subjects();
     const there = sceneLocation();
     const markOf = (id: CharacterId) => st.cast.find((c) => c.character === id)?.mark ?? someMark(there);
@@ -671,10 +664,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       case 'hold': return { character: a, prop: 'beer' };
       case 'give': return { character: a, to: b, prop: 'envelope' };
       case 'freeze': return { line: 'Kids, this was the moment everything changed.', character: a, gesture: 'jaw_drop' };
-      case 'insert': {
-        const kind = (INSERT_KINDS as readonly string[]).includes(String(prev.kind)) ? prev.kind as InsertKind : 'text';
-        return { kind, ...insertExample(kind, a, b) };
-      }
+      case 'insert': return { kind: 'playbook', ...playbookExample };
       case 'cutaway': return {
         id: 'pg-cutaway', style: 'imagined', label: `How ${charName(a)} imagined it`, look: 'dream', transition: 'ripple', location: there, time: st.time,
         cast: [{ character: a, mark: markOf(a) }, { character: b, mark: markOf(b) }],
@@ -759,7 +749,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     };
     out.append(pair(), h('div', { class: 'pg-grid' },
       row('beat', select(BEAT_TYPES, type, (v) => { st.draft = { type: v, ...template(v as BeatType) }; save(); render(); })),
-      h('div', { class: 'pg-buttons' }, button('template', () => { st.draft = { type, ...template(type, draft) }; save(); render(); }, 'Fill in an example for this beat (inserts: for the kind picked)')),
+      h('div', { class: 'pg-buttons' }, button('template', () => { st.draft = { type, ...template(type) }; save(); render(); }, 'Fill in an example for this beat')),
     ));
     out.append(form(BEAT_FIELDS[type], draft, sync));
     sync();
@@ -823,9 +813,9 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     { name: 'Laughs', hint: 'Every laugh-track response', beats: () => LAUGHS.flatMap((l): Beat[] => [{ type: 'laugh', laugh: l }, { type: 'pause', seconds: 0.4 }]) },
     { name: 'Sound cues', hint: 'Every placed sound', beats: () => SOUND_CUES.flatMap((s): Beat[] => [{ type: 'sound', sound: s }, { type: 'pause', seconds: 1.2 }]) },
     { name: 'Score', hint: 'All ten music beds, then none, then silence', beats: () => SCORES.flatMap((m): Beat[] => [{ type: 'score', music: m }, { type: 'pause', seconds: 6 }]) },
-    { name: 'Inserts', hint: 'A text thread, a chart in each style, slides, a sign, the Playbook', beats: () => [
-      ...INSERT_KINDS.map((k) => ({ type: 'insert', kind: k, ...insertExample(k, st.a, st.b) }) as Beat),
-      ...CHART_STYLES.filter((c) => c !== 'bar').map((c) => ({ type: 'insert', ...insertExample('chart', st.a, st.b), chart: c }) as Beat),
+    { name: 'Playbook', hint: 'Full-screen play titles, then back to the scene', beats: () => [
+      { type: 'insert', kind: 'playbook', ...playbookExample },
+      { type: 'insert', kind: 'playbook', title: 'The Scuba Diver' },
     ] },
     { name: 'Narration', hint: 'Future Ted: a plain line, a voice-over under action, a freeze frame', beats: () => [
       { type: 'narrate', line: 'Kids, some nights are legendary.' },

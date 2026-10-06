@@ -135,10 +135,9 @@ In dev mode, skip episodes to reach the others, or open `/?ep=S10E02`.
 
 The show's signature visual gags, all part of the episode file format (`bun run bible` documents them, `bun run episodes check` validates them):
 
-- **Inserts**: a full-screen card of the thing itself. `text` (a thread on someone's phone, theirs on the right),
-  `chart` (an easel chart in marker: bar, line or pie), `slides` (a slideshow slide), `sign` (a taped-up note) and
-  `playbook` (a page of the Playbook). Bubbles, bars and bullets come in one at a time; the owner (or Future Ted)
-  can read a `line` over it, and a `react` cuts back to the room.
+- **Playbook inserts**: a brief full-screen card with just the play name, in script on cream inside a stepped
+  double border. The explanation and reactions play back in the scene. Earlier phone, chart, slide and sign
+  inserts now keep only their dialogue and reactions in the room. See [the visual reference](docs/playbook-reference.md).
 - **Group lines and reactions**: `chorus: [...]` on a `say` has everyone else in it say the line at once (Penny and
   Luke can too, on the couch), captioned "Ted & Marshall" or "Everyone". `react` on a line or insert cuts to the listeners when it lands:
   one face cheated toward the lens, a two-shot, the whole booth, or quick cuts face to face when they're spread

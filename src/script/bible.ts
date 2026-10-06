@@ -1,6 +1,6 @@
 import {
-  CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR,
-  GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OUTFITS, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS,
+  CHARACTER_IDS, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR,
+  GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS, LAUGHS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OUTFITS, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS,
   isGuest, isKid,
 } from './types';
 import type { StageSet } from '../world/sets/common';
@@ -170,7 +170,7 @@ Most lines need no delivery. Use it when the performance is the joke:
 Leave coverage to the director, except when a shot is the joke. "shot" on a say, act, hold, give or freeze beat: closeup (a single), two (a two-shot with "to"), push_in (a slow dolly in for a realization, confession or reveal), wide (the whole room). At most a few per scene.
 
 # Inserts, freeze frames and montages
-- insert: a full-screen card of the thing itself. kind ${INSERT_KINDS.join('|')}: text (a thread on "character"'s phone: "messages" [{ "from", "text" }], theirs on the right; "title" is who it's with), chart (an easel chart in marker: "title", up to 6 "items" [{ "label", "value" }], "chart" ${CHART_STYLES.join('|')}), slides (a slide: "title" and up to 6 bullet "lines"), sign (a taped-up note: "title" and a couple of "lines"), playbook (a Playbook page: the play as "title", steps as "lines"). "character" is whose it is and reads "line" over it (Future Ted reads it without a character). The card is the punchline or the setup. 0-2 per episode.
+- insert: only kind "playbook" cuts to a full-screen card. Use the play name as "title": large script on cream with a stepped double border, with no steps, header or ownership footer. The brief card cuts back to the scene before "character" speaks "line" (Future Ted without a character), then "react" and "laugh". 0-2 per episode. Older text/chart/slides/sign beats remain valid for existing episode files, but their cards, item reveals and card sounds are retired; only their dialogue, reactions and laughs play in the scene. Use ordinary dialogue and physical props for phones, charts, slides and signs. "lines" remains accepted for old Playbook beats but is not displayed (its first entry supplies the title only if "title" is absent).
 - freeze: Future Ted narrates "line" over a frozen frame. A "character" (with an optional gesture, "to" and emotion) freezes on them mid-action: Marshall mid-slap, a face mid-realization. 0-1 per episode.
 - montage (top-level only): "and that's how it went for three weeks". A "label" for the first card, "music" ${MONTAGE_MUSIC.join('|')}, and 2-6 "shots", each a location, time, its own cast, optional "wardrobe" (across the years), an optional little card ("Day 3") and 0-2 beats (gestures, props, very short lines). A narrate beat can set it up before and land it after. 0-1 per episode.
 - Footage the characters watch (Robin Sparkles on a VHS, Barney's video résumé, a news clip): a cutaway with "look": "video" plays as tape with a VCR's on-screen display; a freeze frame inside it is somebody hitting pause, and a replay with "look": "video" winds it back to watch again. Cut back to the viewers between them for their reactions.
@@ -246,8 +246,8 @@ Beats (optional fields in brackets):
 { "type": "hold", "character": "ted", "prop": "ring"|"none", ["shot": ...] }
 { "type": "give", "character": "ted", "to": "robin", ["prop": "ring"], ["shot": ...] }
 { "type": "freeze", "line": "Kids, ...", ["character": "marshall"], ["gesture": ...], ["to": ...], ["emotion": ...], ["laugh": ...], ["shot": ...], ["sound": ...] }
-{ "type": "insert", "kind": "${INSERT_KINDS.join('|')}", ["title": "..."], ["lines": [...]], ["messages": [{ "from": "barney", "text": "..." }]],
-  ["items": [{ "label": "Hot", "value": 9 }]], ["chart": "${CHART_STYLES.join('|')}"], ["character": "barney"], ["line": "..."], ["laugh": ...], ["react": [...]], ["sound": ... | "none"] }
+{ "type": "insert", "kind": "playbook", "title": "The Lorenzo Von Matterhorn", ["character": "barney"],
+  ["line": "..."], ["laugh": ...], ["react": [...]], ["sound": ... | "none"] }
 { "type": "laugh", "laugh": "laugh" }                                 // a standalone laugh-track reaction
 { "type": "pause", "seconds": 1.5 }                                    // up to 5
 { "type": "sound", "sound": "${SOUND_CUES.join('|')}" }

@@ -46,9 +46,11 @@ export type Prop = (typeof PROPS)[number];
 export const SHOTS = ['closeup', 'two', 'push_in', 'wide'] as const;
 export type ShotIntent = (typeof SHOTS)[number];
 
-/** Full-screen cards: a text message, one of Barney's charts or slideshows, a sign, a page of the Playbook. */
-export const INSERT_KINDS = ['text', 'chart', 'slides', 'sign', 'playbook'] as const;
-export type InsertKind = (typeof INSERT_KINDS)[number];
+/** The only insert offered to writers and rendered on screen. */
+export const INSERT_KINDS = ['playbook'] as const;
+/** Accepted in existing episode files to preserve dialogue and replay beat indices. */
+export const LEGACY_INSERT_KINDS = ['text', 'chart', 'slides', 'sign'] as const;
+export type InsertKind = (typeof INSERT_KINDS)[number] | (typeof LEGACY_INSERT_KINDS)[number];
 export const CHART_STYLES = ['bar', 'line', 'pie'] as const;
 export type ChartStyle = (typeof CHART_STYLES)[number];
 
@@ -212,9 +214,9 @@ export interface FreezeBeat {
 export interface InsertBeat {
   type: 'insert';
   kind: InsertKind;
-  /** Chart, slide, sign or play name; for a text, who the thread is with. */
+  /** The play name shown on the title card (older inserts also have headings). */
   title?: string;
-  /** Slide bullets, Playbook steps, the sign's smaller print. */
+  /** Legacy content, accepted in existing files but no longer displayed. */
   lines?: string[];
   /** A text thread. Messages from the phone's owner (`character`) are on the right. */
   messages?: { from: CharacterId | string; text: string }[];
@@ -223,7 +225,7 @@ export interface InsertBeat {
   chart?: ChartStyle;
   /** Whose phone, chart, slideshow or Playbook it is; reads `line` over the card. */
   character?: CharacterId;
-  /** Read over the card by `character`, or by Future Ted. */
+  /** Spoken in the scene by `character`, or by Future Ted, after the play title. */
   line?: string;
   laugh?: LaughKind;
   react?: Reaction[];
