@@ -103,7 +103,7 @@
         { "type": "pause", "seconds": 0.8 },
         { "type": "say", "character": "barney", "to": "victoria", "line": "Then I will be the sexiest furniture in Manhattan.", "emotion": "smug", "gesture": "suit_up", "laugh": "chuckle" },
         { "type": "say", "character": "ted", "to": "victoria", "line": "It's fitting, actually. Did you know canapé is French for couch? Because the topping sits on the bread like a man on a—", "interrupted": true, "emotion": "excited" },
-        { "type": "say", "character": "victoria", "to": "ted", "line": "Ted. Tonight, you are the couch. Couches don't explain themselves.", "laugh": "laugh" },
+        { "type": "say", "character": "victoria", "to": "ted", "line": "Ted. Tonight, you are the couch. Couches don't explain themselves.", "gesture": "hands_on_hips", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "victoria", "line": "Not even a little etymology?", "emotion": "sad" },
         { "type": "say", "character": "victoria", "to": "ted", "line": "Especially not the etymology.", "delivery": "deadpan", "laugh": "chuckle" },
         { "type": "say", "character": "victoria", "to": "ranjit", "line": "Ranjit, stop here. I'll run the last block. My feet are faster than Midtown." },
@@ -185,7 +185,7 @@
             { "type": "hold", "character": "ted", "prop": "microphone" },
             { "type": "say", "character": "ted", "to": "guest1", "line": "Ladies and gentlemen. Slide twelve. The croquembouche. A load-bearing dessert.", "delivery": "slow" },
             { "type": "say", "character": "guest1", "to": "ted", "line": "Magnificent.", "delivery": "slow", "emotion": "sad", "laugh": "laugh" },
-            { "type": "say", "character": "marshall", "to": "ted", "line": "I'm not crying. I'm just very moved by the buttresses.", "emotion": "sad", "laugh": "laugh" },
+            { "type": "say", "character": "marshall", "to": "ted", "line": "I'm not crying. I'm just very moved by the buttresses.", "emotion": "crying", "laugh": "laugh" },
             { "type": "say", "character": "victoria", "to": "ted", "line": "Ted Mosby. Architect. Of my heart.", "emotion": "flirty", "gesture": "kiss", "laugh": "laugh" }
           ]
         },

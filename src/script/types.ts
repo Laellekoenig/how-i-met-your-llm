@@ -20,6 +20,7 @@ export type LocationId = (typeof LOCATION_IDS)[number];
 
 export const EMOTIONS = [
   'neutral', 'happy', 'sad', 'angry', 'surprised', 'smug', 'confused', 'excited', 'nervous', 'flirty', 'bored',
+  'embarrassed', 'disgusted', 'scared', 'suspicious', 'proud', 'laughing', 'crying', 'drunk',
 ] as const;
 export type Emotion = (typeof EMOTIONS)[number];
 
@@ -27,6 +28,8 @@ export const GESTURES = [
   'none', 'wave', 'point', 'shrug', 'facepalm', 'arms_crossed', 'drink', 'cheers', 'thumbs_up',
   'high_five', 'suit_up', 'hands_up', 'nod', 'shake_head', 'dance', 'hug', 'slap', 'think',
   'kiss', 'phone_call', 'sit', 'stand', 'lean_in', 'jaw_drop', 'fist_bump', 'spit_take',
+  'double_take', 'eye_roll', 'crack_up', 'sob', 'slow_clap', 'hands_on_hips', 'head_in_hands', 'air_quotes',
+  'fist_pump', 'cover_mouth',
 ] as const;
 export type Gesture = (typeof GESTURES)[number];
 /** Gestures done to someone else, who joins in (or gets slapped). */

@@ -26,6 +26,8 @@ export interface SpeakOptions {
   delivery?: Delivery;
   /** Stop mid-word as the last word starts, as if someone talked over it. */
   cutOff?: boolean;
+  /** The voice has reached the word starting at this character (only real voices report it). */
+  onWord?: (charIndex: number) => void;
 }
 
 /** How each delivery bends the voice. Pitch stays near 1: big shifts make good voices sound warped. */
@@ -128,17 +130,17 @@ export class Speech {
           setTimeout(finish, estimate * 1000);
         }
       }, 1200);
-      if (opts.cutOff) {
-        // never cancel whoever speaks next
-        const cut = () => {
-          if (!finished) speechSynthesis.cancel();
-        };
-        const lastWord = u.text.trimEnd().search(/\S+$/);
-        u.onboundary = (e) => {
-          if (e.name === 'word' && e.charIndex >= lastWord) setTimeout(cut, 140);
-        };
-        u.addEventListener('start', () => setTimeout(cut, estimate * 1000 + 400));
-      }
+      // never cancel whoever speaks next
+      const cut = () => {
+        if (!finished) speechSynthesis.cancel();
+      };
+      const lastWord = u.text.trimEnd().search(/\S+$/);
+      u.onboundary = (e) => {
+        if (e.name !== 'word') return;
+        opts.onWord?.(e.charIndex);
+        if (opts.cutOff && e.charIndex >= lastWord) setTimeout(cut, 140);
+      };
+      if (opts.cutOff) u.addEventListener('start', () => setTimeout(cut, estimate * 1000 + 400));
       setTimeout(finish, estimate * 2600 + 3000);
     });
     speechSynthesis.speak(u);

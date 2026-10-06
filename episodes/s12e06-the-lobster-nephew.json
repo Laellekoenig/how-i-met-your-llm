@@ -264,7 +264,7 @@
       "beats": [
         { "type": "say", "character": "barney", "to": "lily", "line": "Lilypad, you look like a sunrise over Lake Minnetonka.", "emotion": "flirty" },
         { "type": "say", "character": "lily", "to": "barney", "line": "That's actually really close.", "emotion": "confused", "laugh": "chuckle" },
-        { "type": "say", "character": "barney", "to": "lily", "line": "Sorry. Give me a second. This bread basket is just so beautiful.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Sorry. Give me a second. This bread basket is just so beautiful.", "emotion": "crying", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "barney", "line": "Stop it. You're too smooth. Marshall's never this smooth. Say something dumb.", "emotion": "nervous" },
         { "type": "say", "character": "barney", "to": "lily", "line": "Bigfoot is... I can't. My body won't let me.", "emotion": "sad", "laugh": "laugh" },
         { "type": "enter", "character": "guest1", "to": "booth_left" },

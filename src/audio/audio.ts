@@ -330,6 +330,18 @@ export class AudioEngine {
     s.start();
   }
 
+  /** One hand clap (a slow clap is several). */
+  clap() {
+    if (!this.ctx) return;
+    const s = this.ctx.createBufferSource();
+    s.buffer = this.clapBuf;
+    s.playbackRate.value = rand(1.05, 1.2);
+    const g = this.ctx.createGain();
+    g.gain.value = 0.9;
+    s.connect(g).connect(this.sfxBus);
+    s.start();
+  }
+
   clink(when = 0) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime + when;

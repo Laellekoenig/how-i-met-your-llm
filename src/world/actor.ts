@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import type { CharacterDef, Look } from './characters';
+import type { CharacterDef, Idle, Look, TalkStyle } from './characters';
+import type { LipTrack } from './lipsync';
 import type { Emotion, Gesture, Prop } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
 import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint } from '../engine/textures';
@@ -28,24 +29,113 @@ const zeroPose = (): Pose => ({
 /** How someone sits: upright, cross-legged hugging whatever is in their lap, or slouched with an arm along the backrest. */
 export type SitPose = 'upright' | 'cross_legged' | 'sprawl';
 
+/**
+ * Everything an emotion does to someone, face to feet. Faces have to read at 270 lines, so most of the work is done
+ * by things that survive the pixels: narrowed or wide eyes, open mouths and teeth, colour in the cheeks, and the whole body's
+ * silhouette (a slump, a lean, hands on hips).
+ */
 interface Face {
+  // brows and mouth: the tilt runs inner-end-up (worried) to inner-end-down (cross); `smirk` lifts the left corner
   browY: number; browTilt: number; browAsym: number;
-  smile: number; mouthBase: number; headTilt: number; headDown: number;
+  smile: number; mouthBase: number; smirk: number; teeth: number; round: number;
+  // eyes: `lid` from wide (-0.5) through half-closed (0.3) to shut (1); `squint` narrows them too;
+  // `side` turns the head away from whoever they're looking at, so only the eyes stay on them
+  lid: number; squint: number; side: number;
+  blush: number; flush: number; tears: number;
+  headTilt: number; headDown: number;
+  // body: lean forward (+) or back (-), slumped shoulders, shoulders up round the ears, weight shifting from foot
+  // to foot, bouncing on their toes, shaking (with laughter or sobs), fidgeting
+  lean: number; slump: number; shrug: number; sway: number; hop: number; shake: number; fidget: number;
+  // arms, while they're standing still and not talking with their hands
+  hips: number; fists: number; clasp: number; hug: number;
 }
 
-const FACES: Record<Emotion, Face> = {
-  neutral:   { browY: 0,     browTilt: 0,    browAsym: 0,    smile: 0.1,  mouthBase: 0,    headTilt: 0,     headDown: 0 },
-  happy:     { browY: 0.008, browTilt: -0.1, browAsym: 0,    smile: 1,    mouthBase: 0.25, headTilt: 0.05,  headDown: -0.05 },
-  sad:       { browY: 0.004, browTilt: -0.45, browAsym: 0,   smile: -0.8, mouthBase: 0,    headTilt: 0.08,  headDown: 0.22 },
-  angry:     { browY: -0.01, browTilt: 0.5,  browAsym: 0,    smile: -0.6, mouthBase: 0.15, headTilt: 0,     headDown: 0.08 },
-  surprised: { browY: 0.022, browTilt: -0.15, browAsym: 0,   smile: 0,    mouthBase: 0.8,  headTilt: 0,     headDown: -0.12 },
-  smug:      { browY: 0.004, browTilt: 0,    browAsym: 0.016, smile: 0.7, mouthBase: 0,    headTilt: -0.1,  headDown: -0.1 },
-  confused:  { browY: 0.006, browTilt: 0.15, browAsym: 0.014, smile: -0.2, mouthBase: 0.1, headTilt: 0.2,   headDown: 0 },
-  excited:   { browY: 0.016, browTilt: -0.1, browAsym: 0,    smile: 1,    mouthBase: 0.55, headTilt: 0,     headDown: -0.1 },
-  nervous:   { browY: 0.01,  browTilt: -0.35, browAsym: 0,   smile: -0.3, mouthBase: 0.1,  headTilt: 0.1,   headDown: 0.1 },
-  flirty:    { browY: 0.004, browTilt: 0,    browAsym: 0.012, smile: 0.6, mouthBase: 0,    headTilt: 0.15,  headDown: 0.05 },
-  bored:     { browY: -0.005, browTilt: 0.06, browAsym: 0.005, smile: -0.25, mouthBase: 0,  headTilt: 0.14,  headDown: 0.04 },
+const FACE0: Face = {
+  browY: 0, browTilt: 0, browAsym: 0, smile: 0, mouthBase: 0, smirk: 0, teeth: 0, round: 0,
+  lid: 0, squint: 0, side: 0, blush: 0, flush: 0, tears: 0, headTilt: 0, headDown: 0,
+  lean: 0, slump: 0, shrug: 0, sway: 0, hop: 0, shake: 0, fidget: 0, hips: 0, fists: 0, clasp: 0, hug: 0,
 };
+const face = (f: Partial<Face>): Face => ({ ...FACE0, ...f });
+
+const FACES: Record<Emotion, Face> = {
+  neutral:     face({ smile: 0.1 }),
+  happy:       face({ browY: 0.008, browTilt: -0.1, smile: 1, mouthBase: 0.25, teeth: 0.6, squint: 0.3, headTilt: 0.05, headDown: -0.05, lean: -0.02 }),
+  sad:         face({ browY: 0.004, browTilt: -0.45, smile: -0.8, lid: 0.15, headTilt: 0.08, headDown: 0.22, slump: 1, lean: 0.04 }),
+  angry:       face({ browY: -0.01, browTilt: 0.5, smile: -0.6, mouthBase: 0.15, teeth: 0.5, squint: 0.35, lid: 0.1, flush: 0.6, headDown: 0.08, lean: 0.1, shrug: 0.25, fists: 1 }),
+  surprised:   face({ browY: 0.022, browTilt: -0.15, mouthBase: 0.8, round: 0.7, lid: -0.5, headDown: -0.12, lean: -0.08, shrug: 0.4 }),
+  smug:        face({ browY: 0.004, browAsym: 0.016, smile: 0.7, smirk: 1, lid: 0.2, headTilt: -0.1, headDown: -0.1, lean: -0.08, hips: 1 }),
+  confused:    face({ browY: 0.006, browTilt: 0.15, browAsym: 0.014, smile: -0.2, mouthBase: 0.1, smirk: -0.5, headTilt: 0.2, shrug: 0.3 }),
+  excited:     face({ browY: 0.016, browTilt: -0.1, smile: 1, mouthBase: 0.55, teeth: 1, lid: -0.25, headDown: -0.1, lean: 0.05, shrug: 0.2, hop: 1 }),
+  nervous:     face({ browY: 0.01, browTilt: -0.35, smile: -0.3, mouthBase: 0.12, teeth: 0.8, lid: -0.15, headTilt: 0.1, headDown: 0.1, shrug: 0.7, fidget: 1, clasp: 1 }),
+  flirty:      face({ browY: 0.004, browAsym: 0.012, smile: 0.6, smirk: 0.5, lid: 0.25, blush: 0.6, headTilt: 0.15, headDown: 0.05, lean: 0.06 }),
+  bored:       face({ browY: -0.005, browTilt: 0.06, browAsym: 0.005, smile: -0.25, lid: 0.32, headTilt: 0.14, headDown: 0.04, slump: 0.4, sway: 1 }),
+  embarrassed: face({ browY: 0.008, browTilt: -0.3, smile: 0.3, mouthBase: 0.08, teeth: 0.5, lid: 0.2, blush: 1, side: 0.7, headTilt: 0.12, headDown: 0.25, slump: 0.3, shrug: 0.5, clasp: 0.6 }),
+  disgusted:   face({ browY: -0.006, browTilt: 0.35, browAsym: 0.01, smile: -0.7, mouthBase: 0.1, smirk: -0.6, teeth: 0.4, squint: 0.6, side: 0.5, headTilt: -0.08, headDown: -0.06, lean: -0.14 }),
+  scared:      face({ browY: 0.02, browTilt: -0.4, smile: -0.4, mouthBase: 0.45, teeth: 0.6, lid: -0.5, headDown: 0.04, lean: -0.12, shrug: 1, shake: 0.35, hug: 1 }),
+  suspicious:  face({ browY: -0.004, browTilt: 0.2, browAsym: 0.014, smile: -0.1, smirk: -0.3, lid: 0.3, squint: 0.45, side: 0.8, headDown: 0.06, lean: -0.04 }),
+  proud:       face({ browY: 0.006, browTilt: -0.05, smile: 0.8, smirk: 0.2, lid: 0.12, headDown: -0.18, lean: -0.12, hips: 1 }),
+  laughing:    face({ browY: 0.012, browTilt: -0.2, smile: 1, mouthBase: 0.7, teeth: 1, lid: 0.25, squint: 1, headDown: -0.15, lean: 0.05, shake: 1 }),
+  crying:      face({ browY: 0.01, browTilt: -0.55, smile: -1, mouthBase: 0.3, teeth: 0.5, lid: 0.35, squint: 0.6, flush: 0.25, tears: 1, headDown: 0.25, slump: 0.8, shake: 0.5 }),
+  drunk:       face({ browY: 0.006, browTilt: -0.1, browAsym: 0.01, smile: 0.55, smirk: 0.6, mouthBase: 0.1, lid: 0.4, blush: 0.7, flush: 0.2, headTilt: 0.12, sway: 1.8 }),
+};
+
+const lerpFace = (a: Face, b: Face, k: number) => {
+  const f = { ...a };
+  for (const key of Object.keys(f) as (keyof Face)[]) f[key] = a[key] + (b[key] - a[key]) * k;
+  return f;
+};
+
+/** How long a look lasts before they relax back into their resting face (a drunk stays drunk all scene). */
+const HOLD: Partial<Record<Emotion, number>> = {
+  surprised: 4, laughing: 4.5, excited: 6, angry: 9, sad: 12, crying: 14, bored: 15, smug: 10, proud: 10, drunk: Infinity,
+};
+
+/** What a listener's face picks up from the speaker's. */
+const MIRROR: Partial<Record<Emotion, Emotion>> = {
+  happy: 'happy', excited: 'happy', laughing: 'happy', proud: 'happy', sad: 'sad', crying: 'sad', angry: 'nervous',
+  scared: 'nervous', surprised: 'surprised',
+};
+
+/** Arm poses, for the left arm (the right mirrors them): [shoulder x, y, z, elbow]. Solved against Ted's proportions. */
+type ArmPose = readonly [number, number, number, number];
+/** The hands while talking: their own style, or the mood's (rubbing the back of the neck, wringing them). */
+type Accent = TalkStyle | 'neck' | 'wring';
+const TMP = new THREE.Vector3();
+const FLUSH = new THREE.Color('#d8443a');
+const ARM = {
+  hips: [1.07, -0.72, 0.98, -1.28],
+  clasp: [0.22, -0.88, 0.33, -1.08],
+  hug: [-0.44, -1.38, 0.2, -2.02],
+  face: [-1.33, -0.38, -0.06, -2.21],
+  mouth: [-1.45, -0.58, -0.16, -2.09],
+  clapIn: [-0.26, -0.65, 0.26, -1.61],
+  clapOut: [-0.04, -0.11, 0.31, -1.91],
+  quotes: [-1.2, 0.18, 1.06, -2.19],
+  pumpUp: [-1.27, 0.02, 1.01, -2.21],
+  pumpDown: [0.26, 0.04, 0.23, -1.93],
+  shield: [-1.28, -0.46, 0.21, -2.18],
+  neck: [-2.43, -0.72, 0.47, -2.48],
+  scratch: [-1.85, -0.79, 1.17, -1.75],
+  finger: [-0.56, -0.02, 0.27, -2.13],
+  belly: [0.35, -0.67, 0.4, -1.51],
+  crossed: [-0.6, 0, -0.35, -1.95],
+  lapels: [-0.7, 0, -0.25, -1.8],
+} as const satisfies Record<string, ArmPose>;
+
+/** Gestures that come with a face, unless the beat asks for another: when in the gesture it lands. */
+const GESTURE_FACE: Partial<Record<Motion, { emotion: Emotion; at: number }>> = {
+  crack_up: { emotion: 'laughing', at: 0 }, sob: { emotion: 'crying', at: 0 }, eye_roll: { emotion: 'bored', at: 0 },
+  cover_mouth: { emotion: 'surprised', at: 0 }, fist_pump: { emotion: 'excited', at: 0 }, head_in_hands: { emotion: 'sad', at: 0 },
+  double_take: { emotion: 'surprised', at: 0.5 }, jaw_drop: { emotion: 'surprised', at: 0 }, spit_take: { emotion: 'surprised', at: 0.45 },
+};
+export const impliedEmotion = (g: Motion) => GESTURE_FACE[g];
+export const gestureDuration = (g: Motion) => GESTURE_DUR[g] ?? 0;
+
+/** When a gesture's beat lands (the slap connects, the glass clinks): most have one, a slow clap has four. */
+const GESTURE_BEATS: Partial<Record<Motion, number[]>> = { slow_clap: [0.22, 0.42, 0.62, 0.82] };
+
+/** Little things people do while they wait their turn. */
+const IDLE_DUR: Record<Idle, number> = { shift: 3.2, glance: 1.4, scratch_head: 1.6, lapels: 1.2, arms_crossed: 4.5, rub_hands: 1.8, hair: 1.4, sip: 2 };
 
 /** Gestures, plus `give`: holding something out to someone (or reaching to take it). */
 export type Motion = Gesture | 'give';
@@ -55,7 +145,8 @@ const GESTURE_DUR: Record<Motion, number> = {
   none: 0, wave: 1.6, point: 1.5, shrug: 1.3, facepalm: 2.0, arms_crossed: 3.2, drink: 2.0, cheers: 1.6,
   thumbs_up: 1.4, high_five: 1.3, suit_up: 1.7, hands_up: 1.6, nod: 1.0, shake_head: 1.1, dance: 3.2,
   hug: 2.2, slap: 1.0, think: 2.2, kiss: 2.0, phone_call: 3.0, sit: 0, stand: 0, lean_in: 2.4, jaw_drop: 2.2,
-  fist_bump: 1.4, spit_take: 2.0, give: 1.4,
+  fist_bump: 1.4, spit_take: 2.0, give: 1.4, double_take: 1.7, eye_roll: 1.5, crack_up: 2.6, sob: 2.8, slow_clap: 3.2,
+  hands_on_hips: 2.8, head_in_hands: 2.6, air_quotes: 1.5, fist_pump: 1.4, cover_mouth: 1.8,
 };
 
 export class Actor {
@@ -74,8 +165,17 @@ export class Actor {
   private lHip = new THREE.Group(); private rHip = new THREE.Group();
   private lKnee = new THREE.Group(); private rKnee = new THREE.Group();
   private eyes = new THREE.Group();
+  private eyeParts: { sg: number; iris: THREE.Mesh; rx: number; ry: number; rz: number; hh: number }[] = [];
   private browL!: THREE.Mesh; private browR!: THREE.Mesh;
+  private mouth!: THREE.Group;
   private mouthOpen!: THREE.Mesh; private cornerL!: THREE.Mesh; private cornerR!: THREE.Mesh;
+  private teeth!: THREE.Mesh;
+  private faceSkin!: THREE.MeshToonMaterial;
+  private skinColor = new THREE.Color();
+  private blushMat!: THREE.MeshToonMaterial;
+  private cheeks: THREE.Mesh[] = [];
+  private tears: { mesh: THREE.Mesh; x: number; y0: number; y1: number; phase: number; z: (x: number, y: number) => number }[] = [];
+  private shY0 = 0;
   private glass!: THREE.Mesh;
   /** Where hand props go (in the right hand), and where carried ones are held against the chest. */
   private hand = new THREE.Group();
@@ -102,9 +202,36 @@ export class Actor {
   talkLevel = 1;
   private talkEnv = 0;
   emotion: Emotion = 'neutral';
-  private face: Face = { ...FACES.neutral };
+  /** Their own face at rest (`neutral`), and the one they're wearing right now. */
+  private restFace: Face;
+  private face: Face;
+  /** How long they've worn the current look; once it's held long enough they relax (slowly) back to rest. */
+  private emotionAge = 0;
+  private relaxing = false;
+  /** Listening to someone talk: the odd nod, and a little of the speaker's mood on their face. */
+  listening = false;
+  private mirror: Emotion | null = null;
+  private nodT = rand(1.5, 4);
+  private nodding = 0;
   lookAt: THREE.Vector3 | null = null;
-  private gesture: { g: Motion; t: number; dur: number; partner: boolean } | null = null;
+  /** Where the irises are pointed (radians off the head's forward), with little darts around it. */
+  private gaze = { x: 0, y: 0 };
+  private saccade = { x: 0, y: 0, t: rand(0.5, 2) };
+  private lookYaw = 0;
+  /** This frame's face extras from a gesture: eyes wide or narrowed, eyes pointed somewhere, shoulders lifted. */
+  private fx = { wide: 0, lid: 0, gaze: null as { x: number; y: number } | null, away: 0, lift: 0 };
+  /** The line being said, as mouth shapes, and how far into it we are. */
+  private lip: LipTrack | null = null;
+  private lipT = 0;
+  private viseme = { open: 0, round: 0, wide: 0 };
+  private idle: { kind: Idle; t: number; dur: number; side: number } | null = null;
+  private idleT = rand(3, 9);
+  private glance = 0;
+  private shoulderLift = 0;
+  /** Things to do a moment from now (a listener's reaction landing a beat after the line). */
+  private pending: { t: number; fn: () => void }[] = [];
+  /** `silent` gestures are their own idea (a sip while waiting): they don't fire the script's beat callbacks. */
+  private gesture: { g: Motion; t: number; dur: number; partner: boolean; silent: boolean } | null = null;
   holdingGlass = false;
   /** What they're holding, if anything. */
   prop: Prop | null = null;
@@ -116,13 +243,13 @@ export class Actor {
   private jaw = 0;
   private spray: { drops: THREE.Group; vel: Float32Array; t: number } | null = null;
   private blinkT = rand(1, 4);
-  private accent = { t: 0, side: 1, dur: 0 };
+  private accent = { t: 0, side: 1, dur: 0, kind: 'open' as Accent, amp: 1 };
   private seed = Math.random() * 100;
   private pose = zeroPose();
   private bounce = 0;
   private reactT = 0;
   onGestureBeat: ((g: Motion) => void) | null = null;
-  private gestureBeatFired = false;
+  private gestureBeatsFired = 0;
 
   constructor(def: CharacterDef) {
     this.def = def;
@@ -131,6 +258,9 @@ export class Actor {
     this.headH = 0.14 * H;
     this.torsoLen = 0.31 * H;
     this.legLen = H - this.headH - 0.03 * H - this.torsoLen;
+    const rest = def.manner?.rest;
+    this.restFace = rest ? lerpFace(FACES.neutral, FACES[rest.emotion], rest.amount) : { ...FACES.neutral };
+    this.face = { ...this.restFace };
     this.build(L);
     this.root.name = def.id;
   }
@@ -515,6 +645,7 @@ export class Actor {
     // ---- arms
     const shY = tl - (fem ? 0.065 : 0.078) * s;
     const shX = torso.at(shY).rx - (fem ? 0.014 : 0.02) * s;
+    this.shY0 = shY;
     for (const side of [1, -1]) {
       const sh = side > 0 ? this.lSh : this.rSh;
       const el = side > 0 ? this.lEl : this.rEl;
@@ -560,10 +691,13 @@ export class Actor {
     this.neck.position.y = tl;
     this.spine.add(this.neck);
     const neckTop = 0.02 * H + 0.2 * hh;
-    add(this.neck, mesh(limb(nr, nr * 1.12, neckTop, {}), skin, 0, neckTop, -0.01 * s));
+    // the face (and neck) get their own skin, so it can flush
+    const faceSkin = (this.faceSkin = toon(L.skin, { key: '' }) as THREE.MeshToonMaterial);
+    this.skinColor.set(L.skin);
+    add(this.neck, mesh(limb(nr, nr * 1.12, neckTop, {}), faceSkin, 0, neckTop, -0.01 * s));
     this.head.position.y = 0.02 * H;
     this.neck.add(this.head);
-    this.buildHead(L, skin, hairMat);
+    this.buildHead(L, faceSkin, hairMat);
 
     this.root.traverse((o) => {
       if ((o as THREE.Mesh).isMesh) o.castShadow = true;
@@ -605,25 +739,30 @@ export class Actor {
     add(mesh(ellipsoid(0.04 * hh * nose, 0.036 * hh * nose, 0.04 * hh * nose, 10, 8), skin, 0, ty, fz(0, ty) + 0.028 * hh * nose));
     for (const sg of [1, -1]) add(mesh(ellipsoid(0.026 * hh, 0.024 * hh, 0.024 * hh, 8, 6), skin, sg * 0.036 * hh * nose, ty - 0.006 * hh, fz(0.036 * hh, ty) + 0.002 * hh));
 
-    // eyes
+    // eyes: whites, and irises that follow what they're looking at
     const ey = fy(0.53), ex = 0.125 * hh;
     this.eyes.position.set(0, ey, 0);
     this.head.add(this.eyes);
     const white = toon('#f4f1ea');
     const iris = toon(new THREE.Color(L.eyes ?? '#3a2a1c').multiplyScalar(0.7));
+    const glint = toon('#ffffff', { emissive: '#ffffff', emissiveIntensity: 0.6 });
     const ez = fz(ex, ey);
+    const rx = 0.066 * hh, ry = (L.female ? 0.052 : 0.047) * hh, rz = 0.03 * hh;
     for (const sg of [1, -1]) {
-      const w = mesh(ellipsoid(0.066 * hh, (L.female ? 0.052 : 0.047) * hh, 0.03 * hh, 12, 8), white, sg * ex, 0, ez - 0.014 * hh, false);
-      w.rotation.y = sg * 0.3;
-      this.eyes.add(w);
-      const ir = mesh(ellipsoid(0.037 * hh, 0.043 * hh, 0.02 * hh, 10, 8), iris, sg * (ex - 0.006 * hh), -0.002 * hh, ez + 0.004 * hh, false);
-      ir.rotation.y = sg * 0.3;
-      this.eyes.add(ir);
+      const eye = new THREE.Group();
+      eye.position.set(sg * ex, 0, ez - 0.014 * hh);
+      eye.rotation.y = sg * 0.3;
+      this.eyes.add(eye);
+      eye.add(mesh(ellipsoid(rx, ry, rz, 12, 8), white, 0, 0, 0, false));
+      const ir = mesh(ellipsoid(0.037 * hh, 0.043 * hh, 0.012 * hh, 10, 8), iris, 0, 0, 0, false);
+      ir.add(mesh(ellipsoid(0.009 * hh, 0.009 * hh, 0.004 * hh, 6, 4), glint, sg * 0.012 * hh, 0.014 * hh, 0.011 * hh, false));
+      eye.add(ir);
       if (L.female) {
         const lash = mesh(ellipsoid(0.072 * hh, 0.011 * hh, 0.02 * hh, 10, 6), toon('#1a1210'), sg * ex, 0.038 * hh, ez - 0.004 * hh, false);
         lash.rotation.set(0, sg * 0.3, -sg * 0.12);
         this.eyes.add(lash);
       }
+      this.eyeParts.push({ sg, iris: ir, rx, ry, rz, hh });
     }
     // brows
     const browMat = toon(new THREE.Color(L.hair).multiplyScalar(0.62));
@@ -639,18 +778,39 @@ export class Actor {
 
     // mouth
     const my = fy(0.24);
-    const mouth = new THREE.Group();
+    const mouth = (this.mouth = new THREE.Group());
     mouth.position.set(0, my, fz(0, my) - 0.006 * hh);
     this.head.add(mouth);
-    const lip = toon(new THREE.Color(L.skin).lerp(new THREE.Color(L.female ? '#a8323a' : '#7a3a34'), L.female ? 0.55 : 0.5));
-    this.mouthOpen = mesh(ellipsoid(0.07 * hh, 0.05 * hh, 0.02 * hh, 10, 6), toon('#2a0e0c'), 0, -0.02 * hh, 0, false);
+    // no lips: a dark line that opens into a mouth, with corners that curl up into a smile or down into a frown
+    const dark = toon('#2a0e0c');
+    this.mouthOpen = mesh(ellipsoid(0.07 * hh, 0.05 * hh, 0.02 * hh, 10, 6), dark, 0, -0.02 * hh, 0, false);
     mouth.add(this.mouthOpen);
-    mouth.add(mesh(ellipsoid(0.08 * hh, 0.016 * hh, 0.02 * hh, 10, 6), lip, 0, 0, 0.006 * hh, false));
-    if (L.female) mouth.add(mesh(ellipsoid(0.055 * hh, 0.016 * hh, 0.018 * hh, 10, 6), lip, 0, -0.03 * hh, 0.002 * hh, false));
-    const cornerGeo = ellipsoid(0.03 * hh, 0.012 * hh, 0.018 * hh, 8, 6);
-    this.cornerL = mesh(cornerGeo, lip, 0.072 * hh, 0, -0.008 * hh, false);
-    this.cornerR = mesh(cornerGeo, lip, -0.072 * hh, 0, -0.008 * hh, false);
+    // a row of teeth along the top of the opening: a grin, a grimace, a laugh
+    this.teeth = mesh(ellipsoid(0.07 * hh, 0.05 * hh, 0.012 * hh, 10, 4), toon('#f2eee4'), 0, -0.02 * hh, 0.011 * hh, false);
+    this.teeth.visible = false;
+    mouth.add(this.teeth);
+    const cornerGeo = ellipsoid(0.026 * hh, 0.008 * hh, 0.016 * hh, 8, 6);
+    this.cornerL = mesh(cornerGeo, dark, 0.066 * hh, -0.02 * hh, -0.002 * hh, false);
+    this.cornerR = mesh(cornerGeo, dark, -0.066 * hh, -0.02 * hh, -0.002 * hh, false);
     mouth.add(this.cornerL, this.cornerR);
+
+    // colour in the cheeks (flirting, embarrassment, drink) and tears running down them
+    const blush = (this.blushMat = toon(new THREE.Color(L.skin).lerp(new THREE.Color('#e0485a'), 0.75), { key: '' }) as THREE.MeshToonMaterial);
+    blush.transparent = true;
+    blush.depthWrite = false;
+    const cy = fy(0.37);
+    for (const sg of [1, -1]) {
+      const x = sg * 0.2 * hh;
+      const c = mesh(ellipsoid(0.07 * hh, 0.042 * hh, 0.03 * hh, 10, 6), blush, x, cy, fz(x, cy) - 0.016 * hh, false);
+      c.rotation.y = sg * 0.55;
+      c.visible = false;
+      this.head.add(c);
+      this.cheeks.push(c);
+      const tear = mesh(ellipsoid(0.024 * hh, 0.036 * hh, 0.014 * hh, 6, 4), toon('#cfeeff', { emissive: '#6aa8d8', emissiveIntensity: 0.9 }), 0, 0, 0, false);
+      tear.visible = false;
+      this.head.add(tear);
+      this.tears.push({ mesh: tear, x: sg * 0.15 * hh, y0: ey - 0.07 * hh, y1: fy(0.2), phase: sg > 0 ? 0 : 0.45, z: (x: number, y: number) => fz(x, y) + 0.008 * hh });
+    }
 
     // facial hair
     const beard = toon(new THREE.Color(L.hair).multiplyScalar(0.7));
@@ -776,6 +936,11 @@ export class Actor {
     this.lookAt = null;
     this.talking = false;
     this.talkLevel = 1;
+    this.lip = null;
+    this.listening = false;
+    this.mirror = null;
+    this.idle = null;
+    this.pending = [];
     this.walking = 0;
     this.update(0, 0, true);
     this.root.updateWorldMatrix(true, true);
@@ -812,18 +977,57 @@ export class Actor {
   }
 
   setEmotion(e: Emotion | undefined) {
-    if (e && FACES[e]) this.emotion = e;
+    if (!e || !FACES[e]) return;
+    // a change of heart shows in a blink
+    if (e !== this.emotion && this.blinkT > 0.3) this.blinkT = 0.12;
+    this.emotion = e;
+    this.emotionAge = 0;
+    this.relaxing = false;
+  }
+
+  /** Back to their own resting face, straight away (a new scene). */
+  resetFace() {
+    this.emotion = 'neutral';
+    this.emotionAge = 0;
+    this.relaxing = false;
+    this.face = { ...this.restFace };
+  }
+
+  /** Listening to someone (null: not any more), picking up a little of how they feel. */
+  listen(speaker: Emotion | null) {
+    this.listening = speaker !== null;
+    this.mirror = speaker ? MIRROR[speaker] ?? null : null;
+  }
+
+  /** Start a line: the mouth follows its syllables (or just flaps, without a track). */
+  speak(track: LipTrack | null) {
+    this.lip = track;
+    this.lipT = 0;
+  }
+
+  /** The voice has reached a word: pull the mouth back into step with it. */
+  syncWord(charIndex: number) {
+    if (!this.lip) return;
+    const t = this.lip.wordAt(charIndex);
+    if (Math.abs(t - this.lipT) > 0.12) this.lipT = t;
+  }
+
+  /** Do something a moment from now, on the actor's own clock (so it waits through a pause). */
+  later(seconds: number, fn: () => void) {
+    if (seconds <= 0) fn();
+    else this.pending.push({ t: seconds, fn });
   }
 
   /**
    * Start a gesture; returns how long it takes. `partner` is for gestures done with someone (a kiss rather than
    * a blown one); `dur` stretches a held one, like a phone call that lasts a whole line.
    */
-  doGesture(g: Motion | undefined, opts: { partner?: boolean; dur?: number } = {}) {
+  doGesture(g: Motion | undefined, opts: { partner?: boolean; dur?: number; silent?: boolean } = {}) {
     if (!g || !GESTURE_DUR[g]) return 0;
     const dur = Math.max(GESTURE_DUR[g], opts.dur ?? 0);
-    this.gesture = { g, t: 0, dur, partner: !!opts.partner };
-    this.gestureBeatFired = false;
+    this.gesture = { g, t: 0, dur, partner: !!opts.partner, silent: !!opts.silent };
+    this.gestureBeatsFired = 0;
+    this.idle = null;
     return dur;
   }
 
@@ -964,9 +1168,27 @@ export class Actor {
       target.lEl = target.rEl = -1.3;
     }
 
-    // --- face & emotion
-    const fTarget = FACES[this.emotion];
-    const k = damp(6, dt);
+    // --- anything due on their own clock (a reaction landing a beat late)
+    if (this.pending.length && dt > 0) {
+      for (const job of this.pending) job.t -= dt;
+      const due = this.pending.filter((j) => j.t <= 0);
+      if (due.length) this.pending = this.pending.filter((j) => j.t > 0);
+      for (const j of due) j.fn();
+    }
+
+    // --- face & emotion: a look holds a while, then they relax (slowly) back into their own resting face
+    this.emotionAge += dt;
+    if (this.emotion !== 'neutral' && !this.talking && !this.gesture && this.emotionAge > (HOLD[this.emotion] ?? 7)) {
+      this.emotion = 'neutral';
+      this.relaxing = true;
+    }
+    let fTarget = this.emotion === 'neutral' ? this.restFace : FACES[this.emotion];
+    if (this.mirror && this.listening && this.emotion === 'neutral') {
+      const m = FACES[this.mirror], n = FACES.neutral;
+      fTarget = { ...fTarget };
+      for (const key of ['browY', 'browTilt', 'smile', 'mouthBase', 'teeth', 'lid'] as const) fTarget[key] += (m[key] - n[key]) * 0.3;
+    }
+    const k = damp(this.relaxing ? 1.6 : 6, dt);
     for (const key of Object.keys(fTarget) as (keyof Face)[]) this.face[key] += (fTarget[key] - this.face[key]) * k;
     const f = this.face;
     target.head = [f.headDown, 0, f.headTilt];
@@ -977,69 +1199,178 @@ export class Actor {
     }
     // only the dance action hops; let it settle once the dance ends
     this.bounce *= 1 - damp(10, dt);
-    if (this.emotion === 'nervous') target.spine[1] += Math.sin(t * 7) * 0.04;
-
-    // --- talking
     this.talkEnv += ((this.talking ? 1 : 0) - this.talkEnv) * damp(14, dt);
-    let mouth = f.mouthBase;
+
+    // --- the body follows the mood: posture first...
+    const standing = (1 - sb) * (1 - w);
+    target.spine[0] += f.lean * (1 - 0.5 * sb) + 0.14 * f.slump;
+    target.lSh[0] -= 0.08 * f.slump;
+    target.rSh[0] -= 0.08 * f.slump;
+    target.spine[1] += Math.sin(t * 7) * 0.04 * f.fidget;
+    if (f.shake > 0.01) {
+      target.spine[0] += Math.sin(t * 15 + s) * 0.03 * f.shake;
+      target.head[0] += Math.sin(t * 15 + s + 1) * 0.03 * f.shake;
+    }
+    // weight from foot to foot; a drunk sways a lot further, and their head wobbles
+    const swayX = Math.sin(t * 0.8 + s) * f.sway;
+    this.hips.position.x = 0.02 * swayX * (1 - sb);
+    target.spine[2] -= 0.04 * swayX;
+    target.head[2] += 0.03 * swayX + Math.max(0, f.sway - 1) * noise1(t * 0.9 + s) * 0.15;
+    if (!this.gesture) this.hips.position.y += Math.abs(Math.sin(t * 6.5 + s)) * 0.012 * f.hop * standing;
+    let lift = 0.025 * f.shrug - 0.012 * f.slump;
+    // ...then, standing still with their hands free and not talking with them, the arms
+    const armsFree = grip === 'arms' ? 0 : standing;
+    const quiet = 1 - 0.8 * this.talkEnv;
+    for (const sd of grip === 'hand' ? [1] : [1, -1]) {
+      this.arm(target, sd, ARM.hips, f.hips * armsFree * quiet);
+      this.arm(target, sd, ARM.clasp, f.clasp * armsFree * quiet);
+      this.arm(target, sd, ARM.hug, f.hug * armsFree * (1 - 0.5 * this.talkEnv));
+      const fist = f.fists * armsFree;
+      const sh = sd > 0 ? target.lSh : target.rSh;
+      sh[0] -= 0.05 * fist;
+      sh[2] += sd * 0.15 * fist;
+      if (sd > 0) target.lEl -= 0.45 * fist;
+      else target.rEl -= 0.45 * fist;
+    }
+
+    // --- talking: the mouth follows the line's syllables, and the hands talk in their own way (and the mood's)
+    let vis = { open: 0, round: 0, wide: 0 };
+    if (this.talking) {
+      this.lipT += dt;
+      if (this.lip && this.lipT < this.lip.duration) vis = this.lip.at(this.lipT);
+      else {
+        const flap = Math.max(0, noise1(t * 13 + s)) * 0.8 + Math.max(0, Math.sin(t * 21 + s)) * 0.45;
+        vis = { open: Math.min(1.1, flap), round: 0, wide: 0.3 };
+      }
+    }
+    const vk = snap ? 1 : damp(26, dt);
+    this.viseme.open += (vis.open * this.talkLevel - this.viseme.open) * vk;
+    this.viseme.round += (vis.round - this.viseme.round) * vk;
+    this.viseme.wide += (vis.wide - this.viseme.wide) * vk;
     if (this.talkEnv > 0.01) {
-      const flap = Math.max(0, noise1(t * 13 + s)) * 0.8 + Math.max(0, Math.sin(t * 21 + s)) * 0.45;
       const level = this.talkLevel;
-      mouth = Math.max(mouth, Math.min(1.25, flap * level) * this.talkEnv);
       target.head[0] += noise1(t * 2.7 + s) * 0.08 * level * this.talkEnv;
       target.head[2] += noise1(t * 1.9 + s * 3) * 0.06 * level * this.talkEnv;
       // shouting leans in, whispering hunches toward the listener
       target.spine[0] += (level > 1 ? 0.1 * (level - 1) : 0.12 * (1 - level)) * this.talkEnv;
-      // conversational hand accents
-      this.accent.t -= dt;
-      if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving && grip !== 'arms') {
-        // a hand holding something stays put
-        this.accent = { t: rand(0.7, 1.3), side: grip === 'hand' || Math.random() < 0.5 ? 1 : -1, dur: 0 };
-        this.accent.dur = this.accent.t;
+      if (level < 0.6) {
+        // a whisper goes behind a hand
+        if (!this.gesture && grip !== 'arms') this.arm(target, grip === 'hand' ? 1 : -1, ARM.shield, 0.9 * this.talkEnv);
+      } else {
+        this.accent.t -= dt;
+        if (this.accent.t < -rand(0.4, 1.4) && !this.gesture && !moving && grip !== 'arms') {
+          // a hand holding something stays put
+          const dur = rand(0.7, 1.3);
+          this.accent = { t: dur, dur, side: grip === 'hand' || Math.random() < 0.5 ? 1 : -1, kind: this.accentKind(level), amp: this.accentAmp() };
+        }
+        if (this.accent.t > 0 && !this.gesture) this.applyAccent(target, grip === 'hand', t);
       }
-      if (this.accent.t > 0 && !this.gesture) {
-        const a = Math.sin((1 - this.accent.t / this.accent.dur) * Math.PI) * this.talkEnv;
-        if (this.accent.side > 0) {
-          target.lSh[0] -= 0.55 * a; target.lEl -= 0.9 * a; target.lSh[2] += 0.1 * a;
-        } else {
-          target.rSh[0] -= 0.55 * a; target.rEl -= 0.9 * a; target.rSh[2] -= 0.1 * a;
+    }
+
+    // --- listening: the odd nod
+    if (this.listening && !this.talking && !this.gesture) {
+      this.nodT -= dt;
+      if (this.nodT < 0) {
+        this.nodding = 0.55;
+        this.nodT = rand(2, 5);
+      }
+    }
+    if (this.nodding > 0) {
+      this.nodding -= dt;
+      target.head[0] += Math.sin((1 - Math.max(0, this.nodding) / 0.55) * Math.PI * 2) * 0.07 + 0.05 * Math.sin((1 - Math.max(0, this.nodding) / 0.55) * Math.PI);
+    }
+
+    // --- killing time: a weight shift, a glance away, their own little habits
+    let glance = 0;
+    // (not in a posed snapshot, like the main titles' photos)
+    if (!snap) this.idleT -= dt;
+    if (!this.idle && this.idleT < 0) {
+      this.idleT = rand(5, 12);
+      if (!this.talking && !this.gesture && !moving && this.talkEnv < 0.1) {
+        const pool: Idle[] = ['shift', 'glance', ...(this.def.manner?.idles ?? [])];
+        if (this.holdingGlass && !this.prop) pool.push('sip', 'sip');
+        let kind = pool[Math.floor(Math.random() * pool.length)];
+        // sitting, there's no weight to shift; the habits need free hands, and a calm moment (nobody scratches
+        // their head mid-sob)
+        const habit = kind !== 'shift' && kind !== 'glance' && kind !== 'sip';
+        if ((kind === 'shift' && sb > 0.5) || (habit && (grip || this.emotion !== 'neutral' || f.hips + f.clasp + f.hug > 0.5))) kind = 'glance';
+        if (kind === 'sip') this.doGesture('drink', { silent: true });
+        else this.idle = { kind, t: 0, dur: IDLE_DUR[kind], side: Math.random() < 0.5 ? 1 : -1 };
+      }
+    }
+    if (this.idle && (this.talking || this.gesture || moving)) this.idle = null;
+    if (this.idle) {
+      const I = this.idle;
+      I.t += dt;
+      const u = I.t / I.dur;
+      if (u >= 1) this.idle = null;
+      else {
+        const a = Math.sin(Math.PI * u), hold = Math.min(1, u / 0.2, (1 - u) / 0.2);
+        switch (I.kind) {
+          case 'shift':
+            this.hips.position.x += I.side * 0.03 * a * (1 - sb);
+            target.spine[2] -= I.side * 0.05 * a;
+            break;
+          case 'glance':
+            glance = I.side * 0.45 * hold;
+            target.head[1] += I.side * 0.2 * hold;
+            break;
+          case 'scratch_head':
+            this.arm(target, -1, ARM.scratch, hold);
+            target.rEl += Math.sin(I.t * 18) * 0.12 * hold;
+            target.head[2] -= 0.1 * hold;
+            break;
+          case 'hair':
+            this.arm(target, 1, ARM.scratch, 0.85 * hold);
+            target.head[2] -= 0.08 * hold;
+            break;
+          case 'lapels':
+            for (const sd of [1, -1]) this.arm(target, sd, ARM.lapels, hold);
+            target.lSh[0] += Math.sin(I.t * 9) * 0.1 * hold;
+            target.rSh[0] += Math.sin(I.t * 9) * 0.1 * hold;
+            target.spine[0] -= 0.05 * hold;
+            break;
+          case 'arms_crossed':
+            for (const sd of [1, -1]) this.arm(target, sd, ARM.crossed, hold);
+            break;
+          case 'rub_hands':
+            for (const sd of [1, -1]) this.arm(target, sd, ARM.clasp, hold);
+            target.lSh[2] += Math.sin(I.t * 14) * 0.07 * hold;
+            target.rSh[2] += Math.sin(I.t * 14) * 0.07 * hold;
+            break;
+          case 'sip':
+            break;
         }
       }
     }
-    this.mouthOpen.scale.y = 0.05 + clamp(mouth, 0, 1) * 1.1;
-    this.mouthOpen.scale.x = 0.7 + clamp(mouth, 0, 1) * 0.2;
-    this.cornerL.rotation.z = f.smile * 0.6;
-    this.cornerR.rotation.z = -f.smile * 0.6;
-    this.cornerL.position.y = this.cornerR.position.y = f.smile * 0.006;
-    this.browL.position.y = this.browY0 + f.browY + f.browAsym;
-    this.browR.position.y = this.browY0 + f.browY;
-    this.browL.rotation.z = f.browTilt;
-    this.browR.rotation.z = -f.browTilt;
 
-    // blink
-    this.blinkT -= dt;
-    if (this.blinkT < 0) this.blinkT = rand(2, 5.5);
-    this.eyes.scale.y = this.blinkT < 0.12 ? 0.1 : this.emotion === 'surprised' ? 1.25 : this.emotion === 'bored' ? 0.62 : 1;
+    this.glance = glance;
 
     // --- look at
+    this.lookYaw = 0;
     if (this.lookAt) {
       const hp = this.root.position;
       const yaw = angleDiff(this.facing, Math.atan2(this.lookAt.x - hp.x, this.lookAt.z - hp.z));
       const yawC = clamp(yaw, -1.2, 1.2);
-      // seated people twist their torso a bit
+      this.lookYaw = yawC;
+      // seated people twist their torso a bit; the head turns most of the rest, the eyes finish the job
       target.spine[1] += yawC * 0.3;
-      target.head[1] += yawC * 0.7;
+      target.head[1] += yawC * 0.5;
+      // side-eye: the head turns away, the eyes stay on them
+      target.head[1] -= (Math.sign(yawC) || 1) * 0.35 * f.side;
       // when standing and the target is far around, turn the body
       // ...but never turn their back fully on the audience
       if (!this.isSitting && !moving && Math.abs(yaw) > 1.0 && !this.talking) {
         const turned = this.facing + yaw * 0.6;
         if (Math.abs(angleDiff(0, turned)) < 1.9) this.targetFacing = turned;
       }
-    }
+    } else target.head[1] -= 0.3 * f.side;
 
     // --- gesture overrides
     this.glass.visible = this.holdingGlass && !this.prop;
     this.gestureLean = this.jaw = 0;
+    this.fx.wide = this.fx.lid = this.fx.away = this.fx.lift = 0;
+    this.fx.gaze = null;
     if (this.gesture) {
       const gs = this.gesture;
       gs.t += dt;
@@ -1048,8 +1379,10 @@ export class Actor {
       else {
         const env = Math.min(1, gs.t / 0.22, (gs.dur - gs.t) / 0.25);
         this.applyGesture(gs.g, gs.t, u, env, target, gs.partner);
-        if (!this.gestureBeatFired && u > 0.45) {
-          this.gestureBeatFired = true;
+        const beats = GESTURE_BEATS[gs.g] ?? [0.45];
+        while (this.gestureBeatsFired < beats.length && u > beats[this.gestureBeatsFired]) {
+          this.gestureBeatsFired++;
+          if (gs.silent) continue;
           if (gs.g === 'spit_take') this.spit();
           this.onGestureBeat?.(gs.g);
         }
@@ -1096,12 +1429,166 @@ export class Actor {
     this.neck.rotation.set(p.head[0] * 0.3, p.head[1] * 0.25, 0);
     // stepping in for a kiss or a secret
     this.hips.position.z += this.gestureLean;
-    if (this.jaw > 0) {
-      this.mouthOpen.scale.y = Math.max(this.mouthOpen.scale.y, 0.05 + 1.3 * this.jaw);
-      this.mouthOpen.scale.x = Math.max(this.mouthOpen.scale.x, 0.7 + 0.25 * this.jaw);
-      if (this.blinkT >= 0.12) this.eyes.scale.y = Math.max(this.eyes.scale.y, 1 + 0.3 * this.jaw);
-      this.browL.position.y += 0.012 * this.jaw;
-      this.browR.position.y += 0.012 * this.jaw;
+    lift += this.fx.lift;
+    this.shoulderLift += (lift - this.shoulderLift) * (snap ? 1 : damp(10, dt));
+    this.lSh.position.y = this.rSh.position.y = this.shY0 + this.shoulderLift;
+
+    this.updateFace(dt, t, f, vis, snap);
+  }
+
+  /** Mouth, teeth, brows, eyes, colour in the cheeks: everything above the neck that isn't the head turning. */
+  private updateFace(dt: number, t: number, f: Face, vis: { open: number; round: number; wide: number }, snap: boolean) {
+    const hh = this.headH;
+    // mouth: open for the line (or the face), rounded for "oo", wide for "ee"; teeth for a grin or a grimace
+    const talk = this.talkEnv;
+    let open = Math.max(f.mouthBase, f.teeth * 0.4, Math.min(1.25, this.viseme.open) * talk);
+    const round = Math.max(f.round, this.viseme.round * talk * 0.8);
+    const wide = this.viseme.wide * talk * (vis.open > 0 ? 1 : 0.6);
+    open = clamp(Math.max(open, 1.18 * this.jaw), 0, 1.25);
+    // big looks get a big mouth (a laugh, a gasp); talking stays the size it always was
+    const big = clamp((f.mouthBase - 0.3) / 0.5, 0, 1);
+    this.mouthOpen.scale.y = (0.2 + Math.min(1, open) * (1.1 + 0.35 * big) + Math.max(0, open - 1) * 0.6) * (1 + 0.25 * round);
+    this.mouthOpen.scale.x = (0.7 + Math.min(1, open) * (0.2 + 0.3 * big) + 0.25 * this.jaw) * (1 - 0.35 * round) * (1 + 0.12 * wide + 0.3 * f.teeth * (f.smile < 0.2 ? 1 : 0.4));
+    const teeth = clamp(Math.max(f.teeth, 0.45 * wide) * clamp(open * 2.5, 0, 1) * (1 - round), 0, 1);
+    this.teeth.visible = teeth > 0.05;
+    // tucked under the top edge of the opening, narrower than it so they stay inside, deeper the more there are
+    const sy = this.mouthOpen.scale.y;
+    this.teeth.scale.set(this.mouthOpen.scale.x * 0.6, sy * 0.38 * teeth, 1);
+    this.teeth.position.y = (-0.02 + 0.05 * sy * (1 - 0.38 * teeth)) * hh;
+    this.mouth.rotation.z = 0.14 * f.smirk;
+    this.mouth.position.x = 0.012 * hh * f.smirk;
+    this.cornerL.rotation.z = (f.smile + 0.5 * f.smirk) * 0.6;
+    this.cornerR.rotation.z = -(f.smile - 0.4 * f.smirk) * 0.6;
+    this.cornerL.position.y = this.cornerR.position.y = f.smile * 0.006 - 0.02 * hh;
+
+    // brows, up with a gape or a widening of the eyes
+    const up = 0.012 * Math.max(this.jaw, this.fx.wide);
+    this.browL.position.y = this.browY0 + f.browY + f.browAsym + up;
+    this.browR.position.y = this.browY0 + f.browY + up;
+    this.browL.rotation.z = f.browTilt;
+    this.browR.rotation.z = -f.browTilt;
+
+    // blink (more, when they're on edge)
+    this.blinkT -= dt;
+    const jumpy = this.emotion === 'nervous' || this.emotion === 'scared';
+    if (this.blinkT < 0) this.blinkT = jumpy ? rand(0.8, 2.2) : rand(2, 5.5);
+
+    // eyes: pointed at whoever they're looking at (whatever the head turn didn't cover), darting around a little
+    this.saccade.t -= dt;
+    if (this.saccade.t < 0) {
+      const center = Math.random() < 0.4;
+      this.saccade = { x: center ? 0 : rand(-0.12, 0.12), y: center ? 0 : rand(-0.06, 0.05), t: this.listening ? rand(0.4, 1.4) : rand(0.8, 2.6) };
+    }
+    let gx = 0, gy = 0;
+    if (this.lookAt) {
+      if (snap) this.root.updateWorldMatrix(true, true);
+      const v = this.head.worldToLocal(TMP.copy(this.lookAt)).sub(this.eyes.position);
+      gx = Math.atan2(v.x, Math.max(0.05, v.z));
+      gy = Math.atan2(v.y, Math.hypot(v.x, v.z));
+    }
+    gx = gx * (1 - this.fx.away) + this.saccade.x + this.glance;
+    gy = gy * (1 - this.fx.away) + this.saccade.y;
+    if (this.fx.gaze) {
+      gx = this.fx.gaze.x;
+      gy = this.fx.gaze.y;
+    }
+    const gk = snap ? 1 : damp(30, dt);
+    this.gaze.x += (clamp(gx, -0.9, 0.9) - this.gaze.x) * gk;
+    this.gaze.y += (clamp(gy, -0.5, 0.9) - this.gaze.y) * gk;
+    const lid = clamp(f.lid + this.fx.lid - 0.6 * this.fx.wide - 0.5 * this.jaw, -0.6, 1);
+    const rolling = this.fx.gaze !== null;
+    for (const e of this.eyeParts) {
+      const x = clamp((this.gaze.x - e.sg * 0.3) * 0.036 * e.hh, -0.026 * e.hh, 0.026 * e.hh);
+      const y = clamp(this.gaze.y * 0.03 * e.hh, -0.012 * e.hh, (rolling ? 0.016 : 0.012) * e.hh) - 0.002 * e.hh;
+      const z = e.rz * Math.sqrt(Math.max(0, 1 - (x / e.rx) ** 2 - (y / e.ry) ** 2));
+      e.iris.position.set(x, y, z - 0.008 * e.hh);
+    }
+    // the eyes narrow (droopy, squinting) or open wide by squashing and stretching; a blink all but shuts them
+    this.eyes.scale.y = this.blinkT < 0.12 ? 0.1 : clamp(1 - 1.2 * Math.max(0, lid) - 0.35 * clamp(f.squint, 0, 1) + 0.5 * Math.max(0, -lid), 0.25, 1.3);
+
+    // colour: a blush in the cheeks, a flush all over the face, tears
+    const blush = clamp(f.blush, 0, 1);
+    this.blushMat.opacity = 0.7 * blush;
+    for (const c of this.cheeks) c.visible = blush > 0.03;
+    this.faceSkin.color.copy(this.skinColor).lerp(FLUSH, 0.3 * clamp(f.flush, 0, 1));
+    const crying = f.tears > 0.3;
+    for (const tear of this.tears) {
+      tear.mesh.visible = crying;
+      if (!crying) continue;
+      const c = (t * 0.55 + tear.phase) % 1;
+      const y = lerp(tear.y0, tear.y1, c);
+      tear.mesh.position.set(tear.x, y, tear.z(tear.x, y));
+      tear.mesh.scale.setScalar(1 - 0.45 * c);
+    }
+  }
+
+  /** Pull an arm toward a pose (given for the left arm; the right one mirrors it). */
+  private arm(T: Pose, side: number, pose: ArmPose, k: number) {
+    if (k <= 0.001) return;
+    const sh = side > 0 ? T.lSh : T.rSh;
+    sh[0] = lerp(sh[0], pose[0], k);
+    sh[1] = lerp(sh[1], side * pose[1], k);
+    sh[2] = lerp(sh[2], side * pose[2], k);
+    if (side > 0) T.lEl = lerp(T.lEl, pose[3], k);
+    else T.rEl = lerp(T.rEl, pose[3], k);
+  }
+
+  /** How the hands go while talking: the mood first, then the delivery, then their own way of doing it. */
+  private accentKind(level: number): Accent {
+    const e = this.emotion;
+    if (e === 'nervous' || e === 'scared' || e === 'embarrassed') return Math.random() < 0.5 ? 'neck' : 'wring';
+    if (e === 'angry' || level > 1.3) return 'chop';
+    if (e === 'excited' || level > 1.1 || (e === 'happy' && Math.random() < 0.3)) return 'big';
+    const style = this.def.manner?.talk ?? 'open';
+    return Math.random() < 0.55 ? style : 'open';
+  }
+
+  private accentAmp() {
+    const e = this.emotion;
+    if (e === 'sad' || e === 'bored' || e === 'crying' || e === 'drunk') return Math.random() < 0.5 ? 0 : 0.5;
+    return e === 'excited' ? 1.25 : e === 'angry' ? 1.15 : 1;
+  }
+
+  private applyAccent(T: Pose, handBusy: boolean, t: number) {
+    const A = this.accent;
+    const p = 1 - A.t / A.dur;
+    const a = Math.sin(p * Math.PI) * this.talkEnv * A.amp;
+    const sd = A.side;
+    const sh = sd > 0 ? T.lSh : T.rSh;
+    const bend = (v: number) => {
+      if (sd > 0) T.lEl += v;
+      else T.rEl += v;
+    };
+    switch (A.kind) {
+      case 'open':
+        sh[0] -= 0.55 * a; bend(-0.9 * a); sh[2] += sd * 0.1 * a;
+        break;
+      case 'big':
+        // both hands out, palms up: the pitch
+        T.lSh[0] -= 0.5 * a; T.lSh[2] += 0.3 * a; T.lEl -= 1.0 * a;
+        if (!handBusy) { T.rSh[0] -= 0.5 * a; T.rSh[2] -= 0.3 * a; T.rEl -= 1.0 * a; }
+        break;
+      case 'finger':
+        // "Actually..." one finger up, bobbing on the words
+        this.arm(T, sd, ARM.finger, Math.min(1, 1.3 * a));
+        sh[0] += Math.sin(p * Math.PI * 4) * 0.06 * a;
+        break;
+      case 'chop': {
+        const e = this.talkEnv * A.amp;
+        const up = smoothstep(0, 0.35, p) * (1 - smoothstep(0.45, 0.6, p));
+        const down = smoothstep(0.45, 0.6, p) * (1 - smoothstep(0.8, 1, p));
+        sh[0] -= (0.95 * up + 0.3 * down) * e; bend(-(1.5 * up + 0.35 * down) * e); sh[2] += sd * 0.1 * up * e;
+        break;
+      }
+      case 'neck':
+        this.arm(T, sd, ARM.neck, Math.min(1, 1.2 * a));
+        T.head[0] += 0.08 * a;
+        break;
+      case 'wring':
+        this.arm(T, 1, ARM.clasp, a);
+        if (!handBusy) this.arm(T, -1, ARM.clasp, a);
+        T.lSh[2] += Math.sin(t * 9) * 0.06 * a;
+        break;
     }
   }
 
@@ -1258,6 +1745,85 @@ export class Actor {
       }
       case 'give':
         set('rSh', [-1.15, 0, 0.05]); el('rEl', -0.35); T.spine[0] += 0.08 * env;
+        break;
+      case 'double_take': {
+        // a glance at them, away as if nothing happened... and snap back, eyes wide
+        const away = smoothstep(0.12, 0.26, u) * (1 - smoothstep(0.42, 0.48, u));
+        const snap = smoothstep(0.42, 0.48, u) * env;
+        T.head[1] -= (this.lookYaw * 0.5 + (Math.sign(this.lookYaw) || 1) * 0.35) * away * env;
+        T.spine[1] -= this.lookYaw * 0.3 * away * env;
+        this.fx.away = away;
+        T.head[0] -= 0.14 * snap; T.spine[0] -= 0.07 * snap;
+        this.fx.wide = snap;
+        this.jaw = 0.3 * snap;
+        break;
+      }
+      case 'eye_roll': {
+        // eyes up and over, the head tipping back with them
+        const a = Math.sin(Math.PI * u) * env;
+        const over = Math.PI * (1 - smoothstep(0.12, 0.72, u));
+        this.fx.gaze = { x: Math.cos(over) * 0.55, y: 0.35 + Math.sin(over) * 0.55 };
+        this.fx.lid = 0.12 * smoothstep(0.6, 0.9, u);
+        T.head[0] -= 0.14 * a; T.head[2] += 0.12 * a;
+        break;
+      }
+      case 'crack_up': {
+        // head thrown back, then doubled over, a hand on the stomach, the other slapping a thigh
+        const back = smoothstep(0, 0.12, u) * (1 - smoothstep(0.25, 0.4, u));
+        const fold = smoothstep(0.25, 0.45, u);
+        T.head[0] -= 0.32 * back * env;
+        T.spine[0] += (-0.1 * back + (this.isSitting ? 0.22 : 0.34) * fold + Math.sin(s * 16) * 0.035) * env;
+        this.arm(T, 1, ARM.belly, env);
+        set('rSh', [-0.35 + 0.3 * Math.sin(s * 9) * fold, 0, -0.18]); el('rEl', -0.45 - 0.3 * fold);
+        this.fx.lift = 0.012 * Math.max(0, Math.sin(s * 16)) * env;
+        break;
+      }
+      case 'sob':
+        // face in both hands, shoulders heaving
+        this.arm(T, 1, ARM.face, env); this.arm(T, -1, ARM.face, env);
+        T.head[0] += 0.25 * env; T.spine[0] += (0.12 + Math.sin(s * 7) * 0.05) * env;
+        this.fx.lift = (0.5 + 0.5 * Math.sin(s * 7)) * 0.018 * env;
+        break;
+      case 'slow_clap': {
+        // ...clap. ...clap. ...clap.
+        const together = Math.max(...GESTURE_BEATS.slow_clap!.map((b) => 1 - smoothstep(0, 0.07, Math.abs(u - b))));
+        for (const sd of [1, -1]) {
+          this.arm(T, sd, ARM.clapOut, env);
+          this.arm(T, sd, ARM.clapIn, together * env);
+        }
+        T.head[0] -= 0.05 * env;
+        break;
+      }
+      case 'hands_on_hips':
+        if (!this.isSitting) { this.arm(T, 1, ARM.hips, env); this.arm(T, -1, ARM.hips, env); }
+        T.spine[0] -= 0.06 * env; T.head[0] -= 0.06 * env;
+        break;
+      case 'head_in_hands':
+        this.arm(T, 1, ARM.face, env); this.arm(T, -1, ARM.face, env);
+        T.head[0] += 0.42 * env; T.spine[0] += (this.isSitting ? 0.3 : 0.16) * env;
+        this.fx.lid = 0.5 * env;
+        break;
+      case 'air_quotes': {
+        // both hands up by the head, fingers curling twice
+        const curl = Math.max(0, Math.sin(clamp((u - 0.25) / 0.5, 0, 1) * Math.PI * 4));
+        this.arm(T, 1, ARM.quotes, env); this.arm(T, -1, ARM.quotes, env);
+        T.lEl -= 0.2 * curl * env; T.rEl -= 0.2 * curl * env;
+        T.head[2] += 0.1 * env; T.head[0] -= 0.05 * env;
+        break;
+      }
+      case 'fist_pump': {
+        // fist up, and yank it down: yes!
+        const down = smoothstep(0.38, 0.5, u);
+        this.arm(T, -1, ARM.pumpUp, env * (1 - down));
+        this.arm(T, -1, ARM.pumpDown, env * down);
+        T.spine[0] += 0.14 * down * env; T.head[0] += 0.06 * down * env;
+        if (!this.isSitting) this.bounce = -0.035 * down * env;
+        break;
+      }
+      case 'cover_mouth':
+        this.arm(T, -1, ARM.mouth, env);
+        T.head[0] -= 0.08 * env; T.spine[0] -= 0.04 * env;
+        this.fx.wide = 0.7 * env;
         break;
       case 'sit':
       case 'stand':

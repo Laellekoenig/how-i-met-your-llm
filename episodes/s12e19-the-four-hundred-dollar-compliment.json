@@ -71,7 +71,7 @@
         { "type": "exit", "character": "quinn" },
         { "type": "exit", "character": "barney" },
         { "type": "pause", "seconds": 1 },
-        { "type": "say", "character": "robin", "to": "lily", "line": "Lily. Did you just get played in a grocery line by a compliment?", "emotion": "excited" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Lily. Did you just get played in a grocery line by a compliment?", "emotion": "excited", "gesture": "double_take" },
         { "type": "say", "character": "lily", "to": "robin", "line": "It was a really good compliment, Robin. There's a dog.", "emotion": "sad", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Baby, you paid. At our wedding, you got the caterer to tip us.", "emotion": "surprised", "laugh": "laugh" },
         { "type": "move", "character": "lily", "to": "center" },

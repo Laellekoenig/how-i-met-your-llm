@@ -1,4 +1,4 @@
-import { GUEST_IDS, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
+import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
 export type HairStyle = 'swoop' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
@@ -59,6 +59,20 @@ export interface Wardrobe {
   look: Partial<Look>;
 }
 
+/** How someone talks with their hands: open palms, Ted's professorial finger, Marshall's big two-handed pitch, a chop. */
+export type TalkStyle = 'open' | 'finger' | 'big' | 'chop';
+/** Little things someone does with themselves while they wait their turn. */
+export type Idle = 'shift' | 'glance' | 'scratch_head' | 'lapels' | 'arms_crossed' | 'rub_hands' | 'hair' | 'sip';
+
+/** How someone carries themselves when the script isn't telling them what to do. */
+export interface Manner {
+  /** The face they relax back into: a bit of an emotion (Barney's resting smirk). */
+  rest?: { emotion: Emotion; amount: number };
+  talk?: TalkStyle;
+  /** On top of everyone's weight shifts and glances. */
+  idles?: Idle[];
+}
+
 export interface CharacterDef {
   id: CharacterId;
   name: string;
@@ -67,6 +81,7 @@ export interface CharacterDef {
   voice: VoiceProfile;
   main: boolean;
   work?: Wardrobe;
+  manner?: Manner;
 }
 
 export const CHARACTERS: Record<CharacterId, CharacterDef> = {
@@ -92,6 +107,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       },
     },
     voice: { gender: 'male', pitch: 1.0, rate: 1.02 },
+    manner: { rest: { emotion: 'happy', amount: 0.15 }, talk: 'finger', idles: ['scratch_head'] },
   },
   marshall: {
     id: 'marshall',
@@ -115,6 +131,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       },
     },
     voice: { gender: 'male', pitch: 0.92, rate: 1.0 },
+    manner: { rest: { emotion: 'happy', amount: 0.3 }, talk: 'big', idles: ['rub_hands', 'scratch_head'] },
   },
   lily: {
     id: 'lily',
@@ -130,6 +147,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 0.9, long: 0.97, nose: 0.85 },
     },
     voice: { gender: 'female', pitch: 1.08, rate: 1.05 },
+    manner: { rest: { emotion: 'smug', amount: 0.2 }, talk: 'open', idles: ['rub_hands', 'hair'] },
   },
   robin: {
     id: 'robin',
@@ -145,6 +163,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 0.95, long: 1.02, nose: 0.9 },
     },
     voice: { gender: 'female', pitch: 0.96, rate: 1.02 },
+    manner: { rest: { emotion: 'bored', amount: 0.2 }, talk: 'chop', idles: ['arms_crossed', 'hair'] },
   },
   barney: {
     id: 'barney',
@@ -160,6 +179,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
       face: { jaw: 1.0, long: 0.98, nose: 0.95 },
     },
     voice: { gender: 'male', pitch: 1.04, rate: 1.12 },
+    manner: { rest: { emotion: 'smug', amount: 0.5 }, talk: 'chop', idles: ['lapels'] },
   },
   wendy: {
     id: 'wendy',

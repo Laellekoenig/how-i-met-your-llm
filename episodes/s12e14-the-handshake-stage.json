@@ -131,7 +131,7 @@
         { "type": "say", "character": "robin", "to": "guest1", "line": "And if I'm not, I'm not." },
         { "type": "say", "character": "guest1", "to": "robin", "line": "Then we understand each other. Handshake. On three." },
         { "type": "say", "character": "guest1", "to": "robin", "line": "Three. Two. One.", "delivery": "slow" },
-        { "type": "say", "character": "robin", "to": "guest1", "line": "Did you just count down to a handshake?" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Did you just count down to a handshake?", "emotion": "suspicious", "gesture": "double_take" },
         { "type": "say", "character": "guest1", "to": "robin", "line": "I count down to everything. Occupational.", "laugh": "chuckle" },
         { "type": "say", "character": "robin", "to": "guest1", "line": "Good grip." },
         { "type": "say", "character": "guest1", "to": "robin", "line": "Not bad for a Canadian." },
