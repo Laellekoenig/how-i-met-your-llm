@@ -28,7 +28,7 @@ const shade = (hex: string, f: number) => {
 };
 
 /** Small original wardrobe prints; all are generated locally, without reference photographs. */
-export function wardrobePrint(base: string, kind: 'floral' | 'sparkle' | 'stripes', accent = '#d6c7ad') {
+export function wardrobePrint(base: string, kind: 'floral' | 'botanical' | 'sparkle' | 'stripes', accent = '#d6c7ad') {
   return canvas(64, 64, (g, w, h) => {
     g.fillStyle = base; g.fillRect(0, 0, w, h);
     if (kind === 'stripes') {
@@ -39,6 +39,27 @@ export function wardrobePrint(base: string, kind: 'floral' | 'sparkle' | 'stripe
       for (let i = 0; i < 240; i++) {
         g.fillStyle = i % 3 ? '#b9986f' : '#ece0bf';
         g.fillRect(rand() * w, rand() * h, 1, 1.5);
+      }
+    } else if (kind === 'botanical') {
+      // Lily's scattered blush/ivory flowers and sage leaves on a charcoal dress.
+      // Irregular sprigs leave plenty of dark fabric visible between the clusters.
+      for (const [x, y, tilt] of [[13, 16, -0.4], [45, 43, 0.5], [49, 8, -0.2]]) {
+        g.save(); g.translate(x, y); g.rotate(tilt);
+        g.strokeStyle = '#8c8970'; g.lineWidth = 0.7;
+        g.beginPath(); g.moveTo(-3, 12); g.quadraticCurveTo(5, 2, 0, -8); g.stroke();
+        for (const [lx, ly, angle] of [[-2, 7, -0.6], [4, 3, 0.7], [-2, -5, -0.7]]) {
+          g.fillStyle = '#9b9f85';
+          g.beginPath(); g.ellipse(lx, ly, 3, 1.3, angle, 0, Math.PI * 2); g.fill();
+        }
+        for (const [fx, fy, radius] of [[0, -4, 2.4], [3, 5, 1.8]]) {
+          for (let i = 0; i < 5; i++) {
+            const a = i * Math.PI * 2 / 5;
+            g.fillStyle = i % 2 ? '#d1aca2' : '#ded2bd';
+            g.beginPath(); g.ellipse(fx + Math.cos(a) * radius, fy + Math.sin(a) * radius, radius, radius * 0.65, a, 0, Math.PI * 2); g.fill();
+          }
+          g.fillStyle = '#b18d65'; g.fillRect(fx - 0.6, fy - 0.6, 1.2, 1.2);
+        }
+        g.restore();
       }
     } else {
       for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {

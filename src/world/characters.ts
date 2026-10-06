@@ -1,7 +1,7 @@
 import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
@@ -16,6 +16,8 @@ export interface Look {
   under?: string; // shirt / top under a jacket or cardigan; the dress for a skirt
   underPlaid?: [string, string]; // checks on the layered shirt, including its collar and cuffs
   underStripes?: string; // fine vertical dress-shirt stripes
+  underPrint?: 'botanical'; // print on the dress beneath a solid jacket
+  jacketCut?: 'zip';
   suitFit?: 'slim';
   collar?: string; // contrast shirt collar (defaults to `under`)
   tie?: string;
@@ -36,12 +38,14 @@ export interface Look {
   bow?: string;
   belt?: string;
   beads?: string;
+  pendant?: string;
   boutonniere?: string;
   bangles?: [string, string];
   socks?: string;
   pants: string;
   jeans?: boolean;
   skirt?: string; // knee-length skirt (worn over `legs`)
+  skirtPrint?: 'botanical';
   legs?: string; // tights
   shoes: string;
   boots?: boolean;
@@ -145,12 +149,15 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     color: '#ff9ad5',
     main: true,
     look: {
-      // Alyson Hannigan: petite; red bob, mustard cardigan over a teal dress, tights, red flats
-      height: 1.62, build: 0.92, female: true,
-      skin: '#f6d2b8', hair: '#b4401e', hairStyle: 'bob', eyes: '#5a4a2a',
-      top: '#d7a33a', topStyle: 'cardigan', under: '#2b7d84', skirt: '#2b7d84',
-      pants: '#3a2f3d', legs: '#3a2f3d', shoes: '#a3263a',
-      face: { jaw: 0.9, long: 0.97, nose: 0.85 },
+      // "The Ashtray" (S08E17): auburn layers, rust-red Joie leather jacket,
+      // black botanical dress and a long oval pendant (docs/cast-reference.md).
+      height: 1.62, build: 0.9, female: true,
+      skin: '#f1c7ad', hair: '#693720', hairStyle: 'feathered', eyes: '#69806a',
+      top: '#8f3836', topStyle: 'leather', jacketCut: 'zip',
+      under: '#202123', underPrint: 'botanical', skirt: '#202123', skirtPrint: 'botanical',
+      pants: '#29272c', legs: '#29272c', shoes: '#282326',
+      pendant: '#d3c7a4',
+      face: { jaw: 0.96, chin: 1.12, long: 0.96, nose: 0.9, brow: 0.9, mouth: 1.14 },
     },
     voice: { gender: 'female', pitch: 1.08, rate: 1.05 },
     manner: { rest: { emotion: 'smug', amount: 0.2 }, talk: 'open', idles: ['rub_hands', 'hair'] },
