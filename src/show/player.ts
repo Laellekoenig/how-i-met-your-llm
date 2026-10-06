@@ -1274,8 +1274,8 @@ export class Player {
           o.hold(prop);
         };
         a.onGestureBeat = handOver;
-        const d = a.doGesture('give');
-        o.doGesture('give');
+        const d = a.doGesture('give', { target: o });
+        o.doGesture('give', { target: a });
         await this.wait(d * 0.8);
         handOver();
         break;
@@ -1377,10 +1377,10 @@ export class Player {
     if (together) {
       if (!other.isSitting) other.faceTowards(a.position, 0.1);
       other.lookAt = a.headWorld;
-      other.doGesture(g, { partner: true });
+      other.doGesture(g, { partner: true, target: a });
     }
     const held = HELD.includes(g) ? seconds : 0;
-    const d = a.doGesture(g, { partner: !!together, dur: held });
+    const d = a.doGesture(g, { partner: !!together, dur: held, target: other });
     if (implied) a.later(d * implied.at, () => a.setEmotion(implied.emotion));
     return d;
   }
