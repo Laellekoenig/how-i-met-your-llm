@@ -14,12 +14,14 @@ export function episodeItems(ep: EpisodeScript, id: string): ShowItem[] {
   ];
 }
 
-/** Airs the catalog back to back, in order, forever. */
+/** Airs the catalog back to back, in order, forever, once an episode is picked. */
 export class Syndication implements ContentSource {
   private items: ShowItem[] = [];
   private aired = 0;
+  private tuned: (() => void) | null = null;
 
-  constructor(private episodes: EpisodeScript[], private at = 0) {
+  /** `at` null starts off the air: next() waits until an episode is picked with seek(). */
+  constructor(private episodes: EpisodeScript[], private at: number | null = 0) {
     if (!episodes.length) throw new Error('no episodes to air');
   }
 
@@ -32,9 +34,18 @@ export class Syndication implements ContentSource {
   seek(index: number) {
     this.at = index;
     this.items = [];
+    this.tuned?.();
+  }
+
+  /** Go off the air (back to the guide): drop the rest of the current episode and air nothing until the next seek(). */
+  off() {
+    this.at = null;
+    this.items = [];
   }
 
   async next(): Promise<ShowItem> {
+    while (this.at === null) await new Promise<void>((r) => (this.tuned = r));
+    this.tuned = null;
     if (!this.items.length) {
       const ep = this.episodes[this.at++ % this.episodes.length];
       this.items = episodeItems(ep, `${ep.code}-${++this.aired}`);

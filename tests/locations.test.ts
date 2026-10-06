@@ -37,4 +37,22 @@ describe('public scene locations', () => {
     for (let i = 0; i < EPISODES[3].scenes.length + 1; i++) await tv.next();
     expect((await tv.next()).episode.code).toBe(EPISODES[4 % EPISODES.length].code);
   });
+
+  test('off the air, nothing airs until an episode is picked, then it airs from its cold open', async () => {
+    const airing = new Syndication(EPISODES);
+    await airing.next();
+    airing.off();
+    // starting off the air (on the guide), or going back to it mid-episode
+    for (const tv of [new Syndication(EPISODES, null), airing]) {
+      let aired: ShowItem | null = null;
+      const waiting = tv.next().then((item) => (aired = item));
+      await Bun.sleep(5);
+      expect(aired).toBeNull();
+      tv.seek(5);
+      await waiting;
+      expect(aired!.kind).toBe('episode-start');
+      expect(aired!.episode.code).toBe(EPISODES[5].code);
+      expect((await tv.next()).kind).toBe('scene');
+    }
+  });
 });
