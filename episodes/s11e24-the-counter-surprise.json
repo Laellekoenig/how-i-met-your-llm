@@ -335,7 +335,7 @@
         { "type": "say", "character": "ted", "to": "robin", "line": "Robin, it's us! We brought Canada!", "emotion": "nervous", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "barney", "line": "You're supposed to be at MacLaren's.", "emotion": "angry" },
         { "type": "say", "character": "barney", "to": "robin", "line": "We were. For fifty-one minutes. Then Marshall cracked.", "emotion": "bored" },
-        { "type": "say", "character": "marshall", "to": "lily", "line": "Fifty-one minutes! Lily, I kept a secret for fifty-one minutes!", "delivery": "shout", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Fifty-one minutes! Lily, I kept a secret for fifty-one minutes!", "delivery": "shout", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "lily", "line": "He told Carl. Then he told the cake. Then he told us.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "move", "character": "lily", "to": "marshall" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Baby, that's a personal record. Agent Vault.", "emotion": "happy", "gesture": "hug" },

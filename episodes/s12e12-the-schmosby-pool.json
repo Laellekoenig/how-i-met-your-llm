@@ -58,7 +58,7 @@
       "beats": [
         { "type": "narrate", "line": "It was a Thursday. Ted was grading papers at the bar, so that everyone could see him grading papers.", "laugh": "chuckle" },
         { "type": "enter", "character": "punchy", "to": "ted" },
-        { "type": "say", "character": "punchy", "to": "ted", "line": "Schmosby!", "delivery": "shout", "emotion": "excited", "gesture": "point", "laugh": "woo" },
+        { "type": "say", "character": "punchy", "to": "ted", "line": "Schmosby!", "delivery": "shout", "emotion": "excited", "gesture": "point", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "punchy", "line": "Punchy! Ow. Same arm as 1994. It remembers you.", "emotion": "surprised", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "punchy", "line": "Punchy. Still in the wedding suit." },
         { "type": "say", "character": "punchy", "to": "barney", "line": "Kelly says it's gotta get used to me again. We're renewing our vows Saturday! Ten years!", "emotion": "excited" },
@@ -287,7 +287,7 @@
         { "type": "give", "character": "robin", "to": "ted", "prop": "microphone" },
         { "type": "say", "character": "ted", "to": "punchy", "line": "Friends. Family. Matrimony comes from the Latin.", "delivery": "slow" },
         { "type": "pause", "seconds": 1.5 },
-        { "type": "say", "character": "ted", "to": "punchy", "line": "Actually, it's pronounced Schmosby.", "emotion": "happy", "laugh": "woo", "shot": "closeup", "react": [{ "character": "punchy", "emotion": "happy" }] },
+        { "type": "say", "character": "ted", "to": "punchy", "line": "Actually, it's pronounced Schmosby.", "emotion": "happy", "laugh": "laugh", "shot": "closeup", "react": [{ "character": "punchy", "emotion": "happy" }] },
         { "type": "say", "character": "ted", "to": "punchy", "line": "In ninth grade, I corrected a substitute's pronunciation of Gaudí. Nobody sat with me for a year.", "laugh": "chuckle" },
         { "type": "say", "character": "ted", "to": "punchy", "line": "Then this guy sat with me. Every day. And punched anybody who had a problem with it.", "emotion": "happy" },
         { "type": "say", "character": "ted", "to": "punchy", "line": "Every decent thing about me, Punchy saw first. Then he defended it. With his fists.", "emotion": "sad", "laugh": "aww", "shot": "push_in" },

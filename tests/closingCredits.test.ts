@@ -3,6 +3,7 @@ import { Player } from '../src/show/player';
 import { audio } from '../src/audio/audio';
 import { openingCredits, type CreditCard } from '../src/show/credits';
 import type { ShowItem } from '../src/script/types';
+import { overlayStub } from './helpers/overlay';
 
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 const spies: { mockRestore(): void }[] = [];
@@ -23,7 +24,7 @@ function playback() {
   let visible: CreditCard[] | null = null;
   let caption = true, location = true, year = true;
   const overlay = {
-    standby() {},
+    ...overlayStub(),
     hideCaption() { caption = false; },
     hideLocation() { location = false; },
     year(on: boolean) { year = on; },

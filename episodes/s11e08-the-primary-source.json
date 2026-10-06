@@ -45,7 +45,7 @@
         { "type": "say", "character": "barney", "to": "robin", "line": "Three hundred inches. When somebody gets checked into the boards, my neighbors file an insurance claim.", "emotion": "smug", "laugh": "laugh" },
         { "type": "enter", "character": "loretta", "to": "center" },
         { "type": "hold", "character": "loretta", "prop": "book" },
-        { "type": "say", "character": "loretta", "line": "Hello, sweeties! Don't get up. I've written a memoir.", "emotion": "happy", "gesture": "wave", "laugh": "woo" },
+        { "type": "say", "character": "loretta", "line": "Hello, sweeties! Don't get up. I've written a memoir.", "emotion": "happy", "gesture": "wave", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "loretta", "line": "A what?", "emotion": "surprised" },
         { "type": "say", "character": "loretta", "to": "barney", "line": "A memoir, sweetie. It's called Mostly True. My book club is printing two hundred copies.", "emotion": "happy" },
         { "type": "say", "character": "robin", "to": "loretta", "line": "Smart title. Legally.", "delivery": "deadpan", "laugh": "chuckle" },

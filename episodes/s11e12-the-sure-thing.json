@@ -166,7 +166,7 @@
         { "type": "say", "character": "ted", "to": "marshall", "line": "Relax. I'm not going to ruin Mom's date. I'm just going to sit near it. And then present a few remarks." },
         { "type": "insert", "character": "ted", "line": "Fourteen slides. I got it down from forty.", "laugh": "laugh", "kind": "slides", "title": "What Are Your Intentions With My Mother?", "lines": ["A presentation by Ted Mosby, architect", "1. Who I Am", "2. Who You Are (To Be Determined)", "3. My Mother: An Illustrated Timeline", "4. Curfew", "5. Questions (None)"] },
         { "type": "enter", "character": "barney", "to": "fireplace" },
-        { "type": "say", "character": "barney", "to": "ted", "line": "Gentlemen. Lily. The Commander has a date.", "emotion": "excited", "gesture": "suit_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Gentlemen. Lily. The Commander has a date.", "emotion": "excited", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Gloria. Sixty-seven. Retired judge. Tonight, eight o'clock, Bellamy's.", "emotion": "smug" },
         { "type": "say", "character": "ted", "to": "barney", "line": "That's Mom's restaurant!", "emotion": "surprised" },
         { "type": "say", "character": "barney", "to": "ted", "line": "I know. I want the man who beat me to watch me win.", "emotion": "smug" },

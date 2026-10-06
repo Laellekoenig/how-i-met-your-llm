@@ -303,7 +303,7 @@
         { "type": "hold", "character": "ted", "prop": "none" },
         { "type": "say", "character": "ted", "to": "guest1", "line": "The chef. Victoria.", "gesture": "point" },
         { "type": "move", "character": "victoria", "to": "guest1" },
-        { "type": "say", "character": "guest1", "to": "victoria", "line": "Again.", "laugh": "woo", "react": [{ "character": "victoria", "emotion": "surprised" }, { "character": "marshall", "gesture": "hands_up" }] },
+        { "type": "say", "character": "guest1", "to": "victoria", "line": "Again.", "laugh": "laugh", "react": [{ "character": "victoria", "emotion": "surprised" }, { "character": "marshall", "gesture": "hands_up" }] },
         { "type": "say", "character": "victoria", "to": "guest1", "line": "Thank you.", "emotion": "surprised" },
         { "type": "say", "character": "guest1", "to": "victoria", "line": "Don't push it.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "guest1", "line": "Found your coat!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },

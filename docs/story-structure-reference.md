@@ -16,8 +16,9 @@ precise shot timing. Write original stories rather than reproducing these plots 
 
 Pamela Fryman's [DGA profile](https://www.dga.org/craft/dgaq/issues/1001-spring-2010/profile-pamela-fryman)
 describes the show's unusually large number of scenes and its blend of multi-camera production with a
-single-camera sensibility. Our short 3–4-scene episodes are a stage/pacing convention, not the original show's
-literal structure. Borrow purposeful reversals, retellings and cutaways within the engine's limits.
+single-camera sensibility, with episodes of 60–80 scenes and comedy frequently made in the edit. That is not a
+target for our shorter episodes, but there is no house scene count: short scenes, intercut strands (`resume`),
+replays with changes (`replay`) and nested cutaways are all available. Borrow purposeful reversals and retellings.
 
 ## Apply this in our writers' room
 

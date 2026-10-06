@@ -116,7 +116,7 @@
         { "type": "say", "character": "ted", "to": "guest1", "line": "You read them? All forty?", "emotion": "nervous" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Every one. My plane is at six. Walk with me." },
         { "type": "act", "character": "barney", "gesture": "stand" },
-        { "type": "say", "character": "barney", "to": "guest1", "line": "Better. I’ll drive. I have a limo.", "emotion": "excited", "gesture": "suit_up", "laugh": "woo" }
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Better. I’ll drive. I have a limo.", "emotion": "excited", "gesture": "suit_up", "laugh": "laugh" }
       ]
     },
     {

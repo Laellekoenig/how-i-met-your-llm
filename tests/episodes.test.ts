@@ -9,6 +9,7 @@ import { Director } from '../src/show/director';
 import { Player } from '../src/show/player';
 import { speech } from '../src/audio/speech';
 import type { Beat, EpisodeScript, GuestStar, ShowItem } from '../src/script/types';
+import { overlayStub } from './helpers/overlay';
 
 const spies: { mockRestore(): void }[] = [];
 afterEach(() => {
@@ -111,11 +112,13 @@ describe('the validator', () => {
     expect(errors([{ type: 'dialogue' } as unknown as Beat])).toContain('"type": "dialogue"');
   });
 
-  test('cutaways use their own set and cast, and never nest', () => {
+  test('cutaways use their own set and cast, and nest up to three deep', () => {
     const cutaway = (beats: Beat[]) => ({ type: 'cutaway', style: 'imagined', label: 'How Ted imagined it', location: 'rooftop', time: 'night', cast: [{ character: 'ted', mark: 'ledge_lookout' }], beats }) as Beat;
     expect(errors([cutaway([say('ted'), say('ted'), say('ted')])])).toBe('');
     expect(errors([cutaway([say('guest1')])])).toContain("guest1 isn't on stage");
-    expect(errors([cutaway([cutaway([say('ted')])])])).toContain('no cutaways inside a cutaway');
+    // a memory inside a story inside a memory
+    expect(errors([cutaway([cutaway([cutaway([say('ted')])])])])).toBe('');
+    expect(errors([cutaway([cutaway([cutaway([cutaway([say('ted')])])])])])).toContain('nest 3 deep at most');
   });
 
   test('Robin Sparkles only meets Robin in a cutaway', () => {
@@ -186,21 +189,23 @@ describe('cutaway playback', () => {
     const director = new Director(camera, stage);
     const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
     const labels: [string, string | undefined][] = [];
-    const overlay = { hideCaption() {}, hideCards() {}, insert() {}, revealInsert: () => 0, standby() {}, hideLocation() {}, year() {}, showCaption() {}, location: (t: string, s?: string) => labels.push([t, s]) };
-    const spoken: { who: string; set: string; dream: number; memory: number; delivery?: string; cutOff?: boolean }[] = [];
+    const overlay = { ...overlayStub(), location: (t: string, s?: string) => labels.push([t, s]) };
+    const spoken: { who: string; set: string; dream: number; memory: number; card?: string; delivery?: string; cutOff?: boolean }[] = [];
     spies.push(spyOn(speech, 'speak').mockImplementation((_text, profile, onStart, opts = {}) => {
       onStart?.();
       const who = Object.values(CHARACTERS).find((c) => c.voice === profile)?.id ?? 'future-ted';
-      spoken.push({ who, set: stage.current.id, dream: renderer.dream, memory: renderer.memory, delivery: opts.delivery, cutOff: opts.cutOff });
+      spoken.push({ who, set: stage.current.id, dream: renderer.dream, memory: renderer.memory, card: labels.at(-1)?.[0], delivery: opts.delivery, cutOff: opts.cutOff });
       return { done: Promise.resolve() };
     }));
     const ep = rerun('The Silent Auction');
     const [first, , third] = ep.scenes;
     const episode = { id: 'auction', code: ep.code, title: ep.title, logline: '' };
-    // the store scene's imagined auction, then the flashback back home, no transitions in between
+    // the store scene's imagined auction (given a fantasy haze), then the flashback back home in plain color, no
+    // transitions in between
+    const hazy = (b: Beat): Beat => b.type === 'cutaway' ? { ...b, look: 'dream', transition: 'ripple', sound: 'harp' } : b;
     const items: ShowItem[] = [
       // (its insert and montage are covered by their own playback test)
-      { kind: 'scene', episode, index: 0, scene: { ...first, transition: 'cut', beats: first.beats.filter((b) => b.type !== 'insert' && b.type !== 'montage') } },
+      { kind: 'scene', episode, index: 0, scene: { ...first, transition: 'cut', beats: first.beats.filter((b) => b.type !== 'insert' && b.type !== 'montage').map(hazy) } },
       { kind: 'scene', episode, index: 2, scene: { ...third, transition: 'cut', beats: third.beats.slice(2, 5) } },
     ];
     let requests = 0;
@@ -223,16 +228,19 @@ describe('cutaway playback', () => {
     const start = performance.now();
     while (requests <= items.length && performance.now() - start < 40000) await new Promise((r) => setTimeout(r, 20));
 
-    const inStore = spoken.filter((s) => s.set === 'store' && s.memory === 0).map((s) => s.who);
+    const inStore = spoken.filter((s) => s.set === 'store' && s.card !== 'St. Cloud, 1985').map((s) => s.who);
     const imagined = spoken.filter((s) => s.set === 'restaurant' && s.dream === 1);
     expect(imagined.map((s) => s.who)).toEqual(['guest2', 'marshall']);
     expect(imagined.map((s) => s.delivery)).toEqual(['shout', 'sing']);
     expect(inStore.slice(1, 7)).toEqual(['lily', 'marshall', 'guest1', 'lily', 'guest1', 'scooter']);
     expect(spoken.find((s) => s.who === 'lily' && s.cutOff)).toBeDefined();
-    expect(spoken.filter((s) => s.set === 'store' && s.memory === 1).map((s) => s.who)).toEqual(['marshall', 'judy', 'marshall', 'judy']);
+    // a flashback is in normal color unless the script asks for a look
+    const flashback = spoken.filter((s) => s.set === 'store' && s.card === 'St. Cloud, 1985');
+    expect(flashback.map((s) => s.who)).toEqual(['marshall', 'judy', 'marshall', 'judy']);
+    expect(flashback.every((s) => s.memory === 0 && s.dream === 0)).toBe(true);
     expect(labels).toEqual([
-      ['How Marshall imagined it', 'imagined'],
-      ['St. Cloud, 1985', 'flashback'],
+      ['How Marshall imagined it', 'dream'],
+      ['St. Cloud, 1985', 'plain'],
     ]);
     // back by the produce, on the same spot, with the auctioneer (only imagined there) gone
     expect(restored).toMatchObject({ set: 'store', mark: 'produce', visible: true, guestVisible: false });

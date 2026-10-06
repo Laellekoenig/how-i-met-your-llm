@@ -42,6 +42,7 @@ bun run episodes list              # what has aired, and the next free code
 bun run episodes check [file…]     # validate: staging, marks, vocabulary, line length; plus craft warnings
 bun run episodes read <file>       # the episode as a screenplay, with laugh counts, for table reads
 bun run episodes fmt [file…]       # canonical layout: one beat per line
+bun run episodes ledger            # continuity: eras, what's true now, bets and promises still open
 ```
 
 `bun test` validates every episode and checks camera coverage for each of its scenes.
@@ -50,10 +51,11 @@ bun run episodes fmt [file…]       # canonical layout: one beat per line
 
 - **The script language** (`src/script/types.ts`): a scene is a cast placement plus a list of beats:
   `say`, `narrate` (Future Ted), `move`, `enter`, `exit`, `act` (gestures like `high_five`, `slap`, `suit_up`),
-  `hold` / `give` (props), `laugh` (chuckle / laugh / big / ooh / aww / woo / applause / gasp), `pause`, `freeze`,
-  `insert`, `cutaway` and `montage`. A `say` can carry a `delivery` (whisper / shout / sing / deadpan / fast / slow),
-  be `interrupted`, have a `chorus` saying it with them, and carry listener `react`ions; most beats take a `shot`.
-  See [Staging devices](#staging-devices).
+  `hold` / `give` (props), `laugh` (chuckle / laugh / big / ooh / aww / applause / gasp), `pause`, `freeze`,
+  `insert`, `cutaway`, `replay`, `split`, `montage`, `graphic`, `sound` and `score`. A `say` can carry a `delivery`
+  (whisper / shout / sing / deadpan / fast / slow), be `interrupted` or `offscreen`, have a `chorus` saying it with
+  them, and carry listener `react`ions; most beats take a `shot`. Scenes can be named and `resume`d (intercutting).
+  See [Staging devices](#staging-devices) and [Time, memory and the edit](#time-memory-and-the-edit).
 - **The kids** (`src/world/sets/future.ts`): episodes can open on Penny and Luke on the black Chesterfield in Ted's
   2030 living room, or directly on the story. They can interrupt later or stay offscreen for the whole episode.
   Penny and Luke never appear in the story: any `say`/`act`
@@ -70,7 +72,7 @@ bun run episodes fmt [file…]       # canonical layout: one beat per line
   There is no episode title, number or closing slogan. The cards pause and skip with playback.
   See [the closing-credit references](docs/closing-credits-reference.md).
 - **The episodes** (`episodes/`, `src/script/`): each file holds a title, logline, optional couch opening (`coldOpen`
-  and/or `couch`), guest stars and usually 3–4 staged scenes. Without a couch opening, the first scene plays before
+  and/or `couch`), guest stars and as many staged scenes as the story needs. Without a couch opening, the first scene plays before
   the main titles. Ordinary `narrate` beats play over the story; kids' reactions can be placed within scene beats.
   The show bible (`bible.ts`) holds the characters, catchphrases, every
   set's marks and the stagecraft vocabulary. The validator (`validate.ts`) replays each scene's blocking to check that
@@ -104,12 +106,14 @@ Episodes use all of these through the episode file format (see `bun run bible`):
   words: gender, height, build, skin, hair, clothes, accessories, voice pitch and pace. They take the slots `guest1`–`guest3`
   for that episode only (`src/world/guests.ts` turns the description into a procedural look and voice); scenes can
   also refer to them by name.
-- **Cutaways**: a `cutaway` beat leaves the scene for a few beats on any set, with its own cast and an on-screen card,
-  then returns to exactly where the scene left off. `imagined` (a fantasy or hypothetical) dissolves in on a harp run
-  with a soft, hazy look; `flashback` uses the rewind smear and a faded sepia grade.
-- **Delivery**: whispers, shouts, sung lines (with a little guitar), deadpan, fast and slow lines change the voice, the
-  caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is cut off
-  mid-word and the next speaker jumps straight in.
+- **Cutaways**: a `cutaway` beat leaves the scene for a sequence on any set, with its own cast, then returns to exactly
+  where the scene left off. What it is (`imagined`, `prediction`, `flashback`, `flash_forward`, `meanwhile`,
+  `misremembered`, `sanitized`) is separate from how it's shown: by default a clean, silent cut in normal color with no
+  card; a `label`, a `look` (`dream` haze, `memory` sepia, `video` tape), a `transition` (`whip`, `ripple`, `rewind`)
+  and a `sound` are each the writer's choice. Cutaways nest up to three deep.
+- **Delivery**: whispers, shouts, sung lines (a cappella unless `accompanied`), deadpan, fast and slow lines change the
+  voice, the caption and the coverage (a whisper favors the two-shot, a shout the close-up). An `interrupted` line is
+  cut off mid-word and the next speaker jumps straight in.
 
 The four original episodes (S10E01–S10E04) each cast their own guest stars and cut away at least once. Three more
 (S10E05–S10E07) feature the expanded recurring cast. **The High Score** (S10E08) visits the six new city and period sets.
@@ -143,12 +147,12 @@ The show's signature visual gags, all part of the episode file format (`bun run 
 - **Montages**: two to six one- or two-beat shots on any sets, each with a small yellow card ("Day 2"), over an
   upbeat or tender music bed; then back to the scene exactly as it was.
 - **Props**: `hold` / `give` with a phone, ring box, envelope, beer, scotch, flowers, book, yellow umbrella,
-  pineapple, goat, gift, sword, briefcase, microphone or blue French horn (`src/world/props.ts`). Small ones are held
+  pineapple, goat, gift, sword, briefcase, microphone, blue French horn, sandwich, laptop or videotape (`src/world/props.ts`). Small ones are held
   up in the hand, a briefcase or umbrella hangs at the side, big ones are cradled in both arms. Handing one over
   walks over first if needed; props survive cutaways and montages.
 - **Camera intent**: `shot: closeup | two | push_in | wide` on a beat overrides the director's pick. A push-in starts
   from a medium shot and dollies in for several seconds.
-- **Gestures**: on top of the originals, `kiss` (with someone, or blown), `phone_call` (held for the whole line),
+- **Gestures**: on top of the originals, `salute`, `kiss` (with someone, or blown), `phone_call` (held for the whole line),
   `sit` / `stand` (into the nearest free seat, or up into the aisle), `lean_in`, `jaw_drop`, `fist_bump` and
   `spit_take` (with a spray of droplets).
 - **Expressions**: nineteen emotions (`embarrassed`, `disgusted`, `scared`, `suspicious`, `proud`, `laughing`,
@@ -158,9 +162,32 @@ The show's signature visual gags, all part of the episode file format (`bun run 
   follow each line's syllables, listeners nod, and everyone has their own talking hands and habits while they
   wait (Ted's professor finger, Barney's lapels, Robin's crossed arms). Gestures `double_take`, `eye_roll`,
   `crack_up`, `sob`, `slow_clap`, `hands_on_hips`, `head_in_hands`, `air_quotes`, `fist_pump` and `cover_mouth`.
-- **Wardrobe**: `wardrobe` on an episode (all episode) or a scene (over the episode's), in the guest-star
-  vocabulary: top style and colors, tie, waistcoat, pants, shoes, boots, hair and extras. Costumes go over casual
-  or work clothes, so Ted's red cowboy boots stay on when he suits up at the lecture hall.
+- **Wardrobe**: `wardrobe` on an episode (all episode), a scene (over the episode's), a cutaway, replay or montage
+  shot (another year's look, without touching the scene around it), in the guest-star vocabulary: top style and
+  colors, tie, waistcoat, pants, shoes, boots, hair and extras. Costumes go over casual or work clothes, so Ted's red
+  cowboy boots stay on when he suits up at the lecture hall. A scene costume with `keep` lasts the rest of the
+  episode (the lost bet).
+- **Graphics over the scene**: `graphic` beats draw while the actors stay in shot: a `tag` that follows someone, a
+  `clock`, a running `counter`, a `venn` diagram or a pair of `axes` with people plotted on them. They last until
+  `clear`ed or the scene ends.
+
+## Time, memory and the edit
+
+The show's rhythm comes from its edit and its unreliable narrator, so these are writer controls, not defaults:
+
+- **Replays**: `replay` shows an earlier scene or cutaway again (by `id`), with the same blocking and camera coverage,
+  and `changes` that replace, cut or insert beats, plus people revealed to have been there all along (`add`).
+- **Intercutting**: a scene with `resume` picks up an earlier scene exactly as it was left (people, marks, props),
+  so a story can cut between strands and come back.
+- **Split screens and phone calls**: `split` puts two or three sets side by side, each framed once and held; an
+  `offscreen` line is heard down the phone or from out of shot.
+- **Narration over action**: `narrate` with `over` keeps Future Ted talking while the next beats (and scenes) play.
+- **Sound and music**: nothing plays a cue unless asked, apart from the scene-change sting (which a scene can drop with
+  `"sound": "none"`). `sound` places a cue (a shatter, a record scratch, a harp) exactly; `score` starts underscore that
+  carries across scenes, stops it, or drops to silence.
+- **The laugh track** is restrained: no cheering or clapping at jokes, and it never changes anyone's face.
+- **Continuity**: optional `continuity` notes (era, facts, threads opened and closed) feed `bun run episodes ledger`,
+  which flags a fact that quietly changes between episodes.
 
 The first four episodes use all of it: **The Understudy** a Playbook page, a group line, a jaw drop, a hand-off, Barney in
 sweatpants, a spit take and a freeze frame; **The Silent Auction** a text thread, a montage, a bar chart and the

@@ -123,7 +123,7 @@
         { "type": "say", "character": "barney", "to": "ted", "line": "Fine. But no toasts." },
         { "type": "say", "character": "ted", "to": "barney", "line": "I give beautiful toasts. At my cousin's wedding, I did twenty-five minutes on the church doorway.", "emotion": "smug" },
         { "type": "say", "character": "robin", "to": "lily", "line": "Three people left. One of them was the groom.", "delivery": "deadpan", "laugh": "laugh" },
-        { "type": "say", "character": "barney", "to": "ted", "line": "Saturday. Nine a.m. Family up!", "emotion": "excited", "gesture": "suit_up", "laugh": "woo" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Saturday. Nine a.m. Family up!", "emotion": "excited", "gesture": "suit_up", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "barney", "line": "Barney, what if your coworkers ask about the newsletter?" },
         { "type": "say", "character": "barney", "to": "lily", "line": "Lily, please. Nobody reads a newsletter.", "emotion": "smug" },
         { "type": "narrate", "line": "Everybody read the newsletter.", "laugh": "laugh" }
@@ -226,7 +226,7 @@
         { "type": "say", "character": "robin", "to": "ted", "line": "Say eh one more time and I'll make myself an only child.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "move", "character": "ted", "to": "armchair" },
         { "type": "enter", "character": "guest1", "to": "center" },
-        { "type": "say", "character": "guest1", "to": "barney", "line": "The Stinsons! In my building! Finally!", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "The Stinsons! In my building! Finally!", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Eight years I've asked to meet them. Follow-up question. Why eight years?", "emotion": "happy" },
         { "type": "say", "character": "barney", "to": "guest1", "line": "Scheduling." },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Follow-up question. All eight years?", "emotion": "happy" },

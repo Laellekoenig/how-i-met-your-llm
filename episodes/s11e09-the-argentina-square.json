@@ -58,7 +58,7 @@
         { "type": "say", "character": "marshall", "to": "lily", "line": "Only the deluxe edition.", "laugh": "chuckle" },
         { "type": "enter", "character": "mickey", "to": "center" },
         { "type": "hold", "character": "mickey", "prop": "gift" },
-        { "type": "say", "character": "mickey", "to": "marshall", "line": "Forty failed games, kids, and I finally figured out what they were missing.", "emotion": "excited", "gesture": "hands_up", "laugh": "woo" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Forty failed games, kids, and I finally figured out what they were missing.", "emotion": "excited", "gesture": "hands_up", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "mickey", "line": "Players?", "delivery": "deadpan", "laugh": "ooh" },
         { "type": "say", "character": "mickey", "to": "lily", "line": "People I know. Meet Back to the Booth. Five best friends, one booth, and every piece gets a special power.", "emotion": "happy" },
         { "type": "say", "character": "marshall", "to": "mickey", "line": "Like Bigfoot's power to avoid every camera ever invented?", "emotion": "excited", "laugh": "chuckle" },

@@ -15,14 +15,15 @@ export type Grip = 'hand' | 'hang' | 'arms';
 export const GRIP: Record<Prop, Grip> = {
   phone: 'hand', ring: 'hand', envelope: 'hand', beer: 'hand', glass: 'hand', flowers: 'hand', book: 'hand',
   umbrella: 'hang', pineapple: 'hand', goat: 'arms', gift: 'arms', sword: 'hand', briefcase: 'hang',
-  microphone: 'hand', french_horn: 'arms',
+  microphone: 'hand', french_horn: 'arms', sandwich: 'hand', laptop: 'arms', videotape: 'hand',
 };
 
 /** What the transcript calls it. */
 export const PROP_NAME: Record<Prop, string> = {
   phone: 'a phone', ring: 'a ring box', envelope: 'an envelope', beer: 'a beer', glass: 'a scotch', flowers: 'flowers',
   book: 'a book', umbrella: 'a yellow umbrella', pineapple: 'a pineapple', goat: 'a goat', gift: 'a gift', sword: 'a sword',
-  briefcase: 'a briefcase', microphone: 'a microphone', french_horn: 'a blue French horn',
+  briefcase: 'a briefcase', microphone: 'a microphone', french_horn: 'a blue French horn', sandwich: 'a sandwich',
+  laptop: 'a laptop', videotape: 'a videotape',
 };
 
 const part = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0) => {
@@ -178,6 +179,40 @@ export function buildProp(kind: Prop): THREE.Group {
       const bell = part(g, new THREE.CylinderGeometry(0.11, 0.025, 0.18, 12, 1, true), toon('#2a5ac8', { side: THREE.DoubleSide }), 0.16, 0.1, 0.02);
       bell.rotation.z = -0.9;
       part(g, cyl(0.008, 0.012, 0.08, 6), toon('#c8a040'), -0.13, 0.08, 0);
+      break;
+    }
+    case 'sandwich': {
+      // a deli sandwich, cut on the diagonal: two slices of bread, lettuce, tomato and a toothpick
+      const bread = toon('#e2b878'), crust = toon('#a8743a');
+      for (const y of [0.02, 0.085]) {
+        part(g, roundedBox(0.12, 0.022, 0.1, 0.008), bread, 0, y, 0);
+        part(g, box(0.124, 0.006, 0.104), crust, 0, y + (y < 0.05 ? -0.012 : 0.012), 0);
+      }
+      part(g, box(0.13, 0.012, 0.106), toon('#5aa040'), 0, 0.042, 0);
+      part(g, box(0.11, 0.01, 0.09), toon('#d0443a'), 0, 0.054, 0);
+      part(g, box(0.112, 0.012, 0.092), toon('#f0c8b8'), 0, 0.066, 0);
+      part(g, cyl(0.0025, 0.0025, 0.12, 4), toon('#e8d8a8'), 0.02, 0.1, 0.01);
+      break;
+    }
+    case 'laptop': {
+      // open in both arms, the screen turned out to show everyone else
+      const shell = toon('#9aa0a8', { emissive: '#2a2e34', emissiveIntensity: 0.3 });
+      part(g, roundedBox(0.34, 0.016, 0.24, 0.006), shell, 0, 0, 0.02);
+      part(g, box(0.3, 0.003, 0.12), toon('#2a2c30'), 0, 0.01, 0.05);
+      const lid = new THREE.Group();
+      lid.position.set(0, 0.008, -0.1);
+      lid.rotation.x = -0.35;
+      g.add(lid);
+      part(lid, roundedBox(0.34, 0.22, 0.012, 0.006), shell, 0, 0.11, 0);
+      part(lid, box(0.31, 0.19, 0.002), glow('#9fd0ff', 0.8), 0, 0.11, 0.007);
+      break;
+    }
+    case 'videotape': {
+      // a VHS cassette with a hand-written label
+      part(g, roundedBox(0.19, 0.105, 0.026, 0.004), toon('#1a1a1e'), 0, 0.05, 0);
+      part(g, box(0.12, 0.05, 0.002), toon('#f2ead2'), 0, 0.06, 0.014);
+      part(g, box(0.1, 0.004, 0.002), toon('#c8302a'), 0, 0.07, 0.0155);
+      for (const x of [-0.045, 0.045]) part(g, cyl(0.016, 0.016, 0.004, 10), toon('#5a5a5e'), x, 0.05, -0.014).rotation.x = Math.PI / 2;
       break;
     }
   }

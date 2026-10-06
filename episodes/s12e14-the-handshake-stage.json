@@ -241,7 +241,7 @@
         { "type": "say", "character": "ted", "to": "barney", "line": "He's never told me where he was before. We're getting closer.", "emotion": "happy", "laugh": "chuckle" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Ted. You're pen pals with a mailing list. Prepare to meet my best bro outside the group.", "emotion": "smug", "gesture": "suit_up" },
         { "type": "enter", "character": "ranjit", "to": "barney" },
-        { "type": "say", "character": "ranjit", "to": "ted", "line": "Hello!", "emotion": "happy", "gesture": "wave", "laugh": "woo" },
+        { "type": "say", "character": "ranjit", "to": "ted", "line": "Hello!", "emotion": "happy", "gesture": "wave", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "barney", "line": "That's Ranjit.", "delivery": "deadpan" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Ranjit has seen me cry in the back of a limo twice. Both times about a suit. That's friendship." },
         { "type": "say", "character": "barney", "to": "ranjit", "line": "Ranjit. Tell Ted what we are." },

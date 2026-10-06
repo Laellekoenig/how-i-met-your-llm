@@ -14,7 +14,8 @@ pick the stories, hand them out, and hold the bar.
 
 ## 1. Pitch session
 
-Run `bun run episodes list` to see what has aired and the next free code. Work out how many episodes to write: the
+Run `bun run episodes list` to see what has aired and the next free code, and `bun run episodes ledger` for the
+continuity so far (open bets and promises are good story seeds). Work out how many episodes to write: the
 number in the args, one per pitch given, or 1 if the args say neither.
 Read [the story-structure reference](../../../docs/story-structure-reference.md) for researched examples and
 the supported ways to open on the story, use narration, and cut to the kids.
@@ -42,7 +43,9 @@ Launch one `episode-writer` agent per episode, all in the same message so they r
 When the writers report back:
 1. Run `bun run episodes check` (all episodes) and `bun test`. Every episode must have 0 errors and the tests must pass.
 2. Read each new episode with `bun run episodes read <file>`. Hold it to the bar: a real story, character-specific
-   jokes, every scene ending on a button, a heart beat, and an earned ending (dialogue, visual payoff, kids or narration).
+   jokes, scenes that end where they should (a button or a deliberate quiet ending), a heart beat that isn't
+   explained away, and an earned ending (dialogue, visual payoff, kids or narration). Cues, cards and looks should
+   be choices, not decoration; the laugh track should be restrained (no cheering, rare `aww`/`ooh`/`gasp`).
    Check that the opening hooks us, that every couch visit has a story trigger, and that narration adds something
    beyond what we just saw. Compare the batch's first images and last beats; don't accept identical framing with
    different nouns. If an episode falls short,

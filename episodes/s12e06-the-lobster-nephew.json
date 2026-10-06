@@ -311,7 +311,7 @@
         { "type": "say", "character": "guest2", "to": "guest1", "line": "Halvorsen. Can I go now?", "delivery": "fast", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "guest2", "line": "Jurors two and five?" },
         { "type": "say", "character": "guest2", "to": "guest1", "line": "They texted. They'll vote whichever way makes the big guy stop talking.", "laugh": "laugh" },
-        { "type": "say", "character": "guest1", "to": "marshall", "line": "Then we have a verdict. Now serving: everyone's dinner.", "delivery": "deadpan", "laugh": "applause" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Then we have a verdict. Now serving: everyone's dinner.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "barney", "line": "Barney. You're the nephew. Out of my chair." },
         { "type": "move", "character": "barney", "to": "table_2_right" },
         { "type": "move", "character": "marshall", "to": "table_right" },

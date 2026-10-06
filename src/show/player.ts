@@ -4,12 +4,14 @@ import type { Renderer } from '../engine/renderer';
 import type { Overlay, Panel } from '../ui/overlay';
 import { audio } from '../audio/audio';
 import { speech, deliveryRate, estimateDuration } from '../audio/speech';
-import { CHARACTERS, FUTURE_TED_VOICE, charName } from '../world/characters';
+import { CHARACTERS, FUTURE_TED_VOICE, charName, outfitAt } from '../world/characters';
 import {
   CHARACTER_IDS, KIDS, PAIRED_GESTURES, isKid,
-  type Beat, type CharacterId, type Costume, type CutawayBeat, type CutawayStyle, type Emotion, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind,
-  type MontageBeat, type Reaction, type Scene, type ShowItem,
+  type Beat, type CastPlacement, type CharacterId, type Costume, type CutawayBeat, type CutawayLook, type CutawayStyle, type CutawayTransition,
+  type Emotion, type FreezeBeat, type Gesture, type GraphicBeat, type InsertBeat, type LaughKind, type MontageBeat, type MontageMusic, type Reaction,
+  type ReplayBeat, type Scene, type SceneLocationId, type Score, type ShowItem, type SoundCue, type SplitBeat, type TimeOfDay,
 } from '../script/types';
+import { replayBeats } from '../script/strands';
 import { GRIP, PROP_NAME } from '../world/props';
 import { sleep, clamp, pick, rand } from '../util';
 import { lipTrack } from '../world/lipsync';
@@ -31,13 +33,49 @@ const isKidBeat = (b: Beat) => (b.type === 'say' || b.type === 'act') && isKid(b
 /** Everyone a beat puts on stage: the speaker and whoever says it with them or reacts, both ends of a hand-off. */
 function participants(b: Beat): string[] {
   switch (b.type) {
-    case 'say': return [b.character, ...(b.chorus ?? []), ...(b.react ?? []).map((r) => r.character)];
+    case 'say': return [...(b.offscreen ? [] : [b.character, ...(b.chorus ?? [])]), ...(b.react ?? []).map((r) => r.character)];
     case 'give': return [b.character, b.to];
     case 'insert': return (b.react ?? []).map((r) => r.character);
     case 'act': case 'hold': case 'move': case 'exit': return [b.character];
     case 'freeze': return b.character ? [b.character] : [];
     default: return [];
   }
+}
+
+/** In a split screen the camera is fixed per panel: the beats' coverage choices are ignored. */
+const LOCKED_OFF = new Proxy({}, { get: () => () => undefined }) as Director;
+
+/** What a cutaway is, for the transcript. */
+const STYLE_NAME: Record<CutawayStyle, string> = {
+  imagined: 'Imagined', prediction: 'Predicted', flashback: 'Flashback', flash_forward: 'Flash-forward', meanwhile: 'Meanwhile',
+  misremembered: 'Misremembered', sanitized: "Ted's version",
+};
+
+/** A sequence played away from the scene: a cutaway, or a replay of an earlier scene or cutaway. */
+interface Sequence {
+  style: CutawayStyle;
+  label?: string;
+  look?: CutawayLook;
+  transition?: CutawayTransition;
+  sound?: SoundCue;
+  location: SceneLocationId;
+  time: TimeOfDay;
+  cast: CastPlacement[];
+  wardrobe?: Costume[];
+  /** Already happened: blocking replayed instantly before the first beat. */
+  before?: Beat[];
+  /** Revealed people placed after that. */
+  add?: CastPlacement[];
+  beats: Beat[];
+  replay?: boolean;
+}
+
+/** A beat's identity for seeding the camera: the same beat gets the same coverage. */
+function beatSeed(b: Beat) {
+  const s = JSON.stringify(b);
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
 }
 
 /** The episode's costumes with the scene's over them. */
@@ -70,6 +108,18 @@ export class Player {
   private fetching: Promise<ShowItem> | null = null;
   private wake: (() => void) | null = null;
   private playing = false;
+  /** What the current scene's people are wearing (the episode's costumes, with the scene's over them). */
+  private wardrobe: Costume[] = [];
+  /** Underscore a score beat started; it carries across lines, cutaways and scenes until another stops it. */
+  private score: MontageMusic | null = null;
+  /** A score beat asked for silence: no room tone either, until the next score beat or scene. */
+  private hushed = false;
+  /** Future Ted still talking under the action (a narrate beat with `over`). */
+  private voiceOver: Promise<void> | null = null;
+  /** The look of the cutaway we're in (null in the scene itself). */
+  private look: CutawayLook | null = null;
+  /** During a split screen: which panel each person is in. */
+  private panelOf: Map<CharacterId, number> | null = null;
   onItem: ((item: ShowItem) => void) | null = null;
 
   constructor(
@@ -300,6 +350,9 @@ export class Player {
 
   /** Brief, static crew cards on black, cut to the theme reprise with the playback clock. */
   private async endCredits() {
+    await this.quiet();
+    this.score = null;
+    audio.stopBed();
     this.credits = [];
     this.overlay.hideCaption();
     this.overlay.hideLocation();
@@ -330,13 +383,59 @@ export class Player {
     this.overlay.hideCards();
     this.overlay.insert(null);
     this.overlay.year(false);
-    this.renderer.fade = 1;
-    this.renderer.rewind = 0;
-    this.renderer.dream = this.renderer.ripple = this.renderer.memory = this.renderer.still = 0;
+    this.overlay.osd(null);
+    this.overlay.clearGraphics();
+    const r = this.renderer;
+    r.fade = 1;
+    r.rewind = 0;
+    r.dream = r.ripple = r.memory = r.still = r.whip = r.video = 0;
+    r.panels = r.panelsDone = null;
+    this.panelOf = null;
+    this.look = null;
+    this.voiceOver = null;
+    this.score = null;
+    this.hushed = false;
     this.stage.frozen = this.director.held = false;
     audio.stopSting();
     audio.stopBed(0.05);
     for (const a of Object.values(this.stage.actors)) a.talking = false;
+  }
+
+  /** The camera, unless a split screen has locked each panel's off. */
+  private get cam(): Director {
+    return this.panelOf ? LOCKED_OFF : this.director;
+  }
+
+  /** Two people who can see each other: always, except across the panels of a split screen. */
+  private together(a: CharacterId, b: CharacterId) {
+    return !this.panelOf || this.panelOf.get(a) === this.panelOf.get(b);
+  }
+
+  /** Room tone for the set we're on, unless the script asked for silence. */
+  private room(kind = this.stage.current.ambience) {
+    audio.ambience(this.hushed ? 'none' : kind);
+  }
+
+  /** Captions come down between beats, but not while Future Ted is still talking over the action. */
+  private hideCaption() {
+    if (!this.voiceOver) this.overlay.hideCaption();
+  }
+
+  /** Anyone about to speak waits for a voice-over to finish. */
+  private async quiet() {
+    if (this.voiceOver) await this.race(this.voiceOver);
+  }
+
+  private setScore(music: Score) {
+    this.hushed = music === 'silence';
+    if (music === 'none' || music === 'silence') {
+      this.score = null;
+      audio.stopBed(0.6);
+    } else {
+      this.score = music;
+      if (audio.bedKind !== music) audio.montage(music);
+    }
+    this.room();
   }
 
   private async fade(to: number, seconds: number) {
@@ -350,6 +449,8 @@ export class Player {
         // The script chooses a couch exchange or a story scene before the titles.
         this.currentEpisode = item.episode.id;
         this.previousScene = null;
+        this.score = null;
+        audio.stopBed(0.05);
         this.billing = openingCredits();
         this.credits = [];
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
@@ -359,7 +460,7 @@ export class Player {
         this.episodeWardrobe = item.wardrobe ?? [];
         this.stage.setWardrobe([]);
         if (item.openingScene) {
-          this.stage.setWardrobe(mergeWardrobe(this.episodeWardrobe, item.openingScene.wardrobe));
+          this.dress(item.openingScene);
           await this.playScene(item.openingScene, 0);
         } else if (item.coldOpen || item.couch?.length) {
           this.stage.setLocation('future', 'night');
@@ -378,6 +479,7 @@ export class Player {
           await this.wait(0.3);
         }
         this.stage.setWardrobe([]);
+        await this.quiet();
         await this.mainTitles();
         break;
       }
@@ -389,7 +491,7 @@ export class Player {
           this.episodeWardrobe = start?.kind === 'episode-start' ? start.wardrobe ?? [] : [];
           this.currentEpisode = item.episode.id;
         }
-        this.stage.setWardrobe(mergeWardrobe(this.episodeWardrobe, item.scene.wardrobe));
+        this.dress(item.scene);
         await this.playScene(item.scene, item.index);
         break;
       case 'episode-end': {
@@ -399,13 +501,27 @@ export class Player {
     }
   }
 
+  private dress(scene: Scene) {
+    this.wardrobe = mergeWardrobe(this.episodeWardrobe, scene.wardrobe);
+    this.stage.setWardrobe(this.wardrobe);
+  }
+
   private async playScene(scene: Scene, index: number) {
     await this.untilUnpaused();
-    this.overlay.hideCaption();
+    this.hideCaption();
     this.overlay.hideLocation();
     this.overlay.year(false);
+    this.overlay.clearGraphics();
+    this.overlay.osd(null);
+    this.hushed = false;
     const transition = sceneTransition(scene, this.previousScene, index);
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // A scene change comes in on the guitar sting (a cut into the very first scene doesn't), unless the script
+    // asks for silence or another cue.
+    const cue = (sting: boolean) => {
+      if (scene.sound && scene.sound !== 'none') audio.cue(scene.sound);
+      else if (!scene.sound && sting) audio.sting('transition');
+    };
     let firstBeat = 0;
     if (transition === 'skyline' || transition === 'exterior' || transition === 'atlantic_city') {
       const shot = this.director.current;
@@ -414,11 +530,11 @@ export class Player {
         this.director.establish(this.stage.establish(transition, scene.location, scene.time), !reducedMotion);
         audio.ambience('none');
         this.renderer.fade = 1;
-        audio.sting('transition');
+        cue(true);
         const opening = scene.beats[0];
         if (opening?.type === 'narrate') {
           // Start Ted over the city, then cut inside when his setup lands. Never repeat this beat.
-          await Promise.all([this.wait(1.9), this.narrate(opening.line, opening.laugh)]);
+          await Promise.all([this.wait(1.9), this.narrate(opening.line, opening.laugh, opening.over)]);
           firstBeat = 1;
         } else await this.wait(1.9);
       } finally {
@@ -427,21 +543,23 @@ export class Player {
         audio.ambience(ambience);
       }
     }
+    const card = scene.label ? { label: scene.label } : undefined;
     if (transition === 'rewind') {
-      audio.rewind();
+      if (scene.sound && scene.sound !== 'none') audio.cue(scene.sound);
+      else if (!scene.sound) audio.rewind();
       if (!reducedMotion) {
         try {
           await this.animate(0.22, (u) => { this.renderer.rewind = u; });
-          this.stageScene(scene);
+          this.stageScene(scene, card, scene.strand?.before);
           this.renderer.fade = 1;
           await this.animate(0.28, (u) => { this.renderer.rewind = 1 - u; });
         } finally {
           this.renderer.rewind = 0;
         }
-      } else this.stageScene(scene);
+      } else this.stageScene(scene, card, scene.strand?.before);
     } else {
-      this.stageScene(scene);
-      if (transition === 'cut' && index > 0 && scene.location !== 'future') audio.sting('transition');
+      this.stageScene(scene, card, scene.strand?.before);
+      if (transition === 'cut') cue(index > 0 && scene.location !== 'future');
     }
     this.renderer.fade = 1;
     this.previousScene = scene;
@@ -468,57 +586,167 @@ export class Player {
   }
 
   /**
-   * Into somebody's imagination (a harp run and a wavy dissolve) or back in time (the rewind smear), play the
-   * sequence on its own set, then return to the scene exactly as we left it.
+   * Leave the scene for a sequence somewhere else (a cutaway, or a replay of an earlier scene or cutaway), then come
+   * back to it exactly as we left it. How it looks and sounds is the script's choice, independent of what it is:
+   * by default a clean, silent cut, in normal color, with no card.
    */
-  private async playCutaway(c: CutawayBeat) {
+  private async playSequence(q: Sequence) {
     const st = this.stage, r = this.renderer;
     const shot = this.director.current;
     const ambience = st.current.ambience;
     const frozen = st.freeze();
-    const imagined = c.style === 'imagined';
+    const look = q.look ?? 'plain';
     const reducedMotion = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const label = c.label || (imagined ? 'Picture this' : 'Earlier');
-    this.overlay.hideCaption();
-    this.panel.line('stage', `${imagined ? 'Imagined' : 'Flashback'}: ${label}.`);
+    const edit = reducedMotion ? 'cut' : q.transition ?? 'cut';
+    const outer = { look: this.look, dream: r.dream, memory: r.memory, video: r.video, graphics: this.overlay.stashGraphics() };
+    const costumes = !!q.wardrobe?.length;
+    this.hideCaption();
+    const what = q.replay ? `Replay (${STYLE_NAME[q.style].toLowerCase()})` : STYLE_NAME[q.style];
+    this.panel.line('stage', `${what}${q.label ? `: ${q.label}` : ''}.`);
     try {
-      if (imagined) {
-        audio.dream(true);
-        if (!reducedMotion) await this.animate(0.45, (u) => { r.ripple = u; r.dream = u; });
-      } else {
-        audio.rewind();
-        if (!reducedMotion) await this.animate(0.22, (u) => { r.rewind = u; });
-      }
-      this.stageScene({ location: c.location, time: c.time, cast: c.cast, beats: c.beats }, { label, style: c.style });
-      r.dream = imagined ? 1 : 0;
-      r.memory = imagined ? 0 : 1;
-      if (!reducedMotion) await this.animate(imagined ? 0.45 : 0.28, (u) => {
-        if (imagined) r.ripple = 1 - u;
-        else r.rewind = 1 - u;
-      });
-      r.ripple = r.rewind = 0;
+      if (q.sound) audio.cue(q.sound);
+      // tape being wound back to play it again
+      if (q.replay && look === 'video') this.overlay.osd('◀◀ REWIND');
+      await this.edit(edit, 'out');
+      if (costumes) st.setWardrobe(mergeWardrobe(this.wardrobe, q.wardrobe));
+      this.stageScene({ location: q.location, time: q.time, cast: q.cast, beats: q.beats }, { label: q.label, look }, q.before, q.add);
+      this.look = look;
+      r.dream = look === 'dream' ? 1 : 0;
+      r.memory = look === 'memory' ? 1 : 0;
+      r.video = look === 'video' ? 1 : 0;
+      this.overlay.osd(look === 'video' ? '▶ PLAY' : null);
+      await this.edit(edit, 'in');
       await this.wait(0.2);
-      await this.playBeats(c.beats, false);
+      await this.playBeats(q.beats, false);
       await this.wait(0.3);
-      this.overlay.hideCaption();
-      if (imagined) {
-        audio.dream(false);
-        if (!reducedMotion) await this.animate(0.35, (u) => { r.ripple = u; });
-      } else if (!reducedMotion) await this.animate(0.16, (u) => { r.rewind = u; });
+      this.hideCaption();
+      await this.edit(edit, 'out');
     } finally {
-      r.dream = r.memory = r.ripple = r.rewind = 0;
+      r.ripple = r.rewind = r.whip = 0;
+      Object.assign(r, { dream: outer.dream, memory: outer.memory, video: outer.video });
+      // the scene's clothes go back on before it's restored
+      if (costumes) st.setWardrobe(this.wardrobe);
       st.thaw(frozen);
+      this.look = outer.look;
+      this.overlay.osd(outer.look === 'video' ? '▶ PLAY' : null);
+      this.overlay.restoreGraphics(outer.graphics);
       this.overlay.year(st.current.id === 'future');
-      audio.ambience(ambience);
+      this.room(ambience);
+      this.director.resume(shot);
+    }
+    await this.edit(edit, 'in');
+    await this.wait(0.25);
+  }
+
+  /** Half of an edit into or out of a sequence: the effect building up ('out'), or settling down ('in'). */
+  private async edit(kind: CutawayTransition, half: 'out' | 'in') {
+    if (kind === 'cut') return;
+    const r = this.renderer;
+    const seconds = kind === 'ripple' ? 0.4 : kind === 'whip' ? 0.16 : 0.22;
+    try {
+      await this.animate(seconds, (u) => {
+        const k = half === 'out' ? u : 1 - u;
+        if (kind === 'ripple') r.ripple = k;
+        else if (kind === 'rewind') r.rewind = k;
+        // a whip tears out one way and lands from the other side
+        else r.whip = half === 'out' ? u : u - 1;
+      });
+    } finally {
+      if (half === 'in') r.ripple = r.rewind = r.whip = 0;
+    }
+  }
+
+  private playCutaway(c: CutawayBeat) {
+    return this.playSequence({ ...c, before: [] });
+  }
+
+  /** Play a scene or cutaway again from where it started, with the same blocking, framing and timing, and the changes made. */
+  private playReplay(b: ReplayBeat) {
+    const s = b.strand;
+    if (!s) return;
+    return this.playSequence({
+      style: b.style ?? s.style ?? 'flashback', label: b.label, look: b.look, transition: b.transition, sound: b.sound,
+      location: s.location, time: s.time, cast: s.cast, wardrobe: [...(s.wardrobe ?? []), ...(b.wardrobe ?? [])],
+      before: [...s.before, ...s.beats.slice(0, b.from ?? 0)], add: b.add, beats: replayBeats(s.beats, b), replay: true,
+    });
+  }
+
+  /**
+   * Two or three places on screen at once: each panel's set and people, framed once and held. The beats play
+   * across them (a phone call, the same conversation in three places); then back to the scene as it was.
+   */
+  private async playSplit(b: SplitBeat) {
+    const st = this.stage, r = this.renderer;
+    const shot = this.director.current;
+    const ambience = st.current.ambience;
+    const frozen = st.freeze();
+    const graphics = this.overlay.stashGraphics();
+    const groups: CharacterId[][] = [];
+    this.hideCaption();
+    this.panel.line('stage', `Split screen: ${b.panels.map((p) => st.sets[p.location].name).join(' | ')}.`);
+    try {
+      if (b.sound) audio.cue(b.sound);
+      b.panels.forEach((p, i) => {
+        if (i) st.openPanel(p.location, p.time);
+        else st.setLocation(p.location, p.time);
+        const ids: CharacterId[] = [];
+        for (const c of p.cast) {
+          if (!isChar(c.character) || isKid(c.character) || groups.flat().includes(c.character)) continue;
+          if (i || c.outfit) st.dress(c.character, c.outfit ?? outfitAt(c.character, p.location));
+          st.place(c.character, c.mark);
+          ids.push(c.character);
+        }
+        groups.push(ids);
+      });
+      // frame each panel on its own people, with nobody from the other sets in the way
+      const cameras = groups.map((ids, i) => {
+        st.focusPanel(b.panels[i].location);
+        const others = groups.flat().filter((id) => !ids.includes(id));
+        for (const id of others) st.actors[id].root.visible = false;
+        if (ids.length === 1) this.director.closeup(ids[0]);
+        else if (ids.length === 2) this.director.twoShot(ids[0], ids[1]);
+        else this.director.coverage(ids, false);
+        for (const id of others) st.actors[id].root.visible = true;
+        return this.director.snapshot();
+      });
+      st.focusPanel(b.panels[0].location);
+      const sets = b.panels.map((p) => st.sets[p.location]);
+      const show = (i: number) => {
+        sets.forEach((set, j) => (set.group.visible = j === i));
+        groups.forEach((ids, j) => ids.forEach((id) => (st.actors[id].root.visible = j === i)));
+      };
+      r.panels = cameras.map((camera, i) => ({ camera, show: () => show(i) }));
+      r.panelsDone = () => {
+        for (const set of sets) set.group.visible = true;
+        for (const id of groups.flat()) st.actors[id].root.visible = true;
+      };
+      this.panelOf = new Map(groups.flatMap((ids, i) => ids.map((id) => [id, i] as const)));
+      if (b.label) this.overlay.location(b.label);
+      this.room(sets[0].ambience);
+      await this.wait(0.3);
+      await this.playBeats(b.beats, false);
+      await this.wait(0.3);
+      this.hideCaption();
+    } finally {
+      r.panels = r.panelsDone = null;
+      this.panelOf = null;
+      st.thaw(frozen);
+      this.overlay.hideLocation();
+      this.overlay.restoreGraphics(graphics);
+      this.room(ambience);
       this.director.resume(shot);
     }
     await this.wait(0.25);
   }
 
-  /** Stage and frame the interior in one synchronous cut, including the midpoint of a flashback. */
-  private stageScene(scene: Pick<Scene, 'location' | 'time' | 'cast' | 'beats'>, cutaway?: { label: string; style: CutawayStyle | 'montage' }) {
+  /**
+   * Stage and frame the interior in one synchronous cut, including the midpoint of a flashback. `before` is what
+   * already happened there (a scene picked up again, a replay from partway in), staged instantly; `add` is anyone
+   * revealed to have been there all along.
+   */
+  private stageScene(scene: Pick<Scene, 'location' | 'time' | 'cast' | 'beats'>, card?: { label?: string; look?: CutawayLook | 'montage' }, before: Beat[] = [], add: CastPlacement[] = []) {
     this.stage.setLocation(scene.location, scene.time);
-    audio.ambience(this.stage.current.ambience);
+    this.room();
     const onCouch = scene.location === 'future';
     if (onCouch) this.stage.seatKids();
 
@@ -526,22 +754,31 @@ export class Player {
     // (Except the kids: they're in 2030, and get cut to.)
     const entering = new Set<CharacterId>();
     const present = new Set<CharacterId>();
+    // (people a replay reveals go on their own marks, below)
+    const revealed = new Set(add.map((c) => c.character));
     for (const c of scene.cast) {
       if (!isChar(c.character) || isKid(c.character) || present.has(c.character)) continue;
       present.add(c.character);
       if (c.outfit) this.stage.dress(c.character, c.outfit);
       this.stage.place(c.character, c.mark);
     }
-    for (const b of scene.beats) {
+    for (const b of [...before, ...scene.beats]) {
       if (b.type === 'enter') {
         if (!present.has(b.character) && !isKid(b.character)) entering.add(b.character);
         continue;
       }
       for (const who of participants(b)) {
-        if (!isChar(who) || isKid(who) || present.has(who) || entering.has(who)) continue;
+        if (!isChar(who) || isKid(who) || present.has(who) || entering.has(who) || revealed.has(who)) continue;
         present.add(who);
         this.stage.place(who, this.stage.resolveMark(undefined, who));
       }
+    }
+    this.fastForward(before);
+    for (const c of add) {
+      if (!isChar(c.character) || isKid(c.character) || this.stage.onStage(c.character)) continue;
+      present.add(c.character);
+      if (c.outfit) this.stage.dress(c.character, c.outfit);
+      this.stage.place(c.character, c.mark);
     }
     for (const bg of this.stage.current.background) {
       if (!present.has(bg.character) && !entering.has(bg.character)) {
@@ -552,8 +789,29 @@ export class Player {
 
     this.director.coverage(this.stage.castIds());
     this.overlay.year(onCouch);
-    if (cutaway?.label) this.overlay.location(cutaway.label, cutaway.style);
+    if (card?.label) this.overlay.location(card.label, card.look);
     else this.overlay.hideLocation();
+  }
+
+  /** Everything that already happened in a scene we're picking up: entrances, exits, moves and props, all at once. */
+  private fastForward(beats: Beat[]) {
+    const st = this.stage;
+    for (const b of beats) {
+      if (!('character' in b) || !isChar(b.character) || isKid(b.character)) continue;
+      const who = b.character;
+      if (b.type === 'enter') void (st.onStage(who) ? b.to && st.moveTo(who, b.to) : st.enter(who, b.to));
+      else if (!st.onStage(who)) continue;
+      else if (b.type === 'move') void st.moveTo(who, b.to === who ? 'center' : b.to);
+      else if (b.type === 'exit') st.leave(who);
+      else if (b.type === 'act' && (b.gesture === 'sit' || b.gesture === 'stand')) void (b.gesture === 'sit' ? st.sitDown(who) : st.standUp(who));
+      else if (b.type === 'hold') st.actors[who].hold(b.prop === 'none' ? null : b.prop);
+      else if (b.type === 'give' && isChar(b.to) && st.onStage(b.to)) {
+        const prop = b.prop ?? st.actors[who].prop;
+        st.actors[who].hold(null);
+        st.actors[b.to].hold(prop);
+      }
+      for (const id of st.onStageIds()) st.actors[id].arrive();
+    }
   }
 
   /**
@@ -565,14 +823,18 @@ export class Player {
     const shot = this.director.current;
     const ambience = st.current.ambience;
     const frozen = st.freeze();
-    this.overlay.hideCaption();
+    const graphics = this.overlay.stashGraphics();
+    this.hideCaption();
+    this.overlay.osd(null);
     this.panel.line('stage', `Montage${m.label ? `: ${m.label}` : ''}.`);
     audio.montage(m.music);
     try {
       for (const [i, s] of m.shots.entries()) {
         await this.untilUnpaused();
         const label = i === 0 && m.label ? m.label + (s.label ? ` · ${s.label}` : '') : s.label ?? '';
-        this.stageScene({ location: s.location, time: s.time, cast: s.cast, beats: s.beats }, { label, style: 'montage' });
+        // another year, another look: the shot's own clothes
+        st.setWardrobe(s.wardrobe?.length ? mergeWardrobe(this.wardrobe, s.wardrobe) : this.wardrobe);
+        this.stageScene({ location: s.location, time: s.time, cast: s.cast, beats: s.beats }, { label, look: 'montage' });
         // the music carries it; no room tone
         audio.ambience('none');
         await this.wait(0.15);
@@ -581,10 +843,15 @@ export class Player {
       }
     } finally {
       audio.stopBed();
+      // underscore the montage interrupted picks up again
+      if (this.score) audio.montage(this.score);
+      st.setWardrobe(this.wardrobe);
       st.thaw(frozen);
       this.overlay.hideLocation();
+      this.overlay.osd(this.look === 'video' ? '▶ PLAY' : null);
+      this.overlay.restoreGraphics(graphics);
       this.overlay.year(st.current.id === 'future');
-      audio.ambience(ambience);
+      this.room(ambience);
       this.director.resume(shot);
     }
     await this.wait(0.3);
@@ -592,29 +859,34 @@ export class Player {
 
   /** Future Ted talks over a frozen frame, maybe caught mid-gesture; then it all carries on. */
   private async freeze(b: FreezeBeat) {
+    await this.quiet();
     const st = this.stage, r = this.renderer;
     const who = isChar(b.character) && st.onStage(b.character) ? b.character : undefined;
     let rest = 0;
     if (who) {
       st.actors[who].setEmotion(b.emotion);
       const to = isChar(b.to) && b.to !== who && st.onStage(b.to) ? b.to : undefined;
-      if (b.shot) this.director.intent(b.shot, who, to);
-      else if (to) this.director.twoShot(who, to);
-      else this.director.closeup(who);
+      if (b.shot) this.cam.intent(b.shot, who, to);
+      else if (to) this.cam.twoShot(who, to);
+      else this.cam.closeup(who);
       const d = b.gesture ? this.gesture(who, b.gesture, to, 0, b.emotion) : 0;
       // caught at the height of it
       await this.wait(d ? d * 0.45 : 0.4);
       rest = d * 0.55;
     }
-    audio.freezeFrame();
+    if (b.sound) audio.cue(b.sound);
+    // on a tape, a freeze frame is somebody hitting pause
+    const tape = this.look === 'video';
+    if (tape) this.overlay.osd('❚❚ PAUSE');
     st.frozen = this.director.held = true;
     r.still = 1;
-    this.panel.line('stage', '[freeze frame]');
+    this.panel.line('stage', tape ? '[paused]' : '[freeze frame]');
     try {
       await this.narrate(b.line, b.laugh);
     } finally {
       st.frozen = this.director.held = false;
       r.still = 0;
+      if (tape) this.overlay.osd('▶ PLAY');
     }
     if (rest) await this.wait(rest);
   }
@@ -624,9 +896,10 @@ export class Player {
    * come in one at a time while someone (or Future Ted) reads over it; then back to the room for the reaction.
    */
   private async insert(b: InsertBeat) {
-    this.overlay.hideCaption();
+    if (b.line) await this.quiet();
+    this.hideCaption();
     this.overlay.insert(b);
-    if (b.kind !== 'text') audio.whoosh();
+    if (b.sound && b.sound !== 'none') audio.cue(b.sound);
     this.panel.line('stage', insertText(b));
     const n = this.overlay.revealInsert(0);
     const words = [b.title, ...(b.lines ?? []), ...(b.messages ?? []).map((m) => m.text), ...(b.items ?? []).map((i) => i.label)]
@@ -638,7 +911,8 @@ export class Player {
       if (k === shown) return;
       shown = k;
       this.overlay.revealInsert(k);
-      if (b.kind === 'text') audio.textChime();
+      // the phone itself: each text arrives with its chime
+      if (b.kind === 'text' && b.sound !== 'none') audio.textChime();
     });
     const line = clean(b.line ?? '');
     const reader = isChar(b.character) && !isKid(b.character) ? b.character : undefined;
@@ -675,15 +949,16 @@ export class Player {
       const d = r.gesture ? gestureDuration(r.gesture) : 0;
       a.later(delay, () => {
         a.setEmotion(emotion);
-        if (r.gesture) this.gesture(r.character, r.gesture, speaker && st.onStage(speaker) ? speaker : undefined, 0, r.emotion);
+        if (r.gesture) this.gesture(r.character, r.gesture, speaker && st.onStage(speaker) && this.together(speaker, r.character) ? speaker : undefined, 0, r.emotion);
       });
       longest = Math.max(longest, d + delay);
     }
     this.panel.line('stage', `${groupName(who.map((r) => r.character), st.castIds())} ${who.length > 1 ? 'react' : 'reacts'}.`);
-    const toward = speaker && st.onStage(speaker) ? speaker : undefined;
+    const toward = speaker && st.onStage(speaker) && !this.panelOf ? speaker : undefined;
     const ids = who.map((r) => r.character);
     // a single take cheats out toward the lens, so the face reads
     const take = (id: CharacterId) => {
+      if (this.panelOf) return;
       this.director.closeup(id, toward);
       const lens = this.director.current?.pos;
       if (lens) st.actors[id].lookAt = (toward ? st.actors[toward].headWorld : st.actors[id].headWorld).lerp(lens, 0.7);
@@ -699,7 +974,7 @@ export class Player {
       return;
     }
     if (ids.length === 1) take(ids[0]);
-    else this.director.group(ids, toward);
+    else this.cam.group(ids, toward);
     await this.wait(clamp(longest * 0.8, 0.9, 2.2));
   }
 
@@ -708,11 +983,13 @@ export class Player {
     const st = this.stage;
     const shot = this.director.current;
     const ambience = st.current.ambience;
-    // 2030 is real: no fantasy haze or old-film grade on the couch
-    const grade = { dream: this.renderer.dream, memory: this.renderer.memory };
+    // 2030 is real: no fantasy haze, old-film grade or tape on the couch, and nothing drawn over it
+    const grade = { dream: this.renderer.dream, memory: this.renderer.memory, video: this.renderer.video };
+    const graphics = this.overlay.stashGraphics();
     st.cutToKids();
     audio.ambience('none');
-    this.renderer.dream = this.renderer.memory = 0;
+    this.overlay.osd(null);
+    this.renderer.dream = this.renderer.memory = this.renderer.video = 0;
     this.director.wide(0);
     this.overlay.year(true);
     try {
@@ -726,18 +1003,32 @@ export class Player {
       st.cutBack();
       this.overlay.year(false);
       Object.assign(this.renderer, grade);
-      audio.ambience(ambience);
+      this.overlay.osd(this.look === 'video' ? '▶ PLAY' : null);
+      this.overlay.restoreGraphics(graphics);
+      this.room(ambience);
       this.director.resume(shot);
     }
   }
 
-  private async narrate(line: string, laugh?: LaughKind) {
+  /** Future Ted. With `over`, he keeps talking while the next beats play; the next person to speak waits. */
+  private async narrate(line: string, laugh?: LaughKind, over = false) {
+    await this.quiet();
     const text = clean(line);
     if (!text) return;
     this.panel.line('narr', text, 'Future Ted');
     // the kids look back at their dad
     for (const id of KIDS) if (this.stage.onStage(id)) this.stage.actors[id].lookAt = null;
     const h = speech.speak(text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
+    if (over) {
+      const done: Promise<void> = this.race(h.done).then(() => {
+        if (this.voiceOver === done) {
+          this.voiceOver = null;
+          this.overlay.hideCaption();
+        }
+      }, () => {});
+      this.voiceOver = done;
+      return;
+    }
     await this.race(h.done);
     await this.untilUnpaused();
     this.overlay.hideCaption();
@@ -747,16 +1038,15 @@ export class Player {
 
   private async laugh(kind: LaughKind) {
     const d = audio.laugh(kind);
+    // the soundtrack only: who laughs on stage (and who's mortified) is up to the script
     this.panel.line('laugh', `[${kind === 'big' ? 'big laugh' : kind}]`);
-    // react on stage: everybody enjoys a good laugh line
-    if (kind === 'big' || kind === 'laugh') this.stage.onStageIds().forEach((id) => Math.random() < 0.3 && this.stage.actors[id].setEmotion('happy'));
     await this.wait(d ? clamp(d * 0.6, 0.8, 2.6) : 0.4);
   }
 
   private lookAtSpeaker(speaker: CharacterId) {
     const head = this.stage.actors[speaker].headWorld;
     for (const id of this.stage.onStageIds()) {
-      if (id === speaker) continue;
+      if (id === speaker || !this.together(id, speaker)) continue;
       const a = this.stage.actors[id];
       if (!a.isWalking) a.lookAt = head;
     }
@@ -764,9 +1054,16 @@ export class Player {
 
   private async beat(b: Beat) {
     const st = this.stage;
+    // the same beat is covered the same way, so a replay looks like what we saw the first time
+    this.director.reseed(beatSeed(b));
     switch (b.type) {
       case 'say': {
         if (!isChar(b.character)) return;
+        await this.quiet();
+        if (b.offscreen) {
+          await this.offscreen(b);
+          break;
+        }
         const a = st.actors[b.character];
         if (isKid(b.character) && !st.onStage(b.character)) return;
         st.setBackground(b.character, false);
@@ -775,16 +1072,16 @@ export class Player {
         if (!text) return;
         a.setEmotion(b.emotion ?? (b.delivery === 'deadpan' ? 'bored' : undefined));
         const to = isChar(b.to) && b.to !== b.character && st.onStage(b.to) ? b.to : undefined;
-        if (to) {
+        if (to && this.together(to, b.character)) {
           const th = st.actors[to].headWorld;
           a.lookAt = th;
           if (!a.isSitting && !a.isWalking) a.faceTowards(th);
-        } else if (isKid(b.character)) {
-          // talking to Dad, who is where the camera is
+        } else if (isKid(b.character) || to) {
+          // talking to Dad, who is where the camera is (or down the line to the other panel)
           a.lookAt = null;
         } else {
           // addressing the room: look at whoever's closest-ish, or the audience
-          const others = st.onStageIds().filter((i) => i !== b.character && !b.chorus?.includes(i));
+          const others = st.onStageIds().filter((i) => i !== b.character && !b.chorus?.includes(i) && this.together(i, b.character));
           a.lookAt = others.length ? st.actors[pick(others)].headWorld : null;
         }
         this.lookAtSpeaker(b.character);
@@ -797,19 +1094,20 @@ export class Player {
           st.actors[id].lookAt = a.lookAt;
         }
         const delivery = b.delivery;
-        if (isKid(b.character)) chorus.length ? this.director.wide(0) : this.director.onCouchLine(b.character);
-        else if (b.shot) this.director.intent(b.shot, b.character, to);
-        else if (chorus.length) this.director.group([b.character, ...chorus]);
+        const cam = this.cam;
+        if (isKid(b.character)) chorus.length ? cam.wide(0) : cam.onCouchLine(b.character);
+        else if (b.shot) cam.intent(b.shot, b.character, to);
+        else if (chorus.length) cam.group([b.character, ...chorus]);
         // a whisper is a two-shot secret; a shout gets the single
-        else if (delivery === 'whisper' && to) this.director.twoShot(b.character, to);
-        else if (delivery === 'shout') this.director.closeup(b.character, to);
-        else this.director.onLine(b.character, to);
+        else if (delivery === 'whisper' && to) cam.twoShot(b.character, to);
+        else if (delivery === 'shout') cam.closeup(b.character, to);
+        else cam.onLine(b.character, to);
         const def = CHARACTERS[b.character];
         const name = chorus.length ? groupName([b.character, ...chorus], st.castIds()) : def.name;
         const color = chorus.length ? '#ffffff' : def.color;
         this.panel.line('say', delivery && delivery !== 'fast' && delivery !== 'slow' ? `(${delivery}) ${text}` : text, name, color);
         const seconds = estimateDuration(text, def.voice.rate * deliveryRate(delivery));
-        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to, seconds, b.emotion);
+        if (b.gesture && b.gesture !== 'none') this.gesture(b.character, b.gesture, to && this.together(to, b.character) ? to : undefined, seconds, b.emotion);
         const level = delivery === 'shout' ? 1.6 : delivery === 'whisper' ? 0.45 : delivery === 'sing' ? 1.2 : 1;
         // the mouth follows the words: spelled out over the line's length, kept in step by the voice
         const track = lipTrack(text.replace(/[-–—]+$/, ''), seconds * (b.interrupted ? 0.88 : 1));
@@ -822,7 +1120,7 @@ export class Player {
             v.speak(track);
           }
           this.overlay.showCaption(name, color, text, false, delivery);
-          if (delivery === 'sing') audio.serenade(seconds);
+          if (delivery === 'sing' && b.accompanied) audio.serenade(seconds);
         }, { delivery, cutOff: b.interrupted, onWord: (i) => voices.forEach((v) => v.syncWord(i)) });
         try {
           await this.race(h.done);
@@ -833,7 +1131,7 @@ export class Player {
             v.speak(null);
           }
           for (const id of listeners) st.actors[id].listen(null);
-          if (delivery === 'sing') audio.stopSting();
+          if (delivery === 'sing' && b.accompanied) audio.stopSting();
         }
         this.overlay.hideCaption();
         if (b.react?.length && !b.interrupted) await this.react(b.react, b.character);
@@ -843,7 +1141,7 @@ export class Player {
         break;
       }
       case 'narrate':
-        await this.narrate(b.line, b.laugh);
+        await this.narrate(b.line, b.laugh, b.over);
         break;
       case 'move': {
         if (!isChar(b.character) || isKid(b.character)) return;
@@ -882,23 +1180,26 @@ export class Player {
         st.actors[b.character].setEmotion(b.emotion);
         const to = isChar(b.to) && b.to !== b.character && st.onStage(b.to) ? b.to : undefined;
         this.panel.line('stage', `${charName(b.character)} ${gestureText(b.gesture, to)}.`);
+        const cam = this.cam;
         if (b.gesture === 'sit' || b.gesture === 'stand') {
           const p = b.gesture === 'sit' ? st.sitDown(b.character) : st.standUp(b.character);
-          if (b.shot) this.director.intent(b.shot, b.character, to);
-          else this.director.coverage(st.castIds());
+          if (b.shot) cam.intent(b.shot, b.character, to);
+          else cam.coverage(st.castIds());
           await this.race(Promise.race([p, sleep(2600)]));
           break;
         }
-        if (to && (PAIRED_GESTURES as readonly Gesture[]).includes(b.gesture)) {
-          const a = st.actors[b.character], o = st.actors[to];
+        // across a split screen, a gesture is made at the camera
+        const at = to && this.together(to, b.character) ? to : undefined;
+        if (at && (PAIRED_GESTURES as readonly Gesture[]).includes(b.gesture)) {
+          const a = st.actors[b.character], o = st.actors[at];
           const reach = b.gesture === 'kiss' ? 1.1 : 1.4;
-          if (a.position.distanceTo(o.position) > reach && !a.isSitting) await this.race(Promise.race([st.moveTo(b.character, to), sleep(2500)]));
-          if (b.shot) this.director.intent(b.shot, b.character, to);
-          else this.director.twoShot(b.character, to);
-        } else if (b.shot) this.director.intent(b.shot, b.character, to);
-        else if (to) this.director.twoShot(b.character, to);
-        else if (Math.random() < 0.6) this.director.closeup(b.character);
-        const d = this.gesture(b.character, b.gesture, to, 0, b.emotion);
+          if (a.position.distanceTo(o.position) > reach && !a.isSitting) await this.race(Promise.race([st.moveTo(b.character, at), sleep(2500)]));
+          if (b.shot) cam.intent(b.shot, b.character, at);
+          else cam.twoShot(b.character, at);
+        } else if (b.shot) cam.intent(b.shot, b.character, at);
+        else if (at) cam.twoShot(b.character, at);
+        else if (this.director.random() < 0.6) cam.closeup(b.character);
+        const d = this.gesture(b.character, b.gesture, at, 0, b.emotion);
         await this.wait(Math.max(0.6, d * 0.85));
         break;
       }
@@ -909,8 +1210,8 @@ export class Player {
         if (a.prop === prop) return;
         const was = a.prop;
         this.panel.line('stage', prop ? `${charName(b.character)} picks up ${PROP_NAME[prop]}.` : `${charName(b.character)} puts ${PROP_NAME[was!].replace(/^an? /, 'the ')} down.`);
-        if (b.shot) this.director.intent(b.shot, b.character);
-        else if ((prop && GRIP[prop] !== 'hang') || Math.random() < 0.5) this.director.closeup(b.character);
+        if (b.shot) this.cam.intent(b.shot, b.character);
+        else if ((prop && GRIP[prop] !== 'hang') || this.director.random() < 0.5) this.cam.closeup(b.character);
         // reach out, and it's in hand (or gone)
         a.onGestureBeat = () => a.hold(prop);
         const d = a.doGesture('give');
@@ -957,6 +1258,26 @@ export class Player {
       case 'laugh':
         await this.laugh(b.laugh);
         break;
+      case 'sound':
+        this.panel.line('stage', `[${b.sound}]`);
+        audio.cue(b.sound);
+        await this.wait(0.15);
+        break;
+      case 'score':
+        this.panel.line('stage', b.music === 'none' ? '[music out]' : b.music === 'silence' ? '[silence]' : `[${b.music} music]`);
+        this.setScore(b.music);
+        break;
+      case 'graphic':
+        this.panel.line('stage', graphicText(b));
+        this.overlay.graphic(b);
+        await this.wait(b.kind === 'clear' ? 0.1 : b.kind === 'venn' || b.kind === 'axes' ? 1.4 : 0.5);
+        break;
+      case 'replay':
+        if (!st.inCutaway) await this.playReplay(b);
+        break;
+      case 'split':
+        if (!st.inCutaway && !this.panelOf) await this.playSplit(b);
+        break;
       case 'pause':
         await this.wait(clamp(Number(b.seconds) || 1, 0.3, 4));
         break;
@@ -965,6 +1286,30 @@ export class Player {
         if (!st.inCutaway) await this.playCutaway(b);
         break;
     }
+  }
+
+  /** A line heard but not seen: down the phone, or from out of shot. The camera stays on whoever's listening. */
+  private async offscreen(b: Extract<Beat, { type: 'say' }>) {
+    const st = this.stage;
+    const text = clean(b.line);
+    if (!text) return;
+    const def = CHARACTERS[b.character];
+    const to = isChar(b.to) && st.onStage(b.to) ? b.to : undefined;
+    if (to && !st.actors[to].isWalking) this.cam.closeup(to);
+    const name = `${def.name} (${b.offscreen === 'phone' ? 'on the phone' : 'offscreen'})`;
+    this.panel.line('say', text, name, def.color);
+    const listeners = st.onStageIds();
+    for (const id of listeners) st.actors[id].listen(b.emotion ?? 'neutral');
+    const h = speech.speak(text, def.voice, () => this.overlay.showCaption(name, def.color, text, false, b.delivery), { delivery: b.delivery, cutOff: b.interrupted });
+    try {
+      await this.race(h.done);
+    } finally {
+      for (const id of listeners) st.actors[id].listen(null);
+    }
+    this.overlay.hideCaption();
+    if (b.react?.length && !b.interrupted) await this.react(b.react);
+    if (b.laugh) await this.laugh(b.laugh);
+    else if (!b.interrupted) await this.wait(0.18);
   }
 
   /**
@@ -1044,6 +1389,18 @@ function groupName(ids: CharacterId[], room: CharacterId[]) {
   const names = ids.map(charName);
   if (ids.length >= 3 && room.every((id) => ids.includes(id))) return 'Everyone';
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} & ${names.at(-1)}` : names[0] ?? '';
+}
+
+/** The transcript's note for a graphic. */
+function graphicText(g: GraphicBeat) {
+  switch (g.kind) {
+    case 'tag': return `[label on ${charName(g.character ?? '')}: ${g.text}]`;
+    case 'clock': return `[${g.text}]`;
+    case 'counter': return `[${g.title}: ${g.value}]`;
+    case 'venn': return `[Venn diagram: ${(g.sets ?? []).join(' / ')} → ${g.middle}]`;
+    case 'axes': return `[chart: ${g.y} vs ${g.x}]`;
+    case 'clear': return g.character ? `[label off ${charName(g.character)}]` : '[graphics off]';
+  }
 }
 
 /** The transcript's note for an insert. */

@@ -74,7 +74,7 @@
         { "type": "say", "character": "ted", "line": "Mom!", "delivery": "shout", "emotion": "angry", "laugh": "laugh", "chorus": ["barney"] },
         { "type": "say", "character": "virginia", "to": "loretta", "line": "Listen to them. Two little kettles.", "emotion": "happy", "laugh": "chuckle" },
         { "type": "say", "character": "loretta", "to": "virginia", "line": "Ginny, I'm in town all week.", "emotion": "excited" },
-        { "type": "say", "character": "virginia", "to": "loretta", "line": "So am I! Girls' week!", "emotion": "excited", "gesture": "hug", "laugh": "woo", "chorus": ["loretta"] },
+        { "type": "say", "character": "virginia", "to": "loretta", "line": "So am I! Girls' week!", "emotion": "excited", "gesture": "hug", "laugh": "laugh", "chorus": ["loretta"] },
         { "type": "say", "character": "loretta", "to": "barney", "line": "Boys, get the check. Ginny and I have forty years of catching up to do. On you.", "emotion": "happy", "gesture": "wave" },
         { "type": "exit", "character": "loretta" },
         { "type": "exit", "character": "virginia" },
