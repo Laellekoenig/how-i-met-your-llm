@@ -41,6 +41,10 @@ export function buildFuture(): StageSet {
   }
   // back of the recess: darker wood boards
   g.add(mesh(new THREE.PlaneGeometry(RIGHT - LEFT, H), toon('#ffffff', { map: planks('#7a4224', [3, 5], 43) }), 0, H / 2, BACK, false));
+  // The storytelling mark faces the couch; its reverse needs a wall behind Dad.
+  const reverse = mesh(new THREE.PlaneGeometry(RIGHT - LEFT, H), sideMat, 0, H / 2, FRONT, false).rotateY(Math.PI);
+  reverse.userData.cameraBackdrop = true;
+  g.add(reverse);
 
   // ---- the built-in behind the couch -------------------------------------------------------
   const LEDGE_Y = 1.06, LEDGE_D = 0.4, LZ = BACK + LEDGE_D / 2;

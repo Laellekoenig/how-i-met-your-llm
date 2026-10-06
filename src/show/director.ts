@@ -126,15 +126,17 @@ export class Director {
     cam.position.copy(shot.pos); cam.fov = shot.fov; cam.lookAt(shot.target);
     cam.updateProjectionMatrix(); cam.updateMatrixWorld();
     const objects = this.stage.occluders();
-    let covered = 0;
     this.ray.near = 0.2; this.ray.far = 60;
-    // Include the sides and lower background: a ceiling alone must not approve a
-    // reverse that exposes the missing fourth wall behind a standing speaker.
-    for (const x of [-0.85, 0, 0.85]) for (const y of [-0.1, 0.25, 0.7]) {
+    // Check the full picture, including corners and the strips between scenery
+    // panels. A clear center must not approve a shot with an exposed set edge.
+    for (const [xs, ys] of [
+      [[-0.99, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 0.99], [-0.99, -0.5, 0, 0.5, 0.99]],
+      [[-0.85, 0, 0.85], [-0.1, 0.25, 0.7]],
+    ]) for (const x of xs) for (const y of ys) {
       this.ray.setFromCamera(new THREE.Vector2(x, y), cam);
-      if (this.ray.intersectObjects(objects, false).length) covered++;
+      if (!this.ray.intersectObjects(objects, false).length) return false;
     }
-    return covered === 9;
+    return true;
   }
 
   /** In a car the camera rides along inside the cabin. */
@@ -213,7 +215,7 @@ export class Director {
     const audience = new THREE.Vector3(0, 0, 1);
     // Keep reverse coverage for students and chairs facing into the room.
     const candidates = [forward.clone().lerp(look, 0.35).normalize(),
-      ...[0.65, -0.65, 1.1, -1.1].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
+      ...[0.65, -0.65, 1.1, -1.1, 1.4, -1.4].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
       ...[0.3, 0.65, 1].map(blend => look.clone().lerp(audience, blend).normalize())];
     // A push-in starts from a medium shot further back and creeps in over several seconds; inside a car
     // there's less room to back off.
