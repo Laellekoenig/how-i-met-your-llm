@@ -38,7 +38,7 @@ export class Guide {
     const head = el('header', 'guide-head');
     const logo = el('div', 'logo guide-logo');
     logo.append('how i met your ', el('span', 'llm', 'llm'));
-    head.append(logo, el('div', 'guide-label', 'tv guide'), this.clockEl);
+    head.append(logo, this.clockEl);
 
     const info = el('section', 'guide-info');
     info.setAttribute('aria-live', 'polite');
@@ -137,7 +137,7 @@ export class Guide {
     for (const [season, eps] of seasons) {
       const row = el('div', 'guide-row');
       const channel = el('div', 'guide-channel');
-      channel.append(el('b', '', `S${season}`), el('small', '', `season ${Number(season)}`));
+      channel.append(el('b', '', `S${season}`));
       row.append(channel);
       const line = eps.map((index, slot) => {
         const l = this.listings[index];
@@ -172,7 +172,7 @@ export class Guide {
     for (const b of this.buttons) {
       const slot = Number(b.dataset.slot);
       b.classList.toggle('on-now', slot === 0);
-      b.querySelector('.guide-prog-meta')!.textContent = `${slot === 0 ? 'on now' : clock(this.start + slot * SLOT_MS)} · ${this.listings[Number(b.dataset.index)].code}`;
+      b.querySelector('.guide-prog-meta')!.textContent = this.listings[Number(b.dataset.index)].code;
     }
     this.tick();
   }
@@ -207,10 +207,8 @@ export class Guide {
   /** The info panel: the selected programme, or the one under the mouse. */
   private describe(index: number) {
     const l = this.listings[index];
-    const slot = Number(this.buttons[index].dataset.slot);
-    const from = this.start + slot * SLOT_MS;
     const [, s, e] = /^S(\d+)E(\d+)/i.exec(l.code) ?? [];
-    this.info.code.textContent = [s && e ? `season ${Number(s)}, episode ${Number(e)}` : l.code, `${clock(from)}–${clock(from + SLOT_MS)}`, slot === 0 ? 'on now' : ''].filter(Boolean).join('  ·  ');
+    this.info.code.textContent = s && e ? `season ${Number(s)}, episode ${Number(e)}` : l.code;
     this.info.title.textContent = l.title;
     this.info.logline.textContent = l.logline;
   }
