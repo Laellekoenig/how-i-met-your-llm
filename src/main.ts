@@ -4,6 +4,7 @@ import { Stage } from './show/stage';
 import { Director } from './show/director';
 import { Player } from './show/player';
 import { Overlay, Panel } from './ui/overlay';
+import { Guide } from './ui/guide';
 import { audio } from './audio/audio';
 import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
@@ -20,17 +21,41 @@ const panel = new Panel();
 
 // ---------------------------------------------------------------- programming
 
-// Pre-written episodes air back to back, starting from a random one. `?ep=S11E03` starts at a given episode.
+// The show starts on the TV guide; pre-written episodes air back to back from the one picked there.
+// `?ep=S11E03` skips the guide and starts at a given episode.
 const requested = Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep'));
-const startAt = requested >= 0 ? requested : Math.floor(Math.random() * EPISODES.length);
-const syndication = new Syndication(EPISODES, startAt);
+const syndication = new Syndication(EPISODES, requested >= 0 ? requested : null);
 const player = new Player(stage, director, renderer, overlay, panel, syndication);
+let onAir = requested >= 0;
+let airing: string | undefined;
 
-// Dev mode's episode picker airs any episode from its cold open; syndication carries on from there.
-panel.episodes(EPISODES, (index) => {
+/** Air an episode from its cold open, from the guide or dev mode's episode picker; syndication carries on from there. */
+function tune(index: number) {
+  closeGuide();
   syndication.seek(index);
-  player.cue();
-});
+  // (off the air, the player is already waiting on the pick)
+  if (onAir) player.cue();
+  onAir = true;
+}
+const guide = new Guide($('guide'), EPISODES, tune);
+panel.episodes(EPISODES, tune);
+
+function openGuide() {
+  if (guide.open) return;
+  if (onAir) {
+    onAir = false;
+    syndication.off();
+    player.cue();
+    setPaused(false);
+    audio.ambience('none');
+  }
+  document.body.classList.add('guide-open');
+  guide.show(airing);
+}
+function closeGuide() {
+  document.body.classList.remove('guide-open');
+  guide.hide();
+}
 
 // ---------------------------------------------------------------- now playing
 
@@ -40,6 +65,7 @@ player.onItem = (item: ShowItem) => {
   if (item.kind === 'episode-start') meta.push('cold open');
   if (item.kind === 'episode-end') meta.push('credits');
   panel.nowPlaying(item.episode, meta);
+  airing = item.episode.code;
 };
 
 // ---------------------------------------------------------------- settings & transport
@@ -110,6 +136,8 @@ window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.code === 'KeyD') setDevMode(!devMode());
   else if (e.code === 'KeyF') toggleFullscreen();
+  else if (e.code === 'Escape') openGuide();
+  else if (guide.open) guide.key(e);
   else if (!devMode()) return;
   else if (e.code === 'Space') {
     e.preventDefault();
@@ -149,6 +177,7 @@ function unlockSound() {
 }
 window.addEventListener('pointerdown', unlockSound, true);
 window.addEventListener('keydown', unlockSound, true);
+if (!onAir) openGuide();
 void player.run();
 
 // ---------------------------------------------------------------- frame loop

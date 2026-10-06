@@ -406,6 +406,141 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   animation: yearIn 0.6s;
 }
 
+/* The TV guide the show starts on: a channel per season, half-hour programmes, the picked one's details on top.
+   Sized in container units so it scales with the picture, with pixel floors so it stays legible on a small screen. */
+#guide {
+  --chan: 13cqw;
+  --slot: 21cqw;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 3.6cqh 4cqw 2.6cqh;
+  background: radial-gradient(ellipse at 50% 30%, #33251a, #0c0806 85%);
+  color: var(--ink);
+  font-family: var(--mono);
+}
+/* (the backdrop is opaque from the first frame so the set never shows through) */
+#guide > * { animation: yearIn 0.3s ease-out; }
+/* the same TV texture as the picture: scanlines and a vignette */
+#guide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4));
+}
+.guide-head { display: flex; align-items: baseline; gap: 2.4cqw; padding-bottom: 1.6cqh; border-bottom: 1px solid var(--line); }
+.guide-logo { font-size: max(18px, 5.6cqh); }
+.guide-label { flex: 1; font-size: max(10px, 2.2cqh); letter-spacing: 0.3em; text-transform: uppercase; color: var(--umbrella); font-weight: 600; }
+.guide-clock { font-size: max(11px, 2.6cqh); letter-spacing: 0.06em; }
+
+.guide-info { height: 30cqh; flex: none; padding: 2.2cqh 0 1.6cqh; display: flex; flex-direction: column; gap: 0.8cqh; overflow: hidden; }
+.guide-info-code { font-size: max(10px, 2.1cqh); letter-spacing: 0.2em; text-transform: uppercase; color: var(--umbrella); font-weight: 600; }
+.guide-info-title { font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; font-size: max(17px, 5.2cqh); line-height: 1.15; }
+.guide-info-logline {
+  font-size: max(11px, 2.2cqh);
+  line-height: 1.45;
+  color: #dccbb0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+
+.guide-grid { position: relative; flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; overscroll-behavior: contain; }
+.guide-sheet { position: relative; width: max-content; padding-bottom: 0.6cqh; }
+.guide-ruler, .guide-row { display: flex; }
+.guide-ruler { position: sticky; top: 0; z-index: 4; height: max(20px, 4.6cqh); background: #170f0a; border-bottom: 1px solid var(--line); }
+.guide-corner { position: sticky; left: 0; width: var(--chan); flex: none; background: #170f0a; }
+.guide-time { width: var(--slot); flex: none; padding: 0 0.8cqw; border-left: 1px solid var(--line); display: flex; align-items: center; font-size: max(10px, 2.1cqh); color: var(--dim); letter-spacing: 0.06em; }
+.guide-row { height: max(60px, 13.5cqh); margin-top: 0.8cqh; }
+.guide-channel {
+  --c: var(--umbrella);
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: var(--chan);
+  flex: none;
+  margin-right: 0.4cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4cqh;
+  background: #1f1610;
+  border-left: 0.6cqh solid var(--c);
+  box-shadow: 0.6cqw 0 0 #0c0806;
+}
+.guide-row:nth-of-type(3n + 1) .guide-channel { --c: var(--horn); }
+.guide-row:nth-of-type(3n + 2) .guide-channel { --c: var(--red); }
+.guide-channel b { font-family: 'Caprasimo', 'Cooper Black', Georgia, serif; font-weight: 400; font-size: max(18px, 5cqh); line-height: 1; color: var(--c); }
+.guide-channel small { font-size: max(9px, 1.7cqh); letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+#guide .guide-prog {
+  width: var(--slot);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6cqh;
+  padding: 1.3cqh 1cqw;
+  border: 0.35cqh solid transparent;
+  border-left-width: 0.3cqw;
+  border-right-width: 0.3cqw;
+  background: #271b13 padding-box;
+  color: var(--ink);
+  text-align: left;
+  overflow: hidden;
+  outline: none;
+}
+#guide .guide-prog.on-now { background-color: #36271b; }
+#guide .guide-prog:hover { background-color: #45321f; }
+#guide .guide-prog[aria-selected='true'] { background-color: var(--umbrella); color: #1a1206; }
+.guide-prog-meta { font-size: max(9px, 1.8cqh); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+.guide-prog.on-now .guide-prog-meta { color: var(--umbrella); }
+.guide-prog[aria-selected='true'] .guide-prog-meta { color: #5a4210; }
+.guide-prog-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-style: italic;
+  font-size: max(12px, 2.8cqh);
+  line-height: 1.22;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.guide-off {
+  width: calc(var(--span) * var(--slot));
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 0 1.3cqw;
+  border: 0.35cqh solid transparent;
+  border-left-width: 0.3cqw;
+  background: repeating-linear-gradient(-45deg, #1a120c 0 1.2cqh, #150e09 1.2cqh 2.4cqh) padding-box;
+  font-size: max(9px, 1.8cqh);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+/* (the label stays in view as the schedule scrolls) */
+.guide-off span { position: sticky; left: calc(var(--chan) + 1.6cqw); }
+/* now, across the schedule */
+.guide-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  left: calc(var(--chan) + var(--at, 0) * var(--slot));
+  width: 2px;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.guide-foot { display: flex; gap: 3cqw; padding-top: 1.6cqh; border-top: 1px solid var(--line); font-size: max(10px, 2cqh); color: var(--dim); }
+.guide-foot kbd { font-family: var(--mono); display: inline-block; min-width: 1.8em; margin-right: 0.3em; padding: 0.05em 0.4em; text-align: center; color: var(--ink); border: 1px solid var(--dim); border-radius: 4px; }
+body.guide-open #transport button:not(#btn-full) { opacity: 0.4; pointer-events: none; }
+
 #transport { display: flex; align-items: center; gap: 8px; padding-top: 18px; }
 #transport button {
   background: var(--bg2);
