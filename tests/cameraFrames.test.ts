@@ -58,15 +58,52 @@ describe('complete camera backgrounds', () => {
   });
 
   test('reverse-facing foreground seats and the storytelling mark get face coverage', () => {
-    for (const [location, mark] of [['apartment', 'striped_chair'], ['apartment', 'woven_chair'], ['future', 'center']] as const) {
+    for (const [location, mark, minimum] of [['apartment', 'striped_chair', -0.3], ['apartment', 'woven_chair', 0.1], ['future', 'center', 0.1]] as const) {
       stage.setLocation(location, 'day');
       stage.place('ted', mark);
       director.closeup('ted');
       const actor = stage.actors.ted;
       const front = new THREE.Vector3(Math.sin(actor.facing), 0, Math.cos(actor.facing));
       expect(director.current!.kind).toBe('closeup');
-      expect(camera.position.clone().sub(actor.headWorld).normalize().dot(front)).toBeGreaterThan(0.1);
+      // A chair facing straight upstage has no reverse on an open set, so it gets a profile.
+      expect(camera.position.clone().sub(actor.headWorld).normalize().dot(front)).toBeGreaterThan(minimum);
       expect(exposedFrame()).toEqual([]);
     }
   });
+
+  test('no apartment angle looks out through the open audience side', () => {
+    const open = stage.sets.apartment.openSide!;
+    const outside = () => {
+      camera.updateMatrixWorld(true);
+      const scenery = stage.occluders(), seen: string[] = [];
+      for (let column = 0; column <= 20; column++) for (let row = 0; row <= 12; row++) {
+        ray.setFromCamera(new THREE.Vector2(-0.99 + 1.98 * column / 20, -0.99 + 1.98 * row / 12), camera);
+        const hit = ray.intersectObjects(scenery, false)[0];
+        if (!hit || open.distanceToPoint(hit.point) > -0.05) seen.push(`${column},${row}`);
+      }
+      return seen;
+    };
+    stage.setLocation('apartment', 'night');
+    const marks = Object.keys(stage.current.marks);
+    for (let index = 0; index < stage.current.wides.length; index++) {
+      director.wide(index, 0);
+      expect(outside(), `wide ${index}`).toEqual([]);
+    }
+    for (const [i, a] of marks.entries()) for (const b of marks.slice(i + 1)) {
+      stage.setLocation('apartment', 'night');
+      stage.place('ted', a);
+      stage.place('marshall', b);
+      for (const [label, shoot] of [
+        ['closeup', () => director.closeup('ted', 'marshall')],
+        ['reverse closeup', () => director.closeup('marshall', 'ted')],
+        ['push-in', () => director.pushIn('ted', 'marshall')],
+        ['two-shot', () => director.twoShot('ted', 'marshall')],
+        ['shoulder', () => director.overShoulder('ted', 'marshall')],
+        ['reverse shoulder', () => director.overShoulder('marshall', 'ted')],
+      ] as const) {
+        shoot();
+        expect(outside(), `${label}: ted at ${a}, marshall at ${b}`).toEqual([]);
+      }
+    }
+  }, 60000);
 });

@@ -7,7 +7,8 @@ The full set review also found and fixed:
 - Ceiling and wall edges in the shared room shell and the office master view. The shell now extends behind the camera.
 - Exposed window-backdrop edges in Barney’s office. The skyline panel now covers oblique views through the blinds.
 - Slits below the raised sidewalks in vehicle window views. The sidewalks now have solid curbs.
-- Missing reverse backgrounds for the apartment’s foreground chairs and the future storytelling mark. Interior-facing fourth walls provide face coverage while keeping the master views open.
+- Missing reverse backgrounds for the future storytelling mark. An interior-facing fourth wall provides face coverage while keeping the master view open.
+- The apartment has no fourth wall. Its audience side is open for the cameras, as on the real stage, so `openSide` makes the director reject any angle that looks out through it. People in the upstage-facing front chairs get profile singles instead of reverses.
 - Close-ups near walls that fell back to distant coverage. Additional profile candidates and checks across the whole frame keep suitable singles available without exposing scenery edges.
 
 ## Review coverage
