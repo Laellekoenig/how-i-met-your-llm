@@ -37,6 +37,14 @@ type ArmPose = readonly [number, number, number, number];
 /** The hands while talking: their own style, or the mood's (rubbing the back of the neck, wringing them). */
 type Accent = TalkStyle | 'neck' | 'wring';
 const TMP = new THREE.Vector3();
+/** Clothing skinned between the hips and the spine. Camera occlusion rays refresh matrices with updateWorldMatrix,
+ * which SkinnedMesh doesn't hook, so keep its attached bind inverse current there too. */
+class WaistMesh extends THREE.SkinnedMesh {
+  override updateWorldMatrix(updateParents: boolean, updateChildren: boolean) {
+    super.updateWorldMatrix(updateParents, updateChildren);
+    this.bindMatrixInverse.copy(this.matrixWorld).invert();
+  }
+}
 const FLUSH = new THREE.Color('#d8443a');
 const ARM = {
   hips: [1.07, -0.72, 0.98, -1.28],
@@ -242,16 +250,8 @@ export class Actor {
     this.root.add(this.hips);
     this.hips.position.y = this.legLen;
 
-    // ---- pelvis + legs
+    // ---- legs (the pelvis is shaped to the torso below)
     const hipR = (fem ? 0.168 : 0.156) * bx;
-    const pelvis = new Profile([
-      [-0.15 * s, 0, 0], [-0.14 * s, 0.05 * bx, 0.05 * bz], [-0.1 * s, hipR * 0.88, 0.094 * bz],
-      [-0.04 * s, hipR, 0.1 * bz], [0.06 * s, hipR * 0.97, 0.096 * bz], [0.1 * s, hipR * 0.6, 0.07 * bz], [0.11 * s, 0, 0],
-    ]);
-    add(this.hips, mesh(pelvis.geometry({ seg: 20, rows: 14, e: 0.9, uv: [0.9, 0.3] }), L.skirt ? legMat : pantsMat));
-    if (!untucked && !L.skirt && !blouse && style !== 'suit' && style !== 'cardigan')
-      add(this.hips, mesh(pelvis.geometry({ seg: 20, rows: 2, e: 0.9, y: [0.025 * s, 0.06 * s], inflate: 0.006 }), toon('#2a1f18')));
-
     const hx = (fem ? 0.088 : 0.085) * bx;
     for (const side of [1, -1]) {
       const hip = side > 0 ? this.lHip : this.rHip;
@@ -318,10 +318,25 @@ export class Actor {
         k[2] = Math.max(k[2], 0.104 * bz);
       }
     }
-    // An untucked blouse clears the separate animated pelvis at the waist.
-    const torsoKeys = T.map(([y, rx, rz, zc]) => blouse && y < 0.2 * tl
+    // An untucked top or blouse hangs clear of the separate pelvis at the waist.
+    const torsoKeys = T.map(([y, rx, rz, zc]) => (untucked || blouse) && y < 0.2 * tl
       ? [y, Math.max(rx, hipR + 0.007 * s), Math.max(rz, 0.112 * bz), zc] : [y, rx, rz, zc]);
     const torso = new Profile(torsoKeys);
+    // Above the widest point the pants taper into the waist, staying inside the top instead of poking through it.
+    const pelvis = new Profile([
+      [-0.15 * s, 0, 0], [-0.14 * s, 0.05 * bx, 0.05 * bz], [-0.1 * s, hipR * 0.88, 0.094 * bz],
+      [-0.04 * s, hipR, 0.1 * bz], [0.06 * s, hipR * 0.97, 0.096 * bz], [0.1 * s, hipR * 0.6, 0.07 * bz], [0.11 * s, 0, 0],
+    ].map(([y, rx, rz]) => y <= 0 ? [y, rx, rz]
+      : [y, Math.min(rx, torso.at(y).rx - 0.008 * s), Math.min(rz, torso.at(y).rz - 0.008 * s)]));
+    const skirtMat = !L.skirt ? null
+      : L.skirtPrint ? fabric(wardrobePrint(L.skirt, L.skirtPrint), 0.24, DS)
+      : L.print ? fabric(wardrobePrint(L.skirt, L.print), 0.28, DS)
+      : style === 'denim' ? fabric(denim(L.skirt), 0.09, DS) : toon(L.skirt, { side: DS });
+    // Under a skirt the pelvis is cut from the skirt, so it doesn't show as bare skin at the waist seam.
+    add(this.hips, mesh(pelvis.geometry({ seg: 20, rows: 14, e: 0.9, uv: [0.9, 0.3] }), skirtMat ?? pantsMat));
+    if (!untucked && !L.skirt && !blouse && style !== 'suit' && style !== 'cardigan')
+      add(this.hips, mesh(pelvis.geometry({ seg: 20, rows: 2, e: 0.9, y: [0.025 * s, 0.06 * s], inflate: 0.006 }), toon('#2a1f18')));
+
     // A slim suit follows the waist; the regular jacket hangs from the chest.
     const chestY = 0.66 * tl, chest = torso.at(chestY);
     const drape = new Profile(torsoKeys.map(([y, rx, rz, zc]) => y >= chestY ? [y, rx, rz, zc]
@@ -721,11 +736,8 @@ export class Actor {
       this.skirt.position.y = -0.04;
       this.hips.add(this.skirt);
     }
-    if (L.skirt) {
+    if (skirtMat) {
       const sk = new Profile([[-thigh * 0.86, 0.205 * bx, 0.17 * bz], [-thigh * 0.5, 0.188 * bx, 0.152 * bz], [0, hipR * 1.04, 0.114 * bz], [0.1 * s, hipR * 0.93, 0.1 * bz], [0.13 * s, hipR * 0.82, 0.088 * bz]]);
-      const skirtMat = L.skirtPrint ? fabric(wardrobePrint(L.skirt, L.skirtPrint), 0.24, DS)
-        : L.print ? fabric(wardrobePrint(L.skirt, L.print), 0.28, DS)
-        : style === 'denim' ? fabric(denim(L.skirt), 0.09, DS) : toon(L.skirt, { side: DS });
       add(this.skirt!, mesh(sk.geometry({ seg: 24, rows: 12, e: 0.9, uv: [circ, thigh] }), skirtMat));
     }
     if (apron) {
@@ -808,10 +820,51 @@ export class Actor {
     this.head.position.y = 0.02 * H;
     this.neck.add(this.head);
     this.buildHead(L, faceSkin, hairMat);
+    this.skinWaist(0.1 * tl, 0.45 * tl);
 
     this.root.traverse((o) => {
       if ((o as THREE.Mesh).isMesh) o.castShadow = true;
     });
+  }
+
+  /**
+   * The spine leans and twists about the hip joint, so a rigid shirt or jacket would swing its hem through the
+   * pants. Clothing that reaches the waist is skinned instead: it follows the hips below y0, the spine above y1,
+   * and bends smoothly in between.
+   */
+  private skinWaist(y0: number, y1: number) {
+    const hipBone = new THREE.Bone(), spineBone = new THREE.Bone();
+    this.hips.add(hipBone);
+    this.spine.add(spineBone);
+    this.root.updateMatrixWorld(true);
+    const skeleton = new THREE.Skeleton([hipBone, spineBone]);
+    const v = new THREE.Vector3();
+    for (const m of [...this.spine.children]) {
+      if (!(m instanceof THREE.Mesh)) continue;
+      const pos = m.geometry.getAttribute('position');
+      const weights = new Float32Array(pos.count * 4), indices = new Uint16Array(pos.count * 4);
+      let bends = false;
+      for (let i = 0; i < pos.count; i++) {
+        const w = smoothstep(y0, y1, v.fromBufferAttribute(pos, i).applyMatrix4(m.matrix).y);
+        weights[i * 4] = 1 - w; weights[i * 4 + 1] = w;
+        indices[i * 4 + 1] = 1;
+        if (w < 1) bends = true;
+      }
+      if (!bends) continue;
+      m.geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(indices, 4));
+      m.geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+      const skinned = new WaistMesh(m.geometry, m.material);
+      skinned.position.copy(m.position);
+      skinned.quaternion.copy(m.quaternion);
+      skinned.scale.copy(m.scale);
+      skinned.receiveShadow = m.receiveShadow;
+      this.spine.add(skinned);
+      this.spine.remove(m);
+      skinned.bind(skeleton);
+      skinned.computeBoundingSphere();
+      const i = this.bodyMeshes.indexOf(m);
+      if (i >= 0) this.bodyMeshes[i] = skinned;
+    }
   }
 
   private buildHead(L: Look, skin: THREE.Material, hairMat: THREE.Material) {
