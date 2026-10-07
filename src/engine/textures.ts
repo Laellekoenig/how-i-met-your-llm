@@ -393,6 +393,65 @@ export function painting(seed: number) {
   });
 }
 
+/** Original pub memorabilia: beer labels, archive photos and maritime prints. */
+export function pubPrint(seed: number) {
+  const r = mulberry32(seed);
+  return canvas(192, 128, (g, w, h) => {
+    const kind = seed % 4;
+    g.fillStyle = kind === 0 ? '#20362f' : '#c6b58d';
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#84683a'; g.lineWidth = 2;
+    g.strokeRect(5, 5, w - 10, h - 10);
+    if (kind === 0) {
+      g.strokeStyle = '#c5a560'; g.lineWidth = 3;
+      g.beginPath(); g.ellipse(96, 64, 76, 49, 0, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = '#dfc994'; g.textAlign = 'center';
+      g.font = 'bold 23px Georgia'; g.fillText(seed % 3 ? 'IRISH STOUT' : 'PALE ALE', 96, 66);
+      g.font = '12px Georgia'; g.fillText('EST. 1896', 96, 39); g.fillText('DRAUGHT · NEW YORK', 96, 88);
+    } else if (kind === 1) {
+      // A faded streetscape, with masonry, cornices and tiny lit windows.
+      g.fillStyle = '#9a9683'; g.fillRect(12, 12, 168, 94);
+      for (let x = 13; x < 180; x += 24) {
+        const top = 20 + Math.floor(r() * 24);
+        g.fillStyle = ['#454a42', '#626054', '#7b7461'][Math.floor(r() * 3)];
+        g.fillRect(x, top, 22, 96 - top);
+        g.fillStyle = '#b8ad92'; g.fillRect(x - 1, top, 24, 3);
+        for (let y = top + 9; y < 85; y += 12) for (const dx of [4, 13]) g.fillRect(x + dx, y, 4, 6);
+        g.fillStyle = '#363c35'; g.fillRect(x + 5, 82, 13, 15);
+      }
+      g.fillStyle = '#565545'; g.fillRect(12, 97, 168, 9);
+      g.fillStyle = '#493f2d'; g.font = '9px Georgia'; g.textAlign = 'center'; g.fillText('NEW YORK · THE OLD NEIGHBORHOOD', 96, 118);
+    } else if (kind === 2) {
+      // A framed monochrome team photograph, rather than abstract rectangles.
+      g.fillStyle = '#777364'; g.fillRect(12, 12, 168, 94);
+      for (let row = 0; row < 2; row++) for (let i = 0; i < 7; i++) {
+        const x = 23 + i * 23 + row * 3, y = 40 + row * 35;
+        g.fillStyle = ['#3b3b32', '#555348', '#686353'][i % 3];
+        g.fillRect(x - 7, y + 8, 16, 21);
+        g.fillStyle = '#b8ad91'; g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#35372f'; g.fillRect(x - 7, y - 7, 14, 4);
+      }
+      g.fillStyle = '#493f2d'; g.font = '10px Georgia'; g.textAlign = 'center'; g.fillText('THE HOME TEAM · 1936', 96, 118);
+    } else {
+      g.fillStyle = '#a3b0a1'; g.fillRect(12, 12, 168, 64);
+      g.fillStyle = '#3e645e'; g.fillRect(12, 76, 168, 30);
+      for (const [x, y, scale] of [[66, 80, 1], [134, 85, 0.65]]) {
+        g.strokeStyle = '#483e2c'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - 58 * scale); g.stroke();
+        g.fillStyle = '#e5d9b9'; g.beginPath(); g.moveTo(x - 3, y - 56 * scale); g.lineTo(x - 3, y - 8); g.lineTo(x - 37 * scale, y - 8); g.closePath(); g.fill();
+        g.fillStyle = '#d0bf96'; g.beginPath(); g.moveTo(x + 3, y - 49 * scale); g.lineTo(x + 28 * scale, y - 9); g.lineTo(x + 3, y - 9); g.closePath(); g.fill();
+        g.fillStyle = '#4a3524'; g.beginPath(); g.moveTo(x - 38 * scale, y); g.lineTo(x + 32 * scale, y); g.lineTo(x + 22 * scale, y + 7); g.lineTo(x - 25 * scale, y + 7); g.closePath(); g.fill();
+      }
+      g.fillStyle = '#493f2d'; g.font = '10px Georgia'; g.textAlign = 'center'; g.fillText('THE HARBOR REGATTA', 96, 118);
+    }
+    // The wear remains subtle at the show's deliberately low render resolution.
+    for (let i = 0; i < 260; i++) {
+      g.fillStyle = i % 2 ? '#33281815' : '#fff0cf18';
+      g.fillRect(r() * w, r() * h, 1 + r() * 3, 1);
+    }
+  });
+}
+
 /** Text sign (e.g. the MacLaren's window lettering, beer signs). */
 export function sign(text: string, fg: string, bg: string, w = 128, h = 32, font = 'bold 20px Georgia') {
   return canvas(w, h, (g) => {

@@ -3,6 +3,13 @@ import type { Director } from '../show/director';
 import type { CharacterId, LocationId } from '../script/types';
 
 const previews = {
+  maclarens: [
+    ['marshall', 'booth_left_front'],
+    ['lily', 'booth_left_back'],
+    ['ted', 'booth_end'],
+    ['robin', 'booth_right_front'],
+    ['barney', 'booth_right_back'],
+  ],
   car: [
     ['marshall', 'driver'],
     ['ted', 'front_passenger'],
