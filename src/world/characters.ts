@@ -1,12 +1,13 @@
 import { GUEST_IDS, type CharacterId, type Emotion, type Costume, type GuestStar, type LocationId, type Outfit } from '../script/types';
 import { costumeLook, guestDef, placeholderGuest } from './guests';
 
-export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'swept' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'sidewaves' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
+export type HairStyle = 'swoop' | 'tousled' | 'brushed' | 'swept' | 'backswept' | 'shaggy' | 'messy' | 'neat' | 'bob' | 'sidewaves' | 'long' | 'feathered' | 'waves' | 'ponytail' | 'slick' | 'receding' | 'buzz' | 'short' | 'mop' | 'updo' | 'curly' | 'balding';
 export type TopStyle = 'blazer' | 'flannel' | 'cardigan' | 'leather' | 'suit' | 'shirt' | 'sweater' | 'tee' | 'polo' | 'hoodie' | 'dress' | 'denim';
 
 export interface Look {
   height: number;
   build: number; // width multiplier
+  physique?: 'athletic'; // broad chest and shoulders with a tapered waist
   female: boolean;
   skin: string;
   hair: string;
@@ -55,6 +56,7 @@ export interface Look {
   boots?: boolean;
   pumps?: { toe: string }; // two-tone cap-toe pumps
   eyes?: string;
+  beardStyle?: 'trimmed';
   face?: { width?: number; jaw?: number; chin?: number; long?: number; nose?: number; brow?: number; mouth?: number };
   extras?: ('cap' | 'mustache' | 'goatee' | 'beard' | 'apron' | 'stubble' | 'pocketsquare' | 'headband' | 'glasses' | 'captainhat' | 'brass' | 'earrings')[];
 }
@@ -337,13 +339,15 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
   brad: {
     id: 'brad', name: 'Brad', color: '#a2c5dc', main: false,
     look: {
-      // Joe Manganiello, "Twelve Horny Women": tall, broad, dark swept hair and beard; dark suit, gray shirt, striped tie.
-      height: 1.96, build: 1.2, female: false,
-      skin: '#c58e6c', hair: '#28231e', hairStyle: 'shaggy', eyes: '#654833',
-      top: '#292f35', topStyle: 'suit', under: '#a7aaa4',
-      tie: '#222b2b', tiePattern: 'stripes', tieAccent: '#b7aa7e',
-      pants: '#292f35', shoes: '#181b1c', extras: ['beard'],
-      face: { long: 1.08, jaw: 1.2, nose: 1.12, brow: 1.25 },
+      // Joe Manganiello, "Twelve Horny Women" (S08E08): swept-back waves,
+      // close beard, athletic tailoring, gray shirt and gold-striped tie.
+      // Inspected courtroom still and interview: docs/cast-reference.md.
+      height: 1.96, build: 1.24, physique: 'athletic', female: false,
+      skin: '#d2a080', hair: '#241e1a', hairStyle: 'backswept', eyes: '#533b2c',
+      top: '#282d32', topStyle: 'suit', suitFit: 'slim', under: '#777e79',
+      tie: '#202527', tiePattern: 'stripes', tieAccent: '#b9ad86',
+      pants: '#282d32', shoes: '#191a1c', extras: ['beard'], beardStyle: 'trimmed',
+      face: { width: 1.08, long: 1.04, jaw: 1.24, chin: 1.4, nose: 1.22, brow: 1.35, mouth: 1.22 },
     },
     voice: { gender: 'male', pitch: 0.8, rate: 0.94 },
   },
