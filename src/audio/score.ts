@@ -19,11 +19,10 @@ export const SCORE_BEDS = {
   dreamy: { step: 0.36, gain: 0.85 },
 } satisfies Record<MontageMusic, { step: number; gain: number }>;
 
-/** The main-title theme's guitar chords (E, B, C#m, A) as MIDI notes; the upbeat bed borrows them. */
+/** The main-title theme's guitar chords (E, B, C#m, A) as MIDI notes. Reserved for the titles: no bed borrows them. */
 export const THEME_CHORDS = {
   E: [40, 47, 52, 56, 59, 64], B: [47, 54, 59, 63, 66], Cs: [49, 56, 61, 64, 68], A: [45, 52, 57, 61, 64],
 };
-const { E, B, Cs, A } = THEME_CHORDS;
 
 /** A MIDI note's frequency in Hz. */
 export const midiToHz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -37,18 +36,23 @@ export function scoreEvents(kind: MontageMusic, i: number): ScoreEvent[] {
   const k = i % 8, bar = Math.floor(i / 8);
   switch (kind) {
     case 'upbeat': {
-      const chord = [E, B, Cs, A][bar % 4];
-      const open = k === 0 || k === 3 || k === 4 || k === 6;
-      (open ? chord : chord.slice(0, 3)).forEach((m, j) => note('guitar', m, open ? 1.2 : 0.22, open ? 0.2 : 0.16, j * 0.011, 0.4));
-      const m = [76, 0, 75, 76, 78, 0, 76, 73, 75, 0, 71, 0, 73, 71, 68, 0][i % 16];
-      if (Math.floor(i / 16) % 2 && m) note('guitar', m, 0.9, 0.22, 0, 0.25);
-      if (k % 4 === 0) drum('kick', 1);
-      if (k % 4 === 2) drum('snare', 0.25);
-      drum('hat', k % 2 ? 0.04 : 0.06);
+      // D | C G | D | G A, in D with a rock bVII: its own key, changes and strum, nothing like the main-title theme
+      const D = [50, 57, 62, 66, 69], C = [48, 55, 60, 64, 67], G = [43, 50, 55, 59, 62, 67], A = [45, 52, 57, 61, 64];
+      const chord = [[D, D], [C, G], [D, D], [G, A]][bar % 4][k < 4 ? 0 : 1];
+      // down, down-up, up-down-up: upstrokes catch only the top strings
+      if (k === 0 || k === 2 || k === 4 || k === 6) chord.forEach((m, j) => note('guitar', m, k === 0 ? 0.9 : 0.45, k === 0 ? 0.18 : 0.15, j * 0.012, 0.45));
+      if (k === 3 || k === 5 || k === 7) chord.slice(-3).reverse().forEach((m, j) => note('guitar', m, 0.3, 0.11, j * 0.01, 0.5));
+      if (k === 0 || k === 3 || k === 4) note('bass', chord[0] - (chord[0] > 45 ? 12 : 0), 0.4, 0.2);
+      const m = [0, 78, 81, 0, 78, 76, 74, 0, 76, 0, 74, 72, 74, 0, 0, 0][i % 16];
+      if (Math.floor(i / 16) % 2 && m) note('guitar', m, 0.5, 0.17, 0, 0.3);
+      if (k === 0 || k === 5) drum('kick', 1);
+      if (k === 2 || k === 6) drum('snare', 0.28);
+      drum('hat', k % 2 ? 0.035 : 0.055);
       break;
     }
     case 'tender': {
-      const chord = [E, Cs, A, B][bar % 4];
+      // D | A/C# | Bm | G: a falling bass line, kept apart from the main-title theme's changes
+      const chord = [[50, 57, 62, 66, 69], [49, 57, 61, 64, 69], [47, 54, 59, 62, 66], [43, 50, 55, 59, 62]][bar % 4];
       if (k === 0) note('pluck', chord[0], 2, 0.2, 0, 0.25);
       note('pluck', chord[[1, 3, 2, 4, 1, 3, 2, 4][k] % chord.length] + 12, 1.4, 0.13);
       break;

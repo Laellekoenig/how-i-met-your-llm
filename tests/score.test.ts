@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import { AudioEngine } from '../src/audio/audio';
+import { THEME_CHORDS, scoreEvents } from '../src/audio/score';
 import { MONTAGE_MUSIC, SCORES } from '../src/script/types';
 import { validateEpisode } from '../src/script/validate';
 import { testStage } from './helpers/sets';
@@ -95,6 +96,21 @@ describe('score music', () => {
       expect(r.starts.length).toBe(stopped);
     });
   }
+
+  test('no bed borrows the main-title theme\'s changes: the intro music is reserved for the titles', () => {
+    const classes = (notes: number[]) => new Set(notes.map((m) => m % 12));
+    const { E, B, Cs, A } = THEME_CHORDS;
+    const theme = [E, B, Cs, A].map(classes);
+    for (const kind of MONTAGE_MUSIC) {
+      // the pitch classes sounding in each of the first 32 bars (one bar is eight ticks)
+      const bars = Array.from({ length: 32 }, (_, bar) => classes(Array.from({ length: 8 }, (_, k) => scoreEvents(kind, bar * 8 + k))
+        .flat().flatMap((e) => ('midi' in e ? [e.midi] : []))));
+      for (let bar = 0; bar + theme.length <= bars.length; bar++) {
+        const quotes = theme.every((chord, j) => [...chord].every((pc) => bars[bar + j].has(pc)));
+        expect(quotes ? `${kind} plays the theme's changes from bar ${bar}` : null).toBeNull();
+      }
+    }
+  });
 
   test('switching cues fades the previous output and leaves only one scheduler', () => {
     const r = rig();

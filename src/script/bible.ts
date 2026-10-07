@@ -150,6 +150,7 @@ Nothing makes a sound unless the script asks for it, apart from rewind transitio
 - score: { "type": "score", "music": ${SCORES.map((c) => `"${c}"`).join(' | ')} } starts underscore that carries across lines, cutaways and scene changes until another score beat: tender under a confession, tense under a scheme, upbeat under a caper. "none" stops the music; "silence" also drops the room tone, for a moment left bare (it lasts until the next score beat or scene).
 - The same ten original music beds work for scores and montages. Choose the mood for the story; each has its own instruments, harmony and rhythm:
 ${MONTAGE_MUSIC.map((music) => `  - ${music}: ${MUSIC_DESCRIPTIONS[music]}.`).join('\n')}
+- The intro music belongs to the main titles and nothing else. Never call for it, quote it or reference it: not as a score, a montage bed, a sung line, a sound, a radio or jukebox in the scene, or a joke in dialogue or narration.
 - A sung line is a cappella unless it has "accompanied": true (a guitar under it).
 
 # Delivery
