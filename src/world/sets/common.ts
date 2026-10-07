@@ -38,6 +38,9 @@ export interface StageSet {
   cameraBounds?: THREE.Box3;
   /** Fixed windshield / cabin mounts. Vehicles use these for dialogue instead of orbiting the actors. */
   dialogueCameras?: THREE.Vector3[];
+  /** The open side of a sitcom set, facing the cameras and the audience; positive is outside. Generated
+   *  angles never look out through it. */
+  openSide?: THREE.Plane;
   /** Keep generated two-shots near the actors; distant pairs get singles instead. */
   maxTwoShotDistance?: number;
   ambience: Ambience;

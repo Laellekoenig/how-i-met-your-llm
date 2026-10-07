@@ -128,15 +128,22 @@ export class Director {
   private hasBackdrop(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }) {
     const cam = this.probe(shot.pos, shot.target, shot.fov);
     const objects = this.stage.occluders();
+    const open = this.stage.current.openSide;
     this.ray.near = 0.2; this.ray.far = 60;
     // Check the full picture, including corners and the strips between scenery
     // panels. A clear center must not approve a shot with an exposed set edge.
+    // The open side can show through narrow gaps (a pass-through, a doorway), so look closer there.
+    const steps = (n: number) => Array.from({ length: n + 1 }, (_, i) => -0.99 + 1.98 * i / n);
     for (const [xs, ys] of [
       [[-0.99, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 0.99], [-0.99, -0.5, 0, 0.5, 0.99]],
       [[-0.85, 0, 0.85], [-0.1, 0.25, 0.7]],
+      ...open ? [[steps(20), steps(12)]] : [],
     ]) for (const x of xs) for (const y of ys) {
       this.ray.setFromCamera(new THREE.Vector2(x, y), cam);
-      if (!this.ray.intersectObjects(objects, false).length) return false;
+      const hit = this.ray.intersectObjects(objects, false)[0];
+      if (!hit) return false;
+      // Nothing seen beyond the open side: that's where the cameras and the audience are.
+      if (open && open.distanceToPoint(this.ray.ray.at(hit.distance, new THREE.Vector3())) > -0.05) return false;
     }
     return true;
   }
@@ -228,8 +235,11 @@ export class Director {
     // A push-in starts from a medium shot further back and creeps in over several seconds; inside a car
     // there's less room to back off.
     const dists = pushIn ? [3.3, 2.8, 2.35] : this.stage.current.cameraBounds ? [2.35, 1.65, 1.15, 0.85, 0.6] : [2.35, 1.65, 1.15];
-    for (const dist of dists) for (const d of candidates) {
-      if (d.lengthSq() < 0.1 || d.dot(forward) < 0.05) continue;
+    // On an open set, someone facing upstage has no reverse: their single is a profile from the side.
+    const profiles = this.stage.current.openSide
+      ? [1.57, -1.57, 1.8, -1.8].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)) : [];
+    for (const [ds, minDot] of [[candidates, 0.05], [profiles, -0.25]] as const) for (const dist of dists) for (const d of ds) {
+      if (d.lengthSq() < 0.1 || d.dot(forward) < minDot) continue;
       const pos = head.clone().addScaledVector(d, dist);
       pos.y = head.y + 0.08;
       const target = head.clone().add(new THREE.Vector3(0, -0.16, 0));
