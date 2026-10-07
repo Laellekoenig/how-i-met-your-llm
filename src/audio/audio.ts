@@ -2,7 +2,7 @@ import { TITLE_BEAT, TITLE_BEATS, TITLE_TAIL } from '../show/mainTitles';
 import type { LaughKind, MontageMusic, SoundCue } from '../script/types';
 import type { Ambience, DoorSound } from '../world/sets/common';
 import { rand, pick } from '../util';
-import { SCORE_BEDS, scoreEvents, type ScoreVoice } from './score';
+import { SCORE_BEDS, THEME_CHORDS, midiToHz, scoreEvents, type ScoreVoice } from './score';
 
 // Everything here is synthesized with WebAudio — no samples. A crowd laugh is
 // ~30 formant-filtered "ha-ha-ha" voices with jittered timing into a reverb.
@@ -723,7 +723,7 @@ export class AudioEngine {
   private plucked(midi: number, dur: number, bright: number) {
     const k = `${midi}/${dur}/${bright}`;
     let b = this.plucks.get(k);
-    if (!b) this.plucks.set(k, (b = this.pluck(440 * Math.pow(2, (midi - 69) / 12), dur, bright)));
+    if (!b) this.plucks.set(k, (b = this.pluck(midiToHz(midi), dur, bright)));
     return b;
   }
 
@@ -735,7 +735,7 @@ export class AudioEngine {
     const ctx = this.ctx!;
     const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
     const data = buffer.getChannelData(0);
-    const freq = 440 * Math.pow(2, (midi - 69) / 12);
+    const freq = midiToHz(midi);
     const partials = {
       piano: [[1, 1], [2.002, 0.35], [3.006, 0.18], [4.012, 0.08]],
       bell: [[1, 1], [2.756, 0.5], [5.404, 0.25], [8.933, 0.1]],
@@ -869,12 +869,11 @@ export class AudioEngine {
     if (!this.ctx) return 0;
     const ctx = this.ctx;
     const out = this.cueOutput();
-    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
     // E major pentatonic over two octaves, clean (no drive): it's a different sound from the guitar
     const run = [64, 66, 68, 71, 73, 76, 78, 80, 83, 85, 88];
     const notes = into ? run : [...run].reverse();
     const t0 = ctx.currentTime + 0.02;
-    notes.forEach((m, i) => this.note(this.pluck(hz(m), 1.4, 0.65), t0 + i * 0.045, 0.22, out));
+    notes.forEach((m, i) => this.note(this.pluck(midiToHz(m), 1.4, 0.65), t0 + i * 0.045, 0.22, out));
     return notes.length * 0.045 + 0.5;
   }
 
@@ -883,13 +882,12 @@ export class AudioEngine {
     if (!this.ctx) return;
     const ctx = this.ctx;
     const out = this.cueOutput();
-    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
     const chords = [[52, 59, 64, 68], [57, 64, 69, 73], [59, 66, 71, 75], [52, 59, 64, 68]];
     const step = 0.24;
     const t0 = ctx.currentTime + 0.03;
     for (let i = 0; i * step < seconds; i++) {
       const chord = chords[Math.floor(i / 4) % chords.length];
-      this.note(this.pluck(hz(chord[[0, 2, 1, 3][i % 4]]), 1.2, 0.3), t0 + i * step, 0.16, out);
+      this.note(this.pluck(midiToHz(chord[[0, 2, 1, 3][i % 4]]), 1.2, 0.3), t0 + i * step, 0.16, out);
     }
   }
 
@@ -905,17 +903,16 @@ export class AudioEngine {
     const out = this.cueOutput();
     const gtr = this.guitarOut(out);
     const t0 = ctx.currentTime + 0.05;
-    const hz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
     // the same few notes come back again and again: pluck each once
     const bufs = new Map<string, AudioBuffer>();
     const pluck = (m: number, dur: number, bright: number) => {
       const k = `${m}/${dur}/${bright}`;
-      if (!bufs.has(k)) bufs.set(k, this.pluck(hz(m), dur, bright));
+      if (!bufs.has(k)) bufs.set(k, this.pluck(midiToHz(m), dur, bright));
       return bufs.get(k)!;
     };
     const strum = (chord: number[], t: number, gain: number, dur = 1.6, down = true) =>
       (down ? chord : [...chord].reverse()).forEach((m, i) => this.note(pluck(m, dur, 0.4), t + i * 0.011, gain, gtr));
-    const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
+    const { E, B, Cs, A } = THEME_CHORDS;
     // E | B | C#m | A | E B | A B | E (ring out)
     const bars = [[E, E], [B, B], [Cs, Cs], [A, A], [E, B], [A, B]];
     bars.forEach((halves, bar) => {

@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import * as THREE from 'three';
 import { testStage } from './helpers/sets';
-import { Actor, gestureDuration, impliedEmotion } from '../src/world/actor';
+import { Actor } from '../src/world/actor';
+import { gestureDuration, impliedEmotion } from '../src/world/gestures';
 import { CHARACTERS } from '../src/world/characters';
 import { lipTrack } from '../src/world/lipsync';
 import { EMOTIONS, GESTURES } from '../src/script/types';

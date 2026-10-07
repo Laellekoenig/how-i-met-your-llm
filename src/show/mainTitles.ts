@@ -6,7 +6,7 @@ export type GangId = (typeof GANG)[number];
 
 /** Open floor between the booth and bar. Each photo has its own arrangement. */
 export const HUDDLE_AT: [number, number] = [2.15, -0.75];
-export const HUDDLE: Record<GangId, [number, number]> = {
+const HUDDLE: Record<GangId, [number, number]> = {
   marshall: [-0.76, 0.08], lily: [-0.4, 0.22], ted: [0, -0.02], barney: [0.41, -0.12], robin: [0.8, 0.1],
 };
 

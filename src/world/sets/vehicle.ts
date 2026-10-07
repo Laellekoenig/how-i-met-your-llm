@@ -5,7 +5,7 @@ import { toon, glow, mesh, cyl, box } from '../../engine/materials';
 // through the cabin at night.
 
 /** The car's cruising speed, metres per second. */
-export const SPEED = 7;
+const SPEED = 7;
 
 /** Scroll a texture on a plane `length` metres long (along its u axis) so it slides past at road speed. */
 export function scroll(tex: THREE.Texture, length: number, dt: number, dir = 1) {

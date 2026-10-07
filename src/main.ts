@@ -12,8 +12,10 @@ import { speech } from './audio/speech';
 import type { ShowItem } from './script/types';
 import { EPISODES } from './script/catalog';
 import { Syndication } from './script/episodes';
+import { $ } from './ui/dom';
 
-const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+// The page's options (?ep, ?dev, ?mute, ...). Dev mode and the set tour rewrite the URL later, but never these.
+const params = new URLSearchParams(location.search);
 
 const renderer = new Renderer($('viewport'));
 const stage = new Stage(renderer.scene);
@@ -26,9 +28,9 @@ const panel = new Panel();
 // The show starts on the TV guide; pre-written episodes air back to back from the one picked there.
 // `?ep=S11E03` skips the guide and starts at a given episode.
 // `?playground` (dev mode) swaps the schedule for a workbench that airs only what the playground hands it.
-const requested = Syndication.indexOf(EPISODES, new URLSearchParams(location.search).get('ep'));
+const requested = Syndication.indexOf(EPISODES, params.get('ep'));
 const syndication = new Syndication(EPISODES, requested >= 0 ? requested : null);
-const inPlayground = new URLSearchParams(location.search).has('playground');
+const inPlayground = params.has('playground');
 const bench = new Workbench();
 const player = new Player(stage, director, renderer, overlay, panel, inPlayground ? bench : syndication);
 let onAir = requested >= 0;
@@ -45,8 +47,8 @@ function tune(index: number) {
 const guide = new Guide($('guide'), EPISODES, tune);
 
 function openGuide() {
-  if (inPlayground || (new URLSearchParams(location.search).has('set') && document.querySelector('.set-preview'))) {
-    location.assign(new URLSearchParams(location.search).has('mute') ? '/?mute' : '/');
+  if (inPlayground || (params.has('set') && document.querySelector('.set-preview'))) {
+    location.assign(params.has('mute') ? '/?mute' : '/');
     return;
   }
   if (guide.open) return;
@@ -129,8 +131,7 @@ $('btn-guide').addEventListener('click', () => openGuide());
 // The playground and the show swap places: each keeps dev mode and ?mute.
 $('btn-playground').classList.toggle('on', inPlayground);
 $('btn-playground').addEventListener('click', () => {
-  const q = new URLSearchParams(location.search);
-  location.assign(`/?${inPlayground ? '' : 'playground&'}dev${q.has('mute') ? '&mute' : ''}`);
+  location.assign(`/?${inPlayground ? '' : 'playground&'}dev${params.has('mute') ? '&mute' : ''}`);
 });
 
 // ---------------------------------------------------------------- dev mode
@@ -146,7 +147,7 @@ function setDevMode(on: boolean) {
   history.replaceState(null, '', url.href.replace(/([?&][^=&#]+)=(?=&|#|$)/g, '$1'));
   if (!on) setPaused(false);
 }
-setDevMode(inPlayground || new URLSearchParams(location.search).has('dev'));
+setDevMode(inPlayground || params.has('dev'));
 
 window.addEventListener('keydown', (e) => {
   if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
@@ -170,9 +171,8 @@ window.addEventListener('keydown', (e) => {
 // Agents testing the show play it silently: ?mute, a webdriver browser, or T3 Code's preview browser
 // (where agents drive the app). ?sound overrides the detection.
 function testingMuted() {
-  const q = new URLSearchParams(location.search);
-  if (q.has('sound')) return false;
-  return q.has('mute') || navigator.webdriver || /\bT3Code\b/.test(navigator.userAgent);
+  if (params.has('sound')) return false;
+  return params.has('mute') || navigator.webdriver || /\bT3Code\b/.test(navigator.userAgent);
 }
 
 // The show starts on load. Browsers may hold sound back until the viewer first interacts with the

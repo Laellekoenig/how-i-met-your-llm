@@ -2,6 +2,7 @@
 
 export const CHARACTER_IDS = ['ted', 'marshall', 'lily', 'robin', 'barney', 'wendy', 'carl', 'ranjit', 'patrice', 'captain', 'marvin', 'james', 'sandy', 'arthur', 'brad', 'victoria', 'quinn', 'kevin', 'judy', 'scooter', 'loretta', 'mickey', 'hammond', 'stella', 'zoey', 'nora', 'virginia', 'punchy', 'robin_sparkles', 'guest1', 'guest2', 'guest3', 'penny', 'luke'] as const;
 export type CharacterId = (typeof CHARACTER_IDS)[number];
+export const isCharacterId = (id: unknown): id is CharacterId => typeof id === 'string' && (CHARACTER_IDS as readonly string[]).includes(id);
 
 /** One-off guest stars (Ted's date, Barney's mark, a bouncer): slots each episode recasts. */
 export const GUEST_IDS = ['guest1', 'guest2', 'guest3'] as const satisfies readonly CharacterId[];
@@ -232,6 +233,9 @@ export interface InsertBeat {
   /** A cue as the card appears; "none" also silences a text thread's chimes. */
   sound?: SoundCue | 'none';
 }
+
+/** The play name a Playbook card shows (older inserts only have `lines`). */
+export const playbookTitle = (b: InsertBeat) => b.title?.trim() || b.lines?.[0]?.trim() || 'The Playbook';
 
 /** "And that's how it went for three weeks": quick shots across sets over music, then back to the scene. */
 export interface MontageBeat {

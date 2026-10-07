@@ -19,7 +19,14 @@ export const SCORE_BEDS = {
   dreamy: { step: 0.36, gain: 0.85 },
 } satisfies Record<MontageMusic, { step: number; gain: number }>;
 
-const E = [40, 47, 52, 56, 59, 64], B = [47, 54, 59, 63, 66], Cs = [49, 56, 61, 64, 68], A = [45, 52, 57, 61, 64];
+/** The main-title theme's guitar chords (E, B, C#m, A) as MIDI notes; the upbeat bed borrows them. */
+export const THEME_CHORDS = {
+  E: [40, 47, 52, 56, 59, 64], B: [47, 54, 59, 63, 66], Cs: [49, 56, 61, 64, 68], A: [45, 52, 57, 61, 64],
+};
+const { E, B, Cs, A } = THEME_CHORDS;
+
+/** A MIDI note's frequency in Hz. */
+export const midiToHz = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
 
 /** Original arrangements, with separate harmony, instrumentation and rhythms for each mood. */
 export function scoreEvents(kind: MontageMusic, i: number): ScoreEvent[] {
