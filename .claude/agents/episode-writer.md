@@ -25,6 +25,8 @@ Use as many scenes as the story needs, but get into each one late and get out as
   (not the scene length: older episodes let scenes run long).
 - Read [the researched story-structure guide](../../docs/story-structure-reference.md). Notice recent opening
   images, first speakers, kids' placement and endings; the catalog's old couch openings are not a template.
+- Read [the music reference](../../docs/music-reference.md). Start from unscored dialogue; the catalog's music
+  density is not a target. Original score, featured songs and musical jokes serve different story purposes.
 
 Use the code you were given. If you weren't given one, take the next free code from `list`. If you were told what
 other episodes are being written at the same time, stay clear of their premises.
@@ -57,6 +59,11 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   or jump in time. Give those devices a payoff rather than making every story an identical narrated lesson.
 - **The ending**: choose a character joke, visual/runner payoff, couch reaction, or Future Ted recontextualizing
   what happened. An opening question may earn a callback; narration and an opening/closing pair are optional.
+- **Music**: default to none. Most scenes and ordinary dialogue should be unscored; zero authored music is valid.
+  If a passage needs music, name its specific purpose, entry beat and exit beat: an earned emotional turn, a
+  time-compressing montage, a heightened fantasy/parody, or a performance where music is the action or joke.
+  A scheme, romantic conversation, narration or ending does not automatically need a bed. Let the performance
+  establish the feeling before bringing music in, and stop it when that passage resolves.
 - **Shape and edit**: there is no required scene count, but scenes are short: most 5-20 lines, none over 25. The
   original cut between many short scenes, returned to conversations in progress, and made comedy in the edit. When
   a conversation needs more than that, break it up: intercut it with another strand and come back (`id` and
@@ -104,10 +111,14 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
 - The puppets hold and hand over props (`hold`, `give`), kiss, hug, high-five and slap, and have a broad gesture
   set (including `salute`). They can't do detailed physical comedy, so let the dialogue, reactions and cutaways
   carry anything finer. Don't write jokes about being AI, puppets or a TV show.
-- **The edit and the soundtrack are yours.** Nothing makes a sound unless you ask: `sound` beats for a cue at the
-  exact moment (a shatter on a realization, a record scratch), `score` for underscore that carries across lines and
-  scenes (or `silence` to leave a moment bare), an optional scene `"sound"` for a transition cue (ordinary cuts are silent), and
-  `accompanied` if a song needs a guitar. `narrate` with `over` keeps Future Ted talking while the action plays.
+- **Place music, then take it out.** A `score` loops across lines, cutaways and scene changes; a cutaway's return
+  does not undo it. End the intended passage with `{"type":"score","music":"none"}` to restore unscored dialogue
+  with room tone. `silence` also suppresses room tone: reserve it for a deliberate hush. A montage ends its own
+  music but resumes any earlier score, so stop an unwanted bed before it. Do not keep switching moods instead
+  of leaving space, or automatically score each heart beat and closing narration. Titles/credits already have music.
+- **Other sound choices.** Use `sound` beats and scene `"sound"` only for motivated punctuation; ordinary cuts
+  are silent. Don't replace excessive music with a sting on every cut or joke. Sung lines are a cappella unless
+  `accompanied` adds a needed guitar. `narrate` with `over` keeps Future Ted talking while the action plays.
 - **More tools** (see the bible): `split` for a phone call or the same conversation in three places,
   `offscreen` for a voice down the line, a `look: "video"` cutaway for footage the gang watches, `wardrobe` on a cutaway or montage
   shot for another year's look, and a scene costume with `keep` for a consequence that lasts the episode.
@@ -129,6 +140,9 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
    - For every couch visit, identify the exact setup it reacts to or the new information it prompts. Cut filler.
    - Check that the ending lands without a compulsory Future Ted summary; remove narration that repeats the action.
    - Check every cue, card, look and score you added earns its place; remove any that only announce the obvious.
+   - Trace each music cue from entry to exit, including carryover through cutaways, scene changes and montage
+     returns. Most dialogue should remain unscored. Remove decorative beds, shorten overlong spans, and use
+     `score: none` at the intended exit; a quiet ending is valid. Review actual coverage, not just cue count.
    - Add `continuity` notes: the era, any fact a later writer must not contradict, threads you opened or closed.
    Do at least two passes. The first draft is never the episode.
 3. Re-run `bun run episodes check <file>`, then `bun test -t "<CODE>|<code>"` (e.g. `bun test -t "S11E03|s11e03"`).

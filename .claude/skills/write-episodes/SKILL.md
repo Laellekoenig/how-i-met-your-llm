@@ -19,6 +19,8 @@ continuity so far (open bets and promises are good story seeds). Work out how ma
 number in the args, one per pitch given, or 1 if the args say neither.
 Read [the story-structure reference](../../../docs/story-structure-reference.md) for researched examples and
 the supported ways to open on the story, use narration, and cut to the kids.
+Read [the music reference](../../../docs/music-reference.md) for the musical approach: most scenes and ordinary
+dialogue stay unscored; music needs a specific story purpose and a planned entry and exit. Zero authored music is valid.
 
 For each episode you'll write, settle on a premise. Use the user's pitches as given. For any others, brainstorm
 about twice as many as you need and keep the strongest and most varied set. Vary which character leads the A-story,
@@ -36,6 +38,7 @@ Launch one `episode-writer` agent per episode, all in the same message so they r
 - its premise (the pitch, a logline, or just a lead character and an engine; leave the writer room to find the story)
 - any characters or sets to feature
 - the proposed opening, couch placement and ending, with the story reason (the writer may improve them)
+- any story reason for music, otherwise an unscored default; the writer should plan both ends of any cue
 - one line on each of the *other* episodes being written now, including their framing choices, so they don't overlap
 
 ## 3. Notes and sign-off
@@ -49,7 +52,10 @@ When the writers report back:
    Check scene length (`read` prints each scene's line count): most scenes 5-20 lines, none over 25; send long
    ones back to be cut or split by intercutting. Check that the opening hooks us, that every couch visit has a story trigger, and that narration adds something
    beyond what we just saw. Compare the batch's first images and last beats; don't accept identical framing with
-   different nouns. If an episode falls short,
+   different nouns. Check music coverage as well: most dialogue should be unscored, each cue needs a purpose
+   and an exit, and music must not leak through scene/cutaway returns or resume unexpectedly after a montage.
+   Cut routine tender endings, scene-long mood beds and decorative stings; compare the batch for repeated music
+   habits without imposing a cue quota. If an episode falls short,
    send its writer specific notes with SendMessage, for example "scene 2 sags in the middle; Robin has nothing to
    play; the runner never pays off". Then re-check.
 3. Watch at least one new episode in the running app (`bun dev`, then open `/?ep=<CODE>&dev&mute`) and take
