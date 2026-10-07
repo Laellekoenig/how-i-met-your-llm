@@ -80,7 +80,7 @@ function scenery(set: StageSet) {
  * A spot right up against something (leaning on a partition, standing at the bar) may be walked to or from as
  * long as the walk never brushes it any closer than that.
  */
-function clear(set: StageSet, from: THREE.Vector3, to: THREE.Vector3) {
+export function clear(set: StageSet, from: THREE.Vector3, to: THREE.Vector3) {
   const floors = [from, to, from.clone().lerp(to, 0.5)].map(p => set.floorAt?.(p.x, p.z) ?? 0);
   const low = Math.min(...floors) + 0.3, high = Math.max(...floors) + 1.65;
   const a = new THREE.Vector3(), b = new THREE.Vector3(), hit = new THREE.Vector3(), ray = new THREE.Ray();
@@ -105,7 +105,7 @@ function clear(set: StageSet, from: THREE.Vector3, to: THREE.Vector3) {
 }
 
 /** Whether someone standing here has room for their whole body, touching nothing. */
-function free(set: StageSet, p: THREE.Vector3) {
+export function free(set: StageSet, p: THREE.Vector3) {
   const floor = set.floorAt?.(p.x, p.z) ?? 0;
   const local = new THREE.Vector3();
   return !scenery(set).some(({ bounds, inverse, world }) => {
@@ -117,14 +117,34 @@ function free(set: StageSet, p: THREE.Vector3) {
 
 const flat = (a: THREE.Vector3, b: THREE.Vector3) => Math.hypot(a.x - b.x, a.z - b.z);
 
+/** How close two people may pass (centre to centre) before they'd be walking into each other; less beside a seat. */
+export const SPACE = 0.5;
+export const SEATED_SPACE = 0.42;
+
+/** Someone a walk should keep clear of, and by how much. */
+export interface Person { at: THREE.Vector3; room: number }
+
+/**
+ * Whether walking straight from a to b brushes past anyone closer than there's room for. Someone already that
+ * close at either end (standing beside them, getting up next to them) is fine as long as the walk gets no closer.
+ */
+export function crowded(people: Person[], a: THREE.Vector3, b: THREE.Vector3) {
+  const foot = new THREE.Vector3(), line = new THREE.Line3(a.clone().setY(0), b.clone().setY(0));
+  return people.some(({ at, room }) => {
+    const d = flat(line.closestPointToPoint(at.clone().setY(0), true, foot), at);
+    return d < room && d < Math.min(flat(a, at), flat(b, at)) - 0.01;
+  });
+}
+
 /**
  * The walk itself: the shortest way there, along the authored aisles or straight across wherever nothing on
  * the set stands in the way, so nobody heads off from where they're going just to touch a waypoint.
  * `start` is how they set off (where they are, any corners still ahead of them, the step out of their seat),
  * joining the aisles at node `from`; `end` is how they arrive (the step up to the mark, then the mark), joining
  * at node `to`. Only the first point of `end` can be reached cross-country: the rest is the authored arrival.
+ * The way also keeps clear of the `people` standing (or sitting) about, wherever it can.
  */
-export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, end: THREE.Vector3[], to: string): THREE.Vector3[] | null {
+export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, end: THREE.Vector3[], to: string, people: Person[] = []): THREE.Vector3[] | null {
   const keys = Object.keys(set.nodes), index = new Map(keys.map((k, i) => [k, i]));
   if (!index.has(from) || !index.has(to) || !start.length || !end.length) return null;
   const points = [...keys.map(k => set.nodes[k]), ...start, end[0]];
@@ -151,7 +171,11 @@ export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, e
   }
   let sight = SIGHT.get(set);
   if (!sight) SIGHT.set(set, sight = new Map());
-  const reachable = (a: number, b: number) => {
+  // Only where they start and where they're going may be right beside someone: no corner on the way is.
+  const near = (p: THREE.Vector3) => people.some(({ at, room }) => flat(p, at) < room);
+  const cramped = points.map((p, i) => (i < S || i > goal) && near(p));
+  const reachable = (a: number, b: number) => !cramped[a] && !cramped[b] && !crowded(people, points[a], points[b]) && walkable(a, b);
+  const walkable = (a: number, b: number) => {
     if (linked[a].has(b)) return true;
     if (a < S && b < S) {
       const key = a < b ? `${a}|${b}` : `${b}|${a}`;
@@ -183,18 +207,18 @@ export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, e
           const [last, corner, next] = [route[k - 1], route[k].clone(), route[k + 1]];
           route[k].lerp(next, reach(t => {
             const p = corner.clone().lerp(next, t);
-            return free(set, p) && clear(set, last, p);
+            return free(set, p) && clear(set, last, p) && !near(p) && !crowded(people, last, p) && !crowded(people, p, next);
           }));
           const cut = route[k].clone();
           route[k].lerp(last, reach(t => {
             const p = cut.clone().lerp(last, t);
-            return free(set, p) && clear(set, p, next);
+            return free(set, p) && clear(set, p, next) && !near(p) && !crowded(people, p, next) && !crowded(people, last, p);
           }));
         } else if (path[k] === goal - 1 && path[k - 1] >= S) {
           const [seat, step, next] = [route[k - 1], route[k].clone(), route[k + 1]];
           route[k].lerp(seat, reach(t => {
             const p = step.clone().lerp(seat, t);
-            return free(set, p) && clear(set, p, next);
+            return free(set, p) && clear(set, p, next) && !crowded(people, p, next);
           }));
         }
       }

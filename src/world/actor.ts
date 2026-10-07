@@ -37,6 +37,9 @@ type ArmPose = readonly [number, number, number, number];
 /** The hands while talking: their own style, or the mood's (rubbing the back of the neck, wringing them). */
 type Accent = TalkStyle | 'neck' | 'wring';
 const TMP = new THREE.Vector3();
+/** Walking pace, and the slower slide along a seat, in metres a second. */
+export const WALK_SPEED = 1.45;
+export const SCOOT_SPEED = 0.9;
 /** Clothing skinned between the hips and the spine. Camera occlusion rays refresh matrices with updateWorldMatrix,
  * which SkinnedMesh doesn't hook, so keep its attached bind inverse current there too. */
 class WaistMesh extends THREE.SkinnedMesh {
@@ -112,6 +115,10 @@ export class Actor {
   private lapProp: THREE.Object3D | null = null;
   private path: THREE.Vector3[] = [];
   private scooting = false;
+  /** Whether the walk ends in a seat (rather than standing on the spot). */
+  private toSeat = false;
+  /** Seconds to stand and let someone by before walking on. */
+  waiting = 0;
   private onArrive: (() => void) | null = null;
   private walkPhase = 0;
   private walking = 0; // blend
@@ -1085,6 +1092,19 @@ export class Actor {
     return this.path.length > 0;
   }
 
+  get isScooting() {
+    return this.scooting;
+  }
+
+  get headingToSeat() {
+    return this.path.length > 0 && this.toSeat;
+  }
+
+  /** Take another way to the same place (around someone in the way), arriving just as before. */
+  reroute(points: THREE.Vector3[]) {
+    if (this.path.length && points.length) this.path = points.map((p) => p.clone());
+  }
+
   get isSitting() {
     return this.seatHeight !== null;
   }
@@ -1099,6 +1119,7 @@ export class Actor {
     this.setLapProp(opts.prop ?? null);
     this.path = [];
     this.scooting = false;
+    this.waiting = 0;
     this.onArrive = null;
     this.gesture = null;
     this.lookAt = null;
@@ -1120,6 +1141,8 @@ export class Actor {
       if (this.onArrive) this.onArrive();
       this.path = points.map((p) => p.clone());
       this.scooting = !!final.scoot;
+      this.toSeat = final.seat !== null;
+      this.waiting = 0;
       this.seatHeight = final.scoot ? final.seat ?? this.seatHeight ?? 0.42 : null; // stand up first
       this.sitPose = 'upright';
       this.setLapProp(null);
@@ -1144,6 +1167,7 @@ export class Actor {
       this.root.position.z = end.z;
     }
     this.path = [];
+    this.waiting = 0;
     this.onArrive?.();
     this.walking = 0;
     this.scooting = false;
@@ -1259,12 +1283,13 @@ export class Actor {
     const sitting = this.seatHeight !== null;
     this.sitBlend += ((sitting ? 1 : 0) - this.sitBlend) * damp(7, dt);
     let moving = false;
-    if (this.path.length && (this.sitBlend < 0.3 || this.scooting)) {
+    if (this.waiting > 0 && this.path.length) this.waiting = Math.max(0, this.waiting - dt);
+    else if (this.path.length && (this.sitBlend < 0.3 || this.scooting)) {
       const next = this.path[0];
       const pos = this.root.position;
       const dx = next.x - pos.x, dz = next.z - pos.z;
       const dist = Math.hypot(dx, dz);
-      const speed = this.scooting ? 0.9 : 1.45;
+      const speed = this.scooting ? SCOOT_SPEED : WALK_SPEED;
       if (dist < 0.05) {
         pos.x = next.x;
         pos.z = next.z;
