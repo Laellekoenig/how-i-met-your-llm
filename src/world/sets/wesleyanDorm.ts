@@ -16,8 +16,9 @@ export function buildWesleyanDorm(): StageSet {
   const pane = window_(g, 0, 2.04, -3.43, 1.8, 1.65, day, '#77684f', 0, 1);
   for (const x of [-1.08, 1.08]) g.add(mesh(box(0.35, 1.95, 0.14), toon('#7c4438'), x, 1.96, -3.3));
   for (let i = 0; i < 11; i++) g.add(mesh(box(0.1, 0.54, 0.21), toon('#b4b1a1'), -0.72 + i * 0.14, 0.32, -3.15));
-  door(g, 4.05, -3.43, 0, '#937444');
-  label(g, '212', 4.05, 1.92, -3.34, 0.38, 0.2, '#fff0c7', '#6c4b31');
+  // (hinged by the corner, so it opens against the side wall)
+  const front = door(g, 4.3, -3.43, 0, '#937444', { hinge: 1 });
+  label(front.leaf, '212', -front.hinge * 0.525, 1.92, 0.03, 0.38, 0.2, '#fff0c7', '#6c4b31');
   label(g, 'WESLEYAN', -2.75, 2.91, -3.37, 2.6, 0.35, '#fff3d0', '#982d34', 'bold 68px Georgia');
   label(g, 'COLLEGE RADIO  /  88.1 FM', 2.34, 2.73, -3.36, 1.42, 0.3, '#171d29', '#dab65d');
   label(g, 'FALL 1996', 2.34, 2.41, -3.35, 1.42, 0.28, '#e8e0c5', '#364b54');
@@ -65,8 +66,8 @@ export function buildWesleyanDorm(): StageSet {
   keyLight(g, '#ffe0aa', 2.4, [-2, 5, 4], [0, 0, -1]);
   return {
     id: 'wesleyan_dorm', name: 'Wesleyan Dorm · College, 1996', group: g,
-    nodes: nodes({ door: [4.05, -2.7], right: [3.4, -1], desk: [2.35, -1.2], back: [0, -1.4], bed: [-2.7, -1.3], left: [-2.7, 1.2], center: [0, 1.3] }),
-    edges: [['door', 'right'], ['right', 'desk'], ['desk', 'back'], ['back', 'bed'], ['bed', 'left'], ['left', 'center'], ['center', 'right']], door: 'door',
+    nodes: nodes({ door: [4.3, -2.7], right: [3.4, -1], desk: [2.35, -1.2], back: [0, -1.4], bed: [-2.7, -1.3], left: [-2.7, 1.2], center: [0, 1.3] }),
+    edges: [['door', 'right'], ['right', 'desk'], ['desk', 'back'], ['back', 'bed'], ['bed', 'left'], ['left', 'center'], ['center', 'right']], door: 'door', doors: { door: front },
     marks: {
       bed_left: mark(-3.6, -2.25, 0.1, 'bed', 'sitting on the lower bunk, left', { seat: 0.58, approach: [-3.6, -1.3] }),
       bed_right: mark(-2.3, -2.25, 0.1, 'bed', 'sitting on the lower bunk, right', { seat: 0.58, approach: [-2.3, -1.3] }),
@@ -74,7 +75,7 @@ export function buildWesleyanDorm(): StageSet {
       center: mark(-0.5, 1.3, 0, 'center', 'on the rug beside the pizza table'),
       roommate: mark(1.15, 1.2, -0.45, 'center', 'beside the textbooks on the rug'),
       stereo: mark(3.35, -0.35, -0.4, 'right', 'next to the cassette stereo'),
-      door: mark(4.05, -2.95, 0, 'door', 'dorm room doorway'),
+      door: mark(4.3, -2.95, 0, 'door', 'dorm room doorway'),
     },
     maxTwoShotDistance: 6.5,
     wides: [

@@ -974,6 +974,29 @@ export function street(night: boolean, seed = 51) {
   return t;
 }
 
+/** What an open door shows: a dim corridor running away from it, lit by one ceiling light, a door at the end. */
+export function hallway(wall = '#6a5c4c', floor = '#3a2e26') {
+  return canvas(32, 64, (g, w, h) => {
+    // the far end, then the walls, floor and ceiling closing in on it in one-point perspective
+    const l = 11, r = 21, t = 24, b = 46;
+    g.fillStyle = shade(wall, 0.55); g.fillRect(0, 0, w, h);
+    g.fillStyle = shade(wall, 0.4); g.fillRect(l, t, r - l, b - t);
+    const quad = (pts: number[], c: string) => {
+      g.fillStyle = c; g.beginPath(); g.moveTo(pts[0], pts[1]);
+      for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]);
+      g.closePath(); g.fill();
+    };
+    quad([0, h, w, h, r, b, l, b], shade(floor, 0.8));
+    quad([0, 0, w, 0, r, t, l, t], shade(wall, 0.3));
+    quad([0, 0, l, t, l, b, 0, h], shade(wall, 0.65));
+    quad([w, 0, r, t, r, b, w, h], shade(wall, 0.48));
+    // a door at the end of the corridor and a ceiling light halfway down it
+    g.fillStyle = shade(floor, 0.6); g.fillRect(14, 33, 4, 13);
+    g.fillStyle = '#e8d6a0'; g.fillRect(13, 9, 6, 2);
+    g.fillStyle = shade(floor, 1.15); g.fillRect(9, 55, 14, 3);
+  });
+}
+
 /** Face of an apartment or office tower: a grid of windows, some lit. */
 export function facade(night: boolean, wall: string, seed = 61, cols = 6, rows = 10) {
   const r = mulberry32(seed);

@@ -49,7 +49,7 @@ export function buildHoserHut(): StageSet {
       rod(deer, v3(s * (0.19 + i * 0.11), 0.14 + i * 0.12, 0), v3(s * (0.13 + i * 0.11), 0.37 + i * 0.13, 0.04), 0.02, toon('#c5b496'));
   }
   g.add(deer);
-  door(g, 5.6, -4.85, 0, '#483027', { frameColor: '#28231e' });
+  const front = door(g, 5.6, -4.85, 0, '#483027', { frameColor: '#28231e', hinge: 1 });
   label(g, 'THE HOSER HUT', 5.6, 2.7, -4.68, 2.1, 0.34, '#f2d899', '#314d3b');
   label(g, 'BEER', 3.4, 3.04, -4.69, 1.1, 0.27, '#96d99d', '#263a2c');
   for (const x of [-1.4, 3.3]) {
@@ -124,6 +124,7 @@ export function buildHoserHut(): StageSet {
       ['bartender', 'behind'],
     ],
     door: 'door',
+    doors: { door: front },
     marks: {
       table_left: mark(-2.4, -1.4, Math.PI / 2, 'front', 'Robin’s table, left chair', { seat: 0.49, approach: [-2.4, 0.1] }),
       table_right: mark(-0.4, -1.4, -Math.PI / 2, 'front', 'across the small wooden table', { seat: 0.49, approach: [-0.4, 0.1] }),

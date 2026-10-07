@@ -415,6 +415,32 @@ export class AudioEngine {
     n.start(t, rand(0, 1), 0.15);
   }
 
+  /** A door swung shut: a soft wooden thud and the latch catching. */
+  doorShut() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(140, t);
+    o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.22, t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    o.connect(og).connect(this.sfxBus);
+    o.start(t);
+    o.stop(t + 0.2);
+    const n = ctx.createBufferSource();
+    n.buffer = this.noise;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3200;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.18, t + 0.02);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    n.connect(bp).connect(ng).connect(this.sfxBus);
+    n.start(t + 0.02, rand(0, 1), 0.04);
+  }
+
   /** Elevator arrival chime. */
   elevatorDing() {
     if (!this.ctx) return;

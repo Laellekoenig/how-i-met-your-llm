@@ -135,7 +135,9 @@ export class Player {
     private overlay: Overlay,
     private panel: Panel,
     private source: ContentSource,
-  ) {}
+  ) {
+    stage.onDoorShut = () => audio.doorShut();
+  }
 
   skip(level: 'scene' | 'episode') {
     this.skipLevel = level;
@@ -878,7 +880,7 @@ export class Player {
     for (const b of beats) {
       if (!('character' in b) || !isCharacterId(b.character) || isKid(b.character)) continue;
       const who = b.character;
-      if (b.type === 'enter') void (st.onStage(who) ? b.to && st.moveTo(who, b.to) : st.enter(who, b.to));
+      if (b.type === 'enter') void (st.onStage(who) ? b.to && st.moveTo(who, b.to) : st.enter(who, b.to, true));
       else if (!st.onStage(who)) continue;
       else if (b.type === 'move') void st.moveTo(who, b.to === who ? 'center' : b.to);
       else if (b.type === 'exit') st.leave(who);
@@ -1283,7 +1285,8 @@ export class Player {
     const p = st.enter(b.character, b.to);
     this.director.wide(0);
     this.lookAtSpeaker(b.character);
-    await this.untilArrived(p, 2600);
+    // (longer through a door they open and shut)
+    await this.untilArrived(p, st.current.doors ? 4600 : 2600);
   }
 
   private async exit(b: BeatOf<'exit'>) {
@@ -1292,7 +1295,7 @@ export class Player {
     this.panel.line('stage', `${charName(b.character)} leaves.`);
     const p = st.exit(b.character);
     this.director.wide(0);
-    await this.untilArrived(p, 2400);
+    await this.untilArrived(p, st.current.doors ? 4800 : 2400);
   }
 
   /** A gesture: sitting down or standing up, one done with someone (walking over first if need be), or on their own. */

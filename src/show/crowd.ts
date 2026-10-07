@@ -135,7 +135,8 @@ export class Crowd {
   private retry = new Map<Actor, number>();
   private aside = new Map<Actor, Aside>();
 
-  /** `movable`: who may be asked to step aside (the cast, not the background); `seatOf`: the seat they're in. */
+  /** `movable`: who may be asked to step aside or take another way (the cast, not the background, nor anyone
+   * going through a door); `seatOf`: the seat they're in. */
   constructor(private movable: (a: Actor) => boolean, private seatOf: (a: Actor) => Seat | null) {}
 
   /** A new scene: nobody owes anybody a step back. */
@@ -164,9 +165,10 @@ export class Crowd {
       const others = bodies.filter(b => b !== me);
       const hit = bump(me.plan, others);
       if (!hit) continue;
-      const choices = [{ who: me, way: giveWayFor(set, me, others, hit) }];
+      // (someone going through a door keeps to their way, but others still make way for them)
+      const choices = this.movable(me.actor) ? [{ who: me, way: giveWayFor(set, me, others, hit) }] : [];
       const them = hit.other;
-      if (them.walker && !this.retry.has(them.actor)) {
+      if (them.walker && !this.retry.has(them.actor) && this.movable(them.actor)) {
         const theirs = bump(them.plan, bodies.filter(b => b !== them));
         if (theirs?.other === me) choices.push({ who: them, way: giveWayFor(set, them, bodies.filter(b => b !== them), theirs) });
       }

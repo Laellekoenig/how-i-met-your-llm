@@ -51,7 +51,7 @@ export function buildRooftop(): StageSet {
   g.add(occluder(mesh(box(BX1 - BX0, BH, BZ1 - BZ0), toon('#ffffff', { map: brick('#6e3626', '#463630', [3, 3]) }), (BX0 + BX1) / 2, BH / 2, (BZ0 + BZ1) / 2)));
   g.add(mesh(box(BX1 - BX0 + 0.16, 0.1, BZ1 - BZ0 + 0.16), capMat, (BX0 + BX1) / 2, BH + 0.05, (BZ0 + BZ1) / 2));
   const DOOR_Z = -2.0;
-  door(g, BX1 + 0.01, DOOR_Z, Math.PI / 2, '#4a5458', { frameColor: '#2e3438' });
+  const front = door(g, BX1 + 0.01, DOOR_Z, Math.PI / 2, '#4a5458', { frameColor: '#2e3438', hinge: 1 });
   g.add(mesh(box(0.3, 0.12, 0.05), toon('#c8302a'), BX1 + 0.03, 2.46, DOOR_Z, false).rotateY(Math.PI / 2)); // a faded red "ROOF" plate
   // caged bulb over the door
   g.add(mesh(cyl(0.05, 0.05, 0.1, 6), metalDark, BX1 + 0.08, 2.6, DOOR_Z, false));
@@ -224,6 +224,7 @@ export function buildRooftop(): StageSet {
       ['back_r', 'tower'], ['tower', 'center'], ['tower', 'front_r'], ['chairs', 'center'], ['center', 'front'], ['front', 'front_r'], ['bulk', 'back_l'],
     ],
     door: 'door',
+    doors: { door: front },
     marks: {
       lawn_chair_left: chairMark(0, 'blue lawn chair, left of the circle'),
       lawn_chair_middle: chairMark(1, 'yellow lawn chair, middle, facing the audience'),

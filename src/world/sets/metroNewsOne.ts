@@ -36,7 +36,7 @@ export function buildMetroNewsOne(): StageSet {
   // A side monitor, crew entrance and red ON AIR practical.
   g.add(mesh(box(1.55, 0.72, 0.14), black, 5.05, 2.85, -3.8));
   g.add(mesh(new THREE.PlaneGeometry(1.4, 0.58), new THREE.MeshBasicMaterial({ map: metroNewsLogo() }), 5.05, 2.85, -3.72, false));
-  door(g, 5.05, -3.92, 0, '#4b5460', { frameColor: '#858b94' });
+  const front = door(g, 5.05, -3.92, 0, '#4b5460', { frameColor: '#858b94', hinge: 1 });
   label(g, 'ON AIR', 5.05, 3.43, -3.8, 1.3, 0.28, '#fff1dd', '#ad292b', 'bold 46px Helvetica');
   label(g, 'STUDIO A', 5.05, 1.7, -3.79, 0.68, 0.17);
 
@@ -64,7 +64,8 @@ export function buildMetroNewsOne(): StageSet {
   return {
     id: 'metro_news_one', name: 'Metro News One', group: g, nodes: N,
     edges: [['door', 'right'], ['right', 'behind'], ['behind', 'left'], ['left', 'left_front'], ['left_front', 'center'], ['center', 'right_front'], ['right_front', 'right'], ['right_front', 'camera_side'], ['camera_side', 'camera']],
-    door: 'door', reserved: ['camera_operator'],
+    door: 'door',
+    doors: { door: front }, reserved: ['camera_operator'],
     marks: {
       anchor_left: mark(-1.85, -2.8, 0, 'behind', "Robin's anchor chair behind the news desk", { seat: 0.47, approach: [-1.85, -3.42] }),
       anchor_right: mark(0.55, -2.8, 0, 'behind', 'co-anchor or interview guest at the news desk', { seat: 0.47, approach: [0.55, -3.42] }),

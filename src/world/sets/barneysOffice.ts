@@ -239,7 +239,7 @@ export function buildBarneysOffice(): StageSet {
 
   // ---- the door, downstage on the right wall ------------------------------------------------------------
   const DOOR_Z = 0.6;
-  door(g, RIGHT - 0.02, DOOR_Z, -Math.PI / 2, '#5a3a22', { frameColor: '#3a2214' });
+  const front = door(g, RIGHT - 0.02, DOOR_Z, -Math.PI / 2, '#5a3a22', { frameColor: '#3a2214' });
 
   // ---- lights -----------------------------------------------------------------------------------------
   for (const [x, z] of [[-2.3, -1.6], [3.5, -2.0], [0, 0.8], [-4.4, -2.4]] as const) g.add(mesh(cyl(0.12, 0.12, 0.02, 8), glow('#fff4e0', 1.3), x, H - 0.01, z, false));
@@ -270,6 +270,7 @@ export function buildBarneysOffice(): StageSet {
       ['desk_r', 'behind'], ['front', 'front_l'], ['front_l', 'desk_l'], ['desk_l', 'posters'], ['center', 'front_l'],
     ],
     door: 'door',
+    doors: { door: front },
     marks: {
       desk_chair: mark(DX + 0.05, DZ - 0.8, 0, 'behind', "Barney's high-backed black leather chair behind the glass desk (the boss seat)", { seat: 0.5, approach: [DX + 0.75, DZ - 0.95] }),
       guest_chair_left: mark(GL[0] + 0.05, GL[1], GL[2], 'guest_l', 'black leather club chair in front of the desk, left', { seat: 0.48, approach: [-2.95, 0.4] }),

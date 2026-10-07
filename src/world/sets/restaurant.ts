@@ -18,7 +18,7 @@ export function buildRestaurant(): StageSet {
   const day = toon('#ffffff', { map: street(false, 92), emissive: '#ffffff', emissiveIntensity: 0.2 });
   const night = toon('#ffffff', { map: street(true, 92), emissive: '#ffffff', emissiveIntensity: 0.5 });
   const panes = [-4.65, -2.7].map((x) => window_(g, x, 1.95, -3.87, 1.55, 1.8, night, '#3a463a', 0, 1));
-  const entrance = door(g, -0.8, -3.9, 0, '#384d3e', { glass: night });
+  const entrance = door(g, -0.8, -3.9, 0, '#384d3e', { glass: night, beyond: night });
   entrance.traverse((o) => { if (o instanceof THREE.Mesh && o.material === night) panes.push(o); });
   label(g, 'THE RESTAURANT', -3.65, 3.06, -3.79, 3.8, 0.32, '#eed5a2', '#394b3d', 'italic 32px Georgia');
 
@@ -189,6 +189,7 @@ export function buildRestaurant(): StageSet {
     nodes: nodes({ door: [-0.8, -3.3], host: [-1.25, -2.45], center: [-0.8, 0], left: [-1.9, -0.55], back_inner: [-1.9, -2.65], back_left: [-3.7, -2.65], back_outer: [-5.4, -2.65], far_left: [-5.5, -0.55], outer_front: [-5.25, 2.3], front_left: [-3.7, 2.3], inner_front: [-1.7, 2.3], front: [1, 1.1], booth_left: [0.55, -2.78], booth_right: [5.85, -2.78], booth_aisle_l: [0.25, -0.8], booth_back_l: [0.25, -2.78], booth_aisle_r: [6.2, -0.8], booth_back_r: [6.2, -2.78], booth_head_l: [0.55, -1.1], booth_head_r: [5.5, -1.0], booth_front: [3.2, -0.85], service: [5.2, 1.1], kitchen: [6.08, -3.3] }),
     edges: [['door', 'host'], ['host', 'center'], ['host', 'left'], ['left', 'back_inner'], ['back_inner', 'back_left'], ['back_left', 'back_outer'], ['back_outer', 'far_left'], ['left', 'center'], ['far_left', 'outer_front'], ['outer_front', 'front_left'], ['front_left', 'inner_front'], ['inner_front', 'center'], ['center', 'front'], ['front', 'booth_front'], ['front', 'booth_aisle_l'], ['booth_aisle_l', 'booth_back_l'], ['booth_back_l', 'booth_left'], ['booth_aisle_l', 'booth_head_l'], ['booth_front', 'service'], ['booth_front', 'booth_aisle_r'], ['booth_aisle_r', 'booth_back_r'], ['booth_back_r', 'booth_right'], ['booth_back_r', 'kitchen'], ['booth_front', 'booth_head_r']],
     door: 'door',
+    doors: { door: entrance },
     marks: {
       table_left: mark(-4.66, -1.53, Math.PI / 2 - 0.25, 'far_left', 'left chair at the date table', { seat: 0.47, approach: [-4.75, -0.55] }),
       table_right: mark(-2.74, -1.53, -Math.PI / 2 + 0.25, 'left', 'right chair at the date table', { seat: 0.47, approach: [-2.5, -0.55] }),

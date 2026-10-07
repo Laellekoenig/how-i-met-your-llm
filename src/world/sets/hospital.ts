@@ -13,7 +13,7 @@ export function buildHospital(): StageSet {
   g.add(mesh(box(12, 0.065, 0.09), toon('#b8c6b6'), 0, 0.99, -3.94));
   label(g, 'ST. MARK\'S HOSPITAL', -2.7, 2.9, -3.91, 4.4, 0.38, '#395955', '#dedfca', 'bold 40px Helvetica');
   label(g, 'FAMILY WAITING ROOM', -2.7, 2.41, -3.9, 3.9, 0.27, '#476e69', '#dedfca', 'bold 38px Helvetica');
-  door(g, 1.2, -3.93, 0, '#658b85', { glass: toon('#b6cfc5'), frameColor: '#c2c8b8' });
+  const front = door(g, 1.2, -3.93, 0, '#658b85', { glass: toon('#b6cfc5'), frameColor: '#c2c8b8' });
   label(g, 'WARD  3  →', 1.2, 2.64, -3.8, 1.46, 0.25);
   g.add(mesh(new THREE.PlaneGeometry(0.55, 0.55), toon('#ffffff', { map: clockFace() }), 4.3, 2.9, -3.89));
   for (const x of [-4.8, -3.65, -2.5, -1.35]) {
@@ -45,7 +45,7 @@ export function buildHospital(): StageSet {
   return {
     id: 'hospital', name: 'Hospital Waiting Room', group: g,
     nodes: nodes({ door: [1.2, -3.3], center: [0, -0.4], seats: [-2.8, -1.7], left: [-4, -1.6], side: [-4, 0.5], front: [-2.8, 0.5], reception: [3.6, -1.1], clerk: [3.8, -3.3], coffee: [3.9, 1.3] }),
-    edges: [['door', 'center'], ['center', 'seats'], ['seats', 'left'], ['left', 'side'], ['side', 'front'], ['front', 'center'], ['center', 'reception'], ['reception', 'coffee'], ['door', 'clerk']], door: 'door', reserved: ['receptionist'],
+    edges: [['door', 'center'], ['center', 'seats'], ['seats', 'left'], ['left', 'side'], ['side', 'front'], ['front', 'center'], ['center', 'reception'], ['reception', 'coffee'], ['door', 'clerk']], door: 'door', doors: { door: front }, reserved: ['receptionist'],
     marks: {
       seat_left: mark(-3.65, -2.48, 0, 'seats', 'waiting-room chair, left', { seat: 0.49, approach: [-3.65, -1.7] }),
       seat_right: mark(-2.5, -2.48, 0, 'seats', 'waiting-room chair, right', { seat: 0.49, approach: [-2.5, -1.7] }),

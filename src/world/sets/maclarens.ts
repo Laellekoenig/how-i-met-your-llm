@@ -226,11 +226,12 @@ export function buildMaclarens(): StageSet {
   const streetNight = toon('#ffffff', { map: skyline(true, 21), emissive: '#ffffff', emissiveIntensity: 0.35 });
   const streetDay = toon('#ffffff', { map: skyline(false, 21), emissive: '#ffffff', emissiveIntensity: 0.4 });
   const DOOR_X = 3.4;
-  const d = door(g, DOOR_X, BACK + 0.04, 0, '#2c1a10', { glass: streetNight, frameColor: '#24130a' });
-  const doorGlass = d.children[d.children.length - 1] as THREE.Mesh;
+  // (opening onto the same view of the street the glass shows)
+  const front = door(g, DOOR_X, BACK + 0.04, 0, '#2c1a10', { glass: streetNight, frameColor: '#24130a', beyond: streetNight });
   const lettering = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.14), new THREE.MeshBasicMaterial({ map: sign("MacLAREN'S", '#e8c56a', '#1a0d06', 128, 32, 'italic bold 22px Georgia') }));
-  lettering.position.set(DOOR_X, 1.93, BACK + 0.12);
-  g.add(lettering);
+  // (on the glass, so it swings with the door)
+  lettering.position.set(-front.hinge * 0.525, 1.93, 0.02);
+  front.leaf.add(lettering);
   const exit = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.17), new THREE.MeshBasicMaterial({ map: sign('EXIT', '#7dffa0', '#0c1a10', 64, 26, 'bold 18px monospace') }));
   exit.position.set(DOOR_X, 2.62, BACK + 0.03);
   g.add(exit);
@@ -395,6 +396,7 @@ export function buildMaclarens(): StageSet {
       ['booth_up', 'left'], ['left', 'left_far'], ['booth_r', 'front'], ['bar', 'bar_front'], ['front', 'bar_front'],
     ],
     door: 'door',
+    doors: { door: front },
     marks: {
       booth_left_front: mark(BX - 0.85, BZ + 0.4, Math.PI / 2, 'booth_up', 'the booth, left bench, seat nearest the audience', { seat: 0.47, approach: [BX - 0.85, BZ - 1.4] }),
       booth_left_back: mark(BX - 0.85, BZ - 0.4, Math.PI / 2, 'booth_up', 'the booth, left bench, inner seat', { seat: 0.47, approach: [BX - 0.85, BZ - 1.4] }),
@@ -427,7 +429,7 @@ export function buildMaclarens(): StageSet {
     reserved: ['behind_bar'],
     setTime(t) {
       const night = t === 'night';
-      doorGlass.material = night ? streetNight : streetDay;
+      front.glass!.material = front.beyond.material = night ? streetNight : streetDay;
       pane.material = night ? paneNight : paneDay;
       blocks.material = night ? blockNight : blockDay;
     },

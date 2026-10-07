@@ -126,6 +126,8 @@ export class Actor {
   private onArrive: (() => void) | null = null;
   private walkPhase = 0;
   private walking = 0; // blend
+  /** How long their steps are: full striding ahead, short shuffling backwards. */
+  private stride = 1;
   talking = false;
   /** How big the talking is: under 1 for a whisper, over 1 for a shout. */
   talkLevel = 1;
@@ -143,6 +145,11 @@ export class Actor {
   private nodT = rand(1.5, 4);
   private nodding = 0;
   lookAt: THREE.Vector3 | null = null;
+  /** Keep turned this way (asked every frame), walking or not: sidestepping, or backing out of a doorway. */
+  turnTo: (() => number) | null = null;
+  /** A hand on something out in the world (a door's handle): which hand, where it is and which way the palm
+   * faces (asked every frame), and how firmly it has hold, easing in as it comes within reach. */
+  private grasp: { at: () => [THREE.Vector3, THREE.Vector3]; side: number; on: boolean; w: number } | null = null;
   /** Where the irises are pointed (radians off the head's forward), with little darts around it. */
   private gaze = { x: 0, y: 0 };
   private saccade = { x: 0, y: 0, t: rand(0.5, 2) };
@@ -1136,6 +1143,8 @@ export class Actor {
     this.idle = null;
     this.pending = [];
     this.walking = 0;
+    this.turnTo = null;
+    this.grasp = null;
     this.update(0, 0, true);
     this.root.updateWorldMatrix(true, true);
   }
@@ -1265,6 +1274,15 @@ export class Actor {
     this.propObj = obj;
   }
 
+  /**
+   * Take hold of something with one hand (left is 1), or let go (null). `at` gives where to put the hand and the
+   * way the palm faces, every frame; the hand only closes on it while it's in reach.
+   */
+  grab(at: (() => [THREE.Vector3, THREE.Vector3]) | null, side = -1) {
+    if (at) this.grasp = { at, side, on: true, w: this.grasp?.side === side ? this.grasp.w : 0 };
+    else if (this.grasp) this.grasp.on = false;
+  }
+
   /** Small flinch, e.g. after being slapped. */
   react() {
     this.reactT = 0.6;
@@ -1340,6 +1358,10 @@ export class Actor {
         }
       }
     }
+    if (this.turnTo) this.targetFacing = this.turnTo();
+    // Short steps sideways or backwards (out of a doorway, facing the door they're pulling to).
+    const heading = moving ? Math.cos(angleDiff(this.facing, Math.atan2(this.path[0].x - pos.x, this.path[0].z - pos.z))) : 1;
+    this.stride += (lerp(0.35, 1, Math.max(0, heading)) - this.stride) * damp(8, dt);
     this.walking += ((moving ? 1 : 0) - this.walking) * damp(10, dt);
     if (moving) this.walkPhase += dt * 8.2;
     this.facing = dampAngle(this.facing, this.targetFacing, moving ? 10 : 6, dt);
@@ -1349,10 +1371,11 @@ export class Actor {
     const w = this.walking;
     const sb = this.sitBlend;
     const s = this.seed;
-    target.lHip = lerp(-Math.sin(ph) * 0.55 * w, -Math.PI / 2, sb);
-    target.rHip = lerp(Math.sin(ph) * 0.55 * w, -Math.PI / 2, sb);
-    target.lKnee = lerp(Math.max(0, Math.cos(ph)) * 0.9 * w, Math.PI / 2, sb);
-    target.rKnee = lerp(Math.max(0, -Math.cos(ph)) * 0.9 * w, Math.PI / 2, sb);
+    const ws = w * this.stride;
+    target.lHip = lerp(-Math.sin(ph) * 0.55 * ws, -Math.PI / 2, sb);
+    target.rHip = lerp(Math.sin(ph) * 0.55 * ws, -Math.PI / 2, sb);
+    target.lKnee = lerp(Math.max(0, Math.cos(ph)) * 0.9 * ws, Math.PI / 2, sb);
+    target.rKnee = lerp(Math.max(0, -Math.cos(ph)) * 0.9 * ws, Math.PI / 2, sb);
     const seat = this.seatHeight ?? this.seatGoal?.height ?? 0.45;
     this.hips.position.y = lerp(this.legLen + Math.abs(Math.cos(ph)) * 0.035 * w, seat + 0.06, sb) + this.bounce;
     // shift hips back onto the seat when sitting
@@ -1912,6 +1935,26 @@ export class Actor {
       for (const sd of busy ? [1] : [1, -1]) {
         const contact = partner.spine.localToWorld(v(-sd * partner.lSh.position.x * 1.12, partner.shY0 - 0.11, g === 'hug' ? -0.075 : 0.015));
         palm(sd, this.spine.worldToLocal(contact), v(0, -1, 0).applyQuaternion(intoSpine), v(sd, 0, g === 'hug' ? 0.5 : 0).normalize().applyQuaternion(intoSpine), e, 'relaxed');
+      }
+    }
+
+    // A hand on a door: it closes on the handle while that's within arm's length, and lets go as it swings away.
+    const held = this.grasp;
+    if (held && grip !== 'arms') {
+      const side = busy && held.side < 0 ? 1 : held.side;
+      const sh = side > 0 ? this.lSh : this.rSh, hand = side > 0 ? this.lHand : this.rHand;
+      const [at, facing] = held.at();
+      const reach = -(side > 0 ? this.lEl : this.rEl).position.y - hand.wrist.position.y;
+      const far = sh.getWorldPosition(new THREE.Vector3()).distanceTo(at) / reach;
+      const firm = held.on ? 1 - smoothstep(0.95, 1.2, far) : 0;
+      held.w += (firm - held.w) * (snap ? 1 : damp(9, dt));
+      if (!held.on && held.w < 0.01) this.grasp = null;
+      else if (held.w > 0.01) {
+        const into = spineQ.clone().invert();
+        const normal = facing.clone().applyQuaternion(into);
+        // fingers up the face of the door, tipped away from the body; the palm toward it
+        const fingers = v(0, 1, 0).applyQuaternion(into).addScaledVector(normal, -0.3).normalize();
+        palm(side, this.spine.worldToLocal(at.clone()), fingers, normal, held.w, 'grip');
       }
     }
 

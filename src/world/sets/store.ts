@@ -17,7 +17,7 @@ export function buildStore(): StageSet {
   const day = toon('#ffffff', { map: street(false, 118), emissive: '#ffffff', emissiveIntensity: 0.3 });
   const night = toon('#ffffff', { map: street(true, 118), emissive: '#ffffff', emissiveIntensity: 0.5 });
   const panes = [-4.8, -2.95].map((x) => window_(g, x, 1.7, -3.94, 1.55, 1.7, day, '#42624d', 0, 1));
-  const entrance = door(g, -0.9, -3.95, 0, '#42624d', { glass: day });
+  const entrance = door(g, -0.9, -3.95, 0, '#42624d', { glass: day, beyond: day });
   entrance.traverse((o) => { if (o instanceof THREE.Mesh && o.material === day) panes.push(o); });
   label(g, 'NEIGHBORHOOD GOODS', -3.8, 2.86, -3.84, 3.95, 0.38);
   label(g, 'OPEN', -2.95, 1.5, -3.82, 0.66, 0.3, '#f7d490', '#874532');
@@ -209,7 +209,8 @@ export function buildStore(): StageSet {
     id: 'store', name: 'The Store', group: g,
     nodes: nodes({ door: [-0.9, -3.25], back: [0, -2.5], shelves: [2.7, -2.4], right: [4.4, -1.1], island_end: [4.4, 1.5], center: [0, 0.5], front: [2.8, 1.5], checkout: [-2.3, 0.6], cooler: [-4.3, 1.9], clerk: [-3.9, -1.7], clerk_aisle: [-1, -1.7] }),
     edges: [['door', 'back'], ['back', 'shelves'], ['shelves', 'right'], ['right', 'island_end'], ['island_end', 'front'], ['front', 'center'], ['center', 'back'], ['center', 'checkout'], ['checkout', 'door'], ['checkout', 'cooler'], ['door', 'clerk_aisle'], ['clerk_aisle', 'clerk']],
-    door: 'door', reserved: ['cashier'],
+    door: 'door',
+    doors: { door: entrance }, reserved: ['cashier'],
     marks: {
       cashier: mark(-3.9, -1.5, 0, 'clerk', 'behind the checkout counter; shopkeeper'),
       checkout: mark(-3.75, 0.45, Math.PI - 0.3, 'checkout', 'paying at the checkout'),

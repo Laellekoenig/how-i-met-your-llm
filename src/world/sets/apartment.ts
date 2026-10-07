@@ -190,10 +190,10 @@ export function buildApartment(): StageSet {
   horn.add(mesh(cyl(0.12, 0.022, 0.24, 8), hornMat, 0.2, -0.1, 0, false).rotateZ(Math.PI / 2 + 0.5));
 
   // ---- the angled wall upstage right: the front door ------------------------------------------
-  door(doorWall, 0, 0.02, 0, '#7a3a24', { frameColor: '#5a2a1a' });
-  doorWall.add(mesh(box(0.08, 0.12, 0.02), brass, 0, 1.62, 0.1, false)); // peephole plate
-  // the yellow umbrella, and Ted's red cowboy boots
-  const stand = place(doorWall, new THREE.Group(), 0.95, 0, 0.25);
+  const front = door(doorWall, 0, 0.02, 0, '#7a3a24', { frameColor: '#5a2a1a' });
+  front.leaf.add(mesh(box(0.08, 0.12, 0.02), brass, -front.hinge * 0.525, 1.62, 0.01, false)); // peephole plate
+  // the yellow umbrella (clear of whoever's working the door), and Ted's red cowboy boots
+  const stand = place(doorWall, new THREE.Group(), 1.08, 0, 0.22);
   stand.add(mesh(cyl(0.1, 0.09, 0.45, 8), toon('#2a2a2a'), 0, 0.225, 0));
   stand.add(mesh(cyl(0.012, 0.012, 0.85, 4), black, -0.02, 0.6, 0, false).rotateZ(0.12));
   stand.add(mesh(new THREE.ConeGeometry(0.07, 0.55, 6), toon('#f2c418', { emissive: '#6a4a00', emissiveIntensity: 0.3 }), -0.04, 0.7, 0, false).rotateZ(Math.PI + 0.12));
@@ -488,6 +488,7 @@ export function buildApartment(): StageSet {
       ['right', 'kit_out'], ['kit_out', 'kit_in'], ['kit_in', 'kitchen'], ['kit_in', 'pass'], ['kitchen', 'pass'],
     ],
     door: 'door',
+    doors: { door: front },
     marks: {
       ...seating,
       piano: mark(LEFT + 1.2, PZ, -Math.PI / 2, 'piano', 'on the piano bench (under the crossed swords)', { seat: 0.53, approach: [LEFT + 1.75, PZ + 0.55] }),
