@@ -143,7 +143,10 @@ The show's signature visual gags, all part of the episode file format (`bun run 
   one face cheated toward the lens, a two-shot, the whole booth, or quick cuts face to face when they're spread
   around the room. A reaction can be a gesture, so a whole table can do a spit take.
 - **Freeze frames**: Future Ted narrates over a held, slightly drained frame, optionally caught mid-gesture.
-- **Montages**: two to six one- or two-beat shots on any sets, each with a small yellow card ("Day 2"), over an
+- **Time and location labels**: large white serif lettering centered low in the picture, with a dark offset
+  shadow, following the show's ["the year 2030" reference still](https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradiolos40/R4HIAYJCIRMIVOMDVSQ76RV6P4.jpg).
+  Scenes, flashbacks and montages share the treatment; labels lift to clear tall subtitles and scale with the picture.
+- **Montages**: two to six one- or two-beat shots on any sets, each with a time/place label ("Day 2"), over an
   original music bed; then back to the scene exactly as it was. Scores and montages share ten moods:
   `upbeat`, `tender`, `tense`, `playful`, `romantic`, `melancholy`, `mysterious`, `jazzy`, `triumphant` and `dreamy`.
   They range from strummed and fingerpicked guitar to pizzicato, piano, bells, soft pads, walking bass and brass-like chords;
