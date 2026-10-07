@@ -32,6 +32,9 @@ Choose three things independently in the beat sheet:
 - **Exit:** a character button, a visual/runner payoff, a kids' reaction, or Future Ted adding a new perspective.
   Don't append a moral that merely restates the scene.
 
+Whichever entry you choose, get to the titles quickly. The pre-titles material is a hook, not the first act:
+roughly 3-8 lines (never more than 10) ending on a button. Setup and exposition continue after the titles.
+
 Future Ted is still the retrospective storyteller even when the kids never appear. He can compress time,
 withhold information, misremember, correct himself, or set up a reveal. He need not say “Kids” every time.
 The kids hear the account; they do not see our camera shots or participate in past events.
