@@ -365,21 +365,29 @@ export class Actor {
       : [y, Math.max(rx, 0.97 * chest.rx), Math.max(rz, chest.rz), chest.zc]));
     const circ = Math.PI * 2 * 0.16 * bx;
     const hem = untucked || blouse ? -0.17 * tl : L.skirt ? -0.04 * tl : 0.07 * s;
-    add(this.spine, mesh(torso.geometry({ seg: 26, rows: 20, e: E, y: [hem, torso.yMax], uv: [circ, tl] }), jacketed ? underMat : topMat));
+    const crewSweater = style === 'sweater' && !L.neckline;
+    // The crew neck continues into its ribbed band, not a cone underneath the shirt collar.
+    const topY = crewSweater ? 0.965 * tl : torso.yMax;
+    add(this.spine, mesh(torso.geometry({ seg: 26, rows: 20, e: E, y: [hem, topY], uv: [circ, tl] }), jacketed ? underMat : topMat));
 
     const nr = (fem ? 0.044 : 0.052) * s * Math.sqrt(b);
     const ramp = (a: number, b: number, y: number) => clamp((y - a) / (b - a), 0, 1);
     const onTorso = (y: number, a: number, inflate: number, prof = torso) => prof.point(y, a, new THREE.Vector3(), inflate, E);
+    const collarSection = (v: number, inflate: number, height: number, flare = 0.012) => {
+      const y0 = 0.965 * tl, r = torso.at(y0), k = smoothstep(0, 1, v);
+      return {
+        y: y0 + (tl * 0.035 + height) * v,
+        rx: (r.rx + inflate) * (1 - k) + (nr + flare + 0.008) * k,
+        rz: (r.rz + inflate) * (1 - k) + (nr + flare + 0.012) * k,
+        zc: r.zc * (1 - k) - 0.008 * k,
+      };
+    };
     /** A band around the neck rising from the shoulders (collars, neckbands). */
     const collar = (open: number, inflate: number, height: number, mat: THREE.Material, flare = 0.012) =>
       mesh(surface(20, 3, (u, v, p) => {
         const a = open + u * (Math.PI * 2 - 2 * open);
-        const y0 = 0.965 * tl;
-        const r = torso.at(y0);
-        const k = smoothstep(0, 1, v);
-        const rx = (r.rx + inflate) * (1 - k) + (nr + flare + 0.008) * k;
-        const rz = (r.rz + inflate) * (1 - k) + (nr + flare + 0.012) * k;
-        p.set(rx * Math.sin(a), y0 + (tl * 0.035 + height) * v, (r.zc * (1 - k) - 0.008 * k) + rz * Math.cos(a));
+        const r = collarSection(v, inflate, height, flare);
+        p.set(r.rx * Math.sin(a), r.y, r.zc + r.rz * Math.cos(a));
       }, { uv: mat === underDS && (L.underPlaid || L.underStripes) ? [Math.PI * 2 * nr, tl * 0.035 + height] : undefined }), mat);
     /** Strip down the chest, between angles ±w(y). */
     const placket = (y0: number, y1: number, w: (y: number) => number, inflate: number, mat: THREE.Material) =>
@@ -639,23 +647,39 @@ export class Actor {
         } else if (L.neckline === 'turtleneck') {
           add(this.spine, collar(0, 0.007, 0.044 * s, topDS, 0.002));
         } else {
-          if (L.underPlaid) {
-            // A close-fitting shirt collar folded over the crew neck. Keep the
-            // checked fabric near the neck instead of spreading over the shoulders.
+          if (L.under || L.underPlaid) {
+            // A close-fitting shirt collar folded over the crew neck, with
+            // the fabric near the neck instead of spreading over the shoulders.
             add(this.spine, mesh(surface(20, 3, (u, v, p) => {
               const a = 0.3 + u * (Math.PI * 2 - 0.6);
               p.set((nr + 0.009 * s) * Math.sin(a), tl + (0.002 + v * 0.024) * s,
                 -0.008 * s + (nr + 0.012 * s) * Math.cos(a));
-            }, { uv: [Math.PI * 2 * nr, 0.024 * s] }), underDS));
+            }, { uv: [Math.PI * 2 * nr, 0.024 * s] }), collarDS));
             for (const sg of [-1, 1]) {
               const inner = new THREE.Vector3(sg * 0.016 * s, tl + 0.023 * s, 0.058 * s);
               const outer = new THREE.Vector3(sg * 0.061 * s, tl + 0.014 * s, 0.03 * s);
               const point = new THREE.Vector3(sg * 0.064 * s, 0.9 * tl, torso.frontZ(sg * 0.064 * s, 0.9 * tl, E) + 0.01);
-              add(this.spine, mesh(surface(6, 6, (u, v, p) => {
+              add(this.spine, mesh(surface(8, 12, (u, v, p) => {
                 p.copy(inner).lerp(outer, u).lerp(point, v);
-              }, { uv: [0.07 * s, 0.08 * s] }), underDS), false);
+                // Drape the whole leaf over the curved knit, including the raised neckband.
+                // Straight interpolation between clear endpoints sinks into both surfaces.
+                const clearance = 0.004 * s;
+                if (p.y <= topY) p.z = Math.max(p.z, torso.frontZ(p.x, p.y, E) + clearance);
+                const bandV = (p.y - topY) / (0.035 * tl + 0.006 * s);
+                if (bandV >= 0) {
+                  const r = collarSection(Math.min(bandV, 1), 0.006, 0.006 * s);
+                  // Continue smoothly over the rim to the shirt's standing band.
+                  // Ending the clearance at the rim lets triangles cut across its upper edge.
+                  const fold = smoothstep(tl + 0.006 * s, tl + 0.023 * s, p.y);
+                  r.rx = lerp(r.rx, nr + 0.009 * s, fold);
+                  r.rz = lerp(r.rz, nr + 0.012 * s, fold);
+                  const x = p.x / (r.rx + clearance);
+                  if (Math.abs(x) < 1)
+                    p.z = Math.max(p.z, r.zc + (r.rz + clearance) * Math.sqrt(1 - x * x));
+                }
+              }, { uv: [0.07 * s, 0.08 * s] }), collarDS), false);
             }
-          } else if (L.under) shirtCollar(underDS, 0.006, 0.3);
+          }
           add(this.spine, collar(0, 0.006, 0.006 * s, topDark));
         }
         shell(0.006, hem, -0.1 * tl, () => 0, topDark);
