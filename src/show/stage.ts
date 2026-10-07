@@ -471,7 +471,8 @@ export class Stage {
     if (other && this.current.seated) target = this.seatNear(other, id) ?? (prevMarkName || target);
     if (other && other !== id && this.onStage(other) && !this.current.seated) {
       const o = this.actors[other];
-      const op = o.position.clone();
+      // Where they'll stand: someone still on their way is met at the end of their walk, not on top of it.
+      const op = (o.remainingPath.at(-1) ?? o.position).clone();
       // Approach via their authored aisle, never an arbitrary offset inside a desk or wall.
       const otherMark = this.current.marks[this.actorMark.get(other) ?? ''];
       node = otherMark?.node ?? this.nearestNode(op);
