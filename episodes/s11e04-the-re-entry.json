@@ -1,0 +1,382 @@
+{
+  "code": "S11E04",
+  "title": "The Re-Entry",
+  "logline": "Barney gets stuck in an elevator with Ted and Nadia, a woman who still believes he's Commander Rex Apollo, the astronaut from one of his Playbook plays, and he has to stay in orbit for six hours in a box with no exits. Ted can't decide whether to save the lie or blow it up, Robin's overnight broadcast turns the stall into breaking news, Marshall climbs to the machine room on grain-elevator expertise, and Nadia turns out to be a hostage negotiator running a play of her own.",
+  "couch": [
+    { "type": "say", "character": "luke", "line": "The elevator at the orthodontist got stuck today. Forty minutes.", "delivery": "deadpan" },
+    { "type": "say", "character": "penny", "to": "luke", "line": "With Madison Cho. Who thinks he's in high school.", "emotion": "smug", "laugh": "chuckle" },
+    { "type": "say", "character": "luke", "to": "penny", "line": "She asked what grade I was in. I panicked. Now I'm a junior with a learner's permit.", "emotion": "embarrassed", "laugh": "laugh" },
+    { "type": "narrate", "line": "Forty minutes is nothing. Your Uncle Barney once spent six hours in an elevator with a woman who thought he was an astronaut." },
+    { "type": "say", "character": "penny", "line": "Why would anybody think Uncle Barney was an astronaut?", "emotion": "confused" },
+    { "type": "narrate", "line": "He had a patch.", "laugh": "laugh" }
+  ],
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Nadia Okafor",
+      "role": "The woman Barney ran The Re-Entry on three years ago, who still calls him Commander Rex Apollo. Warm, unhurried and impossible to rattle: she's an NYPD hostage negotiator who has never met a lie that lasted till sunrise, and she quietly runs the whole night.",
+      "gender": "female",
+      "height": "average",
+      "build": "slim",
+      "skin": "brown",
+      "hair": "black",
+      "hairStyle": "waves",
+      "topStyle": "blazer",
+      "top": "charcoal",
+      "under": "cream",
+      "pants": "black",
+      "extras": ["earrings"],
+      "voice": { "pitch": "medium", "pace": "normal" }
+    },
+    {
+      "id": "guest2",
+      "name": "Dale",
+      "role": "The overnight dispatcher for the elevator company, answering the emergency phone from a call center in Omaha. Gravelly, exhausted and newly divorced; his ex-wife took the boat.",
+      "gender": "male",
+      "height": "average",
+      "build": "broad",
+      "skin": "fair",
+      "hair": "gray",
+      "hairStyle": "receding",
+      "topStyle": "polo",
+      "top": "navy",
+      "pants": "tan",
+      "extras": ["mustache"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    }
+  ],
+  "continuity": {
+    "era": "loose; Robin on the overnight news",
+    "facts": {
+      "robin.job": "Metro News One anchor, temporarily on the overnight shift with Sandy Rivers",
+      "barney.alias": "Commander Rex Apollo, astronaut (Playbook: The Re-Entry)",
+      "barney.claustrophobia": "not claustrophobic, he says; he just needs to know he can leave",
+      "barney.dating": "one breakfast with Nadia Okafor, NYPD hostage negotiator",
+      "ted.reputation": "on Metro News One as the architect of the space station toilet",
+      "marshall.elevator": "believes he freed the Metro News One elevator with the big red button"
+    },
+    "opens": [
+      { "id": "barney-nadia", "note": "Barney told Nadia his real name and stayed for breakfast. Whether they see each other again is unwritten." },
+      { "id": "marshall-big-red-button", "note": "Nobody has told Marshall he didn't fix the elevator. Future Ted says don't." }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "box",
+      "location": "elevator",
+      "time": "night",
+      "transition": "cut",
+      "label": "11:52 PM",
+      "summary": "The elevator stalls between floors on the way up to Robin's overnight shift. A woman in the corner recognizes Barney as Commander Rex Apollo. Barney commits, and drafts Ted as the architect of the space station toilet.",
+      "cast": [{ "character": "barney", "mark": "buttons" }, { "character": "ted", "mark": "back" }, { "character": "guest1", "mark": "left" }],
+      "beats": [
+        { "type": "hold", "character": "ted", "prop": "sandwich" },
+        { "type": "narrate", "line": "Robin had just started anchoring the overnight news, so Barney and I were bringing her dinner. Thirty-one floors up." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "We stopped. Why did we stop? Ted, why are we not moving?", "delivery": "fast", "emotion": "nervous" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Elevators stop, Barney. It's half of what they do." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "At floors, Ted. Between floors is not a place.", "gesture": "point", "laugh": "chuckle" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Rex?", "emotion": "surprised" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Sorry, who?", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Oh my God. Rex Apollo. Commander Rex Apollo!", "emotion": "excited" },
+        { "type": "act", "character": "ted", "to": "barney", "gesture": "double_take" },
+        { "type": "pause", "seconds": 0.8 },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Nadia. It's been three years.", "emotion": "smug", "shot": "closeup" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Three Earth years.", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "He's an astronaut. Two hundred days in orbit. He has a patch.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "act", "character": "barney", "to": "guest1", "gesture": "salute" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "And you are?" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Ted Mosby. Architect." },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Of the toilet on the space station.", "laugh": "big", "react": [{ "character": "ted", "gesture": "jaw_drop" }] },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "No! How does that even work up there?", "emotion": "excited" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Suction.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    },
+    {
+      "id": "studio",
+      "location": "metro_news_one",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Robin's overnight studio. Marshall survived the stairs. Ted's text arrives: Barney is an astronaut again. Sandy smells a story; Marshall leaves for the machine room on grain-elevator credentials.",
+      "cast": [
+        { "character": "robin", "mark": "anchor_left" },
+        { "character": "sandy", "mark": "anchor_right" },
+        { "character": "lily", "mark": "desk_side" },
+        { "character": "marshall", "mark": "center" }
+      ],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Thirty-one floors. And I only stopped to cry once.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "On fourteen. He sat on the landing and called his mom.", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Where are Ted and Barney? Ted has my dinner." },
+        { "type": "hold", "character": "lily", "prop": "phone" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Ted says, stuck in elevator. Barney ran into a woman who thinks he's an astronaut.", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "line": "So my dinner is in orbit.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Robin. There is an astronaut trapped in our building.", "delivery": "slow" },
+        { "type": "say", "character": "robin", "to": "sandy", "line": "It's not an astronaut, Sandy. It's Barney." },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Robin, it's midnight on a Friday. Nothing has happened anywhere. This is our moon landing.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Nobody panic. I'm going up to the machine room. I grew up around grain elevators." },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Marshall, those are for corn.", "delivery": "deadpan" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Same principle, Robin. When something's stuck, you call a Lutheran.", "emotion": "proud", "gesture": "point", "laugh": "laugh" },
+        { "type": "exit", "character": "marshall" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "We go live in four minutes. Somebody find me a picture of the moon.", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "resume": "box",
+      "label": "Hour one",
+      "beats": [
+        { "type": "hold", "character": "ted", "prop": "none" },
+        { "type": "move", "character": "barney", "to": "right" },
+        { "type": "move", "character": "guest1", "to": "buttons" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "I'll try the emergency phone again.", "gesture": "phone_call" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Commander Rex Apollo?", "delivery": "whisper" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "The Re-Entry. One of my all-time greats.", "delivery": "whisper", "emotion": "proud" },
+        { "type": "insert", "character": "barney", "line": "You've just spent two hundred days in orbit. You're relearning everything. Walking. Gravity. Women.", "laugh": "laugh", "kind": "playbook", "title": "The Re-Entry" },
+        {
+          "type": "cutaway",
+          "id": "the-play",
+          "style": "flashback",
+          "label": "Three years ago",
+          "location": "maclarens",
+          "time": "night",
+          "wardrobe": [{ "character": "barney", "topStyle": "leather", "top": "brown", "under": "white" }],
+          "cast": [{ "character": "barney", "mark": "bar_stool_2" }, { "character": "guest1", "mark": "bar_stool_3" }],
+          "beats": [
+            { "type": "hold", "character": "barney", "prop": "beer" },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "You've been staring at that beer for ten minutes." },
+            { "type": "say", "character": "barney", "to": "guest1", "line": "Sorry. Two hundred days on the space station. I keep forgetting beer stays in the glass.", "laugh": "laugh" },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "You're an astronaut?", "emotion": "flirty" },
+            { "type": "say", "character": "barney", "to": "guest1", "line": "Commander Rex Apollo.", "gesture": "salute" },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "So how far up were you?" },
+            { "type": "say", "character": "barney", "to": "guest1", "line": "Way up. Almost to the moon. That's, what, forty miles?", "emotion": "proud", "laugh": "laugh" },
+            { "type": "pause", "seconds": 1 },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "Wow.", "emotion": "happy" },
+            { "type": "say", "character": "barney", "to": "guest1", "line": "I wish I could stay. But Houston needs me back at sunrise.", "emotion": "sad" }
+          ]
+        },
+        { "type": "say", "character": "ted", "to": "barney", "line": "The moon is two hundred thirty-eight thousand miles away.", "delivery": "whisper" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Not the way I drive.", "delivery": "whisper", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Barney, I honestly can't decide whether to help you or destroy you.", "delivery": "whisper" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Bro Code, Article ninety-one. A bro shall not blow a bro's cover in any room he can't leave.", "delivery": "whisper" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "That's not a real article.", "delivery": "whisper", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "It's been real since the doors closed.", "delivery": "whisper", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "resume": "box",
+      "label": "Hour two",
+      "beats": [
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Allow me. This is a command situation.", "emotion": "smug" },
+        { "type": "move", "character": "guest1", "to": "left" },
+        { "type": "move", "character": "barney", "to": "buttons" },
+        { "type": "hold", "character": "barney", "prop": "phone" },
+        { "type": "say", "character": "barney", "line": "Houston, we have a problem.", "gesture": "phone_call" },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "This is Omaha.", "delivery": "deadpan", "laugh": "laugh", "offscreen": "phone" },
+        { "type": "say", "character": "barney", "line": "Omaha, this is Commander Rex Apollo. I need this elevator moving in five minutes.", "gesture": "phone_call" },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "Sir, our technician is at a bar mitzvah in Paramus. He gets there when he gets there.", "laugh": "chuckle", "offscreen": "phone" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "May I?" },
+        { "type": "give", "character": "barney", "to": "guest1", "prop": "phone" },
+        { "type": "say", "character": "guest1", "line": "Dale? Hi, it's Nadia. You sound tired. Long night?", "gesture": "phone_call" },
+        { "type": "say", "character": "guest2", "to": "guest1", "line": "You have no idea, Nadia. My ex-wife took the boat.", "emotion": "sad", "laugh": "laugh", "offscreen": "phone" },
+        { "type": "say", "character": "guest1", "line": "She took the boat? Oh, Dale. What's your technician's cell number?", "emotion": "sad", "gesture": "phone_call", "laugh": "laugh" },
+        { "type": "pause", "seconds": 1.2 },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Technician's on his way. And Dale and his ex-wife are going to try counseling.", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "How did you do that?", "gesture": "jaw_drop" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "I asked about the boat.", "gesture": "shrug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "resume": "studio",
+      "beats": [
+        { "type": "hold", "character": "lily", "prop": "none" },
+        { "type": "say", "character": "sandy", "line": "Good evening. I'm Sandy Rivers. Tonight: terror, on the twentieth floor.", "delivery": "slow" },
+        { "type": "say", "character": "robin", "to": "sandy", "line": "It's a stuck elevator, Sandy.", "delivery": "deadpan" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "And trapped inside it, a decorated American astronaut." },
+        { "type": "say", "character": "robin", "to": "sandy", "line": "Sandy, he is not an—", "interrupted": true },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Robin, don't you dare. I have waited years to hear Barney be an astronaut live.", "delivery": "whisper", "emotion": "excited", "gesture": "lean_in", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "sandy", "line": "Sandy! The other guy designed the toilet on the space station.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "There's a space toilet in our elevator, and you didn't lead with it?", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "We have eleven viewers, Robin. At one in the morning. That's the Super Bowl.", "laugh": "laugh" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "robin", "to": "sandy", "line": "Eleven?", "emotion": "surprised" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Call Ted.", "delivery": "deadpan", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "resume": "box",
+      "beats": [
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Dale's son is up. He wants to talk to an astronaut." },
+        { "type": "give", "character": "guest1", "to": "barney", "prop": "phone" },
+        { "type": "say", "character": "barney", "line": "Dale Junior! Commander Apollo here. Yes, I've met an alien.", "emotion": "excited", "gesture": "phone_call" },
+        { "type": "say", "character": "barney", "line": "Solid seven. Lots of legs.", "gesture": "phone_call", "laugh": "laugh" },
+        { "type": "move", "character": "ted", "to": "guest1" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Ted. I know he's not an astronaut.", "delivery": "whisper", "gesture": "lean_in", "react": [{ "character": "ted", "gesture": "jaw_drop" }] },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "What? Since when? How?", "delivery": "whisper" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "I'm a hostage negotiator. Last week a man let six bank tellers go and apologized to his mother. On speaker.", "delivery": "whisper", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "So why not just call him on it?", "delivery": "whisper" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Catch a man in a lie, he digs in. Let him walk out on his own, he stays out.", "delivery": "whisper" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Out of the elevator?", "delivery": "whisper", "emotion": "confused" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Sure, Ted. The elevator.", "delivery": "whisper", "laugh": "chuckle" },
+        { "type": "hold", "character": "barney", "prop": "none" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Dale Junior wants to be me when he grows up.", "emotion": "proud" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Don't we all.", "emotion": "happy", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "resume": "box",
+      "label": "Hour three",
+      "beats": [
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ted. Is it getting smaller in here?", "emotion": "nervous" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Barney, are you claustrophobic?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "I'm not claustrophobic. I just need to know I can leave." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "That's claustrophobia." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "That's a lifestyle.", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Rex, you spent two hundred days in a capsule." },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "It had a door. Somewhere. In the back.", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "hold", "character": "ted", "prop": "phone" },
+        { "type": "act", "character": "ted", "gesture": "phone_call" },
+        {
+          "type": "split",
+          "panels": [
+            {
+              "location": "elevator",
+              "time": "night",
+              "cast": [{ "character": "guest1", "mark": "left" }, { "character": "barney", "mark": "center" }, { "character": "ted", "mark": "back" }]
+            },
+            {
+              "location": "metro_news_one",
+              "time": "night",
+              "cast": [{ "character": "lily", "mark": "anchor_left" }, { "character": "sandy", "mark": "anchor_right" }]
+            }
+          ],
+          "beats": [
+            { "type": "say", "character": "sandy", "to": "barney", "line": "Commander Apollo, you are live on Metro News One." },
+            { "type": "say", "character": "lily", "to": "barney", "line": "Commander, a viewer question. What does space smell like?", "emotion": "smug" },
+            { "type": "pause", "seconds": 1 },
+            { "type": "say", "character": "barney", "to": "lily", "line": "Victory. And a little bit like steak." },
+            { "type": "say", "character": "ted", "to": "barney", "line": "That's actually true.", "delivery": "whisper", "emotion": "surprised" },
+            { "type": "say", "character": "barney", "to": "ted", "line": "I know things, Ted!", "delivery": "whisper", "emotion": "angry", "laugh": "laugh" },
+            { "type": "say", "character": "guest1", "to": "sandy", "line": "Tell them about the spacewalk, Rex. When you saved the cosmonaut with your belt.", "emotion": "happy" },
+            { "type": "say", "character": "barney", "to": "sandy", "line": "It was a very long belt.", "emotion": "nervous", "laugh": "laugh" },
+            { "type": "say", "character": "sandy", "to": "ted", "line": "And Mr. Mosby. The toilet. How does it work?" },
+            { "type": "say", "character": "ted", "to": "sandy", "line": "Form follows function, Sandy. Especially up there.", "emotion": "proud", "laugh": "laugh" }
+          ]
+        },
+        { "type": "hold", "character": "ted", "prop": "none" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Barney. She knows.", "delivery": "whisper", "gesture": "lean_in" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Of course she knows, Ted. She just heard me save a cosmonaut with my belt.", "delivery": "whisper", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "resume": "studio",
+      "beats": [
+        { "type": "hold", "character": "lily", "prop": "phone" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lily, I made it to the machine room. There's a technician up here.", "offscreen": "phone" },
+        { "type": "say", "character": "lily", "line": "Thank God. Is he fixing it?", "gesture": "phone_call" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "He's eating a sandwich and doing a word search. He says he's waiting for a call.", "laugh": "chuckle", "offscreen": "phone" },
+        { "type": "say", "character": "lily", "line": "From who?", "emotion": "confused", "gesture": "phone_call" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "He won't say. So I'm going in. Grain elevator rules.", "offscreen": "phone" },
+        { "type": "say", "character": "lily", "line": "Baby, don't touch anything.", "emotion": "nervous", "gesture": "phone_call" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lily. I'm going to touch everything.", "laugh": "laugh", "offscreen": "phone" }
+      ]
+    },
+    {
+      "resume": "box",
+      "label": "Hour six",
+      "beats": [
+        { "type": "narrate", "line": "By hour six, Commander Apollo had saved four cosmonauts, a weather satellite and a dolphin.", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Rex, tell Ted about the dolphin." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ted. There was a dolphin.", "delivery": "slow", "emotion": "sad", "laugh": "laugh" },
+        { "type": "move", "character": "ted", "to": "center" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Okay. Nadia, I have to tell you something. He's not—", "interrupted": true },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "An astronaut.", "shot": "push_in", "react": [{ "character": "ted", "emotion": "surprised" }] }
+      ]
+    },
+    {
+      "resume": "studio",
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "lily", "line": "I touched everything, Lily. Nothing. Now I'm just standing by the big red button, in case it needs me.", "laugh": "chuckle", "offscreen": "phone" },
+        { "type": "say", "character": "lily", "line": "Baby, come down. It's almost six.", "gesture": "phone_call" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "No way. You don't leave a man in an elevator.", "offscreen": "phone" }
+      ]
+    },
+    {
+      "resume": "box",
+      "beats": [
+        { "type": "pause", "seconds": 1.2 },
+        { "type": "move", "character": "ted", "to": "back" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "My name is Barney. I've never been to space." },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "I know." },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Since when?", "emotion": "surprised" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Since you told me the moon was forty miles up.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "line": "Two hundred thirty-eight thousand.", "delivery": "whisper", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Then why did you stay?", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "You were trying so hard. I figured whoever was under all that could use somebody to stay for breakfast." },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "I made pancakes. Houston called you at four." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Why does Rex always have to leave before sunrise?" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Because the guy who leaves at sunrise never has to be the one waiting at the window.", "emotion": "sad", "shot": "push_in" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Who waited at the window?" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Some kid.", "shot": "closeup" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "score", "music": "tender" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Well. Nobody's leaving this one." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "You want to get breakfast, Barney?" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Yeah.", "emotion": "happy" },
+        { "type": "hold", "character": "guest1", "prop": "phone" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "score", "music": "none" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "We're moving.", "gesture": "double_take" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Lucky timing.", "gesture": "shrug", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "location": "office",
+      "time": "night",
+      "transition": "cut",
+      "sound": "chime",
+      "summary": "The Metro News One newsroom at dawn. The elevator doors open on Sandy's camera. Robin covers for the Commander; Barney gives his real name on air. Nadia's last word on the toilet. Future Ted reveals who actually held the elevator, and the kids take it from there.",
+      "cast": [
+        { "character": "robin", "mark": "center" },
+        { "character": "sandy", "mark": "cubicle_lean" },
+        { "character": "lily", "mark": "water_cooler" },
+        { "character": "marshall", "mark": "copier" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "sandy", "prop": "microphone" },
+        { "type": "enter", "character": "barney", "to": "robin" },
+        { "type": "enter", "character": "guest1", "to": "barney" },
+        { "type": "enter", "character": "ted", "to": "marshall" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "I pushed the big red button! Grain elevators, Lily!", "gesture": "fist_pump", "laugh": "laugh" },
+        { "type": "move", "character": "sandy", "to": "barney" },
+        { "type": "say", "character": "sandy", "to": "barney", "line": "Commander Apollo! Sandy Rivers, Metro News One. How does it feel to be back on Earth?" },
+        { "type": "say", "character": "robin", "to": "sandy", "line": "The Commander has no comment. He's very tired. From space.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "It's okay, Robin." },
+        { "type": "give", "character": "sandy", "to": "barney", "prop": "microphone" },
+        { "type": "say", "character": "barney", "to": "sandy", "line": "My name is Barney Stinson. I've never been to space. And I'm going to breakfast.", "shot": "closeup" },
+        { "type": "give", "character": "barney", "to": "sandy", "prop": "microphone" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Then who designed the toilet?", "emotion": "confused", "laugh": "laugh", "react": [{ "character": "ted", "emotion": "embarrassed" }] },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Ted. For the record, I totally believed the toilet.", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Thank you.", "emotion": "proud", "laugh": "chuckle" },
+        { "type": "exit", "character": "guest1" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "You're getting back in the elevator?", "emotion": "surprised" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Thirty-one floors, Ted. I'm not Marshall.", "laugh": "laugh" },
+        { "type": "exit", "character": "barney" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted. Where's my dinner?" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Nadia asked how I was holding up. Next thing I knew, she had the sandwich.", "emotion": "confused", "laugh": "laugh" },
+        { "type": "narrate", "line": "Here's what I didn't find out until years later. The technician had that elevator fixed by a quarter past two." },
+        { "type": "narrate", "line": "Nadia texted him from inside: twenty more minutes. She asked for twenty more minutes eleven times.", "laugh": "laugh" },
+        { "type": "say", "character": "penny", "line": "So the elevator wasn't stuck. Uncle Barney was." },
+        { "type": "say", "character": "luke", "line": "I'm telling Madison I'm in eighth grade.", "emotion": "embarrassed" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "luke", "line": "By text.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    }
+  ]
+}
