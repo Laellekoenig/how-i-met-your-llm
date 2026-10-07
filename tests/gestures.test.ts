@@ -84,6 +84,27 @@ describe('gesture contacts', () => {
     }
   });
 
+  test('reaching for someone beside or behind never swings a hand behind the back', () => {
+    for (const g of ['give', 'high_five', 'fist_bump', 'point', 'cheers', 'slap'] as const)
+      for (const seated of [false, true]) for (const deg of [-150, -90, 90, 150, 180]) {
+        const a = make('ted', seated), b = make('robin', seated);
+        const angle = deg * Math.PI / 180;
+        b.place(new THREE.Vector3(Math.sin(angle) * 0.8, 0, Math.cos(angle) * 0.8), angle + Math.PI, seated ? 0.47 : null);
+        if (g === 'give') a.hold('book');
+        if (!seated) a.faceTowards(b.position, 0.1);
+        a.lookAt = b.headWorld;
+        a.doGesture(g, { target: b, partner: g === 'high_five' || g === 'fist_bump' || g === 'cheers' });
+        for (let i = 0; i < 60; i++) {
+          a.update(1 / 60, i / 60); b.update(1 / 60, i / 60); a.root.updateWorldMatrix(true, true);
+          for (const [sh, hand, side] of [[a.lSh, a.lHand, 1], [a.rSh, a.rHand, -1]] as const) {
+            const wrist = a.spine.worldToLocal(point(hand.wrist));
+            expect(wrist.z - sh.position.z, `${g} seated=${seated} ${deg}° frame ${i}`).toBeGreaterThan(-0.09);
+            expect((wrist.x - sh.position.x) * side, `${g} seated=${seated} ${deg}° frame ${i}`).toBeGreaterThan(-0.45);
+          }
+        }
+      }
+  });
+
   test('a paired kiss stops at the lips without overlapping the faces', () => {
     const a = make('ted'), b = make('robin');
     a.place(new THREE.Vector3(-0.32, 0, 0), Math.PI / 2, null);
