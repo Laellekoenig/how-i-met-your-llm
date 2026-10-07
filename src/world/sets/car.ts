@@ -102,6 +102,8 @@ export function buildCar(): StageSet {
     },
     wides: [
       { label: 'Windshield · Front seats', pos: v3(0, 1.3, 2.35), target: v3(0, 1.12, 0.15), fov: 30 },
+      // Roof rig behind the mirror, looking back: the only angle that clears the front row for both rear side seats.
+      { label: 'Cabin · Full car', pos: v3(0, 1.5, 0.65), target: v3(0, 1.06, -0.55), fov: 68 },
       { label: 'Back seat · Three-shot', pos: v3(0, 1.36, -0.38), target: v3(0, 1.1, -1.25), fov: 70 },
       { label: 'Passenger-side windshield', pos: v3(-0.3, 1.35, 2.5), target: v3(0, 1.12, 0.1), fov: 30 },
     ],

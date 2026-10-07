@@ -294,10 +294,11 @@ describe('camera coverage on the current sets', () => {
     expectVisible(actor, 'woven chair reverse');
   });
 
-  test('group wides cover both the professor and students, and the whole limo bench', () => {
+  test('group wides cover both the professor and students, the whole limo bench and a full car', () => {
     for (const [location, cast] of [
       ['lecture_hall', [['ted', 'lectern'], ['robin', 'student_1_4'], ['barney', 'student_2_3'], ['marshall', 'student_3_5']]],
       ['limo', [['ted', 'rear_seat_left'], ['robin', 'rear_seat_right'], ['marshall', 'bench_1'], ['lily', 'bench_2'], ['barney', 'bench_3']]],
+      ['car', [['marshall', 'driver'], ['ted', 'front_passenger'], ['robin', 'back_left'], ['lily', 'back_middle'], ['barney', 'back_right']]],
     ] as const) {
       stage.setLocation(location, 'day');
       for (const [id, mark] of cast) stage.place(id, mark);
