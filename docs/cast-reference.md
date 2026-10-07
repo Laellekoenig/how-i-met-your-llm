@@ -114,6 +114,41 @@ details when the blouse, jacket, trousers or shoes are replaced. Robin Sparkles 
 her separate flashback wardrobe. Geometry is generated locally; the reference photo
 is not bundled or fetched by the app.
 
+## Brad Morris
+
+Brad follows Joe Manganiello's **“Twelve Horny Women” (S08E08)** courtroom look:
+the [Richard Cartwright/Fox episode still on IMDb](https://www.imdb.com/media/rm1477947136/tt0460649)
+([inspected image](https://m.media-amazon.com/images/M/MV5BNjQ1MTkwMDM3N15BMl5BanBnXkFtZTcwMzI5NzQ3OA%40%40._V1_FMjpg_UX1000_.jpg)).
+The [Season 8 conference-room still](https://www.allocine.fr/series/ficheserie-446/photos/detail/?cmediafile=20336462)
+([inspected image](https://fr.web.img2.acsta.net/medias/nmedia/18/74/38/63/20336462.jpg))
+provides a second view of his longer dark hair and close beard.
+[Entertainment Tonight's on-set interview](https://www.etonline.com/tv/127305_Joe_Manganiello_on_How_I_Met_Your_Mother)
+also establishes the beard and longer hair as part of Brad's Season 8 return.
+
+His procedural model has an exposed forehead, off-centre swept forelock, waves
+over the ears and a curled nape. The hair follows his animated head. A close-fitting
+beard follows the jaw and rises into the sideburns, with tapered moustache halves
+and a small patch below the lip that leaves the animated mouth clear. Stronger
+brows, a broader jaw and chin, fuller nose and wider mouth distinguish his face.
+His tall, athletic silhouette has a broader chest and shoulders over a tapered waist.
+
+The everyday outfit is the courtroom's fitted charcoal two-piece, gray shirt,
+dark tie with diagonal muted-gold stripes and black dress shoes. Pointed shirt
+collars, longer tie, jacket buttons, pocket welts and cuffs use the existing suit
+rig. Other top styles clear the suit tailoring; the face, hair, beard and build
+carry across costume overrides. All meshes and textures are generated locally.
+
+Running-app captures: [seated portrait](screenshots/brad/portrait.png),
+[standing courtroom look](screenshots/brad/standing.png), and
+[seated conversation](screenshots/brad/conversation.png). The
+[TV-filter view](screenshots/brad/stylized.png) shows the normal 270p presentation;
+[previous model](screenshots/brad/before.png) is retained for comparison.
+
+Verified in the muted running app: courtroom wides, close-ups, push-in, two-shots
+and both shoulder directions, seated and standing poses, dialogue and gestures.
+The build and model tests pass. The full suite's four camera-test timeouts pass
+when rerun with longer time limits; repository test limits remain unchanged.
+
 ## Returning cast
 
 Nine new recurring cast IDs: `loretta`, `mickey`, `hammond`, `stella`, `zoey`, `nora`,

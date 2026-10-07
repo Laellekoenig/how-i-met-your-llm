@@ -321,6 +321,11 @@ export class Actor {
       ? [[-0.24, 0.182, 0.122, 0], [-0.08, 0.166, 0.11, 0], [0.1, 0.128, 0.09, 0], [0.4, 0.136, 0.096, 0.006], [0.63, 0.152, 0.12, 0.022], [0.84, 0.16, 0.1, 0], [0.94, 0.15, 0.082, -0.012], [1.0, 0.095, 0.06, -0.01], [1.05, 0, 0, -0.006]]
       : [[-0.24, 0.184, 0.118, 0], [-0.08, 0.174, 0.11, 0], [0.1, 0.15, 0.1, 0], [0.4, 0.153, 0.1, 0.002], [0.66, 0.16, 0.103, 0.004], [0.84, 0.166, 0.098, 0], [0.94, 0.156, 0.084, -0.01], [1.0, 0.102, 0.064, -0.012], [1.05, 0, 0, -0.008]]
     ).map(([y, rx, rz, zc]) => [y * tl, rx * bx, rz * bz, zc * bz]);
+    if (L.physique === 'athletic') for (const k of T) {
+      const chest = smoothstep(0.2, 0.7, k[0] / tl);
+      k[1] *= lerp(0.97, 1.13, chest);
+      k[2] *= lerp(0.98, 1.08, chest);
+    }
     if (L.jacketCut === 'zip' && L.skirt) for (const k of T) {
       // The dress must cover the pelvis underneath at the waist, including
       // between profile knots; otherwise tights poke through the fitted jacket.
@@ -995,7 +1000,25 @@ export class Actor {
     const beard = toon(new THREE.Color(L.hair).multiplyScalar(0.7));
     if (L.extras?.includes('stubble'))
       add(mesh(head.geometry({ seg: 16, rows: 8, y: [fy(0.015), fy(0.31)], arc: [-1.35, 1.35], inflate: 0.0035 }), toon(new THREE.Color(L.skin).lerp(new THREE.Color(L.hair), 0.35))));
-    if (L.extras?.includes('beard')) {
+    const trimmedBeard = L.extras?.includes('beard') && L.beardStyle === 'trimmed';
+    if (trimmedBeard) {
+      // Brad's short beard hugs his jaw; the cheek line rises into sideburns.
+      // Keep the lip-sync opening clear, with a small patch below the lower lip.
+      const shortBeard = toon(new THREE.Color(L.hair).multiplyScalar(1.05), { side: THREE.DoubleSide });
+      add(mesh(surface(40, 16, (u, v, p) => {
+        const a = (u * 2 - 1) * 1.85;
+        const upper = 0.19 + 0.345 * smoothstep(0.2, 1.3, Math.abs(a));
+        head.point(fy(0.012 + (upper - 0.012) * v), a, p, 0.0018);
+      }), shortBeard));
+      add(mesh(head.geometry({ seg: 12, rows: 4, y: [fy(0.19), fy(0.215)], arc: [-0.12, 0.12], inflate: 0.0019 }), shortBeard));
+      // Two tapered halves leave the philtrum visible, following the face
+      // instead of forming the generic floating oval moustache.
+      for (const sg of [-1, 1]) add(mesh(surface(14, 6, (u, v, p) => {
+        const x = sg * (0.009 + 0.112 * u) * hh;
+        const y = fy(0.305 - 0.027 * u) + (v - 0.5) * 0.038 * hh * Math.sin(Math.PI * (0.12 + 0.86 * u));
+        p.set(x, y, fz(x, y) + (0.005 + 0.013 * Math.sin(Math.PI * v)) * hh);
+      }), shortBeard));
+    } else if (L.extras?.includes('beard')) {
       // Follow the jaw and cheeks while leaving the animated mouth uncovered.
       add(mesh(surface(28, 10, (u, v, p) => {
         const a = (u * 2 - 1) * 1.65;
@@ -1003,7 +1026,7 @@ export class Actor {
         head.point(fy(0.015 + (upper - 0.015) * v), a, p, 0.006);
       }), beard));
     }
-    if (L.extras?.includes('mustache') || L.extras?.includes('beard')) add(mesh(ellipsoid(0.1 * hh, 0.026 * hh, 0.03 * hh, 10, 6), beard, 0, fy(0.3), fz(0, fy(0.3)) + 0.008 * hh));
+    if (!trimmedBeard && (L.extras?.includes('mustache') || L.extras?.includes('beard'))) add(mesh(ellipsoid(0.1 * hh, 0.026 * hh, 0.03 * hh, 10, 6), beard, 0, fy(0.3), fz(0, fy(0.3)) + 0.008 * hh));
     if (L.extras?.includes('goatee')) add(mesh(ellipsoid(0.07 * hh, 0.07 * hh, 0.04 * hh, 10, 6), beard, 0, fy(0.09), fz(0, fy(0.09))));
     if (L.extras?.includes('earrings')) for (const sg of [-1, 1]) {
       const silver = toon('#d8dce4');

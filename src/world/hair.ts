@@ -119,6 +119,50 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
   const taper = (f: number) => 0.5 + 0.5 * smoothstep(0.62, 0.92, f);
   const out: HairParts = { head: [], back: [] };
   switch (style) {
+    case 'backswept': {
+      // Brad's S08 courtroom look: exposed forehead, an off-centre swept
+      // forelock, waves over the ears, and a longer, curled nape.
+      // One shell carries the crown into the nape without an overlapping seam.
+      const line = sym([[0, 0.84], [0.35, 0.85], [0.7, 0.875], [0.98, 0.77],
+        [1.13, 0.64], [1.23, 0.43], [1.37, 0.44], [1.52, 0.57],
+        [1.85, 0.37], [2.3, 0.12], [Math.PI, 0.07]]);
+      const center = new THREE.Vector3(0, 0.5 * hh, c.head.at(0.5 * hh).zc);
+      const dir = new THREE.Vector3();
+      out.head.push(surface(72, 36, (u, v, p) => {
+        const a = -Math.PI + u * Math.PI * 2;
+        const low = line(a) - 0.026 * gauss(a, -0.28, 0.32);
+        const f = low + (1 - low) * (1 - (1 - v) ** 1.3);
+        c.head.point(Math.max(0.48, f) * hh, a, p);
+        dir.copy(p).sub(center).normalize();
+        const crown = smoothstep(0.93, 1, f);
+        const lift = front(a, 1.25) * smoothstep(0.81, 0.92, f) * (1 - crown);
+        const nape = smoothstep(0.53, 0.1, f);
+        const waves = (0.014 * Math.sin(a * 17 + f * 22) + 0.009 * Math.cos(a * 29 - f * 15))
+          * (1 - crown);
+        const part = 1 - 0.45 * gauss(a, 0.5, 0.065) * (1 - crown);
+        const thickness = (0.055 + 0.13 * lift + 0.11 * crown + 0.065 * nape + waves)
+          * part * (0.35 + 0.65 * smoothstep(0, 0.18, v));
+        p.addScaledVector(dir, thickness * hh);
+        p.x -= 0.065 * hh * lift;
+        p.z -= 0.09 * hh * lift;
+        p.y += 0.03 * hh * lift;
+        if (f < 0.48) {
+          p.y = (f + 0.025 * Math.sin(a * 9) * nape) * hh;
+          p.z -= 0.035 * hh * nape;
+          p.x += Math.sin(a) * 0.025 * hh * nape;
+        }
+      }, { closed: true }));
+      for (const [x, y, z, rx, ry, rz, tilt] of [
+        [-0.17, 0.91, 0.21, 0.13, 0.105, 0.15, -0.55],
+        [-0.025, 0.98, 0.13, 0.15, 0.08, 0.17, -0.4],
+      ]) {
+        const lock = ellipsoid(rx * hh, ry * hh, rz * hh, 16, 10);
+        lock.rotateZ(tilt);
+        lock.translate(x * hh, y * hh, z * hh);
+        out.head.push(lock);
+      }
+      break;
+    }
     case 'swept': {
       // Marshall's exposed forehead, soft temple recession and brushed-back waves.
       // The swept ridges are part of one scalp-following shell, including the sideburns.
