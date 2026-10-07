@@ -141,10 +141,32 @@ describe('held props in motion', () => {
         for (let i = 0; i < frames; i++) {
           a.update(1 / 30, i / 30); a.root.updateWorldMatrix(true, true);
           const up = new THREE.Vector3(0, 1, 0).transformDirection(a.propObj.matrixWorld);
-          expect(up.y, `${prop} ${g} frame ${i}`).toBeGreaterThan(0.999);
+          const across = new THREE.Vector3(1, 0, 0).transformDirection(a.propObj.matrixWorld);
+          const screen = new THREE.Vector3(0, 0, -1).transformDirection(a.propObj.matrixWorld);
+          // A phone tips back to be read, but never rolls onto its side or turns its screen to the floor.
+          if (prop === 'phone') {
+            expect(Math.abs(across.y), `${prop} ${g} frame ${i}`).toBeLessThan(0.045);
+            expect(up.y, `${prop} ${g} frame ${i}`).toBeGreaterThan(0.5);
+            expect(screen.y, `${prop} ${g} frame ${i}`).toBeGreaterThan(-0.045);
+          } else expect(up.y, `${prop} ${g} frame ${i}`).toBeGreaterThan(0.999);
           expect(a.propObj.parent).toBe(a.rHand.socket);
         }
       }
+    }
+  });
+
+  test('a held phone is read low in front, the elbow down at the side and the screen tipped up to the face', () => {
+    for (const id of ['ted', 'lily', 'marshall', 'patrice'] as const) for (const seated of [false, true]) {
+      const a = make(id, seated); a.hold('phone'); run(a, 1);
+      const label = `${id} seated=${seated}`;
+      expect(point(a.rEl).y, label).toBeLessThan(point(a.rSh).y - 0.15);
+      const phone = point(a.propObj, 0, 0.05, 0);
+      expect(phone.y, label).toBeLessThan(point(a.rSh).y);
+      // the screen faces up toward the eyes rather than straight ahead
+      const screen = new THREE.Vector3(0, 0, -1).transformDirection(a.propObj.matrixWorld);
+      const toEyes = point(a.head).sub(phone).normalize();
+      expect(screen.y, label).toBeGreaterThan(0.6);
+      expect(screen.dot(toEyes), label).toBeGreaterThan(0.75);
     }
   });
 
