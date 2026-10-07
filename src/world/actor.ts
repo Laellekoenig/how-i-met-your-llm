@@ -51,6 +51,8 @@ class WaistMesh extends THREE.SkinnedMesh {
   }
 }
 const FLUSH = new THREE.Color('#d8443a');
+/** How far a held phone tips back from upright, in radians: about the angle people read one at. */
+const PHONE_TILT = 0.95;
 /** Gestures whose hands go to someone else: the torso turns into them, and the hand stays where an arm can go. */
 const REACHES: ReadonlySet<Motion> = new Set(['give', 'high_five', 'fist_bump', 'point', 'slap', 'cheers', 'hug', 'kiss']);
 /** How far round a reaching hand goes from straight ahead of its shoulder, in radians: across the chest, and out
@@ -1767,7 +1769,7 @@ export class Actor {
       // A phone lies against the palm with fingers along its back, rather than
       // using the cylindrical grasp that would put the wrist behind the skull.
       socket.quaternion.copy(handOrientation(side, v(0, 1, 0), v(0, 0, -1)).invert());
-      socket.position.copy(v(0, 0.045, -0.022).applyQuaternion(socket.quaternion));
+      socket.position.copy(v(0, 0.012, -0.022).applyQuaternion(socket.quaternion));
     };
     this.root.updateWorldMatrix(true, true);
     const partner = gs?.target;
@@ -1988,7 +1990,11 @@ export class Actor {
       const hang = grip === 'hang';
       const pos = v(-(hang ? 0.32 : 0.22) * scale * width, (hang ? -0.075 : 0.29) * scale, (hang ? 0.06 : 0.32) * scale);
       const q = upright.clone();
-      if (g === 'cheers' || g === 'hands_up' || g === 'give' || g === 'dance') {
+      const lifted = g === 'cheers' || g === 'hands_up' || g === 'give' || g === 'dance';
+      // A phone is read, not shown off: it lies back along the fingers, the screen tipped up to the eyes, so
+      // the forearm comes in from below like a real one instead of reaching round to the back of an upright slab.
+      if (kind === 'phone') q.multiply(new THREE.Quaternion().setFromAxisAngle(v(1, 0, 0), PHONE_TILT * (lifted ? 1 - e : 1)));
+      if (lifted) {
         const raised = g === 'give' ? v(-0.12, 0.38, 0.51) : g === 'hands_up' ? v(-0.3, 0.85, 0.1) : g === 'dance' ? v(-0.32, 0.48 + 0.12 * Math.sin(gs!.t * 8), 0.26) : v(-0.22, 0.63, 0.32);
         pos.lerp(raised.multiplyScalar(scale), e);
       }
@@ -2008,7 +2014,7 @@ export class Actor {
         pos.lerp(lip.sub(rim.applyQuaternion(drinking)), sip);
         q.slerp(drinking, sip);
       }
-      carryProp(-1, pos, q, 1, kind === 'phone');
+      carryProp(-1, pos, q);
     }
     if (g === 'phone_call' && grip !== 'arms') {
       const sd = this.prop === 'phone' || !busy ? -1 : 1;
