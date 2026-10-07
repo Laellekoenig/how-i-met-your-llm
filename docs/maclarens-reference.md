@@ -42,6 +42,65 @@ The fan plans disagree on some booth details, and the show's camera wall varies
 between shots. These corrections prioritize visible furniture relationships;
 they do not invent unseen service rooms or claim an exact architectural replica.
 
+## Side and reverse backgrounds
+
+The booth's oblique singles could look past the dressed side walls into the
+extended, bare room shell. Completing the background requires a middle ground
+and an end to the room, as well as wall decoration.
+
+Additional visual references reviewed for this change:
+
+- [Nikneuk's illustrated plan](https://www.redbubble.com/i/photographic-print/Floorplan-of-MacLaren-s-Pub-from-HOW-I-MET-YOUR-MOTHER-by-nikneuk/107055669.6Q0TX):
+  perimeter seating, small tables, circulation around the booth island, and
+  restroom access on the left. Treat this as a fan interpretation, not a surveyed plan.
+- [Barney and Ted's booth reverse in “The Naked Man”](https://m.media-amazon.com/images/M/MV5BMjEyNzY2MzgxN15BMl5BanBnXkFtZTcwODUyOTUwMg%40%40._V1_QL75_UX656_.jpg):
+  neighboring patrons, red seating, tabletop menus, pictures and beer plaques
+  fill the background behind the actors.
+- [Booth shot facing the windows](https://i.insider.com/5c3ccdd2dde86756be7e8782?auto=webp&format=jpeg&width=1000):
+  several occupied tables sit between the main booth and the window; framed
+  memorabilia extends across the wall above it.
+- [Set photograph](https://tvseriesfinale.com/wp-content/uploads/2013/10/howimetyourmother40.jpg):
+  freestanding booth backs, perimeter red benches, separate wood columns, and
+  mixed-size pictures against dark green walls.
+
+The updated interpretation adds two perimeter banquettes, four dressed round
+tables, six additional patrons, warm pendant lamps, a restroom door, picture
+groups and a tap menu. Original procedural prints depict old neighborhood
+streets, a team photograph, sailing boats and beer labels. No reference images
+are bundled with the app.
+
+A paneled reverse wall at `z = 6.4` terminates the previously bare extension.
+Its trim and pictures face inward so the master camera can still shoot through
+the back, following the existing removable-wall convention. The main booth,
+scripted marks and walking routes keep their positions.
+
+### Review and validation
+
+Reviewed 198 captured running-app views with `mute`: all four authored wides and
+all 15 staging-mark singles in both lighting states; close-ups, two-shots and
+over-the-shoulder coverage for all 20 ordered booth pairings in day and night;
+plus both directions of bar, bartender, floor, dartboard and entrance dialogue.
+Checked background coverage, cast visibility, framing and scenery clipping.
+
+The collaborative preview ran this worktree's complete production bundle,
+transferred into the preview because its host could not reach the worktree's
+development server. The bundled HTML, CSS and JavaScript were unchanged.
+
+- `bun test --timeout 30000`: 465 passed, 0 failed. The initial default timeout
+  expired in two broader camera tests; both passed with the longer limit.
+- `bun run build`: passed.
+- `bun run episodes check`: 6 episodes, 0 errors, 4 existing writing warnings.
+- `git diff --check`: passed.
+
+Use `/?set=maclarens&mute` for the silent set tour, including the camera selector
+and day/night switch.
+
+![Previously sparse booth angle](screenshots/maclarens-backgrounds/booth-reverse.png)
+
+![Opposite booth background](screenshots/maclarens-backgrounds/opposite-reverse.png)
+
+![Representative wides, singles and reverse coverage](screenshots/maclarens-backgrounds/camera-review.png)
+
 ## Shared pub and apartment exterior
 
 The exterior is a procedural interpretation of the **on-screen facade**, with

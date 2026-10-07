@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
-import { planks, paneling, brick, sign, skyline, stripes, mural, paneGlass, glassBlock, neonShamrock } from '../../engine/textures';
+import { planks, paneling, brick, sign, skyline, stripes, mural, paneGlass, glassBlock, neonShamrock, pubPrint, chalkMenu } from '../../engine/textures';
 import { type StageSet, mark, nodes, room, band, frame, door, bottles, keyLight, v3 } from './common';
 
 // See docs/maclarens-reference.md for floor plans and photographic references.
@@ -10,7 +10,8 @@ export function buildMaclarens(): StageSet {
   const g = new THREE.Group();
   g.name = 'maclarens';
   const W = 14, D = 9, H = 3.4;
-  const BACK = -D / 2, LEFT = -W / 2, RIGHT = W / 2;
+  const BACK = -D / 2, LEFT = -W / 2, RIGHT = W / 2, FRONT = 6.4;
+  const wallDepth = FRONT - BACK, wallMid = (FRONT + BACK) / 2;
   const GREEN = '#24402f';
 
   const leather = toon('#7a1f1c');
@@ -31,13 +32,17 @@ export function buildMaclarens(): StageSet {
   const WAIN = 1.3;
   band(g, bead(8.3), -2.85, BACK + 0.03, 8.3, WAIN);
   band(g, bead(3.05), 5.475, BACK + 0.03, 3.05, WAIN);
-  band(g, bead(D + 2), LEFT + 0.03, 1, D + 2, WAIN, Math.PI / 2);
-  band(g, bead(D + 2), RIGHT - 0.03, 1, D + 2, WAIN, Math.PI / 2);
+  band(g, bead(wallDepth), LEFT + 0.03, wallMid, wallDepth, WAIN, Math.PI / 2);
+  band(g, bead(wallDepth), RIGHT - 0.03, wallMid, wallDepth, WAIN, Math.PI / 2);
   g.add(mesh(box(8.3, 0.06, 0.1), woodDark, -2.85, WAIN + 0.03, BACK + 0.05, false));
   g.add(mesh(box(3.05, 0.06, 0.1), woodDark, 5.475, WAIN + 0.03, BACK + 0.05, false));
-  for (const x of [LEFT + 0.05, RIGHT - 0.05]) g.add(mesh(box(0.1, 0.06, D + 2), woodDark, x, WAIN + 0.03, 1, false));
+  for (const x of [LEFT + 0.05, RIGHT - 0.05]) {
+    g.add(mesh(box(0.1, 0.06, wallDepth), woodDark, x, WAIN + 0.03, wallMid, false));
+    g.add(mesh(box(0.14, 0.16, wallDepth), wood, x, H - 0.12, wallMid, false));
+    g.add(mesh(box(0.12, 0.14, wallDepth), woodDark, x, 0.07, wallMid, false));
+  }
   // ceiling beams
-  for (let x = -6; x <= 6; x += 3) g.add(mesh(box(0.25, 0.25, D + 2), toon('#2a1a10'), x, H - 0.12, 1, false));
+  for (let x = -6; x <= 6; x += 3) g.add(mesh(box(0.25, 0.25, wallDepth), toon('#2a1a10'), x, H - 0.12, wallMid, false));
 
   // ---- furniture kit ---------------------------------------------------
   /** Red leather booth bench running along its local x, facing local +z. */
@@ -107,6 +112,26 @@ export function buildMaclarens(): StageSet {
     s.add(mesh(bowl(0.14), amber, 0, 0, 0.1, false));
     g.add(s);
   };
+  /** Layers of one-sided panels also dress the removable camera wall. */
+  const wallPanel = (x: number, y: number, z: number, w: number, h: number, material: THREE.Material, rotY: number, reverse = false) => {
+    const p = mesh(new THREE.PlaneGeometry(w, h), material, x, y, z, false);
+    p.rotation.y = rotY;
+    p.userData.cameraBackdrop = reverse;
+    g.add(p);
+    return p;
+  };
+  const pubPicture = (x: number, y: number, z: number, w: number, h: number, seed: number, rotY = 0, reverse = false) => {
+    const offset = (d: number) => [x + Math.sin(rotY) * d, z + Math.cos(rotY) * d];
+    const [mx, mz] = offset(0.014), [px, pz] = offset(0.022);
+    wallPanel(x, y, z, w + 0.12, h + 0.12, seed % 2 ? woodDark : brass, rotY, reverse);
+    wallPanel(mx, y, mz, w + 0.035, h + 0.035, toon('#c3ad80'), rotY, reverse);
+    wallPanel(px, y, pz, w, h, toon('#ffffff', { map: pubPrint(seed) }), rotY, reverse);
+  };
+  const menuTent = (x: number, z: number) => {
+    const m = mesh(box(0.13, 0.18, 0.07), toon('#dfca97'), x, 0.89, z, false);
+    g.add(m);
+    wallPanel(x, 0.91, z + 0.038, 0.1, 0.07, toon('#ffffff', { map: sign('MENU', '#43301b', '#dfca97', 64, 32, 'bold 14px Georgia') }), 0);
+  };
 
   // ---- the booth -------------------------------------------------------
   const BX = -0.3, BZ = 1.35;
@@ -155,6 +180,20 @@ export function buildMaclarens(): StageSet {
   pint(1.25, 0.775, -3.3);
   pint(2.6, 0.775, 0.95);
   beerBottle(-0.65, 0.775, -2.45);
+
+  // Perimeter seating gives oblique booth shots a middle ground, as in the
+  // show's reverse coverage. Keep the dart lane and all scripted aisles clear.
+  bench(LEFT + 0.48, 3.55, 2.6, Math.PI / 2, 1.18);
+  pubTable(-5.5, 2.9, [Math.PI / 2], 0.43);
+  pubTable(-5.5, 4.25, [Math.PI / 2], 0.43);
+  bench(RIGHT - 0.48, 3.8, 2.65, -Math.PI / 2, 1.18);
+  pubTable(5.5, 3.2, [-Math.PI / 2], 0.43);
+  pubTable(5.5, 4.55, [-Math.PI / 2], 0.43);
+  for (const [x, z] of [[-5.5, 2.9], [-5.5, 4.25], [5.5, 3.2], [5.5, 4.55], [BX - 2.75, BZ]]) {
+    pint(x - 0.16, 0.775, z - 0.13);
+    beerBottle(x + 0.16, 0.775, z + 0.12);
+    menuTent(x, z);
+  }
 
   // ---- back wall: window, glass block, entrance ------------------------------
   const paneNight = toon('#ffffff', { map: paneGlass(true), emissive: '#ffffff', emissiveIntensity: 0.3 });
@@ -276,8 +315,16 @@ export function buildMaclarens(): StageSet {
   sconce(lx, 2.45, -2.55, Math.PI / 2);
   frame(g, lx, 2.1, -1.8, 0.5, 0.65, 22, Math.PI / 2);
   frame(g, lx, 2.2, -0.7, 0.4, 0.3, 23, Math.PI / 2);
-  frame(g, lx, 2.1, 1.9, 0.6, 0.8, 24, Math.PI / 2, '#8a6a2a');
-  sconce(lx, 2.45, 3.0, Math.PI / 2);
+  pubPicture(lx, 2.15, 1.8, 0.66, 0.78, 30, Math.PI / 2);
+  pubPicture(lx, 2.15, 3.35, 1.38, 0.83, 31, Math.PI / 2);
+  pubPicture(lx, 2.9, 3.35, 0.75, 0.3, 32, Math.PI / 2);
+  pubPicture(lx, 2.75, 1.8, 0.6, 0.26, 33, Math.PI / 2);
+  sconce(lx, 2.62, 2.45, Math.PI / 2);
+  sconce(lx, 2.65, 4.45, Math.PI / 2);
+  for (const z of [1.2, 4.65]) g.add(mesh(box(0.13, H - 0.15, 0.16), wood, lx + 0.04, (H - 0.15) / 2, z, false));
+  door(g, lx + 0.04, 5.55, Math.PI / 2, '#3b281c', { frameColor: '#21170f' });
+  wallPanel(lx + 0.13, 1.8, 5.55, 0.68, 0.2, toon('#ffffff', { map: sign('RESTROOMS', '#ead7a1', '#28372d', 160, 32, 'bold 20px Georgia') }), Math.PI / 2);
+  wallPanel(lx + 0.1, 2.7, 5.55, 0.66, 0.27, toon('#ffffff', { map: sign('TO THE PUB →', '#dfc490', '#3d2214', 160, 40, 'bold 18px Georgia') }), Math.PI / 2);
   g.add(mesh(cyl(0.07, 0.07, 0.36, 6), toon('#b3261e'), LEFT + 0.12, 1.0, -0.75, false)); // fire extinguisher
   g.add(mesh(cyl(0.02, 0.03, 0.08, 4), black, LEFT + 0.12, 1.22, -0.75, false));
   // dartboard
@@ -286,9 +333,31 @@ export function buildMaclarens(): StageSet {
   g.add(mesh(cyl(0.04, 0.04, 0.06, 8), toon('#2e6b3a'), LEFT + 0.06, 1.7, 0.6, false).rotateZ(Math.PI / 2));
   // right wall, downstage of the bar
   const rx = RIGHT - 0.03;
-  frame(g, rx, 2.1, 1.3, 0.6, 0.8, 25, -Math.PI / 2);
-  frame(g, rx, 2.2, 2.3, 0.5, 0.4, 26, -Math.PI / 2, '#8a6a2a');
-  sconce(rx, 2.45, 3.2, -Math.PI / 2);
+  pubPicture(rx, 2.12, 1.35, 0.65, 0.85, 34, -Math.PI / 2);
+  pubPicture(rx, 2.22, 2.9, 1.2, 0.75, 35, -Math.PI / 2);
+  pubPicture(rx, 2.95, 2.9, 0.65, 0.3, 36, -Math.PI / 2);
+  pubPicture(rx, 2.2, 4.65, 1.15, 0.85, 37, -Math.PI / 2);
+  pubPicture(rx, 2.98, 4.65, 0.72, 0.28, 38, -Math.PI / 2);
+  sconce(rx, 2.68, 2.0, -Math.PI / 2);
+  sconce(rx, 2.68, 3.8, -Math.PI / 2);
+  for (const z of [0.85, 5.4]) g.add(mesh(box(0.13, H - 0.15, 0.16), wood, rx - 0.04, (H - 0.15) / 2, z, false));
+  wallPanel(rx - 0.02, 2.08, 5.92, 0.72, 1.03, woodDark, -Math.PI / 2);
+  wallPanel(rx - 0.04, 2.08, 5.92, 0.61, 0.92, toon('#ffffff', { map: chalkMenu('ON TAP', ['HOUSE LAGER', 'IRISH STOUT', 'PALE ALE', 'CIDER']) }), -Math.PI / 2);
+
+  // Complete the reverse backgrounds with picture-covered paneling. All layers
+  // face inward, so the master camera can still shoot through the camera wall.
+  wallPanel(0, H / 2, FRONT, W, H, toon(GREEN), Math.PI, true);
+  wallPanel(0, WAIN / 2, FRONT - 0.02, W, WAIN, bead(W), Math.PI, true);
+  for (const [y, h] of [[0.08, 0.16], [WAIN + 0.03, 0.07], [H - 0.12, 0.16]]) {
+    wallPanel(0, y, FRONT - 0.04, W, h, woodDark, Math.PI, true);
+  }
+  for (const x of [-6.6, -3.4, 0, 3.4, 6.6]) wallPanel(x, H / 2, FRONT - 0.05, 0.16, H, wood, Math.PI, true);
+  for (const [i, x] of [-5.1, -1.7, 1.7, 5.1].entries()) {
+    pubPicture(x, 2.15, FRONT - 0.06, 1.4, 0.86, 41 + i, Math.PI, true);
+    pubPicture(x - 1.04, 2.24, FRONT - 0.06, 0.36, 0.55, 51 + i, Math.PI, true);
+    pubPicture(x + 1.04, 2.02, FRONT - 0.06, 0.38, 0.5, 61 + i, Math.PI, true);
+    pubPicture(x, 2.92, FRONT - 0.06, 0.85, 0.3, 71 + i, Math.PI, true);
+  }
 
   // ---- lighting -------------------------------------------------------
   g.add(new THREE.HemisphereLight('#ffe2c4', '#3a2c20', 1.7));
@@ -297,6 +366,8 @@ export function buildMaclarens(): StageSet {
   bowlLamp(BX - 2.75, 2.4, BZ, 3, 5);
   bowlLamp(-5.3, 2.45, -3.1, 4, 5);
   bowlLamp(1.5, 2.55, -2.5, 4, 5);
+  bowlLamp(-5.45, 2.55, 3.55, 3, 5);
+  bowlLamp(5.45, 2.55, 3.8, 3, 5);
   // The bar has broad stained-glass drum pendants, unlike the small booth bowls.
   for (const z of [-2.2, -0.5]) {
     g.add(mesh(cyl(0.012, 0.012, 0.85, 6), brass, barX, 2.975, z, false));

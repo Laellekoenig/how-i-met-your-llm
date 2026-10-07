@@ -94,21 +94,31 @@ export class Stage {
       { female: true, hair: '#1a1210', hairStyle: 'ponytail', top: '#9a3a4a', topStyle: 'tee', skin: '#e8b996', height: 1.68 },
       { female: false, hair: '#8a6a3a', hairStyle: 'messy', top: '#3a5a3a', topStyle: 'flannel', plaid: ['#1a2a1a', '#9a8a5a'], skin: '#f0c4a4', height: 1.85 },
     ];
-    // corner booth under the mural, and a floor table by the window
-    const spots: [number, number, number, number][] = [[-6.42, -3.0, Math.PI / 2, 0.47], [-5.4, -3.92, 0, 0.47], [1.3, -3.78, 0, 0.48]];
-    looks.forEach((l, i) => {
-      const a = this.extra(i, 'Patron', l);
-      a.place(new THREE.Vector3(spots[i][0], 0, spots[i][1]), spots[i][2], spots[i][3]);
+    // Corner/window seating, the neighboring booth, and both perimeter bays.
+    // Background pairs belong to actual seats, outside the cast's walking aisles.
+    const spots: [number, number, number, number][] = [
+      [-6.42, -3.0, Math.PI / 2, 0.47], [-5.4, -3.92, 0, 0.47], [1.3, -3.78, 0, 0.48],
+      [-3.78, 1.6, Math.PI / 2, 0.47], [-2.25, 0.95, -Math.PI / 2, 0.47],
+      [-6.5, 2.9, Math.PI / 2, 0.47], [-4.81, 4.25, -Math.PI / 2, 0.48],
+      [6.5, 3.2, -Math.PI / 2, 0.47], [4.81, 4.55, Math.PI / 2, 0.48],
+    ];
+    spots.forEach((spot, i) => {
+      const a = this.extra(i, 'Patron', { ...looks[i % looks.length], top: ['#5a6b7a', '#9a3a4a', '#3a5a3a', '#756249', '#4f6570', '#72534a', '#605c76', '#6e7358', '#8a6550'][i] });
+      a.place(new THREE.Vector3(spot[0], 0, spot[1]), spot[2], spot[3]);
       a.holdingGlass = true;
       this.sets.maclarens.group.add(a.root);
       this.extras.push({ actor: a, set: 'maclarens', talkT: rand(0, 3), chatty: true });
+      if (i >= 3) {
+        const partner = spots[i % 2 ? i + 1 : i - 1];
+        a.lookAt = new THREE.Vector3(partner[0], 1.25, partner[1]);
+      }
     });
     // they chat with each other
     this.extras[0].actor.lookAt = new THREE.Vector3(-5.4, 1.25, -3.92);
     this.extras[1].actor.lookAt = new THREE.Vector3(-6.42, 1.25, -3.0);
 
     // a cab always comes with a cabbie, unless Ranjit (or someone) takes the wheel
-    const cabbie = this.extra(looks.length, 'Cabbie', {
+    const cabbie = this.extra(this.extras.length, 'Cabbie', {
       female: false, hair: '#3a2a20', hairStyle: 'receding', top: '#4a4238', topStyle: 'flannel', plaid: ['#2a2620', '#6a5a40'],
       skin: '#a8724c', height: 1.74, build: 1.15, extras: ['cap'],
     });
