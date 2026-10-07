@@ -24,8 +24,16 @@ interface ActiveShot {
   followRoot?: THREE.Vector3;
   /** The aim is easing onto a new framing after a big head move, like sitting down. */
   reframing?: boolean;
-  /** Where a jogged shot was originally framed. */
+  /** Where the shot was framed when we cut to it, before any jog, push or drift. */
   base?: { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
+}
+
+type Framing = { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
+
+/** Two framings a viewer can't tell apart: cutting from one to the other only reads as a jump. */
+function sameFraming(a: Framing, b: Framing) {
+  const look = (f: Framing) => f.target.clone().sub(f.pos).normalize();
+  return a.pos.distanceTo(b.pos) < 0.25 && look(a).angleTo(look(b)) < 0.07 && Math.abs(a.fov - b.fov) < 4;
 }
 
 /** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. Shots are locked off
@@ -33,6 +41,8 @@ interface ActiveShot {
 export class Director {
   private shot: ActiveShot | null = null;
   private lastCut = 0;
+  /** When a walker last made us look for a wider angle; it may turn out to be the one we're on. */
+  private lastReframe = 0;
   private time = 0;
   private ray = new THREE.Raycaster();
   onCut: (() => void) | null = null;
@@ -59,6 +69,17 @@ export class Director {
 
   private cut(s: ActiveShot) {
     s.followRoot = s.follow?.root.getWorldPosition(new THREE.Vector3());
+    // Asked for the angle we're already on: stay on it. Re-cutting would restart a push or drift and
+    // re-aim a single from scratch, a visible hitch between two copies of the same shot.
+    const on = this.shot;
+    if (on && on !== s && on.kind === s.kind && s.kind !== 'selfie' && on.follow === s.follow
+      && (sameFraming(on, s) || (on.base && sameFraming(on.base, s)))) {
+      on.subject = s.subject;
+      on.subjects = s.subjects;
+      on.followRoot = s.followRoot;
+      return;
+    }
+    s.base ??= { pos: s.pos.clone(), target: s.target.clone(), fov: s.fov };
     this.shot = s;
     this.lastCut = this.time;
     this.apply(0);
@@ -363,8 +384,7 @@ export class Director {
   /** The next photo in a burst: the same shot, taken from a hand's width away and a hair tighter or looser. */
   jog(amount = 0.06) {
     const s = this.shot;
-    if (!s) return;
-    s.base ??= { pos: s.pos.clone(), target: s.target.clone(), fov: s.fov };
+    if (!s?.base) return;
     const r = () => (Math.random() * 2 - 1) * amount;
     s.pos.copy(s.base.pos).add(new THREE.Vector3(r(), r() * 0.5, r() * 0.5));
     s.target.copy(s.base.target).add(new THREE.Vector3(r() * 0.5, r() * 0.3, 0));
@@ -388,10 +408,13 @@ export class Director {
     if (this.held) return;
     this.time += dt;
     const s = this.shot;
-    if (s && s.kind !== 'establishing' && !s.follow && this.time - this.lastCut > 0.5) {
+    if (s && s.kind !== 'establishing' && !s.follow && this.time - Math.max(this.lastCut, this.lastReframe) > 0.5) {
       const ids = s.subjects?.filter(id => this.stage.onStage(id)) ?? [];
       const moving = ids.map(id => this.stage.actors[id]).filter(a => a.isWalking);
-      if (moving.length && !this.covers(s, moving)) this.coverage(ids);
+      if (moving.length && !this.covers(s, moving)) {
+        this.lastReframe = this.time;
+        this.coverage(ids);
+      }
     }
     this.apply(dt);
   }
@@ -418,11 +441,13 @@ export class Director {
         const displacement = root.clone().sub(s.followRoot);
         if (displacement.lengthSq() > 0.000001) {
           const moved = s.pos.clone().add(displacement);
-          if (!this.inside(moved) || !this.sees(moved, s.follow)) {
+          if (this.inside(moved) && this.sees(moved, s.follow)) s.pos.copy(moved);
+          // Can't track alongside: pan from where we stand while they're still in view, rather than
+          // cut to a fresh single on the same person.
+          else if (!this.sees(s.pos, s.follow)) {
             this.closeup(s.subject!);
             return;
           }
-          s.pos.copy(moved);
           s.target.add(displacement);
         }
       }

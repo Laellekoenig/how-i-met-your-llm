@@ -385,6 +385,28 @@ describe('camera coverage on the current sets', () => {
     expect(from - camera.position.distanceTo(stage.actors.ted.headWorld)).toBeGreaterThan(0.6);
   });
 
+  test('asking for the angle already on screen holds it instead of re-cutting to a copy', () => {
+    stage.setWardrobe([]);
+    stage.setLocation('metro_news_one', 'day'); stage.place('ted', 'center'); stage.place('robin', 'anchor_left');
+    director.wide(0);
+    director.pushIn('ted', 'robin');
+    const shot = director.current;
+    for (let i = 0; i < 20; i++) director.update(0.05);
+    const pushed = camera.position.clone();
+    director.pushIn('ted', 'robin');
+    expect(director.current).toBe(shot);
+    expect(camera.position.distanceTo(pushed)).toBeLessThan(0.001);
+    director.update(0.05);
+    expect(camera.position.distanceTo(stage.actors.ted.headWorld)).toBeLessThan(pushed.distanceTo(stage.actors.ted.headWorld));
+
+    director.wide(0);
+    const wide = director.current;
+    director.wide(0);
+    expect(director.current).toBe(wide);
+    director.closeup('ted', 'robin');
+    expect(director.current).not.toBe(wide);
+  });
+
   test('long held shots stop pushing before they enter the set', () => {
     stage.setLocation('apartment', 'day'); stage.place('ted', 'couch_left');
     director.closeup('ted');
