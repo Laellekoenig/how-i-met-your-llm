@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { LocationId, TimeOfDay, CharacterId } from '../../script/types';
 import { toon, glow, box, mesh, roundedBox, cyl, occluder } from '../../engine/materials';
-import { painting } from '../../engine/textures';
+import { hallway, painting } from '../../engine/textures';
 import type { SitPose } from '../actor';
 
 export interface Mark {
@@ -53,6 +53,8 @@ export interface StageSet {
   reserved?: string[];
   /** Separate vehicle compartments use their own door. No route crosses a solid partition. */
   entrances?: Record<string, string>;
+  /** Doors on hinges, by the door mark they lead in from: people open them by hand on the way in and out. */
+  doors?: Record<string, Door>;
   setTime(t: TimeOfDay): void;
   update?(dt: number, t: number): void;
   /** Floor height at a point, for sets with raised areas (defaults to 0). */
@@ -157,23 +159,151 @@ export function window_(g: THREE.Group, x: number, y: number, z: number, w: numb
   return pane;
 }
 
-export function door(g: THREE.Group, x: number, z: number, rotY: number, color: string, opts: { glass?: THREE.Material; frameColor?: string } = {}) {
-  const grp = new THREE.Group();
-  grp.position.set(x, 0, z);
-  grp.rotation.y = rotY;
-  const fm = toon(opts.frameColor ?? '#e8dfcc');
-  grp.add(mesh(box(1.05, 2.25, 0.06), toon(color), 0, 1.12, 0.03, false));
-  grp.add(mesh(box(0.1, 2.35, 0.1), fm, -0.56, 1.17, 0.05, false));
-  grp.add(mesh(box(0.1, 2.35, 0.1), fm, 0.56, 1.17, 0.05, false));
-  grp.add(mesh(box(1.22, 0.1, 0.1), fm, 0, 2.33, 0.05, false));
-  grp.add(mesh(new THREE.SphereGeometry(0.035, 6, 4), toon('#c9a227'), 0.38, 1.05, 0.09, false));
-  if (opts.glass) grp.add(mesh(new THREE.PlaneGeometry(0.6, 0.8), opts.glass, 0, 1.6, 0.065, false));
-  else {
-    grp.add(mesh(box(0.7, 0.8, 0.02), toon(new THREE.Color(color).multiplyScalar(0.8)), 0, 1.6, 0.065, false));
-    grp.add(mesh(box(0.7, 0.7, 0.02), toon(new THREE.Color(color).multiplyScalar(0.8)), 0, 0.6, 0.065, false));
+/** Half the width of a door leaf, and how far its knobs sit from the hinges. */
+const LEAF = 0.525, KNOB = 0.905, KNOB_Y = 1.05;
+/** The leaf turns on hinges at its room-side face. */
+const HINGE_Z = 0.06;
+let corridor: THREE.Material | null = null;
+
+/**
+ * A door that swings open into the room on its hinges, onto a dim corridor (or whatever `beyond` shows). In its
+ * own space the wall is at z = 0 with the room toward +z and the doorway centered on x = 0; `hinge` is the side
+ * the hinges are on (-1 is -x). Spots around it are measured from the hinges: `u` along the wall toward the
+ * latch, `v` out into the room.
+ */
+export class Door extends THREE.Group {
+  readonly leaf = new THREE.Group();
+  readonly glass: THREE.Mesh | null = null;
+  readonly beyond: THREE.Mesh;
+  /** How far open, in radians into the room. */
+  angle = 0;
+  /** While someone holds it, the angle their hand puts it at, asked every frame. */
+  private follow: (() => number) | null = null;
+  private swinging: { from: number; to: number; t: number; dur: number; done: () => void } | null = null;
+
+  constructor(readonly hinge: 1 | -1, color: string, opts: { glass?: THREE.Material; frameColor?: string; beyond?: THREE.Material }) {
+    super();
+    const fm = toon(opts.frameColor ?? '#e8dfcc');
+    this.add(mesh(box(0.1, 2.35, 0.1), fm, -0.56, 1.17, 0.05, false));
+    this.add(mesh(box(0.1, 2.35, 0.1), fm, 0.56, 1.17, 0.05, false));
+    this.add(mesh(box(1.22, 0.1, 0.1), fm, 0, 2.33, 0.05, false));
+    corridor ??= toon('#ffffff', { map: hallway(), emissive: '#ffffff', emissiveIntensity: 0.35 });
+    // (inside the shut leaf, in front of any baseboard or rail along the wall; only there while it's open)
+    this.beyond = mesh(new THREE.PlaneGeometry(1.02, 2.25), opts.beyond ?? corridor, 0, 1.125, 0.05, false);
+    this.beyond.visible = false;
+    this.add(this.beyond);
+    // the leaf, built around its hinges
+    const L = this.leaf, x = -hinge * LEAF, z = -HINGE_Z;
+    L.position.set(hinge * LEAF, 0, HINGE_Z);
+    L.add(mesh(box(1.05, 2.25, 0.06), toon(color), x, 1.12, z + 0.03, false));
+    const brass = toon('#c9a227');
+    for (const side of [1, -1]) L.add(mesh(new THREE.SphereGeometry(0.035, 6, 4), brass, -hinge * KNOB, KNOB_Y, side > 0 ? 0.03 : z - 0.03, false));
+    if (opts.glass) L.add((this as { glass: THREE.Mesh }).glass = mesh(new THREE.PlaneGeometry(0.6, 0.8), opts.glass, x, 1.6, z + 0.065, false));
+    else {
+      L.add(mesh(box(0.7, 0.8, 0.02), toon(new THREE.Color(color).multiplyScalar(0.8)), x, 1.6, z + 0.065, false));
+      L.add(mesh(box(0.7, 0.7, 0.02), toon(new THREE.Color(color).multiplyScalar(0.8)), x, 0.6, z + 0.065, false));
+    }
+    this.add(L);
   }
-  g.add(grp);
-  return grp;
+
+  /** A spot on the floor, `u` along the wall from the hinges toward the latch and `v` out into the room. */
+  spot(u: number, v: number) {
+    this.updateWorldMatrix(true, false);
+    return this.localToWorld(new THREE.Vector3(this.hinge * (LEAF - u), 0, v)).setY(0);
+  }
+
+  /** The same spot `r` from the hinges, `a` radians round from the wall toward the room. */
+  around(r: number, a: number) {
+    return this.spot(r * Math.cos(a), HINGE_Z + r * Math.sin(a));
+  }
+
+  /** How far round from the wall a point is, seen from the hinges (negative: out past the wall). */
+  angleOf(p: THREE.Vector3) {
+    this.updateWorldMatrix(true, false);
+    const l = this.worldToLocal(p.clone());
+    return Math.atan2(l.z - HINGE_Z, LEAF - this.hinge * l.x);
+  }
+
+  /** The knob on the room side, or the outside. */
+  knob(side: 'room' | 'out') {
+    this.leaf.updateWorldMatrix(true, false);
+    return this.leaf.localToWorld(new THREE.Vector3(-this.hinge * KNOB, KNOB_Y, side === 'room' ? 0.03 : -HINGE_Z - 0.03));
+  }
+
+  /** Which way the door faces, into the room, as an actor's facing. */
+  get facing() {
+    this.updateWorldMatrix(true, false);
+    const n = new THREE.Vector3(0, 0, 1).transformDirection(this.matrixWorld);
+    return Math.atan2(n.x, n.z);
+  }
+
+  /** Which way a face of the leaf faces now (the room side, or the outside), in world space. */
+  face(side: 'room' | 'out') {
+    this.leaf.updateWorldMatrix(true, false);
+    return new THREE.Vector3(0, 0, side === 'room' ? 1 : -1).transformDirection(this.leaf.matrixWorld);
+  }
+
+  /** Held by someone, it goes where their hand puts it (asked every frame), until it's let go (null) or swung. */
+  hold(at: (() => number) | null) {
+    this.swinging?.done();
+    this.swinging = null;
+    this.follow = at;
+  }
+
+  /** Where to take hold of it from somewhere: the knob on the face toward them, or its edge when they're edge-on. */
+  handle(from: THREE.Vector3): [THREE.Vector3, THREE.Vector3] {
+    this.leaf.updateWorldMatrix(true, false);
+    const room = this.face('room');
+    const tip = this.leaf.localToWorld(new THREE.Vector3(-this.hinge * KNOB, KNOB_Y, -HINGE_Z / 2));
+    const s = THREE.MathUtils.clamp(room.dot(from.clone().setY(tip.y).sub(tip)) / 0.3, -1, 1);
+    const edge = 1 - Math.abs(s);
+    const at = this.leaf.localToWorld(new THREE.Vector3(-this.hinge * (KNOB + 0.13 * edge), KNOB_Y, -HINGE_Z / 2 + 0.09 * s));
+    const along = tip.clone().sub(this.leaf.getWorldPosition(new THREE.Vector3())).setY(0).normalize();
+    return [at, room.multiplyScalar(-s).addScaledVector(along, -edge).normalize()];
+  }
+
+  /** Swing to an angle over some seconds, easing in and out; resolves when it gets there (or is interrupted). */
+  swing(to: number, seconds: number) {
+    this.follow = null;
+    this.swinging?.done();
+    return new Promise<void>((done) => {
+      this.swinging = { from: this.angle, to, t: 0, dur: Math.max(0.01, seconds), done };
+    });
+  }
+
+  /** Shut, at once, with nobody holding it. */
+  reset() {
+    this.follow = null;
+    this.swinging?.done();
+    this.swinging = null;
+    this.angle = 0;
+    this.leaf.rotation.y = 0;
+    this.beyond.visible = false;
+  }
+
+  update(dt: number) {
+    const s = this.swinging;
+    if (this.follow) this.angle += (THREE.MathUtils.clamp(this.follow(), 0, Math.PI / 2) - this.angle) * Math.min(1, dt * 14);
+    else if (s) {
+      s.t += dt;
+      const k = Math.min(1, s.t / s.dur);
+      this.angle = s.from + (s.to - s.from) * k * k * (3 - 2 * k);
+      if (k >= 1) {
+        this.swinging = null;
+        s.done();
+      }
+    }
+    this.leaf.rotation.y = this.hinge * this.angle;
+    this.beyond.visible = this.angle > 0.002;
+  }
+}
+
+export function door(g: THREE.Group, x: number, z: number, rotY: number, color: string, opts: { glass?: THREE.Material; frameColor?: string; hinge?: 1 | -1; beyond?: THREE.Material } = {}) {
+  const d = new Door(opts.hinge ?? -1, color, opts);
+  d.position.set(x, 0, z);
+  d.rotation.y = rotY;
+  g.add(d);
+  return d;
 }
 
 /** Simple upholstered couch along x, facing +z. Returns its group. */

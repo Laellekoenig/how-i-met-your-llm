@@ -184,7 +184,9 @@ describe('current set navigation', () => {
 /** Run the stage until nobody's walking (or stepping back), and how close any two people came while someone was. */
 async function closestPass(maxSeconds = 20) {
   let closest = Infinity;
-  const busy = () => stage.onStageIds().some(id => stage.actors[id].isWalking) || (stage as unknown as { crowd: { aside: Map<unknown, unknown> } }).crowd.aside.size > 0;
+  const inner = stage as unknown as { crowd: { aside: Map<unknown, unknown> }; doorWork: Map<unknown, unknown> };
+  // (going through a door counts, standing to pull it open included)
+  const busy = () => stage.onStageIds().some(id => stage.actors[id].isWalking) || inner.crowd.aside.size > 0 || inner.doorWork.size > 0;
   for (let tick = 0; tick < maxSeconds * 30; tick++) {
     stage.update(1 / 30, tick / 30);
     // Let exits finish (and hide whoever left) as they would between frames.

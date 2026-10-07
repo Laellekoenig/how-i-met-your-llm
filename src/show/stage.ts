@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Actor } from '../world/actor';
 import { CHARACTERS, dressed, outfitAt, setGuests, type CharacterDef } from '../world/characters';
-import type { StageSet, Mark } from '../world/sets/common';
+import type { StageSet, Mark, Door } from '../world/sets/common';
 import { buildSets } from '../world/sets';
 import { KID_MARKS } from '../world/sets/future';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
@@ -9,6 +9,23 @@ import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, t
 import { pick, rand } from '../util';
 import { SEATED_SPACE, SPACE, joinRoute, routeNodes, walkRoute, type Person } from './navigation';
 import { Crowd, type Seat } from './crowd';
+
+/**
+ * Going through a door that swings into the room, measured from its hinges: spots as [along the wall toward the
+ * latch, out into the room], or as [how far from the hinges, how far round from the wall].
+ */
+const DOORWAY = {
+  /** Just outside, and just inside. */
+  out: [0.58, -0.7] as [number, number],
+  in: [0.58, 0.12] as [number, number],
+  /** Where they stand to pull it open or swing it shut: beside the latch, clear of its swing. */
+  side: [1.33, 0.25] as [number, number],
+  /** How far it's pulled open on the way out, how far it stays ahead of someone pulling it to behind them, and
+   * of someone pushing it open on the way in (further: their feet are on the far side, out of sight). */
+  open: 0.75,
+  lead: 0.65,
+  push: 0.75,
+};
 
 export interface FrozenScene {
   set: StageSet;
@@ -57,8 +74,15 @@ export class Stage {
   private strobeDt = 0;
   /** A split screen is up: its sets share the same floor space, so nobody there gives way to anybody. */
   private split = false;
-  /** Who gives way to whom, so nobody walks through anybody. */
-  private crowd = new Crowd(a => Object.values(this.actors).includes(a), a => this.seatOf(a));
+  /** Who gives way to whom, so nobody walks through anybody. Whoever's working a door keeps to their way. */
+  private crowd = new Crowd(a => Object.values(this.actors).includes(a) && !this.atDoor(a), a => this.seatOf(a));
+  /** Who's going through a door right now, and which; their turn ends when they're told to do anything else. */
+  private doorWork = new Map<CharacterId, { door: Door; turn: number }>();
+  private doorTurns = 0;
+  /** One at a time through each door: the next in line waits for whoever's going through. */
+  private doorQueue = new Map<Door, Promise<void>>();
+  /** A door shutting (for its sound). */
+  onDoorShut: (() => void) | null = null;
 
   constructor(private scene: THREE.Scene) {
     this.sets = buildSets();
@@ -237,6 +261,9 @@ export class Stage {
     this.actorMark.clear();
     this.actorNode.clear();
     this.backgroundIds.clear();
+    this.doorWork.clear();
+    this.doorQueue.clear();
+    for (const s of Object.values(this.sets)) for (const d of Object.values(s.doors ?? {})) d.reset();
     this.syncExtras();
   }
 
@@ -404,6 +431,7 @@ export class Stage {
     const pos = this.markPosition(m, name, id);
     pos.y = this.floorY(pos.x, pos.z);
     this.crowd.forget(a);
+    this.leaveDoor(id);
     a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop });
     a.root.visible = true;
     this.occupy(id, name);
@@ -475,6 +503,12 @@ export class Stage {
 
   /** Walk to a mark or next to another character. */
   moveTo(id: CharacterId, target: string): Promise<void> {
+    this.leaveDoor(id);
+    return this.walkTo(id, target);
+  }
+
+  /** Walk to a mark or next to someone; `spot` stops somewhere else along the way to the mark (beside a door). */
+  private walkTo(id: CharacterId, target: string, spot?: { pos: THREE.Vector3; facing: number }): Promise<void> {
     const a = this.actors[id];
     if (!a.root.visible) return this.enter(id, target);
     this.crowd.forget(a);
@@ -507,13 +541,13 @@ export class Stage {
     } else {
       name = this.resolveMark(target, id);
       const m = this.current.marks[name];
-      dest = this.markPosition(m, name, id);
-      facing = m.facing;
-      seat = m.seat;
-      approach = m.approach;
+      dest = spot?.pos.clone() ?? this.markPosition(m, name, id);
+      facing = spot?.facing ?? m.facing;
+      seat = spot ? null : m.seat;
+      approach = spot ? undefined : m.approach;
       node = m.node;
     }
-    if (prevMarkName === name && !a.isWalking) return Promise.resolve();
+    if (prevMarkName === name && !a.isWalking && !spot) return Promise.resolve();
     const curMark = prevMarkName ? this.current.marks[prevMarkName] : undefined;
     const pts = a.remainingPath;
     const start = pts.at(-1) ?? a.position;
@@ -564,6 +598,7 @@ export class Stage {
 
   /** Sit down in the nearest free seat they can get to. */
   sitDown(id: CharacterId): Promise<void> {
+    this.leaveDoor(id);
     const a = this.actors[id];
     if (!this.onStage(id) || a.isSitting || this.current.seated) return Promise.resolve();
     const from = this.actorNode.get(id) ?? this.nearestNode(a.position);
@@ -583,6 +618,7 @@ export class Stage {
 
   /** Get up out of a seat and step into the aisle beside it (there's no standing up in a car). */
   standUp(id: CharacterId): Promise<void> {
+    this.leaveDoor(id);
     const a = this.actors[id];
     if (!this.onStage(id) || !a.isSitting || this.current.seated) return Promise.resolve();
     const m = this.current.marks[this.actorMark.get(id) ?? ''];
@@ -599,20 +635,25 @@ export class Stage {
     return this.current.entrances?.[node] ?? this.current.door;
   }
 
-  enter(id: CharacterId, target?: string): Promise<void> {
+  /** Come in through the door (opening and shutting it, unless `instant`: a scene picked up after they came in). */
+  enter(id: CharacterId, target?: string, instant = false): Promise<void> {
+    this.leaveDoor(id);
     const name = this.resolveMark(target && target !== this.current.door ? target : 'center', id);
     const doorName = this.entrance(name), door = this.current.marks[doorName];
+    const swing = this.current.doors?.[doorName];
+    if (swing && !instant) return this.throughDoor(id, swing, (turn) => this.comeIn(id, swing, doorName, name, turn));
     const a = this.actors[id];
     const pos = door.pos.clone();
     pos.y = this.floorY(pos.x, pos.z);
     a.place(pos, door.facing, this.current.seated ? door.seat : null);
     a.root.visible = true;
     this.occupy(id, doorName);
-    return this.moveTo(id, name);
+    return this.walkTo(id, name);
   }
 
   /** Gone, without walking to the door (a scene picked up after they left). */
   leave(id: CharacterId) {
+    this.leaveDoor(id);
     this.actors[id].root.visible = false;
     this.actors[id].hold(null);
     this.crowd.forget(this.actors[id]);
@@ -641,11 +682,106 @@ export class Stage {
 
   async exit(id: CharacterId) {
     if (!this.onStage(id)) return;
+    this.leaveDoor(id);
     const version = this.sceneVersion, door = this.entrance(this.actorMark.get(id));
-    await this.moveTo(id, door);
+    const swing = this.current.doors?.[door];
+    if (swing) return this.throughDoor(id, swing, (turn) => this.goOut(id, swing, door, turn));
+    await this.walkTo(id, door);
     // A skipped scene or a subsequent move must not let an old exit hide the new cast.
     if (version !== this.sceneVersion || this.actorMark.get(id) !== door) return;
     this.actors[id].root.visible = false;
+    this.occupy(id, null);
+  }
+
+  /** Whether someone is in the middle of going through a door (and keeps to their own way meanwhile). */
+  private atDoor(a: Actor) {
+    for (const id of this.doorWork.keys()) if (this.actors[id] === a) return true;
+    return false;
+  }
+
+  /** Wait for the door to be free, then go through it. `go` checks it's still their turn after every step. */
+  private throughDoor(id: CharacterId, door: Door, go: (turn: number) => Promise<void>) {
+    const turn = ++this.doorTurns;
+    this.doorWork.set(id, { door, turn });
+    const done = (this.doorQueue.get(door) ?? Promise.resolve()).then(() => this.doorWork.get(id)?.turn === turn ? go(turn) : undefined);
+    this.doorQueue.set(door, done.catch(() => {}));
+    return done;
+  }
+
+  /** Stop whatever they were doing at a door: let go of it, and it swings shut by itself. */
+  private leaveDoor(id: CharacterId) {
+    const work = this.doorWork.get(id);
+    if (!work) return;
+    this.doorWork.delete(id);
+    const a = this.actors[id];
+    a.grab(null);
+    a.turnTo = null;
+    if (work.door.angle > 0.01) void work.door.swing(0, 0.9);
+    else work.door.hold(null);
+  }
+
+  /** Done with the door, which is shut. */
+  private doneWithDoor(id: CharacterId) {
+    this.onDoorShut?.();
+    this.doorWork.delete(id);
+    this.actors[id].grab(null);
+    this.actors[id].turnTo = null;
+  }
+
+  /** Take hold of a door's handle with the nearer hand, turned to it a little (the reaching shoulder leads). */
+  private handOnDoor(a: Actor, door: Door) {
+    const [h] = door.handle(a.position);
+    a.root.updateWorldMatrix(true, false);
+    const side = a.root.worldToLocal(h.clone()).x > 0 ? 1 : -1;
+    a.grab(() => door.handle(a.position), side);
+    a.turnTo = () => {
+      const [k] = door.handle(a.position), p = a.position;
+      return Math.atan2(k.x - p.x, k.z - p.z) - side * 0.35;
+    };
+  }
+
+  /**
+   * In through a door that swings into the room: push it open ahead of them, step in beside the latch, then take
+   * hold of it and swing it shut by the handle before walking on.
+   */
+  private async comeIn(id: CharacterId, door: Door, doorName: string, name: string, turn: number) {
+    const a = this.actors[id], version = this.sceneVersion;
+    const still = () => this.sceneVersion === version && this.doorWork.get(id)?.turn === turn;
+    const out = door.spot(...DOORWAY.out);
+    out.y = this.floorY(out.x, out.z);
+    a.place(out, door.facing, null);
+    a.root.visible = true;
+    this.occupy(id, doorName);
+    door.hold(() => Math.max(door.angle, door.angleOf(a.position) + DOORWAY.push));
+    await a.walk([door.spot(...DOORWAY.in)], { facing: a.facing, seat: null });
+    if (!still()) return;
+    // (their hand only shows once they're through: before that it would be reaching round the door)
+    this.handOnDoor(a, door);
+    await a.walk([door.around(...DOORWAY.side)], { facing: a.facing, seat: null });
+    if (!still()) return;
+    await door.swing(0, 1);
+    if (!still()) return;
+    this.doneWithDoor(id);
+    return this.walkTo(id, name);
+  }
+
+  /** Out through a door that swings into the room: pull it open from beside the latch, then pull it to behind them. */
+  private async goOut(id: CharacterId, door: Door, doorName: string, turn: number) {
+    const a = this.actors[id], version = this.sceneVersion;
+    const still = () => this.sceneVersion === version && this.doorWork.get(id)?.turn === turn;
+    const beside = door.around(...DOORWAY.side), [h] = door.handle(beside);
+    await this.walkTo(id, doorName, { pos: beside, facing: Math.atan2(h.x - beside.x, h.z - beside.z) });
+    if (!still()) return;
+    this.handOnDoor(a, door);
+    await door.swing(DOORWAY.open, 1);
+    if (!still()) return;
+    door.hold(() => Math.min(door.angle, door.angleOf(a.position) + DOORWAY.lead));
+    await a.walk([door.spot(...DOORWAY.in), door.spot(...DOORWAY.out)], { facing: a.facing, seat: null });
+    if (!still()) return;
+    await door.swing(0, 0.2);
+    if (!still()) return;
+    this.doneWithDoor(id);
+    a.root.visible = false;
     this.occupy(id, null);
   }
 
@@ -663,6 +799,7 @@ export class Stage {
     }
     if (!this.split && !this.paused && !this.current.seated) this.crowd.update(this.current, this.inTheWay(), dt);
     for (const a of Object.values(this.actors)) if (a.root.visible) a.update(dt, t);
+    for (const d of Object.values(this.current.doors ?? {})) d.update(dt);
     // step actors up onto raised floors
     const floorAt = this.current.floorAt;
     if (floorAt)

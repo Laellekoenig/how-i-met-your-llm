@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { StageSet } from '../../src/world/sets/common';
+import { Door, type StageSet } from '../../src/world/sets/common';
 
 /** Intersect the walking corridor with each actual mesh in its local coordinates. */
 export function walkingBlockers(set: StageSet, from: THREE.Vector3, to: THREE.Vector3, radius = 0.12) {
@@ -9,8 +9,8 @@ export function walkingBlockers(set: StageSet, from: THREE.Vector3, to: THREE.Ve
   const floor = set.floorAt?.(midpoint.x, midpoint.z) ?? 0;
   set.group.traverse(o => {
     if (!(o instanceof THREE.Mesh) || o.userData.cameraBackdrop) return;
-    // Extras are actors, not part of the navigation scenery.
-    for (let p = o.parent; p && p !== set.group; p = p.parent) if (p.name.startsWith('extra')) return;
+    // Extras are actors, and doors swing out of the way: neither is part of the navigation scenery.
+    for (let p = o.parent; p && p !== set.group; p = p.parent) if (p.name.startsWith('extra') || p instanceof Door) return;
     o.geometry.computeBoundingBox();
     const local = o.geometry.boundingBox!;
     const world = local.clone().applyMatrix4(o.matrixWorld);

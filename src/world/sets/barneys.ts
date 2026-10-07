@@ -285,8 +285,8 @@ export function buildBarneys(): StageSet {
 
   // ---- the left wall: front door, entry console, Barney's black leather lounger -----------------
   const DOOR_Z = -0.3;
-  door(g, LEFT + 0.02, DOOR_Z, Math.PI / 2, '#1c1b1c', { frameColor: '#101012' });
-  g.add(mesh(box(0.03, 0.03, 0.14), chrome, LEFT + 0.12, 1.05, DOOR_Z + 0.36, false)); // lever handle
+  const front = door(g, LEFT + 0.02, DOOR_Z, Math.PI / 2, '#1c1b1c', { frameColor: '#101012', hinge: 1 });
+  front.leaf.add(mesh(box(0.14, 0.03, 0.03), chrome, -0.885, 1.05, 0.04, false)); // lever handle, swinging with the door
   // the welcome mat (secretly a body-fat scale: the Heavy, Set, Go)
   g.add(mesh(box(0.62, 0.015, 0.92), toon('#2a2a2c'), LEFT + 0.42, 0.008, DOOR_Z, false));
   g.add(mesh(box(0.5, 0.017, 0.8), toon('#3c3c40'), LEFT + 0.42, 0.009, DOOR_Z, false));
@@ -529,6 +529,7 @@ export function buildBarneys(): StageSet {
       ['right_front', 'kit_door'], ['center', 'kit_door'], ['kit_door', 'kitchen'], ['kit_door', 'bar'], ['right_front', 'bar'], ['couch_l', 'couch_r'],
     ],
     door: 'door',
+    doors: { door: front },
     marks: {
       couch_left: mark(CX - 0.65, CZ + 0.1, 0, 'couch_l', 'the dark leather couch, left cushion', { seat: 0.45, approach: [CX - 0.65, CZ + 0.75] }),
       couch_center: mark(CX, CZ + 0.1, 0, 'couch_l', 'the dark leather couch, middle', { seat: 0.45, approach: [CX, CZ + 0.75] }),

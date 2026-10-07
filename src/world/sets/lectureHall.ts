@@ -25,7 +25,7 @@ export function buildLectureHall(): StageSet {
   g.add(mesh(new THREE.PlaneGeometry(8.25, 1.9), toon('#ffffff', { map: lectureChalkboard() }), -0.4, 2.22, -4.325, false));
   g.add(mesh(box(8.5, 0.06, 0.18), toon('#9b9b8e'), -0.4, 1.15, -4.27, false));
   for (const x of [-1.6, -1.4, 1.7]) g.add(mesh(box(0.13, 0.025, 0.025), toon('#f5ecce'), x, 1.2, -4.22, false));
-  door(g, 5.35, -4.43, 0, '#796047', { frameColor: '#beb8a7' });
+  const front = door(g, 5.35, -4.43, 0, '#796047', { frameColor: '#beb8a7', hinge: 1 });
   label(g, 'LECTURE HALL  /  301', 5.35, 2.62, -4.32, 1.55, 0.23, '#373e37', '#ddd7bf');
   g.add(mesh(new THREE.PlaneGeometry(0.48, 0.48), toon('#ffffff', { map: clockFace() }), 5.35, 3.42, -4.38, false));
 
@@ -76,7 +76,7 @@ export function buildLectureHall(): StageSet {
   const hemi = new THREE.HemisphereLight('#f4eedb', '#596053', 1.85); g.add(hemi);
   keyLight(g, '#fff1d5', 2.15, [-2, 7, 5], [0, 0, -2]);
   return {
-    id: 'lecture_hall', name: "Ted's Lecture Hall", group: g, nodes: N, edges, marks, floorAt, door: 'door',
+    id: 'lecture_hall', name: "Ted's Lecture Hall", group: g, nodes: N, edges, marks, floorAt, door: 'door', doors: { door: front },
     wides: [
       { pos: v3(0, 3.25, 9.6), target: v3(0, 1.45, -2.4), fov: 49 },
       { pos: v3(-0.7, 1.9, 0), target: v3(-0.6, 1.65, -3.6), fov: 58 },
