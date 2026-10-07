@@ -359,6 +359,20 @@ describe('camera coverage on the current sets', () => {
     }
   });
 
+  test('Carl cast behind the bar shares a master wide with a full booth', () => {
+    // The right bench's inner seat hides behind its front seat from the master, so the booth wides can't reach the bar.
+    const booth = [['marshall', 'booth_right_front'], ['lily', 'booth_right_back'], ['ted', 'booth_end'], ['robin', 'booth_left_front'], ['barney', 'booth_left_back']] as const;
+    stage.setWardrobe([]);
+    for (let size = 2; size <= booth.length; size++) for (const time of ['day', 'night'] as const) {
+      stage.setLocation('maclarens', time);
+      stage.place('carl', 'behind_bar');
+      for (const [id, mark] of booth.slice(0, size)) stage.place(id, mark);
+      director.coverage(stage.castIds());
+      expect(director.current!.kind).toBe('wide');
+      for (const id of stage.castIds()) expectVisible(stage.actors[id], `${time}/${size}/${id}/booth and bar`);
+    }
+  });
+
   test('a push-in creeps toward its subject for longer than a closeup, without losing them', () => {
     stage.setWardrobe([]);
     stage.setLocation('metro_news_one', 'day'); stage.place('ted', 'center'); stage.place('robin', 'anchor_left');
