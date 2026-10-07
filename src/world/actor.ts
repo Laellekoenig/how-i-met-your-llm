@@ -40,6 +40,8 @@ const TMP = new THREE.Vector3();
 /** Walking pace, and the slower slide along a seat, in metres a second. */
 export const WALK_SPEED = 1.45;
 export const SCOOT_SPEED = 0.9;
+/** How far in front of a seat someone stops to turn round, before sitting back down into it (clear of the cushion). */
+const SIT_STEP = 0.5;
 /** Clothing skinned between the hips and the spine. Camera occlusion rays refresh matrices with updateWorldMatrix,
  * which SkinnedMesh doesn't hook, so keep its attached bind inverse current there too. */
 class WaistMesh extends THREE.SkinnedMesh {
@@ -117,6 +119,8 @@ export class Actor {
   private scooting = false;
   /** Whether the walk ends in a seat (rather than standing on the spot). */
   private toSeat = false;
+  /** The seat at the end of the walk: how high it is and which way it faces. */
+  private seatGoal: { height: number; facing: number } | null = null;
   /** Seconds to stand and let someone by before walking on. */
   waiting = 0;
   private onArrive: (() => void) | null = null;
@@ -1119,6 +1123,7 @@ export class Actor {
     this.setLapProp(opts.prop ?? null);
     this.path = [];
     this.scooting = false;
+    this.seatGoal = null;
     this.waiting = 0;
     this.onArrive = null;
     this.gesture = null;
@@ -1142,6 +1147,7 @@ export class Actor {
       this.path = points.map((p) => p.clone());
       this.scooting = !!final.scoot;
       this.toSeat = final.seat !== null;
+      this.seatGoal = final.seat !== null && !final.scoot ? { height: final.seat, facing: final.facing } : null;
       this.waiting = 0;
       this.seatHeight = final.scoot ? final.seat ?? this.seatHeight ?? 0.42 : null; // stand up first
       this.sitPose = 'upright';
@@ -1149,6 +1155,7 @@ export class Actor {
       this.onArrive = () => {
         this.onArrive = null;
         this.scooting = false;
+        this.seatGoal = null;
         this.targetFacing = final.facing;
         this.seatHeight = final.seat;
         this.sitPose = final.pose ?? 'upright';
@@ -1280,17 +1287,45 @@ export class Actor {
     const target = zeroPose();
 
     // --- locomotion
-    const sitting = this.seatHeight !== null;
+    // The last step into a seat: stop in front of it, turn round, then sit back down into it, so nobody walks
+    // into the cushion or swings their legs through the furniture turning round half sat down.
+    const pos = this.root.position;
+    const seatAt = this.seatGoal && this.path.length === 1 ? this.path[0] : null;
+    const settling = !!seatAt && Math.hypot(seatAt.x - pos.x, seatAt.z - pos.z) <= SIT_STEP + 0.01;
+    const turned = settling && Math.abs(angleDiff(this.facing, this.seatGoal!.facing)) < 0.35;
+    const sitting = this.seatHeight !== null || turned;
     this.sitBlend += ((sitting ? 1 : 0) - this.sitBlend) * damp(7, dt);
     let moving = false;
-    if (this.waiting > 0 && this.path.length) this.waiting = Math.max(0, this.waiting - dt);
+    if (settling) {
+      this.targetFacing = this.seatGoal!.facing;
+      if (turned) {
+        const dx = seatAt!.x - pos.x, dz = seatAt!.z - pos.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist < 0.02) {
+          pos.x = seatAt!.x;
+          pos.z = seatAt!.z;
+          this.path.shift();
+          this.onArrive?.();
+        } else {
+          // the hips go back onto the seat as they lower themselves
+          const step = Math.min(dist, Math.max(dist * damp(7, dt), 0.3 * dt));
+          pos.x += (dx / dist) * step;
+          pos.z += (dz / dist) * step;
+        }
+      }
+    } else if (this.waiting > 0 && this.path.length) this.waiting = Math.max(0, this.waiting - dt);
     else if (this.path.length && (this.sitBlend < 0.3 || this.scooting)) {
       const next = this.path[0];
-      const pos = this.root.position;
       const dx = next.x - pos.x, dz = next.z - pos.z;
       const dist = Math.hypot(dx, dz);
       const speed = this.scooting ? SCOOT_SPEED : WALK_SPEED;
-      if (dist < 0.05) {
+      // Walking up to a seat, stop where they'll turn round to sit.
+      const stop = seatAt ? SIT_STEP : 0;
+      if (stop && dist <= stop + 0.05) {
+        const step = Math.max(0, dist - stop);
+        pos.x += (dx / dist) * step;
+        pos.z += (dz / dist) * step;
+      } else if (dist < 0.05) {
         pos.x = next.x;
         pos.z = next.z;
         this.path.shift();
@@ -1318,7 +1353,7 @@ export class Actor {
     target.rHip = lerp(Math.sin(ph) * 0.55 * w, -Math.PI / 2, sb);
     target.lKnee = lerp(Math.max(0, Math.cos(ph)) * 0.9 * w, Math.PI / 2, sb);
     target.rKnee = lerp(Math.max(0, -Math.cos(ph)) * 0.9 * w, Math.PI / 2, sb);
-    const seat = this.seatHeight ?? 0.45;
+    const seat = this.seatHeight ?? this.seatGoal?.height ?? 0.45;
     this.hips.position.y = lerp(this.legLen + Math.abs(Math.cos(ph)) * 0.035 * w, seat + 0.06, sb) + this.bounce;
     // shift hips back onto the seat when sitting
     this.hips.position.z = -0.12 * sb;
