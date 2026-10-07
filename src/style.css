@@ -77,29 +77,27 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 
 #viewport, #viewport canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 
-#loc-label {
+/* HIMYM's time/place supers: white serif lettering low in the picture, with a dark offset shadow. */
+#loc-label, #year {
   position: absolute;
-  left: 3%;
-  top: 4%;
-  font-family: var(--mono);
-  font-size: clamp(10px, 1.8cqw, 16px);
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
+  left: 8%;
+  right: 8%;
+  bottom: 18%;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(16px, 4cqw, 72px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0.035em;
+  white-space: pre-line;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
   color: #fff;
-  text-shadow: 2px 2px 0 #000, 0 0 12px rgba(0, 0, 0, 0.8);
-  animation: fadeinout 3.6s forwards;
+  text-shadow: 0.055em 0.065em 0 #000, 0 0 0.12em rgba(0, 0, 0, 0.8);
+  pointer-events: none;
 }
+#loc-label { animation: fadeinout 3.6s forwards; }
 @keyframes fadeinout { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
-/* cutaway cards follow the cutaway's look: plain white, a fantasy's dreamy serif, a memory's faded typewriter
-   tag, or a tape label */
-#loc-label.cutaway { padding: 0.35em 0.8em; letter-spacing: 0.12em; text-shadow: none; }
-#loc-label.plain { background: rgba(0, 0, 0, 0.55); }
-#loc-label.dream {
-  font-family: 'Libre Baskerville', Georgia, serif; font-style: italic; text-transform: none; letter-spacing: 0.04em;
-  color: #4a3a58; background: rgba(255, 246, 252, 0.88); border-radius: 999px; box-shadow: 0 0 18px rgba(255, 230, 250, 0.9);
-}
-#loc-label.memory { color: #f4e6c8; background: rgba(40, 26, 12, 0.78); border: 1px solid rgba(244, 230, 200, 0.5); }
-#loc-label.video { left: auto; right: 4%; top: auto; bottom: 22%; color: #1c1c1c; background: #f2ead2; border-left: 0.5em solid #c8302a; font-family: var(--hand); text-transform: none; letter-spacing: 0.02em; font-size: clamp(11px, 2cqw, 18px); }
 
 /* the VCR's on-screen display over footage */
 #osd {
@@ -114,19 +112,8 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   text-shadow: 0.12em 0.12em 0 #0018a8, -0.06em 0 0 #ff2a2a;
 }
 
-/* the show's "2030" stamp over the kids on the couch: plain white, bottom centre, clear of the subtitles */
+/* The couch's year stays on screen; time/place labels fade after the cut. */
 #year {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 18%;
-  text-align: center;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: clamp(14px, 3cqw, 32px);
-  letter-spacing: 0.06em;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
   transition: bottom 0.25s ease-out;
   animation: yearIn 0.5s ease-out;
 }
@@ -203,9 +190,6 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   overflow-wrap: anywhere;
 }
 .playbook-prefix { display: block; }
-
-/* a montage's tag */
-#loc-label.montage { padding: 0.35em 0.8em; color: #1a1206; background: var(--umbrella); text-shadow: none; letter-spacing: 0.16em; }
 
 #closing-credits {
   position: absolute;

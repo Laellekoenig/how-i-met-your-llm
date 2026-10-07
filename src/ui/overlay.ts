@@ -19,6 +19,12 @@ export class Overlay {
   private insertEl = $('insert');
   private osdEl = $('osd');
 
+  constructor() {
+    const resize = new ResizeObserver(() => this.clearCaptionSpace());
+    resize.observe(this.caption);
+    resize.observe(this.loc.parentElement!);
+  }
+
   showCaption(name: string, color: string, text: string, narration = false, delivery?: Delivery) {
     this.caption.className = '';
     this.caption.classList.toggle('narration', narration);
@@ -27,7 +33,7 @@ export class Overlay {
     this.capName.style.color = narration ? '' : color;
     this.capText.textContent = text;
     this.caption.classList.remove('hidden');
-    this.clearYear();
+    this.clearCaptionSpace();
   }
 
   /** "2030" at the bottom of the frame while we're on the couch with the kids. */
@@ -36,18 +42,21 @@ export class Overlay {
     this.yearEl.classList.toggle('hidden', !on);
     if (!on || wasOn) return;
     this.yearEl.style.bottom = '';
-    this.clearYear();
+    this.clearCaptionSpace();
   }
 
-  /** Lift the year above a tall caption; it never drops back mid-shot, so it doesn't bounce between lines. */
-  private clearYear() {
-    if (this.yearEl.classList.contains('hidden') || this.caption.classList.contains('hidden')) return;
-    const screen = this.yearEl.parentElement!.getBoundingClientRect();
+  /** Lift time/place supers above subtitles, without bouncing down again between lines in the same shot. */
+  private clearCaptionSpace() {
+    if (this.caption.classList.contains('hidden')) return;
+    const screen = this.loc.parentElement!.getBoundingClientRect();
     if (!screen.height) return;
     const gap = screen.height * 0.025;
     const need = (screen.bottom - this.caption.getBoundingClientRect().top + gap) / screen.height * 100;
-    const now = (screen.bottom - this.yearEl.getBoundingClientRect().bottom) / screen.height * 100;
-    if (need > now) this.yearEl.style.bottom = `${need}%`;
+    for (const label of [this.loc, this.yearEl]) {
+      if (label.classList.contains('hidden')) continue;
+      const now = (screen.bottom - label.getBoundingClientRect().bottom) / screen.height * 100;
+      if (need > now) label.style.bottom = `${need}%`;
+    }
   }
 
   hideCaption() {
@@ -126,14 +135,13 @@ export class Overlay {
     this.insertEl.replaceChildren(...(play ? [playbookCard(play)] : []));
   }
 
-  /**
-   * The on-screen card: a scene's ("Meanwhile"), or a cutaway's in the style of its look (a fantasy's soft
-   * serif, a memory's faded tag, a tape's label), or a montage's tag.
-   */
+  /** Time/place supers share the show's lettering across scenes, cutaways and montages. */
   location(text: string, look?: CutawayLook | 'montage') {
     this.loc.className = look ? `cutaway ${look}` : '';
     this.loc.textContent = text;
     this.loc.classList.remove('hidden');
+    this.loc.style.bottom = '';
+    this.clearCaptionSpace();
     // restart the CSS animation
     this.loc.style.animation = 'none';
     void this.loc.offsetWidth;
