@@ -11,7 +11,7 @@ const HAIR: Record<GuestStar['hair'], string> = {
   black: '#141010', dark_brown: '#2e1d14', brown: '#5a3a24', auburn: '#7a3420', red: '#a8482a', blonde: '#d8b46a', gray: '#8e8a86', white: '#e6e2dc',
 };
 
-export const GUEST_PALETTE: Record<string, string> = {
+const GUEST_PALETTE: Record<string, string> = {
   black: '#18181c', charcoal: '#3a3c42', gray: '#7a7d82', white: '#f2f0ea', cream: '#e8dcc4', navy: '#1f2a48', blue: '#3a62b0',
   sky: '#86b4e0', teal: '#2a8088', green: '#3a7a44', olive: '#6a6a34', red: '#b8302e', burgundy: '#6a1e2c', pink: '#e48aa8',
   purple: '#5e3a86', lavender: '#b4a2d8', yellow: '#e8c840', mustard: '#c4962a', orange: '#d8702a', brown: '#5a3a24',
@@ -22,7 +22,7 @@ export const GUEST_PALETTE: Record<string, string> = {
 const CAPTION = { guest1: '#f2c76e', guest2: '#9ee0d0', guest3: '#d2a6ff' } satisfies Record<GuestId, string>;
 
 /** A palette name or #rrggbb; anything else falls back. */
-export function guestColor(c: string | undefined, fallback: string) {
+function guestColor(c: string | undefined, fallback: string) {
   if (!c) return fallback;
   const s = c.trim().toLowerCase().replace(/[\s-]+/g, '_');
   if (GUEST_PALETTE[s]) return GUEST_PALETTE[s];
@@ -36,7 +36,7 @@ function hash(s: string) {
   return ((h >>> 0) % 1000) / 1000;
 }
 
-export function guestLook(g: GuestStar): Look {
+function guestLook(g: GuestStar): Look {
   const female = g.gender === 'female';
   const v = hash(g.name);
   const height = (female ? 1.65 : 1.78) + { short: -0.1, average: 0, tall: 0.1 }[g.height] + (v - 0.5) * 0.04;

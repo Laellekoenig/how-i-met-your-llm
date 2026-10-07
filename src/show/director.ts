@@ -102,18 +102,22 @@ export class Director {
   }
 
   private covers(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }, actors: Actor[]) {
-    return this.allInFrame(shot.pos, shot.target, shot.fov, this.framePoints(actors)) &&
-      actors.every(a => this.clear(shot.pos, a.headWorld, [a]) &&
-        this.clear(shot.pos, a.headWorld.add(new THREE.Vector3(0, -0.25, 0)), [a]));
+    return this.allInFrame(shot.pos, shot.target, shot.fov, this.framePoints(actors)) && actors.every(a => this.sees(shot.pos, a));
   }
 
-  private allInFrame(pos: THREE.Vector3, target: THREE.Vector3, fov: number, pts: THREE.Vector3[]) {
+  /** A copy of the lens set up for a shot, to test what it would see. */
+  private probe(pos: THREE.Vector3, target: THREE.Vector3, fov: number) {
     const cam = this.camera.clone();
     cam.position.copy(pos);
     cam.fov = fov;
     cam.lookAt(target);
     cam.updateProjectionMatrix();
     cam.updateMatrixWorld();
+    return cam;
+  }
+
+  private allInFrame(pos: THREE.Vector3, target: THREE.Vector3, fov: number, pts: THREE.Vector3[]) {
+    const cam = this.probe(pos, target, fov);
     return pts.every((p) => {
       const v = p.clone().project(cam);
       return Math.abs(v.x) < 0.85 && Math.abs(v.y) < 0.85 && v.z > -1 && v.z < 1;
@@ -122,9 +126,7 @@ export class Director {
 
   /** Reverse angles must have scenery behind the subject, not the missing fourth wall. */
   private hasBackdrop(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }) {
-    const cam = this.camera.clone();
-    cam.position.copy(shot.pos); cam.fov = shot.fov; cam.lookAt(shot.target);
-    cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+    const cam = this.probe(shot.pos, shot.target, shot.fov);
     const objects = this.stage.occluders();
     this.ray.near = 0.2; this.ray.far = 60;
     // Check the full picture, including corners and the strips between scenery
@@ -142,6 +144,12 @@ export class Director {
   /** In a car the camera rides along inside the cabin. */
   private inside(pos: THREE.Vector3) {
     return this.stage.current.cameraBounds?.containsPoint(pos) ?? true;
+  }
+
+  /** Nothing in the way of someone's face from here: their head, and down to their chin. */
+  private sees(from: THREE.Vector3, a: Actor) {
+    const head = a.headWorld;
+    return this.clear(from, head, [a]) && this.clear(from, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [a]);
   }
 
   private clear(from: THREE.Vector3, to: THREE.Vector3, ignore: Actor[]) {
@@ -284,7 +292,7 @@ export class Director {
     pos.y = hl.y + 0.05;
     const target = hs.clone().add(new THREE.Vector3(0, -0.08, 0));
     // Validate reverse angles against the current walls and furniture too.
-    if (!this.inside(pos) || !this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.clear(pos, hs, [S]) || !this.clear(pos, hs.clone().add(new THREE.Vector3(0, -0.25, 0)), [S]) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
+    if (!this.inside(pos) || !this.allInFrame(pos, target, 36, this.framePoints([S])) || !this.sees(pos, S) || !this.hasBackdrop({ pos, target, fov: 36 })) return this.closeup(speaker, listener);
     this.cut({ kind: 'ots', pos, target, fov: 36, follow: S, followOffset: new THREE.Vector3(0, -0.08, 0), push: 0, subject: speaker, subjects: [speaker] });
   }
 
@@ -410,7 +418,7 @@ export class Director {
         const displacement = root.clone().sub(s.followRoot);
         if (displacement.lengthSq() > 0.000001) {
           const moved = s.pos.clone().add(displacement);
-          if (!this.inside(moved) || !this.clear(moved, head, [s.follow]) || !this.clear(moved, head.clone().add(new THREE.Vector3(0, -0.25, 0)), [s.follow])) {
+          if (!this.inside(moved) || !this.sees(moved, s.follow)) {
             this.closeup(s.subject!);
             return;
           }

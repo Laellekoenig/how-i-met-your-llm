@@ -2,9 +2,10 @@ export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
-export const randInt = (a: number, b: number) => Math.floor(rand(a, b + 1));
 export const pick = <T>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)];
-export const chance = (p: number) => Math.random() < p;
+
+/** The viewer has asked for less motion (never outside a browser). */
+export const prefersReducedMotion = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Frame-rate independent exponential smoothing factor. */
 export const damp = (lambda: number, dt: number) => 1 - Math.exp(-lambda * dt);
@@ -43,5 +44,3 @@ export function noise1(x: number) {
   const u = f * f * (3 - 2 * f);
   return lerp(h(i), h(i + 1), u);
 }
-
-export const uid = () => Math.random().toString(36).slice(2, 10);

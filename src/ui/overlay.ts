@@ -1,9 +1,8 @@
-import type { CutawayLook, Delivery, EpisodeMeta, InsertBeat } from '../script/types';
+import { playbookTitle, type CutawayLook, type Delivery, type EpisodeMeta, type InsertBeat } from '../script/types';
 import type { PhotoMotion } from '../show/mainTitles';
 import type { CreditCard } from '../show/credits';
 import { episodeLabel } from './guide';
-
-const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+import { $, el } from './dom';
 
 /** On-screen graphics: captions, title cards, cutaway cards, standby. */
 export class Overlay {
@@ -184,20 +183,13 @@ export class Panel {
   }
 }
 
-const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
-  return e;
-};
-
 /** A cream, stepped-border title card, like the plays introduced in the original show. */
 function playbookCard(c: InsertBeat): HTMLElement {
   const page = el('div', 'playbook-page');
   const frame = svgEl('svg', { viewBox: '0 0 700 500', preserveAspectRatio: 'none', class: 'playbook-frame', 'aria-hidden': 'true' });
   svgEl('path', { d: 'M45 4 H655 V36 H696 V464 H655 V496 H45 V464 H4 V36 H45 Z', class: 'outer' }, undefined, frame);
   svgEl('path', { d: 'M60 19 H640 V51 H681 V449 H640 V481 H60 V449 H19 V51 H60 Z', class: 'inner' }, undefined, frame);
-  const title = c.title?.trim() || c.lines?.[0]?.trim() || 'The Playbook';
+  const title = playbookTitle(c);
   const heading = el('h2', 'playbook-title');
   const prefix = title.match(/^The\s+/i);
   if (prefix) heading.append(el('span', 'playbook-prefix', prefix[0]));

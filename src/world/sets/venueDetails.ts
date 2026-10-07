@@ -75,7 +75,13 @@ export function mapleFlag(g: THREE.Group, x: number, y: number, z: number, scale
   const f = new THREE.Group(); f.position.set(x, y, z); f.scale.setScalar(scale);
   f.add(mesh(box(1.5, 0.85, 0.025), toon('#e8dcc8')));
   for (const sx of [-0.57, 0.57]) f.add(mesh(box(0.36, 0.85, 0.035), toon('#b43b3e'), sx));
+  const leaf = [
+    [0, 0.33], [0.09, 0.15], [0.18, 0.2], [0.15, 0.03], [0.29, 0.08], [0.23, -0.05], [0.29, -0.1], [0.04, -0.2], [0.025, -0.31],
+    [-0.025, -0.31], [-0.04, -0.2], [-0.29, -0.1], [-0.23, -0.05], [-0.29, 0.08], [-0.15, 0.03], [-0.18, 0.2], [-0.09, 0.15],
+  ];
   const shape = new THREE.Shape();
-  [[0,.33],[.09,.15],[.18,.2],[.15,.03],[.29,.08],[.23,-.05],[.29,-.1],[.04,-.2],[.025,-.31],[-.025,-.31],[-.04,-.2],[-.29,-.1],[-.23,-.05],[-.29,.08],[-.15,.03],[-.18,.2],[-.09,.15]].forEach(([a,b], i) => i ? shape.lineTo(a,b) : shape.moveTo(a,b));
-  shape.closePath(); f.add(mesh(new THREE.ShapeGeometry(shape), toon('#b43b3e'), 0, 0, .025)); g.add(f);
+  leaf.forEach(([x, y], i) => (i ? shape.lineTo(x, y) : shape.moveTo(x, y)));
+  shape.closePath();
+  f.add(mesh(new THREE.ShapeGeometry(shape), toon('#b43b3e'), 0, 0, 0.025));
+  g.add(f);
 }

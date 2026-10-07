@@ -13,7 +13,7 @@ export interface StyleSettings {
   warmth: number;
 }
 
-export const DEFAULT_STYLE: StyleSettings = {
+const DEFAULT_STYLE: StyleSettings = {
   enabled: true,
   pixelHeight: 270,
   outline: 0.85,

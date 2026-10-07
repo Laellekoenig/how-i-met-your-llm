@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import * as THREE from 'three';
 import './helpers/sets';
-import { Actor, gestureDuration } from '../src/world/actor';
+import { Actor } from '../src/world/actor';
+import { gestureDuration } from '../src/world/gestures';
 import { CHARACTERS } from '../src/world/characters';
 import { CHARACTER_IDS, GESTURES, PROPS, type Prop } from '../src/script/types';
 import { GRIP } from '../src/world/props';

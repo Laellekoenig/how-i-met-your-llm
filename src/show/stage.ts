@@ -2,33 +2,10 @@ import * as THREE from 'three';
 import { Actor } from '../world/actor';
 import { CHARACTERS, dressed, outfitAt, setGuests, type CharacterDef } from '../world/characters';
 import type { StageSet, Mark } from '../world/sets/common';
-import { buildMaclarens } from '../world/sets/maclarens';
-import { buildApartment } from '../world/sets/apartment';
-import { buildBarneys } from '../world/sets/barneys';
-import { buildFuture, KID_MARKS } from '../world/sets/future';
-import { buildRooftop } from '../world/sets/rooftop';
-import { buildBarneysOffice } from '../world/sets/barneysOffice';
-import { buildOffice } from '../world/sets/office';
-import { buildLimo } from '../world/sets/limo';
-import { buildTaxi } from '../world/sets/taxi';
-import { buildCar } from '../world/sets/car';
-import { buildMetroNewsOne } from '../world/sets/metroNewsOne';
-import { buildStore } from '../world/sets/store';
-import { buildRestaurant } from '../world/sets/restaurant';
-import { buildLectureHall } from '../world/sets/lectureHall';
-import { buildSubway } from '../world/sets/subway';
-import { buildLaserTag } from '../world/sets/laserTag';
-import { buildWesleyanDorm } from '../world/sets/wesleyanDorm';
-import { buildHospital } from '../world/sets/hospital';
-import { buildElevator } from '../world/sets/elevator';
-import { buildCanadianMall } from '../world/sets/canadianMall';
-import { buildMaclarensSidewalk } from '../world/sets/maclarensSidewalk';
-import { buildHoserHut } from '../world/sets/hoserHut';
-import { buildCourtroom } from '../world/sets/courtroom';
-import { buildAtlanticCityCasino } from '../world/sets/atlanticCityCasino';
-import { buildLustyLeopard } from '../world/sets/lustyLeopard';
+import { buildSets } from '../world/sets';
+import { KID_MARKS } from '../world/sets/future';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
-import { CHARACTER_IDS, KIDS, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
+import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
 import { joinRoute, routeNodes } from './navigation';
 
@@ -79,15 +56,7 @@ export class Stage {
   private strobeDt = 0;
 
   constructor(private scene: THREE.Scene) {
-    this.sets = {
-      maclarens: buildMaclarens(), apartment: buildApartment(), barneys: buildBarneys(), rooftop: buildRooftop(),
-      barneys_office: buildBarneysOffice(), office: buildOffice(), car: buildCar(), limo: buildLimo(), taxi: buildTaxi(), future: buildFuture(),
-      metro_news_one: buildMetroNewsOne(), store: buildStore(), restaurant: buildRestaurant(), lecture_hall: buildLectureHall(),
-      subway: buildSubway(), laser_tag: buildLaserTag(), wesleyan_dorm: buildWesleyanDorm(),
-      hospital: buildHospital(), elevator: buildElevator(), canadian_mall: buildCanadianMall(),
-      maclarens_sidewalk: buildMaclarensSidewalk(), hoser_hut: buildHoserHut(), courtroom: buildCourtroom(),
-      atlantic_city_casino: buildAtlanticCityCasino(), lusty_leopard: buildLustyLeopard(),
-    };
+    this.sets = buildSets();
     for (const s of Object.values(this.sets)) {
       s.group.visible = false;
       scene.add(s.group);
@@ -177,9 +146,7 @@ export class Stage {
   /** Rebuild the guest-star slots this episode recasts. Call between scenes, never mid-scene. */
   castGuests(guests: GuestStar[] = []) {
     for (const id of setGuests(guests)) {
-      const old = this.actors[id];
-      this.scene.remove(old.root);
-      old.root.traverse((o) => { if (o instanceof THREE.Mesh) o.geometry.dispose(); });
+      this.discard(this.actors[id]);
       const a = new Actor(CHARACTERS[id]);
       a.root.visible = false;
       this.scene.add(a.root);
@@ -299,10 +266,15 @@ export class Stage {
       const [id, clothes] = k.split('|') as [CharacterId, string];
       const costume = this.costumes.get(id);
       if (!clothes.includes(':') || (costume && clothes.endsWith(`:${costumeKey(costume)}`))) continue;
-      this.scene.remove(a.root);
-      a.root.traverse((o) => { if (o instanceof THREE.Mesh) o.geometry.dispose(); });
+      this.discard(a);
       this.wardrobe.delete(k);
     }
+  }
+
+  /** Take an actor out of the scene for good, freeing its geometry. */
+  private discard(a: Actor) {
+    this.scene.remove(a.root);
+    a.root.traverse((o) => { if (o instanceof THREE.Mesh) o.geometry.dispose(); });
   }
 
   outfitOf(id: CharacterId): Outfit {
@@ -413,16 +385,21 @@ export class Stage {
     const m = this.current.marks[name];
     const a = this.actors[id];
     const pos = this.markPosition(m, name, id);
-    pos.y = this.current.floorAt?.(pos.x, pos.z) ?? 0;
+    pos.y = this.floorY(pos.x, pos.z);
     a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop });
     a.root.visible = true;
     this.occupy(id, name);
   }
 
+  /** The current set's floor height here (raised in a few sets: a stage, the judge's bench). */
+  private floorY(x: number, z: number) {
+    return this.current.floorAt?.(x, z) ?? 0;
+  }
+
   /** Stand someone anywhere on the floor, off the marks (the main titles' huddle). */
   stand(id: CharacterId, x: number, z: number, facing: number) {
     const a = this.actors[id];
-    a.place(new THREE.Vector3(x, this.current.floorAt?.(x, z) ?? 0, z), facing, null);
+    a.place(new THREE.Vector3(x, this.floorY(x, z), z), facing, null);
     a.root.visible = true;
   }
 
@@ -489,7 +466,7 @@ export class Stage {
     let seat: number | null = null;
     let approach: THREE.Vector3 | undefined;
     let node: string;
-    const other = (CHARACTER_IDS as readonly string[]).includes(target) ? (target as CharacterId) : null;
+    const other = isCharacterId(target) ? target : null;
     // in a car you can't go stand next to someone: slide over to the free seat nearest them
     if (other && this.current.seated) target = this.seatNear(other, id) ?? (prevMarkName || target);
     if (other && other !== id && this.onStage(other) && !this.current.seated) {
@@ -600,7 +577,7 @@ export class Stage {
     const doorName = this.entrance(name), door = this.current.marks[doorName];
     const a = this.actors[id];
     const pos = door.pos.clone();
-    pos.y = this.current.floorAt?.(pos.x, pos.z) ?? 0;
+    pos.y = this.floorY(pos.x, pos.z);
     a.place(pos, door.facing, this.current.seated ? door.seat : null);
     a.root.visible = true;
     this.occupy(id, doorName);

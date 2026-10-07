@@ -1,3 +1,5 @@
+import { el } from './dom';
+
 /**
  * The TV guide the show starts on: one channel per season, its episodes airing back to back in half-hour slots
  * from the current half hour. Picking a programme airs it; Escape brings the guide back.
@@ -17,13 +19,6 @@ export function episodeLabel(code: string) {
   return s && e ? `season ${Number(s)}, episode ${Number(e)}` : code;
 }
 const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
-  return e;
-};
 
 export class Guide {
   private grid = el('div', 'guide-grid');

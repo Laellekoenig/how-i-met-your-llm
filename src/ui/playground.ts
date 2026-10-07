@@ -10,10 +10,12 @@ import { episodeItems } from '../script/episodes';
 import { resolveStrands } from '../script/strands';
 import { validateEpisode, type Issue } from '../script/validate';
 import { sleep } from '../util';
+import { GANG } from '../show/mainTitles';
+import { $ } from './dom';
 import {
   CHARACTER_IDS, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS,
   GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, LOCATION_IDS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OFFSCREEN,
-  OUTFITS, PAIRED_GESTURES, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isKid,
+  OUTFITS, PAIRED_GESTURES, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isCharacterId, isKid,
   type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GuestStar, type LocationId,
   type Scene, type SceneLocationId, type ShowItem, type SoundCue, type TimeOfDay, type Transition,
 } from '../script/types';
@@ -68,7 +70,6 @@ interface Bench {
 }
 
 const KEY = 'himyllm.playground';
-const GANG: CharacterId[] = ['ted', 'marshall', 'lily', 'robin', 'barney'];
 
 const fresh = (): Bench => ({
   location: 'maclarens', time: 'night',
@@ -212,7 +213,7 @@ function form(fields: Field[], value: Record<string, unknown>, changed: () => vo
 
 /** Characters show their names in pickers. */
 function labelFor(key: string, v: string) {
-  return ['character', 'to', 'chorus', 'from'].includes(key) && (CHARACTER_IDS as readonly string[]).includes(v) ? `${v} · ${charName(v)}` : v;
+  return ['character', 'to', 'chorus', 'from'].includes(key) && isCharacterId(v) ? `${v} · ${charName(v)}` : v;
 }
 
 const GUEST_FIELDS: Field[] = [
@@ -315,9 +316,9 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     player.stageNow(scene([]));
     save();
     say(`staged ${stage.current.name} · ${st.time}`);
-    document.getElementById('now-code')!.textContent = 'playground';
-    document.getElementById('now-title')!.textContent = stage.current.name;
-    document.getElementById('now-meta')!.textContent = `${st.location} · ${st.time} · ${st.cast.length} cast`;
+    $('now-code').textContent = 'playground';
+    $('now-title').textContent = stage.current.name;
+    $('now-meta').textContent = `${st.location} · ${st.time} · ${st.cast.length} cast`;
     refreshCamera();
   }
   async function performHere(beats: Beat[], context: Beat[] = []) {
@@ -351,7 +352,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     button('clear overlays', () => player.reset(), 'Take down captions, inserts, looks and music'),
   );
   root.append(h('header', { class: 'pg-head' }, h('b', { textContent: 'PLAYGROUND' }), transport), status, tabs, body);
-  document.getElementById('panel')!.insertBefore(root, document.getElementById('transcript'));
+  $('panel').insertBefore(root, $('transcript'));
 
   function render() {
     tabs.replaceChildren(...TABS.map(([id, name]) => button(name, () => { st.tab = id; save(); render(); }, '', st.tab === id ? 'on' : '')));
@@ -546,7 +547,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     cam.updateProjectionMatrix();
     cam.lookAt(free.target);
   }
-  const screen = document.getElementById('screen')!;
+  const screen = $('screen');
   let drag: { x: number; y: number; pan: boolean } | null = null;
   screen.addEventListener('contextmenu', (e) => free.on && e.preventDefault());
   screen.addEventListener('pointerdown', (e) => {

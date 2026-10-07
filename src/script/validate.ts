@@ -1,7 +1,7 @@
 import {
   CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS,
   GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LEGACY_INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OFFSCREEN, OUTFITS, PROPS, SCENE_LOCATION_IDS,
-  SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isGuest, isKid,
+  SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isCharacterId, isGuest, isKid,
 } from './types';
 import { replayBeats } from './strands';
 import type { Beat } from './types';
@@ -99,6 +99,21 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     return typeof v === 'string' && values.includes(v) ? v : undefined;
   };
 
+  /** A guest-star color name or #rrggbb, if it's there at all. */
+  const color = (o: Obj, k: string, path: string) => {
+    const v = o[k];
+    if (v !== undefined && !(typeof v === 'string' && ((GUEST_COLORS as readonly string[]).includes(v) || /^#[0-9a-f]{6}$/.test(v)))) {
+      err(path, `"${k}": ${JSON.stringify(v)} must be #rrggbb or one of: ${list(GUEST_COLORS)}`);
+    }
+  };
+  const extras = (values: unknown[], path: string) => {
+    for (const x of values) if (!(GUEST_EXTRAS as readonly string[]).includes(x as string)) err(path, `extra ${JSON.stringify(x)} is not one of: ${list(GUEST_EXTRAS)}`);
+  };
+  /** An on-screen card: a scene's, a cutaway's or a split screen's. */
+  const card = (o: Obj, path: string) => {
+    if (o.label !== undefined && (typeof o.label !== 'string' || !o.label.trim() || o.label.length > 60)) err(path, '"label" is a short on-screen card (60 characters max)');
+  };
+
   keys(ep, '', ['code', 'title', 'logline', 'coldOpen', 'couch', 'guests', 'wardrobe', 'continuity', 'scenes']);
   const code = text(ep, 'code', 'code');
   if (code && !/^S\d{2}E\d{2}$/.test(code)) err('code', `"${code}" should look like "S11E03"`);
@@ -129,14 +144,11 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         oneOf(g, 'hairStyle', GUEST_HAIR_STYLES, path, true);
         oneOf(g, 'topStyle', GUEST_TOPS, path, true);
         for (const k of ['top', 'pants', 'under', 'tie', 'vest']) {
-          const v = g[k];
-          if (v === undefined && (k === 'top' || k === 'pants')) err(path, `"${k}" color is required`);
-          else if (v !== undefined && !(typeof v === 'string' && ((GUEST_COLORS as readonly string[]).includes(v) || /^#[0-9a-f]{6}$/.test(v)))) {
-            err(path, `"${k}": ${JSON.stringify(v)} must be #rrggbb or one of: ${list(GUEST_COLORS)}`);
-          }
+          if (g[k] === undefined && (k === 'top' || k === 'pants')) err(path, `"${k}" color is required`);
+          else color(g, k, path);
         }
         if (!Array.isArray(g.extras)) err(path, '"extras" must be an array (can be empty)');
-        else for (const x of g.extras) if (!(GUEST_EXTRAS as readonly string[]).includes(x)) err(path, `extra ${JSON.stringify(x)} is not one of: ${list(GUEST_EXTRAS)}`);
+        else extras(g.extras, path);
         if (!isObj(g.voice)) err(path, '"voice" must be { "pitch": low|medium|high, "pace": slow|normal|fast }');
         else {
           keys(g.voice, `${path}.voice`, ['pitch', 'pace']);
@@ -146,13 +158,6 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       });
     }
   }
-
-  const color = (o: Obj, k: string, path: string) => {
-    const v = o[k];
-    if (v !== undefined && !(typeof v === 'string' && ((GUEST_COLORS as readonly string[]).includes(v) || /^#[0-9a-f]{6}$/.test(v)))) {
-      err(path, `"${k}": ${JSON.stringify(v)} must be #rrggbb or one of: ${list(GUEST_COLORS)}`);
-    }
-  };
 
   /** Costumes for the regular cast: only what's mentioned changes. `keep` only means something on a scene's. */
   const wardrobe = (raw: unknown, path: string, keeps = false) => {
@@ -164,7 +169,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       if (!isObj(c)) return err(p, 'a costume is { "character", ...what changes }');
       keys(c, p, COSTUME_KEYS);
       const who = c.character;
-      if (typeof who !== 'string' || !(CHARACTER_IDS as readonly string[]).includes(who) || isGuest(who) || isKid(who)) {
+      if (!isCharacterId(who) || isGuest(who) || isKid(who)) {
         err(p, `costumes are for the regular cast, not ${JSON.stringify(who)} (guest stars are described in "guests"; the kids don't change)`);
       }
       if (seen.has(who)) err(p, `${String(who)} has two costumes here: merge them`);
@@ -177,7 +182,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       else if (c.keep && !keeps) err(p, '"keep" is for a scene\'s costume that stays on for the rest of the episode');
       if (c.extras !== undefined) {
         if (!Array.isArray(c.extras)) err(p, '"extras" must be an array');
-        else for (const x of c.extras) if (!(GUEST_EXTRAS as readonly string[]).includes(x)) err(p, `extra ${JSON.stringify(x)} is not one of: ${list(GUEST_EXTRAS)}`);
+        else extras(c.extras, p);
       }
       // (a kept costume with nothing in it takes the kept one off)
       if (Object.keys(c).filter((k) => k !== 'keep').length < 2 && !c.keep) warn(p, 'a costume that changes nothing');
@@ -187,7 +192,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   continuity(ep.continuity, err, warn);
 
   const character = (v: unknown, path: string, what = 'character') => {
-    if (typeof v !== 'string' || !(CHARACTER_IDS as readonly string[]).includes(v)) {
+    if (!isCharacterId(v)) {
       err(path, `${what} ${JSON.stringify(v)} is not a character id (${list(CHARACTER_IDS.filter((c) => !isGuest(c)))}, or a cast guest slot)`);
       return undefined;
     }
@@ -288,7 +293,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       st.at.set(who, to);
       return;
     }
-    if ((CHARACTER_IDS as readonly string[]).includes(to)) {
+    if (isCharacterId(to)) {
       if (!st.at.has(to)) err(path, `${to} isn't on stage to walk over to`);
       st.at.set(who, null);
       return;
@@ -298,7 +303,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
 
   /** A card, a look, an edit and a sound: each optional, each chosen on its own. */
   const presentation = (b: Obj, p: string) => {
-    if (b.label !== undefined && (typeof b.label !== 'string' || !b.label.trim() || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
+    card(b, p);
     oneOf(b, 'look', CUTAWAY_LOOKS, p);
     oneOf(b, 'transition', CUTAWAY_TRANSITIONS, p);
     oneOf(b, 'sound', SOUND_CUES, p);
@@ -564,7 +569,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
 
   /** Two or three sets at once. Everyone in it stays put; lines can go back and forth between the panels. */
   const split = (b: Obj, p: string, depth: number, budget: { left: number }) => {
-    if (b.label !== undefined && (typeof b.label !== 'string' || !b.label.trim() || b.label.length > 60)) err(p, '"label" is a short on-screen card (60 characters max)');
+    card(b, p);
     oneOf(b, 'sound', SOUND_CUES, p);
     if (!Array.isArray(b.panels) || b.panels.length < 2 || b.panels.length > 3) return err(p, '"panels" is 2-3 { "location", "time", "cast" }');
     const set = { name: 'split screen', marks: {}, door: '' } as unknown as Sets[string];
@@ -679,7 +684,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       wardrobe(s.wardrobe, `${path}.wardrobe`, true);
       named(s.id, path);
       oneOf(s, 'transition', TRANSITIONS, path);
-      if (s.label !== undefined && (typeof s.label !== 'string' || !s.label.trim() || s.label.length > 60)) err(path, '"label" is a short on-screen card (60 characters max)');
+      card(s, path);
       oneOf(s, 'sound', [...SOUND_CUES, 'none'], path);
       if (s.summary !== undefined && typeof s.summary !== 'string') err(path, '"summary" is a string');
       let st: Stage | null = null;
@@ -745,7 +750,7 @@ function continuity(raw: unknown, err: (path: string, message: string) => void, 
   if (raw.facts !== undefined && !isObj(raw.facts)) err(`${p}.facts`, 'facts are { "robin.job": "Metro News One anchor", ... }');
   for (const [k, v] of Object.entries(facts)) {
     const who = k.split('.')[0];
-    if (!/^[a-z0-9_]+\.[a-z0-9_.]+$/.test(k) || !(CHARACTER_IDS as readonly string[]).includes(who) || isGuest(who)) {
+    if (!/^[a-z0-9_]+\.[a-z0-9_.]+$/.test(k) || !isCharacterId(who) || isGuest(who)) {
       err(`${p}.facts`, `"${k}": a fact is "<character>.<thing>", like "ted.job" (regular characters only)`);
     }
     if (typeof v !== 'string' || !v.trim() || v.length > 80) err(`${p}.facts`, `"${k}" is a short string (80 characters max)`);
