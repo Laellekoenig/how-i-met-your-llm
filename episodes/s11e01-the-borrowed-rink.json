@@ -51,7 +51,6 @@
         { "character": "guest2", "mark": "patron_left" }
       ],
       "beats": [
-        { "type": "score", "music": "playful" },
         { "type": "hold", "character": "robin", "prop": "beer" },
         { "type": "say", "character": "marshall", "to": "guest1", "line": "Just a couple of hosers looking for a brewski, eh? Eh?", "emotion": "excited", "gesture": "thumbs_up", "react": [{ "character": "robin", "gesture": "facepalm" }] },
         { "type": "say", "character": "guest1", "to": "marshall", "line": "Sorry. There's only one of you. Purpose of your visit?", "delivery": "deadpan", "laugh": "chuckle" },
@@ -82,7 +81,6 @@
       ],
       "beats": [
         { "type": "narrate", "line": "Two days earlier, Marshall had said something about his home state that he couldn't take back." },
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "marshall", "to": "robin", "line": "All I'm saying is, Minnesota is basically Canada.", "emotion": "proud" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "No.", "delivery": "deadpan" },
         { "type": "say", "character": "marshall", "to": "robin", "line": "We have hockey. We have moose. We apologize to people who bump into us." },
@@ -218,7 +216,6 @@
         { "type": "say", "character": "robin", "to": "marshall", "line": "Norwegian. And a cry for help.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "robin", "line": "I've got nothing, Robin. Everything I miss is in St. Cloud.", "emotion": "sad" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "Then borrow one." },
-        { "type": "score", "music": "melancholy" },
         { "type": "hold", "character": "robin", "prop": "none" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "My dad used to flood our backyard every December." },
         { "type": "say", "character": "robin", "to": "marshall", "line": "Garden hose, five in the morning, in the dark. By the time I got up, there was a rink." },
@@ -239,7 +236,6 @@
         { "character": "barney", "topStyle": "flannel", "top": "green", "pants": "denim", "extras": ["cap"] }
       ],
       "beats": [
-        { "type": "score", "music": "playful" },
         { "type": "enter", "character": "barney", "to": "bar_stool" },
         { "type": "say", "character": "barney", "to": "guest1", "line": "Gord Gordson. Moose Jaw, Saskatchewan. I miss the moose. I miss the jaw.", "emotion": "sad", "laugh": "chuckle" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Sorry. I'm from Moose Jaw." },
@@ -259,7 +255,6 @@
       "summary": "Third try. Marshall delivers Robin's rink memory perfectly. Denise, thirty years at the border, spots a borrowed story and asks Robin whose it is. Marshall hands Robin the microphone instead of taking the win; she finally answers Denise's question, in song. Ted knows the words.",
       "wardrobe": [{ "character": "marshall", "topStyle": "sweater", "top": "red", "under": "white" }],
       "beats": [
-        { "type": "score", "music": "none" },
         { "type": "move", "character": "marshall", "to": "bar_stool" },
         { "type": "say", "character": "guest1", "to": "marshall", "line": "Last try, hon. Sorry in advance. What do you miss?" },
         { "type": "say", "character": "marshall", "to": "guest1", "line": "My dad used to flood our backyard every December." },
@@ -314,7 +309,6 @@
         { "character": "ted", "mark": "stoop_friend" }
       ],
       "beats": [
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "As commissioner, I rule that Marshall did not get served." },
         { "type": "say", "character": "lily", "to": "marshall", "line": "So say it. Say Iowa. I have waited since college to hear you say Iowa.", "emotion": "excited", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Minnesota is basically—", "interrupted": true, "emotion": "sad" },

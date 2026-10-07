@@ -121,6 +121,7 @@ export class Player {
   private hushed = false;
   /** Future Ted still talking under the action (a narrate beat with `over`). */
   private voiceOver: Promise<void> | null = null;
+  private speechStops = new Set<() => void>();
   /** The look of the cutaway we're in (null in the scene itself). */
   private look: CutawayLook | null = null;
   /** During a split screen: which panel each person is in. */
@@ -138,7 +139,7 @@ export class Player {
 
   skip(level: 'scene' | 'episode') {
     this.skipLevel = level;
-    speech.cancel();
+    this.stopSpeech();
     this.skipWaiters.splice(0).forEach((f) => f());
   }
 
@@ -292,6 +293,9 @@ export class Player {
 
   /** The cold open cuts to six still photographs: the name early, creators on the last group portrait. */
   private async mainTitles() {
+    // A story cold open can leave a score running. Titles are a fresh musical boundary.
+    this.score = null;
+    audio.stopBed(0.05);
     const st = this.stage, r = this.renderer;
     const reducedMotion = prefersReducedMotion();
     this.overlay.hideCaption();
@@ -417,7 +421,7 @@ export class Player {
   }
 
   private cleanup() {
-    speech.cancel();
+    this.stopSpeech();
     this.overlay.hideCaption();
     this.overlay.hideCards();
     this.overlay.insert(null);
@@ -477,6 +481,34 @@ export class Player {
   /** Anyone about to speak waits for a voice-over to finish. */
   private async quiet() {
     if (this.voiceOver) await this.race(this.voiceOver);
+  }
+
+  /** All spoken routes share the same music mix, including narration over action and offscreen voices. */
+  private speak(...[text, profile, onStart, options]: Parameters<typeof speech.speak>) {
+    let active = true;
+    let release: (() => void) | undefined;
+    const finish = () => {
+      active = false;
+      release?.();
+      this.speechStops.delete(finish);
+    };
+    this.speechStops.add(finish);
+    try {
+      const handle = speech.speak(text, profile, () => {
+        if (!active) return; // delayed browser callbacks must not revive a skipped line
+        release ??= audio.duckMusic();
+        onStart?.();
+      }, options);
+      return { done: handle.done.finally(finish) };
+    } catch (error) {
+      finish();
+      throw error;
+    }
+  }
+
+  private stopSpeech() {
+    for (const finish of this.speechStops) finish();
+    speech.cancel();
   }
 
   private setScore(music: Score) {
@@ -1045,7 +1077,7 @@ export class Player {
     this.panel.line('narr', text, 'Future Ted');
     // the kids look back at their dad
     for (const id of KIDS) if (this.stage.onStage(id)) this.stage.actors[id].lookAt = null;
-    const h = speech.speak(text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
+    const h = this.speak(text, FUTURE_TED_VOICE, () => this.overlay.showCaption('Future Ted', '', text, true));
     if (over) {
       const done: Promise<void> = this.race(h.done).then(() => {
         if (this.voiceOver === done) {
@@ -1202,7 +1234,7 @@ export class Player {
     const track = lipTrack(text.replace(/[-–—]+$/, ''), seconds * (b.interrupted ? 0.88 : 1));
     const listeners = st.onStageIds().filter((id) => !voices.includes(st.actors[id]));
     for (const id of listeners) st.actors[id].listen(a.emotion);
-    const h = speech.speak(text, def.voice, () => {
+    const h = this.speak(text, def.voice, () => {
       for (const v of voices) {
         v.talking = true;
         v.talkLevel = level;
@@ -1351,7 +1383,7 @@ export class Player {
     this.panel.line('say', text, name, def.color);
     const listeners = st.onStageIds();
     for (const id of listeners) st.actors[id].listen(b.emotion ?? 'neutral');
-    const h = speech.speak(text, def.voice, () => this.overlay.showCaption(name, def.color, text, false, b.delivery), { delivery: b.delivery, cutOff: b.interrupted });
+    const h = this.speak(text, def.voice, () => this.overlay.showCaption(name, def.color, text, false, b.delivery), { delivery: b.delivery, cutOff: b.interrupted });
     try {
       await this.race(h.done);
     } finally {

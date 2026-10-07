@@ -16,6 +16,7 @@ import { ledger } from '../src/script/continuity';
 import { charName } from '../src/world/characters';
 import type { Beat, EpisodeScript, Scene } from '../src/script/types';
 import { formatEpisode } from './format';
+import { musicCoverage, musicSummary } from '../src/script/music';
 
 const DIR = join(import.meta.dir, '..', 'episodes');
 const [command = 'help', ...args] = process.argv.slice(2);
@@ -54,6 +55,7 @@ async function check(files: string[]) {
     }
     print(file, 'error:', report.errors);
     print(file, 'warning:', report.warnings);
+    if (!report.errors.length) console.log(`${basename(file)}: music: ${musicSummary(musicCoverage(episode as EpisodeScript))}`);
     errors += report.errors.length;
     warnings += report.warnings.length;
   }
@@ -181,6 +183,12 @@ function read(ep: EpisodeScript) {
     if (!couchOpening && i === 0) out.push('', '[MAIN TITLES]');
   });
   out.push('', `TOTAL: ${ep.scenes.length} scenes, ${lines} lines, ${laughs} laughs (${(laughs / Math.max(1, lines)).toFixed(2)} per line)`);
+  // Do not expand malformed replays or beats when reading an unfinished draft.
+  if (!validateEpisode(ep, sets()).errors.length) {
+    const music = musicCoverage(ep);
+    out.push('', `MUSIC: ${musicSummary(music)}`, 'Static line coverage; excludes titles/credits, counts over-narration at entry.');
+    for (const span of music.spans) out.push(`  ${span.kind} ${span.music}: ${span.from} → ${span.to}; ${span.spoken} spoken beats${span.scenes.length ? `; scenes ${span.scenes.join(', ')}` : ''}`);
+  }
   return out.join('\n');
 }
 

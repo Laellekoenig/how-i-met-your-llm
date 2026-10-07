@@ -4,7 +4,8 @@ import {
   SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isCharacterId, isGuest, isKid,
 } from './types';
 import { replayBeats } from './strands';
-import type { Beat } from './types';
+import type { Beat, EpisodeScript } from './types';
+import { musicCoverage, musicSummary } from './music';
 import type { StageSet } from '../world/sets/common';
 
 // Episode files are written by hand (or by an agent) and must be performable exactly as written:
@@ -734,6 +735,14 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   if (count.inserts > 3) warn('', `${count.inserts} inserts: two or three per episode`);
   if (count.freezes > 1) warn('', `${count.freezes} freeze frames: one per episode at most`);
   if (count.beats > LONG_EPISODE_BEATS) warn('', `${count.beats} beats: that runs long (most episodes come in under ${LONG_EPISODE_BEATS})`);
+
+  if (!errors.length) {
+    const music = musicCoverage(ep as unknown as EpisodeScript);
+    // A review prompt for substantial coverage, never a cue quota or a validity requirement.
+    if (music.spoken >= 20 && music.withMusic > music.spoken / 2) {
+      warn('', `music: ${musicSummary(music)}; most dialogue should be unscored. Review cue exits and scene carryover (episodes read lists the spans).`);
+    }
+  }
 
   return { errors, warnings };
 }

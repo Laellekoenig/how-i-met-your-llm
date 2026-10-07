@@ -144,14 +144,17 @@ Give it a location and time, its own cast and marks (marks must exist at the cut
 "over": true on a narrate beat keeps Future Ted talking while the next beats play: people move, gesture, pick things up, a cutaway or a new scene starts under his sentence. The next line of dialogue (or narration) waits for him to finish. An "over" narration can't carry a laugh: put a laugh beat after.
 
 # Sound and music
-Nothing makes a sound unless the script asks for it, apart from rewind transitions and things that make their own noise (doors, slaps, a text arriving).
+Read docs/music-reference.md for researched examples and cue planning. Most scenes and ordinary dialogue should be unscored: use room tone, timing and performance. Zero authored music is valid. Reserve music for a specific emotional turn, a time-compressing montage, a heightened fantasy/parody, or a performance where music is the action or joke. A scheme, confession, narration or ending does not automatically need a bed. Plan both the entry and exit; avoid scene-long mood coverage and routine tender endings.
+The player supplies room ambience, main-title/closing-credit music, rewind cues and built-in action sounds (doors, slaps, a text arriving). Additional sound and music are script choices.
+Main titles clear any cold-open score before the theme. Music automatically ducks under speech, including narration and offscreen lines; this improves intelligibility, not the case for adding a cue. episodes check reports spoken-beat music coverage; episodes read lists cue entries/exits and scene spans. These are static line counts, not runtime percentages.
 - sound: { "type": "sound", "sound": ${SOUND_CUES.map((c) => `"${c}"`).join(' | ')} } at the exact moment it should land: a shatter for a realization, a record scratch when everything stops, a harp into a daydream, a knock at the door. Freeze frames, inserts, cutaways, replays and split screens also take a "sound".
 - Apartment entrances automatically play a wooden knock instead of a doorbell. Use "knock" for a separately timed knock; "doorbell" remains available for places that have one.
-- score: { "type": "score", "music": ${SCORES.map((c) => `"${c}"`).join(' | ')} } starts underscore that carries across lines, cutaways and scene changes until another score beat: tender under a confession, tense under a scheme, upbeat under a caper. "none" stops the music; "silence" also drops the room tone, for a moment left bare (it lasts until the next score beat or scene).
-- The same ten original music beds work for scores and montages. Choose the mood for the story; each has its own instruments, harmony and rhythm:
+- score: { "type": "score", "music": ${SCORES.map((c) => `"${c}"`).join(' | ')} } starts looping underscore that carries across lines, cutaways, returns and scene changes. End the intended passage with { "type": "score", "music": "none" }; a new scene or returning from a cutaway does not stop it. "none" keeps/restores room tone. "silence" stops music AND suppresses room tone until the next score beat or scene; reserve that extra hush for a deliberate effect.
+- A montage stops its own music on return but resumes any earlier score; stop an unwanted bed before the montage. Montage music cannot be "none": use scenes/cutaways for unscored sequences. Review the full audible span of every cue, not just how many starts you wrote.
+- The same ten original music beds work for scores and montages. Choose a mood only after deciding that the passage needs music; these descriptions are a palette, not instructions to score every matching scene:
 ${MONTAGE_MUSIC.map((music) => `  - ${music}: ${MUSIC_DESCRIPTIONS[music]}.`).join('\n')}
 - The intro music belongs to the main titles and nothing else. Never call for it, quote it or reference it: not as a score, a montage bed, a sung line, a sound, a radio or jukebox in the scene, or a joke in dialogue or narration.
-- A sung line is a cappella unless it has "accompanied": true (a guitar under it).
+- A sung line is a cappella unless it has "accompanied": true (a guitar under it). Accompaniment and transition stings also need a story reason; do not decorate every song, cut or punchline.
 
 # Delivery
 Most lines need no delivery. Use it when the performance is the joke:

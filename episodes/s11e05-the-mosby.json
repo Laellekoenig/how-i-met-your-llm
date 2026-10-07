@@ -65,11 +65,10 @@
       "location": "maclarens_sidewalk",
       "time": "night",
       "transition": "skyline",
-      "summary": "The end of a great first date. Holly's coach-speak and high-five reflex. At the curb, the goodbye becomes a hug, a high five, a fist bump and a salute. Mrs. Halvorsen from 2A, a retired skating judge, gives it a two point nine. Replays run beats 9-11 (the hail) and put new endings in at 12.",
+      "summary": "The end of a great first date. Holly's coach-speak and high-five reflex. At the curb, the goodbye becomes a hug, a high five, a fist bump and a salute. Mrs. Halvorsen from 2A, a retired skating judge, gives it a two point nine. Replays run beats 8-10 (the hail) and put new endings in at 11.",
       "wardrobe": [{ "character": "ted", "topStyle": "blazer", "top": "navy", "under": "sky" }],
       "cast": [{ "character": "ted", "mark": "friend" }, { "character": "guest1", "mark": "pub" }, { "character": "guest2", "mark": "stoop_friend" }],
       "beats": [
-        { "type": "score", "music": "romantic" },
         { "type": "narrate", "line": "That spring, I went on a first date with Holly Brandt. It was perfect for three hours and fifty-nine minutes." },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Ted, that was a really solid date. You left it all on the field tonight.", "emotion": "happy" },
         { "type": "say", "character": "ted", "to": "guest1", "line": "Thank you. Are you giving me notes?" },
@@ -94,7 +93,6 @@
         { "type": "laugh", "laugh": "big" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Good hustle.", "emotion": "embarrassed", "laugh": "laugh" },
         { "type": "move", "character": "guest1", "to": "right" },
-        { "type": "score", "music": "none" },
         { "type": "pause", "seconds": 1.2 },
         { "type": "say", "character": "guest2", "to": "ted", "line": "Two point nine.", "delivery": "deadpan" },
         { "type": "say", "character": "ted", "to": "guest2", "line": "I'm sorry?", "gesture": "double_take" },
@@ -125,7 +123,6 @@
         { "character": "carl", "mark": "booth_side" }
       ],
       "beats": [
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "lily", "to": "ted", "line": "You saluted her?", "emotion": "surprised", "gesture": "jaw_drop" },
         { "type": "say", "character": "ted", "to": "lily", "line": "Crisply.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "ted", "line": "That's our salute. We've done it, what, nine times? Each one sacred.", "emotion": "angry" },
@@ -155,10 +152,10 @@
             { "type": "say", "character": "ted", "to": "guest1", "line": "Goodnight, Holly.", "emotion": "flirty" },
             { "type": "act", "character": "ted", "to": "guest1", "gesture": "kiss" },
             { "type": "say", "character": "guest1", "to": "ted", "line": "Goodnight, Ted Mosby.", "emotion": "flirty" },
+            { "type": "score", "music": "none" },
             { "type": "say", "character": "ted", "to": "guest1", "line": "Architect.", "emotion": "smug", "laugh": "laugh" }
           ]
         },
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "robin", "to": "ted", "line": "You corrected her in your own fantasy.", "delivery": "deadpan", "laugh": "chuckle" },
         { "type": "say", "character": "barney", "to": "ted", "line": "This is why I never think during a goodbye. Thinking is for the guy who loses. I react.", "gesture": "point" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Hug, five, bump, salute. Whatever comes at me, I match it. Mongoose reflexes.", "emotion": "smug" },
@@ -177,15 +174,15 @@
         {
           "type": "replay",
           "of": "first-goodbye",
-          "from": 9,
-          "to": 11,
+          "from": 8,
+          "to": 10,
           "style": "imagined",
           "label": "The Stinson Exit",
           "transition": "rewind",
           "changes": [
-            { "at": 9, "insert": [{ "type": "score", "music": "romantic" }, { "type": "hold", "character": "ted", "prop": "umbrella" }] },
+            { "at": 8, "insert": [{ "type": "hold", "character": "ted", "prop": "umbrella" }] },
             {
-              "at": 12,
+              "at": 11,
               "insert": [
                 { "type": "give", "character": "ted", "to": "guest1", "prop": "umbrella" },
                 { "type": "say", "character": "guest1", "to": "ted", "line": "It's not raining.", "emotion": "confused" },
@@ -202,7 +199,6 @@
             }
           ]
         },
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "ted", "to": "barney", "line": "I can't walk away first, Barney. I live there." },
         { "type": "say", "character": "barney", "to": "ted", "line": "Then move. How bad do you want this?", "gesture": "shrug", "laugh": "laugh" }
       ]
@@ -215,7 +211,6 @@
       "summary": "Ted watches Mrs. Halvorsen score the mailman from the window. Lily's flower trap and Marshall's Minnesota goodbye, each replayed and each worse.",
       "cast": [{ "character": "ted", "mark": "window" }, { "character": "lily", "mark": "couch_left" }, { "character": "marshall", "mark": "armchair" }],
       "beats": [
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "ted", "to": "lily", "line": "She's still down there. Mrs. Halvorsen. She just gave the mailman a four." },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Bruce? He didn't even say goodbye.", "emotion": "confused" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "Exactly. The mailman beat me by a full point, and he never stopped walking.", "emotion": "sad", "laugh": "laugh" },
@@ -227,15 +222,15 @@
         {
           "type": "replay",
           "of": "first-goodbye",
-          "from": 9,
-          "to": 11,
+          "from": 8,
+          "to": 10,
           "style": "imagined",
           "label": "The Kindergarten Trap",
           "transition": "rewind",
           "changes": [
-            { "at": 9, "insert": [{ "type": "score", "music": "romantic" }, { "type": "hold", "character": "ted", "prop": "flowers" }] },
+            { "at": 8, "insert": [{ "type": "hold", "character": "ted", "prop": "flowers" }] },
             {
-              "at": 12,
+              "at": 11,
               "insert": [
                 { "type": "give", "character": "ted", "to": "guest1", "prop": "flowers" },
                 { "type": "say", "character": "guest1", "to": "ted", "line": "Oh, Ted. They're beautiful.", "emotion": "happy" },
@@ -249,12 +244,10 @@
             }
           ]
         },
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Lilypad, with respect. What Ted needs is a Minnesota goodbye." },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Hug at the door. Chat at the door. Hug at the car. Then you wave until the car is gone.", "emotion": "happy" },
         { "type": "say", "character": "lily", "to": "ted", "line": "His dad once said goodbye to a UPS guy for so long, the guy stayed for dinner.", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Doug is family now, Lily.", "emotion": "proud", "laugh": "laugh" },
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Baby, she left during hug three.", "delivery": "deadpan" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Then she missed hug four. That's on her.", "emotion": "proud", "laugh": "laugh" }
       ]
@@ -271,7 +264,6 @@
         { "character": "lily", "mark": "cooler" }
       ],
       "beats": [
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "ted", "to": "robin", "line": "Robin. You're my last hope. I'm down to a flower trap and a mailman.", "emotion": "sad", "laugh": "chuckle" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Because you're all overthinking it. Just mirror her. Whatever she does, you do." },
         { "type": "say", "character": "robin", "to": "ted", "line": "It's how I get through dinner with my father. He drinks, I drink. He stares at the wall, I stare at the wall." },
@@ -279,15 +271,14 @@
         {
           "type": "replay",
           "of": "first-goodbye",
-          "from": 9,
-          "to": 11,
+          "from": 8,
+          "to": 10,
           "style": "imagined",
           "label": "The Scherbatsky Mirror",
           "transition": "rewind",
           "changes": [
-            { "at": 9, "insert": [{ "type": "score", "music": "romantic" }] },
             {
-              "at": 12,
+              "at": 11,
               "insert": [
                 { "type": "act", "character": "guest1", "emotion": "happy", "gesture": "high_five" },
                 { "type": "act", "character": "ted", "emotion": "nervous", "gesture": "high_five" },
@@ -306,7 +297,6 @@
             }
           ]
         },
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "ted", "to": "robin", "line": "It's hopeless.", "gesture": "head_in_hands" },
         { "type": "say", "character": "lily", "to": "ted", "line": "Ted. Do you know how Marshall said goodbye after our first date?", "emotion": "smug" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lily, no.", "emotion": "scared" },
@@ -355,7 +345,6 @@
         { "type": "narrate", "line": "For three days, Robin hunted Barney." },
         { "type": "montage", "label": "The Ambushes", "music": "playful", "shots": [{ "location": "subway", "time": "day", "label": "Wednesday", "cast": [{ "character": "robin", "mark": "pole" }, { "character": "barney", "mark": "center" }], "beats": [{ "type": "act", "character": "robin", "to": "barney", "gesture": "high_five" }, { "type": "say", "character": "barney", "to": "robin", "line": "Mongoose.", "emotion": "smug" }] }, { "location": "elevator", "time": "day", "label": "Thursday", "cast": [{ "character": "robin", "mark": "left" }, { "character": "barney", "mark": "right" }], "beats": [{ "type": "act", "character": "robin", "to": "barney", "gesture": "hug" }, { "type": "say", "character": "barney", "to": "robin", "line": "Saw it from the lobby.", "emotion": "smug" }] }, { "location": "barneys_office", "time": "day", "label": "Friday", "cast": [{ "character": "barney", "mark": "desk_chair" }, { "character": "robin", "mark": "center" }], "beats": [{ "type": "act", "character": "robin", "to": "barney", "gesture": "salute" }, { "type": "act", "character": "barney", "to": "robin", "emotion": "bored", "gesture": "salute" }] }] },
         { "type": "narrate", "line": "By Saturday night, it was Barney eleven, Robin nothing.", "laugh": "chuckle" },
-        { "type": "score", "music": "tense" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Okay. They're due back at eleven. Lily, you've got the rail. Robin, the tree.", "delivery": "whisper" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "Marshall, we're just standing on a sidewalk.", "delivery": "deadpan" },
         { "type": "say", "character": "marshall", "to": "robin", "line": "I once watched a tree line for nine hours to get one blurry photo of a moose. I can do a sidewalk.", "emotion": "proud", "laugh": "chuckle" },
@@ -383,7 +372,6 @@
         { "type": "say", "character": "lily", "to": "barney", "line": "Ted's judge." },
         { "type": "say", "character": "barney", "to": "lily", "line": "Ted has a judge? I want a judge.", "emotion": "sad", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "line": "They're coming! Stairs! Go, go, go!", "delivery": "fast", "emotion": "scared" },
-        { "type": "score", "music": "none" },
         { "type": "exit", "character": "lily" },
         { "type": "exit", "character": "marshall" },
         { "type": "exit", "character": "barney" },
@@ -398,7 +386,6 @@
       "wardrobe": [{ "character": "ted", "topStyle": "blazer", "top": "navy", "under": "sky" }],
       "cast": [{ "character": "ted", "mark": "stoop" }, { "character": "guest1", "mark": "curb" }, { "character": "guest2", "mark": "stoop_friend" }],
       "beats": [
-        { "type": "score", "music": "romantic" },
         { "type": "hold", "character": "ted", "prop": "flowers" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Okay. So this is the part where we say goodbye.", "emotion": "nervous" },
         { "type": "say", "character": "ted", "to": "guest1", "line": "It is. I've prepared. Step one." },
@@ -421,7 +408,6 @@
         { "type": "say", "character": "ted", "to": "guest1", "line": "Five steps. And a laminated backup.", "emotion": "embarrassed", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Mine was written by eleven-year-olds." },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Step four is, kiss him or we run laps.", "delivery": "deadpan", "laugh": "big" },
-        { "type": "score", "music": "tender" },
         { "type": "say", "character": "ted", "to": "guest1", "line": "I spent all week on this. Because last time I saluted you like you were shipping out." },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Ted. That goodbye was my favorite part of the night." },
         { "type": "say", "character": "ted", "to": "guest1", "line": "It was a disaster.", "emotion": "confused" },
@@ -451,6 +437,7 @@
         { "type": "act", "character": "guest1", "to": "ted", "emotion": "flirty", "gesture": "kiss", "shot": "two" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "No laps.", "emotion": "happy", "laugh": "chuckle" },
         { "type": "pause", "seconds": 1 },
+        { "type": "score", "music": "none" },
         { "type": "say", "character": "guest2", "to": "ted", "line": "Technical merit, one point one.", "delivery": "deadpan" },
         { "type": "pause", "seconds": 0.8 },
         { "type": "say", "character": "guest2", "to": "ted", "line": "Artistic impression, six point oh.", "delivery": "deadpan", "laugh": "laugh", "react": [{ "character": "ted", "emotion": "happy" }] },

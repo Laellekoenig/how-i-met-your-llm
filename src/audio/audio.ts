@@ -12,6 +12,9 @@ const VOWEL_A: Vowel = [800, 1200, 2600];
 const VOWEL_AE: Vowel = [700, 1700, 2500];
 const VOWEL_OO: Vowel = [320, 870, 2250];
 const VOWEL_AW: Vowel = [570, 880, 2400];
+const MUSIC_LEVEL = 0.55;
+/** About 12 dB below the normal mix; leave dialogue room without losing the cue. */
+const SPEECH_MUSIC_LEVEL = MUSIC_LEVEL * 0.25;
 
 export class AudioEngine {
   ctx: AudioContext | null = null;
@@ -19,6 +22,7 @@ export class AudioEngine {
   private laughBus!: GainNode;
   private sfxBus!: GainNode;
   private musicBus!: GainNode;
+  private musicDucks = new Set<symbol>();
   private cueGain: GainNode | null = null;
   private ambBus!: GainNode;
   private reverb!: ConvolverNode;
@@ -91,7 +95,7 @@ export class AudioEngine {
     };
     this.laughBus = mk(2.8, 0.9);
     this.sfxBus = mk(0.8, 0.3);
-    this.musicBus = mk(0.55, 0.4);
+    this.musicBus = mk(this.musicDucks.size ? SPEECH_MUSIC_LEVEL : MUSIC_LEVEL, 0.4);
     this.ambBus = mk(0.5, 0.2);
 
     this.noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -113,6 +117,30 @@ export class AudioEngine {
   setVolume(v: number) {
     this.volume = v;
     if (this.ctx) this.master.gain.setTargetAtTime(this.muted ? 0 : v, this.ctx.currentTime, 0.05);
+  }
+
+  /** Hold music below speech. Independent, idempotent releases also handle overlapping voices and skips. */
+  duckMusic(): () => void {
+    const token = Symbol();
+    this.musicDucks.add(token);
+    if (this.musicDucks.size === 1) this.musicLevel(true);
+    return () => {
+      if (this.musicDucks.delete(token) && !this.musicDucks.size) this.musicLevel(false);
+    };
+  }
+
+  private musicLevel(ducked: boolean) {
+    if (!this.ctx) return; // build() applies the current state when autoplay unlocks
+    const gain = this.musicBus.gain, now = this.ctx.currentTime;
+    // Cancel a pending recovery when the next speaker starts. Keep the instantaneous level continuous.
+    if (gain.cancelAndHoldAtTime) gain.cancelAndHoldAtTime(now);
+    else {
+      const value = gain.value;
+      gain.cancelScheduledValues(now);
+      gain.setValueAtTime(value, now);
+    }
+    // A short hold bridges normal gaps between lines, then the cue rises gently under silent action.
+    gain.setTargetAtTime(ducked ? SPEECH_MUSIC_LEVEL : MUSIC_LEVEL, now + (ducked ? 0 : 0.2), ducked ? 0.035 : 0.3);
   }
 
   private impulse(seconds: number, decay: number) {

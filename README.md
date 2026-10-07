@@ -46,6 +46,9 @@ bun run episodes ledger            # continuity: eras, what's true now, bets and
 ```
 
 `bun test` validates every episode and checks camera coverage for each of its scenes.
+`episodes check` also reports spoken beats under music and the longest continuous run. Heavy coverage gets
+a craft warning, not an error. `episodes read` lists each cue's entry, exit and scene span, expanding replays
+and following scene carryover. These are static line counts, not percentages of playback time.
 
 ## How it works
 
@@ -187,7 +190,9 @@ The show's rhythm comes from its edit and its unreliable narrator, so these are 
 - **Sound and music**: ordinary scene changes have no automatic cue. Apartment entrances use a wooden knock;
   other doors retain their own sounds. `sound` places a cue (a knock, a shatter, a record scratch, a harp) exactly;
   `"sound": "none"` also silences a rewind transition. `score` starts underscore that carries across scenes, stops it,
-  or drops to silence.
+  or drops to silence. Main titles clear any cold-open score before the theme. Music automatically drops by
+  about 12 dB during dialogue, narration and offscreen speech, then returns smoothly after a short hold.
+  Most dialogue should still be unscored; see [the music reference](docs/music-reference.md).
 - **The laugh track** is restrained: no cheering or clapping at jokes, and it never changes anyone's face.
 - **Continuity**: optional `continuity` notes (era, facts, threads opened and closed) feed `bun run episodes ledger`,
   which flags a fact that quietly changes between episodes.

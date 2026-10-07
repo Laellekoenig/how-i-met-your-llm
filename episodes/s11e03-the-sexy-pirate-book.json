@@ -48,7 +48,6 @@
         { "character": "ted", "mark": "back_right" }
       ],
       "beats": [
-        { "type": "score", "music": "upbeat" },
         { "type": "narrate", "line": "Barney got to Atlantic City three days before the rest of us. He said he needed to stretch.", "laugh": "chuckle" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Remind me why I'm in the middle seat.", "emotion": "bored" },
         { "type": "say", "character": "ted", "to": "robin", "line": "Because a cooler called shotgun.", "emotion": "angry", "gesture": "point" },
@@ -118,7 +117,6 @@
         { "character": "robin", "mark": "player_right" }
       ],
       "beats": [
-        { "type": "score", "music": "jazzy" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Finally! Guys, Desmond. He's dealt every one of my four hundred and twelve wins.", "emotion": "excited", "gesture": "hands_up" },
         { "type": "say", "character": "barney", "to": "guest1", "line": "Desmond, tell them how much you look forward to my visits." },
         { "type": "say", "character": "guest1", "to": "ted", "line": "Every year, Mister Stinson. Like taxes.", "delivery": "deadpan", "laugh": "laugh" },
@@ -188,7 +186,6 @@
         { "type": "say", "character": "guest1", "to": "lily", "line": "Your forty dollars, madam. It brought friends.", "laugh": "chuckle" },
         { "type": "say", "character": "lily", "to": "ted", "line": "Six thousand dollars! Wait till Marshall—", "interrupted": true, "emotion": "excited" },
         { "type": "say", "character": "ted", "to": "lily", "line": "Windfalls go to the Nest Egg." },
-        { "type": "score", "music": "none" },
         { "type": "pause", "seconds": 1 },
         { "type": "say", "character": "lily", "to": "ted", "line": "Okay. Nobody tells Marshall.", "delivery": "whisper", "emotion": "nervous", "gesture": "lean_in" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Ted, she tells him before we leave Atlantic City. Loser rides the hump home.", "emotion": "smug" },
@@ -215,7 +212,6 @@
         { "character": "robin", "mark": "player_right" }
       ],
       "beats": [
-        { "type": "score", "music": "tense" },
         { "type": "narrate", "line": "Your Aunt Lily had been rich for eleven minutes. She had already found the worst hiding place in New Jersey.", "laugh": "chuckle" },
         { "type": "say", "character": "robin", "to": "lily", "line": "You're wearing Barney's jacket. That's not hiding. That's a confession with lapels.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "robin", "line": "It has an inside pocket. Marshall reorganizes my purse every Sunday. He labels the gum.", "emotion": "nervous", "laugh": "laugh" },
@@ -278,7 +274,6 @@
         { "type": "say", "character": "robin", "to": "lily", "line": "Six hours, four dollars, eleven scotches. I'm basically beating the house.", "emotion": "proud", "laugh": "chuckle" },
         { "type": "say", "character": "lily", "to": "robin", "line": "Robin, please don't tell Marshall." },
         { "type": "say", "character": "robin", "to": "lily", "line": "Then tell me why I should ride the hump for you.", "delivery": "deadpan" },
-        { "type": "score", "music": "tender" },
         { "type": "say", "character": "lily", "to": "robin", "line": "There's a studio on Avenue B. Over a dry cleaner." },
         { "type": "say", "character": "robin", "to": "lily", "line": "A painting studio?" },
         { "type": "say", "character": "lily", "to": "robin", "line": "Four hundred a month. And it has a window." },
@@ -334,11 +329,13 @@
         { "type": "hold", "character": "marshall", "prop": "envelope" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Also. I need to tell you about Miscellaneous.", "emotion": "nervous" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Twenty dollars a week.", "emotion": "suspicious" },
+        { "type": "score", "music": "tender" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "For two years. Two thousand and eighty dollars. It says Lily's studio on the front." },
         { "type": "say", "character": "marshall", "to": "lily", "line": "I was going to give it to you on your birthday." },
         { "type": "say", "character": "lily", "to": "marshall", "line": "How did you even know?", "emotion": "surprised" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Baby, you've drawn that dry cleaner on every napkin at MacLaren's." },
         { "type": "pause", "seconds": 1 },
+        { "type": "score", "music": "none" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "And you kept it a secret for two years?", "emotion": "surprised" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lily, I'm a great secret keeper." },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Since when?" },
@@ -354,7 +351,6 @@
       "summary": "The drive home. Lily rides up front with Marshall. Ted lost the bet and sits in the hump of an otherwise empty back seat, because a bet's a bet. Robin stayed behind to watch Barney, who calls: he read the whole book and now he loses. Lily asks for one more envelope. Future Ted reveals where the night ended up: over his fireplace.",
       "cast": [{ "character": "marshall", "mark": "driver" }, { "character": "lily", "mark": "front_passenger" }, { "character": "ted", "mark": "back_middle" }],
       "beats": [
-        { "type": "score", "music": "upbeat" },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Ted, buddy. There are two empty seats back there.", "emotion": "confused" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "A bet's a bet, Marshall. I lost the hump fair and square.", "emotion": "proud" },
         { "type": "say", "character": "ted", "to": "lily", "line": "Even though you didn't crack. You chose. Those are two completely different things.", "emotion": "angry", "gesture": "point" },
@@ -393,7 +389,6 @@
         { "type": "say", "character": "lily", "to": "marshall", "line": "Marshmallow? Can we add one more envelope to the budget?" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "What's it for?" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Barney's going to want a rematch. I'm going to need a bigger envelope.", "emotion": "smug", "laugh": "laugh" },
-        { "type": "score", "music": "tender" },
         { "type": "narrate", "line": "Aunt Lily kept that studio for one year. She painted nineteen pictures. By her count, eighteen are terrible." },
         { "type": "narrate", "line": "The nineteenth hangs over our fireplace. You two have walked past it your whole lives." },
         { "type": "narrate", "line": "A car at dawn. Three people, two empty seats, and me in the middle for no reason at all.", "laugh": "chuckle" }
