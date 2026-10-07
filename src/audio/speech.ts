@@ -32,7 +32,7 @@ export interface SpeakOptions {
 
 /** How each delivery bends the voice. Pitch stays near 1: big shifts make good voices sound warped. */
 const DELIVERY: Record<Delivery, { rate: number; pitch: number; volume: number; maxPitch?: number }> = {
-  whisper: { rate: 0.9, pitch: -0.04, volume: 0.45 },
+  whisper: { rate: 0.9, pitch: -0.04, volume: 0.75 },
   shout: { rate: 1.08, pitch: 0.14, volume: 1, maxPitch: 1.34 },
   sing: { rate: 0.82, pitch: 0.16, volume: 0.95, maxPitch: 1.36 },
   deadpan: { rate: 0.9, pitch: -0.07, volume: 0.9 },
