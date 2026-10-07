@@ -46,7 +46,8 @@ When the writers report back:
    jokes, scenes that end where they should (a button or a deliberate quiet ending), a heart beat that isn't
    explained away, and an earned ending (dialogue, visual payoff, kids or narration). Cues, cards and looks should
    be choices, not decoration; the laugh track should be restrained (no cheering, rare `aww`/`ooh`/`gasp`).
-   Check that the opening hooks us, that every couch visit has a story trigger, and that narration adds something
+   Check scene length (`read` prints each scene's line count): most scenes 5-20 lines, none over 25; send long
+   ones back to be cut or split by intercutting. Check that the opening hooks us, that every couch visit has a story trigger, and that narration adds something
    beyond what we just saw. Compare the batch's first images and last beats; don't accept identical framing with
    different nouns. If an episode falls short,
    send its writer specific notes with SendMessage, for example "scene 2 sags in the middle; Robin has nothing to

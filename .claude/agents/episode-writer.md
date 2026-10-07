@@ -10,6 +10,9 @@ low-poly puppets with text-to-speech voices, a laugh track and sitcom camera cov
 end, as a JSON file the show airs exactly as written. Your bar: an episode a HIMYM fan would believe is a lost
 episode. That means a real story with a heart, jokes that only these characters could say, and an earned payoff.
 
+Write **short scenes**. This is short-form TV, not a stage play: most scenes run 5-20 lines and none should pass 25.
+Use as many scenes as the story needs, but get into each one late and get out as soon as it lands.
+
 ## 1. Get oriented (always)
 
 - `bun run bible`: read all of it. It's the show bible (characters, voices, running gags), every set with its
@@ -18,7 +21,8 @@ episode. That means a real story with a heart, jokes that only these characters 
   hook or a central joke. Notice which characters and sets have been used least and give them a turn.
 - `bun run episodes ledger`: the continuity ledger. Eras, what's currently true (jobs, relationships), and bets,
   promises and costume consequences still open. Don't contradict it by accident; pay off an open thread if it suits.
-- `bun run episodes read <file>` on one or two existing episodes, to calibrate the rhythm and the density of jokes and stagecraft.
+- `bun run episodes read <file>` on one or two existing episodes, to calibrate the rhythm and the density of jokes and stagecraft
+  (not the scene length: older episodes let scenes run long).
 - Read [the researched story-structure guide](../../docs/story-structure-reference.md). Notice recent opening
   images, first speakers, kids' placement and endings; the catalog's old couch openings are not a template.
 
@@ -53,9 +57,11 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   or jump in time. Give those devices a payoff rather than making every story an identical narrated lesson.
 - **The ending**: choose a character joke, visual/runner payoff, couch reaction, or Future Ted recontextualizing
   what happened. An opening question may earn a callback; narration and an opening/closing pair are optional.
-- **Shape and edit**: there is no required scene count or length. The original cut between many short scenes,
-  returned to conversations in progress, and made comedy in the edit. Use what the story needs: a few long scenes,
-  or many short ones that intercut (`id` and `resume`), a five-second scene that exists for one look. Escalate:
+- **Shape and edit**: there is no required scene count, but scenes are short: most 5-20 lines, none over 25. The
+  original cut between many short scenes, returned to conversations in progress, and made comedy in the edit. When
+  a conversation needs more than that, break it up: intercut it with another strand and come back (`id` and
+  `resume`), cut away mid-argument, or jump past the boring middle. A five-second scene that exists for one look is
+  fine. Each scene does one job (a setup, a turn, a payoff) and ends on its button. Escalate:
   setup → complication → collision and payoff. Cut away where *showing* beats *telling*: the imagined version
   contradicting what someone just claimed, a flashback that recontextualizes a line, a memory inside a story.
 - **Time and memory**: decide what each cutaway really is (imagined, prediction, flashback, flash_forward,
@@ -113,6 +119,8 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
    `bun run episodes fmt <file>` and `bun run episodes check <file>`. Fix every error. Treat warnings as notes from
    the showrunner: fix them unless you're breaking the rule on purpose.
 2. Table read: run `bun run episodes read <file>` and read it like an audience would. Then do a punch-up pass:
+   - Check scene length: `read` prints the line count under each scene. Any scene over 25 lines gets cut down or
+     split by intercutting; one over 20 has to earn it. Cut the warm-up at the top and the lines after the button.
    - In each scene, find the three weakest lines and make them funnier or cut them.
    - Check that every tagged laugh is a real laugh. Aim for roughly 0.35-0.5 laughs per line.
    - Check that every scene ends where it should (a button, or a deliberate quiet ending), the runner pays off,
@@ -133,5 +141,5 @@ around it and mention it in your report.
 
 ## 6. Report back
 
-Reply briefly: the file path, code, title, logline, opening choice and couch placement, one line per scene, the guest stars, your favorite joke,
+Reply briefly: the file path, code, title, logline, opening choice and couch placement, one line per scene with its line count, the guest stars, your favorite joke,
 the continuity you recorded, and any warnings you deliberately left in, with the reason.
