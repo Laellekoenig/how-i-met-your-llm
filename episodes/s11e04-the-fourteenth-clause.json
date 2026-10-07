@@ -136,7 +136,6 @@
         { "character": "guest1", "mark": "bar" }
       ],
       "beats": [
-        { "type": "score", "music": "jazzy" },
         { "type": "hold", "character": "quinn", "prop": "glass" },
         { "type": "enter", "character": "barney", "to": "table_left" },
         { "type": "enter", "character": "marshall", "to": "friend" },
@@ -177,7 +176,7 @@
         { "type": "say", "character": "ted", "to": "quinn", "line": "Point of order. Amendment. Barney stays my wingman on Tuesdays.", "gesture": "hands_up" },
         { "type": "say", "character": "barney", "to": "ted", "line": "Denied." },
         { "type": "say", "character": "quinn", "to": "ted", "line": "Granted. Ted, you're with me now." },
-        { "type": "move", "character": "ted", "to": "quinn" },
+        { "type": "move", "character": "ted", "to": "robin" },
         { "type": "say", "character": "ted", "to": "barney", "line": "Sorry, buddy. Also, clause seven. It's whom.", "emotion": "smug", "laugh": "chuckle" },
         { "type": "say", "character": "lily", "to": "quinn", "line": "Amendment. If you two ever break up, I get Quinn.", "emotion": "happy" },
         { "type": "say", "character": "quinn", "to": "lily", "line": "Granted." },
@@ -313,7 +312,6 @@
       "summary": "The deadline. Quinn makes it about her, Barney trades the Stormtrooper and finally hands over the envelope. She reads it. He explains why it was sealed. Then the deal from the opening.",
       "cast": [{ "character": "barney", "mark": "table_left" }, { "character": "quinn", "mark": "table_right" }, { "character": "guest1", "mark": "bar" }],
       "beats": [
-        { "type": "score", "music": "tense" },
         { "type": "hold", "character": "barney", "prop": "envelope" },
         { "type": "hold", "character": "quinn", "prop": "book" },
         { "type": "say", "character": "guest1", "to": "barney", "line": "Eight minutes, Mr. Stinson.", "delivery": "deadpan" },
@@ -339,12 +337,13 @@
         { "type": "pause", "seconds": 1.5 },
         { "type": "say", "character": "quinn", "to": "barney", "line": "Fourteen. Every clause above gives us both a way out. Not this one. If this ends, she ends it. I don't get to run.", "delivery": "whisper" },
         { "type": "say", "character": "lily", "to": "quinn", "line": "Louder! Some of us have money on this!", "delivery": "shout", "laugh": "laugh" },
-        { "type": "score", "music": "romantic" },
         { "type": "say", "character": "quinn", "to": "barney", "line": "Why would you hide this?" },
+        { "type": "score", "music": "romantic" },
         { "type": "say", "character": "barney", "to": "quinn", "line": "Because every other page is a play. That one's just true.", "shot": "closeup" },
         { "type": "pause", "seconds": 1 },
         { "type": "say", "character": "barney", "to": "quinn", "line": "And true is a terrible negotiating position." },
         { "type": "pause", "seconds": 1.5 },
+        { "type": "score", "music": "none" },
         { "type": "replay", "of": "the-close", "from": 1, "to": 3, "label": "Midnight" }
       ]
     },
@@ -352,7 +351,6 @@
       "resume": "the-close",
       "summary": "Marshall wins the pool. Quinn reveals she read fourteen during the kiss; Future Ted shows us. She wanted him to hand it over anyway. The last word is hers, and it's sealed.",
       "beats": [
-        { "type": "score", "music": "jazzy" },
         { "type": "say", "character": "marshall", "to": "quinn", "line": "Okay, but the pool. Who won?" },
         { "type": "pause", "seconds": 1 },
         { "type": "say", "character": "quinn", "to": "marshall", "line": "Marshall wins.", "emotion": "happy" },

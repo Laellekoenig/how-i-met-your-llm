@@ -87,7 +87,6 @@
         { "type": "move", "character": "ted", "to": "bedroom_ted" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "You coming, Lilypad?" },
         { "type": "say", "character": "lily", "line": "In a minute.", "emotion": "sad" },
-        { "type": "score", "music": "melancholy" },
         { "type": "pause", "seconds": 2.5 }
       ]
     },
@@ -104,7 +103,6 @@
         { "character": "barney", "mark": "booth_right_back" }
       ],
       "beats": [
-        { "type": "score", "music": "mysterious" },
         { "type": "narrate", "line": "By the sixth night, all five of us had a theory. Well. Four of us." },
         { "type": "say", "character": "ted", "to": "robin", "line": "Six nights. 3:12 every time. Three knocks. People, three knocks is a question. Two is a pizza. Four is the police.", "laugh": "chuckle" },
         { "type": "say", "character": "barney", "to": "ted", "line": "And I know who's asking. Gretchen.", "emotion": "smug" },
@@ -217,7 +215,6 @@
       ],
       "cast": [{ "character": "ted", "mark": "center" }, { "character": "marshall", "mark": "armchair" }, { "character": "lily", "mark": "couch_left" }],
       "beats": [
-        { "type": "score", "music": "tense" },
         { "type": "hold", "character": "ted", "prop": "umbrella" },
         { "type": "say", "character": "marshall", "to": "ted", "line": "Ted. You brought an umbrella to a stakeout." },
         { "type": "say", "character": "ted", "to": "marshall", "line": "It's a steel-shafted British umbrella. In the right hands, it's a sword." },
@@ -227,7 +224,7 @@
         { "type": "say", "character": "lily", "to": "marshall", "line": "You will not.", "delivery": "deadpan" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad? Are you awake?" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "No.", "delivery": "deadpan", "laugh": "laugh" },
-        { "type": "move", "character": "ted", "to": "marshall" },
+        { "type": "move", "character": "ted", "to": "woven_chair" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "Marshall, Lily hasn't asked one question about this all week. She asks questions about everything.", "delivery": "whisper" },
         { "type": "say", "character": "ted", "to": "marshall", "line": "She asked our mailman if he was happy. He wasn't. They talked for an hour.", "delivery": "whisper", "laugh": "chuckle" },
         { "type": "say", "character": "lily", "line": "Snore.", "delivery": "deadpan", "laugh": "big" },
@@ -344,7 +341,6 @@
       "label": "3:13 AM",
       "summary": "Barney and Robin, who heard nothing from the street, congratulate themselves: no knock tonight, nothing gets past them. They give it fifteen minutes before going up to take credit.",
       "beats": [
-        { "type": "score", "music": "playful" },
         { "type": "say", "character": "barney", "to": "robin", "line": "3:13. No knock. Robin, we did it.", "emotion": "proud" },
         { "type": "say", "character": "robin", "to": "barney", "line": "We didn't do anything. We stood here.", "delivery": "deadpan" },
         { "type": "say", "character": "barney", "to": "robin", "line": "We stood here magnificently. Nothing gets past us.", "emotion": "smug", "gesture": "hands_on_hips" },
@@ -357,9 +353,7 @@
       "resume": "stakeout",
       "summary": "Lily explains their knock (memory, then the replay years later without her answer). Mickey knew she was awake. Why now: Marvin told him they are trying for a baby, in his Christmas letter, in July. A kid deserves a grandpa who comes through the door. Home by Bedtime: you can't lose anymore. Two players. The hug, left alone.",
       "beats": [
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Lily. How did you know to knock back?" },
-        { "type": "score", "music": "tender" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Because that's our knock. When I was little, he got home late. Every night." },
         { "type": "say", "character": "lily", "to": "marshall", "line": "He'd knock three times on my door. And if I was awake, I'd knock three times back." },
         {
@@ -412,13 +406,15 @@
         { "type": "say", "character": "lily", "to": "mickey", "line": "It's a board game, isn't it.", "delivery": "deadpan", "laugh": "chuckle" },
         { "type": "say", "character": "mickey", "to": "lily", "line": "It's called Home by Bedtime. You're the dad. You have to get home before the little girl falls asleep." },
         { "type": "say", "character": "lily", "to": "mickey", "line": "Can you lose?" },
+        { "type": "score", "music": "tender" },
         { "type": "say", "character": "mickey", "to": "lily", "line": "Not anymore. I took out the racetrack." },
         { "type": "pause", "seconds": 1 },
         { "type": "say", "character": "mickey", "to": "lily", "line": "And the bar. And the card game. Turns out, without those, it's pretty easy to get home." },
         { "type": "say", "character": "mickey", "to": "lily", "line": "It's two players. I couldn't make it work with one.", "shot": "push_in" },
         { "type": "pause", "seconds": 1.5 },
         { "type": "act", "character": "lily", "to": "mickey", "gesture": "hug" },
-        { "type": "pause", "seconds": 2.5 }
+        { "type": "pause", "seconds": 2.5 },
+        { "type": "score", "music": "none" }
       ]
     },
     {
@@ -426,7 +422,6 @@
       "label": "3:30 AM",
       "summary": "Barney and Robin knock and come in armed. Robin is glad Ted banned guns; Barney is no longer an astronaut; Ted asks if Mickey read his thesis. Marshall claims the wood knock; Mickey turns it into a board game at 3:30 AM, finally on time for something, and Lily sits down to hear the pitch. Penny and Luke recognize the game.",
       "beats": [
-        { "type": "score", "music": "none" },
         { "type": "enter", "character": "robin", "to": "center" },
         { "type": "enter", "character": "barney", "to": "fireplace" },
         { "type": "hold", "character": "robin", "prop": "sword" },
@@ -455,7 +450,6 @@
         { "type": "pause", "seconds": 1 },
         { "type": "move", "character": "lily", "to": "armchair" },
         { "type": "say", "character": "lily", "to": "mickey", "line": "Fine. Start from the top.", "emotion": "happy" },
-        { "type": "score", "music": "tender" },
         { "type": "say", "character": "luke", "line": "Wait. Is Home by Bedtime that game at Aunt Lily's where nobody can lose?", "emotion": "surprised" },
         { "type": "say", "character": "penny", "line": "I thought it was just a really bad game.", "laugh": "chuckle" },
         { "type": "narrate", "line": "It's a terrible game. It's her favorite." }

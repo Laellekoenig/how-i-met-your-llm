@@ -41,6 +41,9 @@ dramatic function; use only the music IDs from `bun run bible` and original inve
 - A `score` beat loops across dialogue, cutaways, returns and scene changes. It does **not** stop just because
   its scene or cutaway ends. Pair each start with a planned exit; normally use
   `{ "type": "score", "music": "none" }` at the end of the intended passage.
+- Main titles clear the cold-open score before the theme; closing credits clear the final score. Music ducks
+  automatically under all speech and recovers gently afterward. This helps intelligibility; it does not justify
+  additional cues or longer coverage.
 - `none` stops music while keeping/restoring room ambience. `silence` stops music **and** suppresses room tone
   until the next score beat or scene. Use `silence` only when that extra hush is the intended effect; it is not
   the normal way to leave dialogue unscored.
@@ -65,3 +68,9 @@ before the next exchange:
 
 The exchange may also work better with both score beats omitted. Decide from the scene, not from a need to
 demonstrate the audio tools.
+
+Use `bun run episodes check` for total spoken-beat coverage and the longest continuous run, and
+`bun run episodes read <file>` for each cue's entry, exit and scene span. Replays are counted as performed,
+and montage returns restore the earlier score. A warning when music covers most of a substantial episode's
+dialogue is a review prompt, not a validity limit. The counts exclude titles/credits and count overlapping
+narration at its entry; they do not estimate seconds or replace listening to the episode.

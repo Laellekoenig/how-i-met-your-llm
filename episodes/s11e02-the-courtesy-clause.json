@@ -134,7 +134,6 @@
         { "character": "barney", "mark": "gallery_right" }
       ],
       "beats": [
-        { "type": "score", "music": "tense" },
         { "type": "sound", "sound": "knock" },
         { "type": "say", "character": "guest2", "to": "marshall", "line": "Mosby versus Fiore. Before we begin, I was a middle school vice principal for nineteen years." },
         { "type": "say", "character": "guest2", "to": "barney", "line": "I notice who plays nice. I notice who doesn't. And I notice gum.", "delivery": "slow" },
@@ -187,7 +186,6 @@
         { "character": "robin", "mark": "booth_right_back" }
       ],
       "beats": [
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "I won the objection, and he high fived me. Who does that?", "emotion": "angry" },
         { "type": "say", "character": "barney", "to": "marshall", "line": "A genius. Losing gracefully in public is the most aggressive thing a man can do." },
         { "type": "say", "character": "barney", "to": "marshall", "line": "I've lost at darts to forty different boyfriends. I'm undefeated with their girlfriends.", "emotion": "smug", "laugh": "laugh" },
@@ -226,7 +224,6 @@
         { "character": "barney", "mark": "gallery_right" }
       ],
       "beats": [
-        { "type": "score", "music": "tense" },
         { "type": "enter", "character": "marshall", "to": "argument" },
         { "type": "say", "character": "marshall", "to": "brad", "line": "Brad! My friend! Bring it in!", "delivery": "shout", "emotion": "happy" },
         { "type": "act", "character": "marshall", "to": "brad", "gesture": "hug" },
@@ -340,7 +337,6 @@
         { "type": "say", "character": "marshall", "to": "robin", "line": "He does me?", "emotion": "surprised" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "He hugs whoever's closest and says, oh, buddy.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "He said you were the only guy at Columbia who asked about his sourdough instead of his biceps." },
-        { "type": "score", "music": "tender" },
         { "type": "say", "character": "marshall", "to": "robin", "line": "He's very proud of that starter.", "emotion": "sad" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "He named it after you. It's called Big Marsh.", "shot": "push_in" },
         { "type": "act", "character": "marshall", "gesture": "sob" },
@@ -371,14 +367,12 @@
         { "character": "robin", "mark": "jury" }
       ],
       "beats": [
-        { "type": "score", "music": "tense" },
         { "type": "sound", "sound": "knock" },
         { "type": "say", "character": "guest2", "to": "marshall", "line": "Closing arguments. Mr. Eriksen." },
         { "type": "move", "character": "marshall", "to": "argument" },
         { "type": "say", "character": "marshall", "to": "guest2", "line": "Your Honor, for two days, opposing counsel and I have been extremely nice to each other." },
         { "type": "say", "character": "marshall", "to": "guest2", "line": "I'd like the record to show I was doing it to win." },
         { "type": "say", "character": "marshall", "to": "guest2", "line": "I hugged him for an eight count. I complimented his calves. I sat in a hedge with Barney.", "laugh": "chuckle" },
-        { "type": "score", "music": "none" },
         { "type": "say", "character": "marshall", "to": "brad", "line": "And the one time he was just being nice, I told him I didn't believe him." },
         { "type": "say", "character": "marshall", "to": "brad", "line": "I'm sorry, Brad. I ate it. You put the good peppers on it.", "emotion": "sad" },
         { "type": "say", "character": "brad", "to": "marshall", "line": "I always put the good peppers on it." },
@@ -422,7 +416,8 @@
         { "type": "move", "character": "marshall", "to": "counsel" },
         { "type": "move", "character": "brad", "to": "client" },
         { "type": "give", "character": "brad", "to": "marshall", "prop": "sandwich", "shot": "wide" },
-        { "type": "pause", "seconds": 2 }
+        { "type": "pause", "seconds": 2 },
+        { "type": "score", "music": "none" }
       ]
     }
   ]
