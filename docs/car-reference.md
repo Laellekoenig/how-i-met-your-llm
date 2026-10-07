@@ -18,7 +18,9 @@ No roof sign, fare meter, partition, chauffeur, bar or stretch body belongs in t
 
 - Use fixed windshield/cabin mounts; do not orbit around seated actors as if they were in a room.
 - Keep front and rear rows independently coverable. Front-seat headrests naturally hide some rear
-  passengers in a windshield shot; give those passengers their own rear-cabin angle.
+  passengers in a windshield shot; give those passengers their own rear-cabin angle. For a full sedan,
+  a roof mount behind the mirror looks back over the console and holds the front passenger and all
+  three rear seats in one master.
 - Match singles across the seating axis. A requested shoulder shot uses the matching single rather
   than putting a camera through a door or headrest. Driver/passenger-compartment exchanges cut
   between their respective mounts.
