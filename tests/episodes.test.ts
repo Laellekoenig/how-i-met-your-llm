@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import * as THREE from 'three';
 import { testStage } from './helpers/sets';
-import { EPISODES, EPISODE_FILES, rerun } from './helpers/episodes';
+import { EPISODES, EPISODE_FILES, SCRIPTS, rerun } from './helpers/episodes';
 import { validateCatalog, validateEpisode } from '../src/script/validate';
 import { episodeItems } from '../src/script/episodes';
 import { CHARACTERS, charName, setGuests } from '../src/world/characters';
@@ -153,12 +153,13 @@ describe('the catalog', () => {
   test('between them, every delivery, both cutaway styles and every transition', () => {
     const deliveries = (beats: Beat[]): string[] => beats.flatMap((b) =>
       b.type === 'cutaway' ? deliveries(b.beats) : b.type === 'say' ? [b.delivery ?? '', b.interrupted ? 'interrupted' : ''] : []);
-    const scenes = EPISODES.flatMap((ep) => ep.scenes);
+    const scenes = SCRIPTS.flatMap((ep) => ep.scenes);
     const used = new Set(scenes.flatMap((s) => deliveries(s.beats)));
     for (const d of ['whisper', 'shout', 'sing', 'deadpan', 'fast', 'slow', 'interrupted']) expect(used.has(d), d).toBe(true);
     const styles = new Set(scenes.flatMap((s) => s.beats.flatMap((b) => b.type === 'cutaway' ? [b.style] : [])));
-    expect([...styles].sort()).toEqual(['flashback', 'imagined']);
-    expect(new Set(scenes.map((s) => s.transition))).toEqual(new Set(['cut', 'skyline', 'exterior', 'rewind']));
+    for (const style of ['flashback', 'imagined']) expect(styles.has(style), style).toBe(true);
+    const transitions = new Set(scenes.map((s) => s.transition));
+    for (const t of ['cut', 'skyline', 'exterior', 'rewind']) expect(transitions.has(t as never), t).toBe(true);
   });
 
   test('an episode airs from its cold open, with its guests, to its credits', () => {

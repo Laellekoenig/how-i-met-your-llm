@@ -6,7 +6,7 @@ import { routeNodes } from '../src/show/navigation';
 import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
 import type { CharacterId } from '../src/script/types';
-import { EPISODES } from './helpers/episodes';
+import { SCRIPTS } from './helpers/episodes';
 import type { Beat, Costume, Scene } from '../src/script/types';
 
 const stage = testStage();
@@ -96,6 +96,19 @@ describe('current set navigation', () => {
     expect(stage.actors.ted.position.y).toBeCloseTo(0.3, 2);
   });
 
+  test('walking over to someone still on their way meets them where they stop, not on top of them', () => {
+    stage.setLocation('maclarens_sidewalk', 'night');
+    stage.place('ted', 'friend');
+    stage.place('lily', 'pub');
+    void stage.moveTo('lily', 'curb');
+    for (let tick = 0; tick < 40; tick++) stage.update(1 / 30, tick / 30);
+    expect(stage.actors.lily.isWalking).toBe(true);
+    void stage.moveTo('ted', 'lily');
+    finishMove('ted');
+    for (let tick = 0; tick < 600 && stage.actors.lily.isWalking; tick++) stage.update(1 / 30, tick / 30);
+    expect(stage.actors.ted.position.distanceTo(stage.actors.lily.position)).toBeGreaterThan(0.6);
+  });
+
   test('unconnected nodes never fabricate a straight route through a partition', () => {
     expect(routeNodes(stage.sets.taxi, 'back', 'front')).toBeNull();
     expect(routeNodes(stage.sets.limo, 'bench_r', 'driver')).toBeNull();
@@ -144,7 +157,7 @@ const elsewhere = (beats: Beat[]): (Pick<Scene, 'location' | 'time' | 'cast' | '
 
 // Every scene, cutaway, montage shot and split panel, in the clothes it's played in. (A resumed scene starts from
 // wherever its strand left everyone, so it has no cast of its own to frame.)
-const rerunScenes = EPISODES.flatMap((ep) => ep.scenes.flatMap((scene, i) => {
+const rerunScenes = SCRIPTS.flatMap((ep) => ep.scenes.flatMap((scene, i) => {
   const wardrobe: Costume[] = [...(ep.wardrobe ?? []), ...(scene.wardrobe ?? [])];
   return [
     ...(scene.resume ? [] : [{ ...scene, guests: ep.guests, wardrobe, label: `${ep.code} ${ep.title} ${i + 1}: ${scene.location}` }]),
@@ -252,7 +265,7 @@ describe('camera coverage on the current sets', () => {
 
   test('subway and elevator group coverage keeps people large enough in the picture', () => {
     for (const [location, minimumHeight] of [['subway', 0.25], ['elevator', 0.30]] as const) {
-      const scene = EPISODES.flatMap(ep => ep.scenes).find(s => s.location === location)!;
+      const scene = SCRIPTS.flatMap(ep => ep.scenes).find(s => s.location === location)!;
       stage.setLocation(location, 'day');
       for (const c of scene.cast) stage.place(c.character, c.mark);
       director.coverage(stage.castIds());

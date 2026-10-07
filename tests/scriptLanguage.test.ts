@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import * as THREE from 'three';
 import { testStage } from './helpers/sets';
-import { EPISODES } from './helpers/episodes';
+import { EPISODES, SCRIPTS } from './helpers/episodes';
 import { validateEpisode } from '../src/script/validate';
 import { Director } from '../src/show/director';
 import { Player } from '../src/show/player';
@@ -138,7 +138,7 @@ describe('validating the new beats', () => {
 describe('the episodes use the new devices', () => {
   const all = (beats: Beat[]): Beat[] => beats.flatMap((b) =>
     b.type === 'cutaway' ? [b, ...all(b.beats)] : b.type === 'montage' ? [b, ...b.shots.flatMap((s) => all(s.beats))] : [b]);
-  const beats = EPISODES.flatMap((ep) => ep.scenes.flatMap((s) => all(s.beats)));
+  const beats = SCRIPTS.flatMap((ep) => ep.scenes.flatMap((s) => all(s.beats)));
 
   test('every episode still validates', () => {
     for (const ep of EPISODES) expect(validateEpisode(ep, sets).errors, ep.code).toEqual([]);
@@ -152,8 +152,8 @@ describe('the episodes use the new devices', () => {
     expect(beats.some((b) => b.type === 'say' && b.chorus?.includes('penny'))).toBe(true);
     expect(beats.some((b) => (b.type === 'say' || b.type === 'insert') && b.react?.length)).toBe(true);
     expect(beats.some((b) => 'shot' in b && b.shot === 'push_in')).toBe(true);
-    expect(EPISODES.some((ep) => ep.wardrobe?.length)).toBe(true);
-    expect(EPISODES.some((ep) => ep.scenes.some((s) => s.wardrobe?.length))).toBe(true);
+    expect(SCRIPTS.some((ep) => ep.wardrobe?.length)).toBe(true);
+    expect(SCRIPTS.some((ep) => ep.scenes.some((s) => s.wardrobe?.length))).toBe(true);
   });
 
   test('every new gesture shows up somewhere', () => {
