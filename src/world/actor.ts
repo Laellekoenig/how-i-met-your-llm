@@ -51,6 +51,11 @@ class WaistMesh extends THREE.SkinnedMesh {
   }
 }
 const FLUSH = new THREE.Color('#d8443a');
+/** Gestures whose hands go to someone else: the torso turns into them, and the hand stays where an arm can go. */
+const REACHES: ReadonlySet<Motion> = new Set(['give', 'high_five', 'fist_bump', 'point', 'slap', 'cheers', 'hug', 'kiss']);
+/** How far round a reaching hand goes from straight ahead of its shoulder, in radians: across the chest, and out
+ * past the side. Beyond that a real arm can't follow, so the hand stops at the edge instead of swinging behind the back. */
+const REACH_ACROSS = 0.75, REACH_OUT = Math.PI / 2 + 0.15;
 const ARM = {
   hips: [1.07, -0.72, 0.98, -1.28],
   clasp: [0.22, -0.88, 0.33, -1.08],
@@ -1635,6 +1640,14 @@ export class Actor {
       else {
         const env = Math.min(1, gs.t / 0.22, (gs.dur - gs.t) / 0.25);
         this.applyGesture(gs.g, gs.t, u, env, target, gs.partner);
+        // Reaching for someone off to the side or behind, turn the shoulders into it (all a seated actor can do),
+        // and keep the head on them.
+        if (gs.target && REACHES.has(gs.g)) {
+          const to = gs.target.position, at = this.root.position;
+          const twist = clamp(angleDiff(this.facing, Math.atan2(to.x - at.x, to.z - at.z)), -1.6, 1.6) * 0.3 * env;
+          target.spine[1] += twist;
+          target.head[1] -= twist;
+        }
         const beats = GESTURE_BEATS[gs.g] ?? [0.45];
         while (this.gestureBeatsFired < beats.length && u > beats[this.gestureBeatsFired]) {
           this.gestureBeatsFired++;
@@ -1759,6 +1772,15 @@ export class Actor {
       p.y = raised ? Math.min(this.headWorld.y, other.headWorld.y) + 0.02
         : (this.headWorld.y + other.headWorld.y) * 0.5 - 0.27 * scale;
       return p;
+    };
+    // Swing a spine-space contact on someone else round the shoulder into the arm's range, keeping its height and
+    // distance; returns the turn, so the hand's orientation can follow it.
+    const inReach = (side: number, p: THREE.Vector3) => {
+      const sh = (side > 0 ? this.lSh : this.rSh).position;
+      const dx = (p.x - sh.x) * side, dz = p.z - sh.z, r = Math.hypot(dx, dz);
+      const a = Math.atan2(dx, dz), limited = clamp(a, -REACH_ACROSS, REACH_OUT);
+      p.x = sh.x + side * r * Math.sin(limited); p.z = sh.z + r * Math.cos(limited);
+      return new THREE.Quaternion().setFromAxisAngle(v(0, 1, 0), side * (limited - a));
     };
     const headPoint = (x: number, y: number, z: number) => this.spine.worldToLocal(this.head.localToWorld(v(x * this.headH, y * this.headH * (this.def.look.face?.long ?? 1), z * this.headH)));
     const palm = (side: number, position: THREE.Vector3, fingers: THREE.Vector3, normal: THREE.Vector3, weight = e, kind: HandShape = 'open', onHead = false) => {
@@ -1899,19 +1921,22 @@ export class Actor {
       const contact = g === 'slap' || g === 'point' ? partner.headWorld.clone() : pairPoint(raised);
       if (g === 'slap') contact.addScaledVector(toward, -0.075);
       else contact.addScaledVector(toward, g === 'fist_bump' ? -0.055 : -0.018);
-      const direction = toward.clone().applyQuaternion(spineQ.clone().invert());
+      const side = g === 'give' ? -1 : free;
+      const target = this.spine.worldToLocal(contact);
+      const direction = toward.clone().applyQuaternion(spineQ.clone().invert()).applyQuaternion(inReach(side, target));
       const up = v(0, 1, 0).applyQuaternion(spineQ.clone().invert());
       const normal = g === 'fist_bump' || g === 'point' || g === 'give' ? new THREE.Vector3().crossVectors(up, direction).multiplyScalar(-free) : direction;
       const weight = g === 'slap' ? e * smoothstep(0.15, 0.43, u) * (1 - smoothstep(0.6, 0.85, u)) : e;
-      palm(g === 'give' ? -1 : free, this.spine.worldToLocal(contact), raised ? up : direction, normal, weight,
+      palm(side, target, raised ? up : direction, normal, weight,
         g === 'fist_bump' ? 'fist' : g === 'point' ? 'point' : 'open');
     }
     if (partner && grip !== 'arms' && (g === 'hug' || g === 'kiss')) {
       const otherQ = partner.spine.getWorldQuaternion(new THREE.Quaternion());
       const intoSpine = spineQ.clone().invert().multiply(otherQ);
       for (const sd of busy ? [1] : [1, -1]) {
-        const contact = partner.spine.localToWorld(v(-sd * partner.lSh.position.x * 1.12, partner.shY0 - 0.11, g === 'hug' ? -0.075 : 0.015));
-        palm(sd, this.spine.worldToLocal(contact), v(0, -1, 0).applyQuaternion(intoSpine), v(sd, 0, g === 'hug' ? 0.5 : 0).normalize().applyQuaternion(intoSpine), e, 'relaxed');
+        const contact = this.spine.worldToLocal(partner.spine.localToWorld(v(-sd * partner.lSh.position.x * 1.12, partner.shY0 - 0.11, g === 'hug' ? -0.075 : 0.015)));
+        const turn = inReach(sd, contact);
+        palm(sd, contact, v(0, -1, 0).applyQuaternion(intoSpine).applyQuaternion(turn), v(sd, 0, g === 'hug' ? 0.5 : 0).normalize().applyQuaternion(intoSpine).applyQuaternion(turn), e, 'relaxed');
       }
     }
 
@@ -1949,6 +1974,7 @@ export class Actor {
         if (g === 'cheers') contact.addScaledVector(toward, -0.037);
         // Meet at the rim for a clink, at the grip for a handoff.
         const local = this.spine.worldToLocal(contact).sub(v(0, g === 'cheers' ? (kind === 'beer' ? 0.195 : 0.09) : 0, 0).applyQuaternion(q));
+        inReach(-1, local);
         pos.lerp(local, e);
       }
       if ((g === 'drink' || g === 'spit_take') && (kind === 'glass' || kind === 'beer')) {
