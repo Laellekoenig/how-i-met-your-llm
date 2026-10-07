@@ -7,7 +7,7 @@ import { KID_MARKS } from '../world/sets/future';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
-import { joinRoute, routeNodes } from './navigation';
+import { joinRoute, routeNodes, walkRoute } from './navigation';
 
 export interface FrozenScene {
   set: StageSet;
@@ -521,12 +521,14 @@ export class Stage {
     }
     this.occupy(id, name || null);
     this.actorNode.set(id, node);
-    if (curMark?.approach) pts.push(curMark.approach.clone());
-    pts.push(...route);
-    if (approach) pts.push(approach.clone());
-    pts.push(dest);
+    // Set off from where they are (finishing any corners still ahead only if nothing shorter is clear),
+    // stepping out of the seat they're leaving, and arrive by the mark's own approach.
+    const leaving = [a.position.clone(), ...pts, ...(curMark?.approach ? [curMark.approach.clone()] : [])];
+    const arriving = [...(approach ? [approach.clone()] : []), dest];
+    // Cars keep every seat on the way; on foot, cut across wherever the furniture allows.
+    const path = (!this.current.seated && walkRoute(this.current, leaving, fromNode, arriving, node)) || [...leaving, ...route, ...arriving];
     const m = this.current.marks[name];
-    return a.walk(joinRoute(pts), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop });
+    return a.walk(joinRoute(path).slice(1), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop });
   }
 
   /** The free seat closest to someone (for sliding over to them in a car). */
