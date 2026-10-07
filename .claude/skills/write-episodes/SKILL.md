@@ -27,8 +27,9 @@ about twice as many as you need and keep the strongest and most varied set. Vary
 the sets, the guest stars and the kind of comic engine (a scheme, a rule, a bet, a secret, a misunderstanding).
 Favor characters and sets the catalog has used least. Assign consecutive codes starting at the next free one.
 Read the openings and endings of a few recent episodes. For each pitch, choose an opening image/first speaker,
-where (if anywhere) the kids interrupt, and an ending device. Compare these across the batch: vary repeated
-defaults without a quota or rotation. A couch-free episode and an episode with only a middle couch interruption
+where (if anywhere) the kids interrupt, and an ending device. Keep the opening short: everything before the
+main titles is a quick hook of roughly 3-8 lines (never more than 10) that ends on a button, and the setup
+continues after the titles. Compare these across the batch: vary repeated defaults without a quota or rotation. A couch-free episode and an episode with only a middle couch interruption
 are both valid; Future Ted's voice-over does not require showing the kids.
 
 ## 2. Writers' room
@@ -50,9 +51,11 @@ When the writers report back:
    explained away, and an earned ending (dialogue, visual payoff, kids or narration). Cues, cards and looks should
    be choices, not decoration; the laugh track should be restrained (no cheering, rare `aww`/`ooh`/`gasp`).
    Check scene length (`read` prints each scene's line count): most scenes 5-20 lines, none over 25; send long
-   ones back to be cut or split by intercutting. Check that the opening hooks us, that every couch visit has a story trigger, and that narration adds something
-   beyond what we just saw. Compare the batch's first images and last beats; don't accept identical framing with
-   different nouns. Check music coverage as well: most dialogue should be unscored, each cue needs a purpose
+   ones back to be cut or split by intercutting. Check that the opening hooks us and gets to the titles fast:
+   the pre-titles material (`coldOpen` + `couch`, or `scenes[0]` in a story opening) should be about 3-8 lines
+   and never over 10; send longer ones back to be trimmed or to move the setup after the titles. Check that
+   every couch visit has a story trigger, and that narration adds something beyond what we just saw. Compare the
+   batch's first images and last beats; don't accept identical framing with different nouns. Check music coverage as well: most dialogue should be unscored, each cue needs a purpose
    and an exit, and music must not leak through scene/cutaway returns or resume unexpectedly after a montage.
    Cut routine tender endings, scene-long mood beds and decorative stings; compare the batch for repeated music
    habits without imposing a cue quota. If an episode falls short,

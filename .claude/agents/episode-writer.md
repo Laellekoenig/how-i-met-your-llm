@@ -52,6 +52,9 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   story, a glimpse of the outcome before a rewind, or a couch exchange. Name the first image and first speaker.
   Do not default to a "Kids, ..." setup. For a story opening, omit `coldOpen` and `couch`; `scenes[0]` plays before
   the titles. For a couch opening, use `coldOpen` and/or `couch`; the latter can start with a kid's question.
+  Keep it short and get to the titles fast: the pre-titles material is a hook, not the first act. Aim for 3-8
+  lines and never more than 10, ending on a button. Land the premise (or a tease of it) and cut; the setup,
+  introductions and exposition belong after the titles, in `scenes[1]` onward.
 - **The frame**: decide whether the kids appear at all, and why each visit belongs at that exact beat. They can
   interrupt in the middle or supply a final reaction without appearing at the start. Put those visits in the
   scene's beats, not the top-level `couch`. Future Ted's ordinary `narrate` beats play over the story; his answer
@@ -137,6 +140,7 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
    - Check that every scene ends where it should (a button, or a deliberate quiet ending), the runner pays off,
      and the heart lands without being explained.
    - Check the opening image and title boundary. Is this the right entry for this premise, or copied scaffolding?
+     Count the lines before the main titles: over 8 needs a reason and over 10 gets cut or moved after the titles.
    - For every couch visit, identify the exact setup it reacts to or the new information it prompts. Cut filler.
    - Check that the ending lands without a compulsory Future Ted summary; remove narration that repeats the action.
    - Check every cue, card, look and score you added earns its place; remove any that only announce the obvious.
@@ -155,5 +159,5 @@ around it and mention it in your report.
 
 ## 6. Report back
 
-Reply briefly: the file path, code, title, logline, opening choice and couch placement, one line per scene with its line count, the guest stars, your favorite joke,
+Reply briefly: the file path, code, title, logline, opening choice (with its pre-titles line count) and couch placement, one line per scene with its line count, the guest stars, your favorite joke,
 the continuity you recorded, and any warnings you deliberately left in, with the reason.
