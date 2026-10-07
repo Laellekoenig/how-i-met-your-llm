@@ -1,0 +1,409 @@
+{
+  "code": "S11E03",
+  "title": "The Dad Discount",
+  "logline": "Mickey Aldrin's fifty-second board game is Pick-Up, a race across New York to collect your kid from school, and Marshall, who can't say no to anyone's dream, secretly bankrolls it with Lily's studio fund. Lily, who takes a hundred percent off anything her father promises, finds out from the IOU.",
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Dot",
+      "role": "Owner of Dot's Games and Melons on Amsterdam for thirty years; has rejected all fifty-one of Mickey's games and keeps every one of them in a binder she reads aloud like scripture",
+      "gender": "female",
+      "height": "tall",
+      "build": "broad",
+      "skin": "light",
+      "hair": "gray",
+      "hairStyle": "bob",
+      "topStyle": "cardigan",
+      "top": "mustard",
+      "under": "cream",
+      "pants": "brown",
+      "extras": ["glasses", "apron"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    },
+    {
+      "id": "guest2",
+      "name": "Renee",
+      "role": "A frazzled single mom who runs in for a birthday present while late for her own son's school pickup, and becomes the first person in history to buy a Mickey Aldrin game",
+      "gender": "female",
+      "height": "average",
+      "build": "slim",
+      "skin": "brown",
+      "hair": "black",
+      "hairStyle": "curly",
+      "topStyle": "blazer",
+      "top": "navy",
+      "under": "white",
+      "pants": "charcoal",
+      "extras": ["earrings"],
+      "voice": { "pitch": "medium", "pace": "fast" }
+    }
+  ],
+  "continuity": {
+    "era": "spring 2010",
+    "facts": {
+      "lily.job": "kindergarten teacher; waits with the last kid at pickup and deals them in",
+      "lily.childhood": "last kid at the school gate for six years; a crossing guard taught her gin rummy",
+      "lily.dad_rule": "the Dad Discount: 100% off Mickey's promises (once gave him 90% off)",
+      "mickey.games": "52 invented; Pick-Up, whose board loops to the dog track, is the only one sold",
+      "mickey.wednesdays": "came to Lily's school every Wednesday that year; lost every gin rummy hand",
+      "lily.studio": "Marshall gave her $1,500 studio fund to Mickey; his rummy losses paid it back",
+      "marshall.slap_bet": "refused Barney's $2,000 to buy back one slap; slap count unchanged",
+      "mickey.store": "Dot's Games and Melons on Amsterdam; Dot rejected his other 51 games"
+    },
+    "opens": [
+      { "id": "pick-up-two", "note": "Mickey has a sequel idea, Pick-Up Two: Detention; Marshall said no" },
+      { "id": "renee-number", "note": "Barney has Renee's number from the Pick-Up sale; she said to call after eight" }
+    ]
+  },
+  "scenes": [
+    {
+      "location": "apartment",
+      "time": "day",
+      "transition": "exterior",
+      "summary": "Cold open. Mickey pitches Pick-Up to Marshall: a race across New York to get your kid before the school closes, with suspiciously specific obstacle cards. He needs $1,500. Marshall caves and hands over the envelope marked Lily's studio fund, P.S. included. Mickey asks when he has ever let his little girl down; Marshall earnestly starts to list.",
+      "cast": [{ "character": "mickey", "mark": "center" }, { "character": "marshall", "mark": "couch_center" }],
+      "beats": [
+        { "type": "narrate", "line": "Lily's father, Mickey Aldrin, had invented fifty-one board games and sold exactly zero.", "laugh": "chuckle" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Marshall. It's 3:14. School lets out at 3:15. And you are stuck on the wrong side of Queens.", "emotion": "excited", "gesture": "point" },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "Oh, no. Queens? Where every street is called Thirty-Seventh something?", "emotion": "scared", "laugh": "chuckle" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Doesn't matter. Your kid is waiting. This is Pick-Up. The after-school race across New York." },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "I'm sweating, Mickey. I don't even have a kid, and I'm sweating.", "emotion": "excited", "laugh": "chuckle" },
+        { "type": "hold", "character": "mickey", "prop": "book" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Every turn, you draw a card. Your car gets towed from the dog track. Again.", "laugh": "chuckle" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "You stop for one quick beer with Gary. It is now Tuesday.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "Who are these dads?", "emotion": "confused" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Ordinary dads, Marshall.", "laugh": "laugh" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "All I need is fifteen hundred dollars for two hundred copies. Dot's Games gives me a launch Saturday." },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "Mickey, I'd love to. But the only money we have is Lily's—", "interrupted": true },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "I'm not asking Lily, son. I'm asking the one guy in this family who still believes in me.", "emotion": "sad" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "move", "character": "marshall", "to": "desk" },
+        { "type": "hold", "character": "marshall", "prop": "envelope" },
+        { "type": "give", "character": "marshall", "to": "mickey", "prop": "envelope" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Lily's studio fund. Do not touch. This means you, Marshall." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "P.S. I mean it, Marshmallow.", "laugh": "laugh", "react": [{ "character": "marshall", "gesture": "head_in_hands" }] },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Relax. When have I ever let my little girl down?", "emotion": "happy" },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "Well, there was her eighth birthday, and then the Christmas with the—", "interrupted": true },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Rhetorical! Saturday, three o'clock!", "gesture": "wave", "laugh": "laugh" },
+        { "type": "exit", "character": "mickey" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The booth. Lily announces the new game and introduces the Dad Discount (runner 1). Barney briefly loves a game called Pick-Up. Lily was the last kid at the gate for six years; now she's the teacher who waits with the last kid, and hustles them at gin rummy. Marshall, carrying the secret, sweats.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_front" },
+        { "character": "barney", "mark": "booth_right_back" }
+      ],
+      "beats": [
+        { "type": "say", "character": "lily", "to": "robin", "line": "My dad has a new game called Pick-Up. And this time, quote, it's going in stores." },
+        { "type": "say", "character": "lily", "to": "ted", "line": "So I did what I always do. I applied the Dad Discount. Whatever he promises, a hundred percent off." },
+        { "type": "say", "character": "lily", "to": "ted", "line": "I'll be at your recital, Pumpkin. Hundred percent off. You can't be disappointed by zero. It's very freeing.", "emotion": "happy" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "That's the saddest coupon I've ever heard.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Back up. A board game called Pick-Up? Lily, I have badly misjudged your father.", "emotion": "excited", "gesture": "fist_pump", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "It's about after-school pickup. You race across the city to get your kid." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Why would anyone race toward a child?", "emotion": "disgusted", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Which is hilarious, because he never picked me up once. I was the last kid at that gate for six years." },
+        { "type": "say", "character": "lily", "to": "ted", "line": "The crossing guard taught me gin rummy. By fifth grade I was taking the janitor for twelve bucks a week.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Now I'm the teacher who waits with whoever's last. I deal them in." },
+        { "type": "say", "character": "robin", "to": "lily", "line": "You hustle five-year-olds?", "emotion": "suspicious" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "I let them win till they're six.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "But what if this time, hypothetically, somebody believed in him? With money?", "delivery": "fast", "emotion": "nervous" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Marshall, why are you sweating?", "emotion": "suspicious" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Wings." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "We didn't order wings." },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "That's how hot they are.", "emotion": "scared", "laugh": "laugh" }
+      ]
+    },
+    {
+      "id": "playtest",
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The playtest. Robin plays to win, Barney finds the divorcee card, Ted asks why the kid piece holds a paintbrush. Mickey promises Lily the studio he is literally spending; Lily applies the Dad Discount (runner 2). Mickey nearly thanks his executive producer, Mar-; Marshall turns it into Marvelous Ted.",
+      "cast": [
+        { "character": "mickey", "mark": "woven_chair" },
+        { "character": "ted", "mark": "couch_left" },
+        { "character": "robin", "mark": "couch_center" },
+        { "character": "barney", "mark": "couch_right" },
+        { "character": "marshall", "mark": "armchair" },
+        { "character": "lily", "mark": "dining_chair_1" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "ted", "prop": "book" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted. Roll the dice, or I roll you.", "emotion": "angry", "laugh": "chuckle" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "I'm reading the rules, Robin. Somebody should read the rules." },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Nobody in Canada reads the rules. Board games are how we survive February.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "mickey", "to": "barney", "line": "Barney, draw a card." },
+        { "type": "say", "character": "barney", "to": "mickey", "line": "Your ex-wife is waiting at the curb. She looks furious." },
+        { "type": "say", "character": "barney", "to": "mickey", "line": "Now we're talking. Is she single?", "emotion": "flirty" },
+        { "type": "say", "character": "mickey", "to": "barney", "line": "She's divorced." },
+        { "type": "say", "character": "barney", "to": "mickey", "line": "Even better.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "mickey", "line": "Mickey, why is the little girl piece holding a paintbrush?", "emotion": "confused" },
+        { "type": "say", "character": "mickey", "to": "ted", "line": "Kids like to paint.", "react": [{ "character": "lily", "emotion": "sad" }] },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Pumpkin, come play! When this hits, I'm buying you that art studio you always wanted.", "emotion": "happy", "react": [{ "character": "marshall", "gesture": "jaw_drop" }] },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Hundred percent off.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "What's that mean?", "emotion": "confused" },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "It's a teacher thing. Like a gold star, but for dads.", "delivery": "fast", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "mickey", "to": "ted", "line": "And none of this happens without my executive producer, Mar—", "interrupted": true, "emotion": "proud" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Velous Ted! Marvelous, marvelous Ted.", "delivery": "shout", "emotion": "nervous", "gesture": "point", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Ted's producing?", "emotion": "suspicious" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Well, a board game is just architecture you can fold.", "emotion": "nervous", "laugh": "laugh" }
+      ]
+    },
+    {
+      "resume": "playtest",
+      "summary": "Three hours later. Ted has mapped the board: no road reaches the school, every road leads back to the dog track. Lily: that tracks. She says goodnight. Mickey, quietly: it's a prototype.",
+      "beats": [
+        { "type": "narrate", "line": "Three hours later, nobody was any closer to that school." },
+        { "type": "say", "character": "robin", "to": "mickey", "line": "I have passed the dog track eleven times, Mickey!", "delivery": "shout", "emotion": "angry" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Same. Pretty sure I own a greyhound now.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "act", "character": "ted", "gesture": "stand" },
+        { "type": "say", "character": "ted", "to": "mickey", "line": "Because nobody can win. I've mapped every route on this board. Not one of them reaches the school." },
+        { "type": "say", "character": "mickey", "to": "ted", "line": "Sure they do. Past the bowling alley, through the bar, and then—", "interrupted": true, "emotion": "confused" },
+        { "type": "say", "character": "ted", "to": "mickey", "line": "And then back to the dog track. Every road leads to the dog track." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "It's a perfect closed loop. Like an Escher staircase, but for gambling.", "emotion": "excited", "laugh": "chuckle" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Yeah. That tracks.", "delivery": "deadpan", "laugh": "laugh", "react": [{ "character": "mickey", "emotion": "sad" }] },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "act", "character": "lily", "gesture": "stand" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Night, Dad." },
+        { "type": "move", "character": "lily", "to": "bedroom_marshall" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "It's a prototype.", "emotion": "sad" }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Mickey has gone, Lily is in the bedroom. Ted, Robin and Barney corner Marshall over Marvelous Ted. He confesses: $1,500, from the studio envelope. He'll replace it by fall. Lily, offscreen: the landlord called, she got the studio, deposit tomorrow. Freeze on Marshall.",
+      "cast": [
+        { "character": "ted", "mark": "center" },
+        { "character": "robin", "mark": "couch_center" },
+        { "character": "barney", "mark": "couch_right" },
+        { "character": "marshall", "mark": "armchair" }
+      ],
+      "beats": [
+        { "type": "say", "character": "ted", "to": "marshall", "line": "Marvelous Ted?", "emotion": "suspicious" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "I invested in Pick-Up.", "delivery": "whisper", "gesture": "head_in_hands", "react": [{ "character": "ted", "gesture": "jaw_drop" }, { "character": "robin", "emotion": "surprised" }, { "character": "barney", "emotion": "excited" }] },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Marshall. That is the most irresponsible thing you've ever done. I've never been prouder.", "emotion": "proud", "gesture": "slow_clap", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "How much?" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Fifteen hundred. From the envelope.", "delivery": "whisper" },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "The studio envelope?", "emotion": "scared", "chorus": ["robin"] },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "You're dead. They're never going to find all of you.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "It's fine. She's not looking at studios till fall. I'll have it back by then.", "emotion": "nervous" },
+        { "type": "say", "character": "lily", "line": "Marshall! The landlord called back! I got the studio! I'm putting the deposit down tomorrow!", "delivery": "shout", "emotion": "excited", "offscreen": "voice" },
+        { "type": "freeze", "character": "marshall", "line": "Marshall had fourteen hours to find fifteen hundred dollars.", "emotion": "scared", "gesture": "jaw_drop", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "barneys_office",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Marshall asks Barney for $1,500 by lunch. Barney will pay it, for one slap. Then two thousand. Marshall refuses: some things are more important than money. Like your marriage? Sure. Let's say marriage.",
+      "cast": [{ "character": "barney", "mark": "desk_chair" }, { "character": "marshall", "mark": "guest_chair_left" }],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney, I need fifteen hundred dollars by lunch. No questions.", "emotion": "nervous" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Done." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Really?", "emotion": "happy" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "In exchange for one slap. Fifteen hundred, cash, and that slap goes away forever.", "emotion": "smug" },
+        { "type": "act", "character": "marshall", "emotion": "angry", "gesture": "stand" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney, a slap is not a commodity. It's a sacred trust between a man and your face.", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Two thousand." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Make it three thousand, and you can—", "interrupted": true, "gesture": "think" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Done!", "emotion": "excited", "gesture": "fist_pump" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "No! Some things are more important than money.", "delivery": "shout", "emotion": "proud", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Like your marriage?" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Sure. Let's say marriage.", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Lily opens the studio envelope: an IOU from Dad, with a P.S. Don't be mad at Marshall. Marshall walks in cheerfully. The fight: the hopeful eyebrows, her name on the box. Lily won't watch for him at a gate again, not even a game store gate. She leaves. Quiet ending.",
+      "cast": [{ "character": "lily", "mark": "fireplace" }],
+      "beats": [
+        { "type": "hold", "character": "lily", "prop": "envelope" },
+        { "type": "say", "character": "lily", "line": "I've got a studio, with a window and a sink.", "delivery": "sing", "emotion": "happy" },
+        { "type": "say", "character": "lily", "line": "I owe you fifteen hundred dollars. Love, Dad.", "emotion": "confused" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "lily", "line": "P.S. Don't be mad at Marshall.", "delivery": "deadpan", "laugh": "big" },
+        { "type": "enter", "character": "marshall", "to": "center" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Hey, Lilypad! You haven't opened your envelope yet, right?", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "You gave my studio to my father.", "emotion": "angry" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "I gave your studio to a dream." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "That's worse! His dreams are where money goes to die!", "delivery": "shout", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "He had the eyebrows, Lily. The hopeful eyebrows.", "emotion": "sad" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "I know the eyebrows! I've been saying no to those eyebrows since I had teeth!", "emotion": "angry", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "He said he wants you to see your name on the box." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Don't.", "emotion": "sad" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, maybe this time—", "interrupted": true },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "I watched a school gate for six years, waiting for him to come around the corner." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "I'm not doing it again at a game store.", "emotion": "sad" },
+        { "type": "exit", "character": "lily" },
+        { "type": "pause", "seconds": 2 }
+      ]
+    },
+    {
+      "id": "launch",
+      "location": "store",
+      "time": "day",
+      "transition": "exterior",
+      "label": "Saturday, 3:02 PM",
+      "summary": "The launch at Dot's Games and Melons. Dot reads from her binder of rejected Mickey games. The door chimes: Mickey hopes it's Lily; it's Barney (doorbell runner 1). Mickey insists she's just running late. Robin, who sees him watching the door, steps away from the game and calls Lily: the duck. He looks at the door every time the bell rings.",
+      "cast": [
+        { "character": "guest1", "mark": "cashier" },
+        { "character": "mickey", "mark": "display" },
+        { "character": "robin", "mark": "center" },
+        { "character": "ted", "mark": "produce" },
+        { "character": "marshall", "mark": "shelves" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "guest1", "prop": "book" },
+        { "type": "say", "character": "guest1", "to": "mickey", "line": "Fifty-one games, Mickey. I've turned down every one. I keep them in a binder.", "delivery": "deadpan" },
+        { "type": "say", "character": "guest1", "to": "mickey", "line": "Number twelve. Chutes and Lawsuits.", "laugh": "chuckle" },
+        { "type": "say", "character": "guest1", "to": "mickey", "line": "Number thirty-eight. Sorry, Pumpkin. Like Sorry, but every card is an excuse.", "laugh": "laugh", "react": [{ "character": "marshall", "emotion": "sad" }] },
+        { "type": "say", "character": "mickey", "to": "guest1", "line": "Thirty-eight was ahead of its time.", "emotion": "proud", "laugh": "chuckle" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Can I ask why a game store sells cantaloupe?", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Cantaloupe pays the rent. Games are my heartbreak.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "enter", "character": "barney", "to": "queue" },
+        { "type": "say", "character": "mickey", "to": "barney", "line": "Pumpkin?", "emotion": "happy" },
+        { "type": "say", "character": "barney", "to": "mickey", "line": "Close. Better dressed.", "gesture": "suit_up", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "Mickey, I don't think she's coming.", "emotion": "sad" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "She'll come. She's just running late." },
+        { "type": "move", "character": "robin", "to": "drinks" },
+        {
+          "type": "split",
+          "panels": [
+            { "location": "store", "time": "day", "cast": [{ "character": "robin", "mark": "drinks" }] },
+            { "location": "apartment", "time": "day", "cast": [{ "character": "lily", "mark": "couch_center" }] }
+          ],
+          "beats": [
+            { "type": "say", "character": "robin", "to": "lily", "line": "Hey. Before you hang up, he didn't ask me to call.", "gesture": "phone_call" },
+            { "type": "say", "character": "lily", "to": "robin", "line": "Robin, if this is about my dad—", "interrupted": true, "gesture": "phone_call" },
+            { "type": "say", "character": "robin", "to": "lily", "line": "When I was eleven, my dad skipped my hockey final to go duck hunting. He sent me the duck." },
+            { "type": "say", "character": "lily", "to": "robin", "line": "A picture of the duck?" },
+            { "type": "say", "character": "robin", "to": "lily", "line": "The duck, Lily.", "delivery": "deadpan", "laugh": "laugh" },
+            { "type": "say", "character": "robin", "to": "lily", "line": "I'm not telling you to come. I'm just telling you, every time that bell rings, he looks at the door." },
+            { "type": "pause", "seconds": 2 },
+            { "type": "say", "character": "lily", "to": "robin", "line": "Bye, Robin.", "emotion": "sad" }
+          ]
+        }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Lily alone with the IOU. She puts it down, stands, and goes. No lines.",
+      "cast": [{ "character": "lily", "mark": "couch_center" }],
+      "beats": [
+        { "type": "hold", "character": "lily", "prop": "envelope" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "hold", "character": "lily", "prop": "none" },
+        { "type": "act", "character": "lily", "gesture": "stand" },
+        { "type": "exit", "character": "lily" }
+      ]
+    },
+    {
+      "resume": "launch",
+      "label": "3:31 PM",
+      "summary": "The bell: Mickey says Lily; it's Renee (doorbell runner 2), late for her son's pickup and in need of a present. Barney sells her Pick-Up: in this game, being late is the dog track's fault. Mickey's first sale in fifty-two games. Renee leaves Barney her number. It is a dating game.",
+      "beats": [
+        { "type": "enter", "character": "guest2", "to": "checkout" },
+        { "type": "say", "character": "mickey", "to": "guest2", "line": "Lily!", "emotion": "happy" },
+        { "type": "say", "character": "guest2", "to": "mickey", "line": "Renee.", "emotion": "confused", "laugh": "chuckle", "react": [{ "character": "mickey", "emotion": "sad" }] },
+        { "type": "say", "character": "guest2", "to": "guest1", "line": "I need a present for an eight-year-old, and I have to be at his school in fourteen minutes.", "delivery": "fast", "emotion": "nervous" },
+        { "type": "move", "character": "barney", "to": "guest2" },
+        { "type": "say", "character": "barney", "to": "guest2", "line": "Ma'am. Have you ever played Pick-Up?", "emotion": "flirty" },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "Every day at a quarter to four. I'm losing right now.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "guest2", "line": "Then you'll love this. In this game, being late is never your fault." },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "Whose fault is it?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "guest2", "line": "Ma'am, it's always the dog track.", "gesture": "lean_in", "laugh": "chuckle" },
+        { "type": "say", "character": "guest2", "to": "guest1", "line": "Sold. Can you wrap it?", "emotion": "happy" },
+        { "type": "hold", "character": "mickey", "prop": "gift" },
+        { "type": "give", "character": "mickey", "to": "guest2", "prop": "gift" },
+        { "type": "say", "character": "mickey", "to": "guest2", "line": "Fifty-two games. You're my first sale.", "emotion": "crying" },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "Here's my number. Call after eight. Before eight, I'm a mom." },
+        { "type": "exit", "character": "guest2" },
+        { "type": "say", "character": "barney", "to": "mickey", "line": "Mickey. It is a dating game.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "mickey", "to": "barney", "line": "I knew it'd find its audience.", "emotion": "proud", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "resume": "launch",
+      "label": "3:40 PM",
+      "summary": "The bell again. This time Mickey doesn't turn. It's Lily. She stood across the street for twenty minutes. Every time the bell rang: it's the worst, right? Mickey admits he came to her school once, at 3:40, saw her painting the sidewalk with puddle water, and kept driving. I wasn't fine. He knows; he figured it out around 3:15. Thursday, 3:15, he'll be there: do the discount. Ninety percent off (runner twist).",
+      "beats": [
+        { "type": "enter", "character": "lily", "to": "center" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Hey, Dad." },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Pumpkin. You came.", "emotion": "surprised" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "I'm late." },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Forty minutes. Not that I was counting.", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "I stood across the street for twenty of them." },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Every time that bell rang, I thought—", "interrupted": true, "emotion": "sad" },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Yeah. It's the worst, right?" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "It's the worst." },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "I came once, you know. To your school. About 3:40." },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "You did not.", "emotion": "surprised" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "You were painting the sidewalk with puddle water. You looked fine. So I kept driving." },
+        { "type": "pause", "seconds": 2.5 },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "I wasn't fine.", "emotion": "sad", "shot": "closeup" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "I know. I figured it out today. Around 3:15.", "emotion": "sad" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Thursday. 3:15. I'll be at your school. Go ahead. Do the discount." },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "lily", "to": "mickey", "line": "Ninety percent off.", "shot": "push_in" },
+        { "type": "say", "character": "mickey", "to": "lily", "line": "Ninety! I'm up ten!", "emotion": "excited", "gesture": "fist_pump", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "Ted. That's practically retail.", "delivery": "whisper", "emotion": "crying", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "store",
+      "time": "night",
+      "transition": "cut",
+      "label": "9:48 PM",
+      "summary": "Hours after closing, all seven are still playing an unwinnable game. Robin won't let anyone leave until someone reaches the school. Mickey pitches a sequel; Marshall says no; Lily kisses him. The kids: did he show up Thursday? Wednesday. Lily was there anyway, waiting with somebody's kid, so Mickey waited too. He came every Wednesday that year, never won a hand, and that's how Lily got her studio.",
+      "cast": [
+        { "character": "guest1", "mark": "cashier" },
+        { "character": "mickey", "mark": "display" },
+        { "character": "lily", "mark": "center" },
+        { "character": "marshall", "mark": "shelves" },
+        { "character": "robin", "mark": "produce" },
+        { "character": "ted", "mark": "queue" },
+        { "character": "barney", "mark": "drinks" }
+      ],
+      "beats": [
+        { "type": "say", "character": "guest1", "to": "mickey", "line": "Mickey. I closed four hours ago.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Nobody leaves until somebody reaches that school.", "emotion": "angry" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Robin, I've proven it's impossible. I drew you a diagram.", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "It's after eight. I have a call to make.", "emotion": "smug", "laugh": "chuckle" },
+        { "type": "say", "character": "mickey", "to": "marshall", "line": "Marshall. Sequel idea. Pick-Up Two: Detention.", "emotion": "excited" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "marshall", "to": "mickey", "line": "No.", "laugh": "laugh", "react": [{ "character": "lily", "emotion": "proud" }] },
+        { "type": "act", "character": "lily", "to": "marshall", "gesture": "kiss" },
+        { "type": "say", "character": "penny", "line": "So did he actually show up on Thursday?" },
+        { "type": "narrate", "line": "He showed up Wednesday.", "laugh": "chuckle" },
+        { "type": "say", "character": "luke", "line": "So she should've stuck with a hundred percent.", "delivery": "deadpan" },
+        { "type": "narrate", "line": "Lily was there anyway. Somebody's dad is always late, and she always waits with the kid. So Mickey waited too." },
+        { "type": "say", "character": "penny", "line": "Did he ever win a hand?" },
+        { "type": "narrate", "line": "Not once. A dollar a hand, every Wednesday for a year. That's how Lily got her studio.", "laugh": "laugh" }
+      ]
+    }
+  ]
+}

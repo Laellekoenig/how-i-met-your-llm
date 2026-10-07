@@ -1,0 +1,392 @@
+{
+  "code": "S11E02",
+  "title": "The Zed Test",
+  "logline": "When a smug Canadian content auditor at the Hoser Hut rates Robin thirty-one percent Canadian, she demands a three-round appeal, and the only thing that can pass her is the song he once scored a perfect hundred: a Robin Sparkles mall hit she has spent years burying, and Barney has just figured out.",
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Wendell Thibodeau",
+      "role": "A Canadian content auditor for national radio from Thunder Bay, in New York for a broadcasting conference. Precise, smug and gently devastating, he scores everyone out loud as a percentage of Canadian, and has awarded exactly one perfect score in twenty-two years.",
+      "gender": "male",
+      "height": "tall",
+      "build": "slim",
+      "skin": "fair",
+      "hair": "gray",
+      "hairStyle": "neat",
+      "topStyle": "cardigan",
+      "top": "burgundy",
+      "under": "white",
+      "pants": "tan",
+      "extras": ["glasses", "mustache"],
+      "voice": { "pitch": "medium", "pace": "slow" }
+    },
+    {
+      "id": "guest2",
+      "name": "Moira",
+      "role": "The Hoser Hut bartender, a retired goalie from Newfoundland who uses the word sorry as a threat.",
+      "gender": "female",
+      "height": "tall",
+      "build": "broad",
+      "skin": "light",
+      "hair": "red",
+      "hairStyle": "ponytail",
+      "topStyle": "flannel",
+      "top": "red",
+      "pants": "denim",
+      "voice": { "pitch": "low", "pace": "normal" },
+      "extras": []
+    }
+  ],
+  "wardrobe": [{ "character": "robin", "topStyle": "sweater", "top": "red" }],
+  "continuity": {
+    "era": "winter 2010",
+    "facts": {
+      "robin.sparkles_song": "From A to Zed, a 1990 Robin Sparkles mall-tour single",
+      "robin.sparkles_score": "From A to Zed got Wendell Thibodeau's only perfect content score",
+      "robin.canadian_audit": "Wendell rates her one hundred percent Canadian after singing it live",
+      "robin.hoser_hut": "Bartender Moira, a retired Newfoundland goalie, says sorry as a threat",
+      "marshall.canadian_pin": "Has Wendell's fifty-percent pin; learned the provinces from A to Zed",
+      "barney.canadian_score": "two percent",
+      "barney.sparkles_kit": "Kept a Sparkles denim jacket in his briefcase; gave it to Robin"
+    },
+    "opens": [
+      { "id": "hoser-hut-video", "note": "Barney filmed Robin's live Hoser Hut performance of From A to Zed on his phone" },
+      { "id": "marshall-mudroom", "note": "Lily vowed Marshall would sleep in 'the mudroom' if he got Wendell's pin; he got the pin" }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "the-mic",
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The outcome first: Robin at the Hoser Hut karaoke mic in a denim jacket and curls, the gang and a bar full of Canadians watching, Barney filming. Future Ted holds the reveal.",
+      "wardrobe": [{ "character": "robin", "topStyle": "leather", "top": "denim", "under": "pink", "pants": "denim", "hairStyle": "curly", "extras": ["headband"] }],
+      "cast": [
+        { "character": "robin", "mark": "karaoke" },
+        { "character": "guest1", "mark": "patron_left" },
+        { "character": "guest2", "mark": "bartender" },
+        { "character": "marshall", "mark": "table_left" },
+        { "character": "lily", "mark": "table_right" },
+        { "character": "ted", "mark": "bar_stool" },
+        { "character": "barney", "mark": "bar_friend" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "robin", "prop": "microphone" },
+        { "type": "hold", "character": "barney", "prop": "phone" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Hi. Some of you may remember me from a mall.", "emotion": "nervous", "laugh": "chuckle", "shot": "push_in" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ted. If I faint, keep filming.", "delivery": "whisper", "emotion": "excited", "gesture": "lean_in", "laugh": "laugh" },
+        { "type": "narrate", "line": "That's your Aunt Robin, in a jacket we're still not allowed to mention, about to do the one thing she swore she'd never do again." }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "rewind",
+      "summary": "Three hours earlier. Robin brings the gang to the Hoser Hut, insults Minnesota, orders by pointing, and promises Canada 'from A to zee'. Wendell corrects her, introduces himself and audits her at thirty-one percent.",
+      "cast": [
+        { "character": "robin", "mark": "friend" },
+        { "character": "marshall", "mark": "table_left" },
+        { "character": "lily", "mark": "table_right" },
+        { "character": "ted", "mark": "patron_left" },
+        { "character": "guest1", "mark": "bar_stool" },
+        { "character": "guest2", "mark": "bartender" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "Three hours earlier, your Aunt Robin was officially declared not Canadian." },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin, I'm from Minnesota. I'm basically Canadian already.", "emotion": "proud", "gesture": "hands_on_hips" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Minnesota is Canada's mudroom.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "act", "character": "robin", "to": "guest2", "gesture": "point" },
+        { "type": "say", "character": "guest2", "to": "robin", "line": "Sorry?", "delivery": "deadpan", "emotion": "angry", "shot": "closeup" },
+        { "type": "say", "character": "robin", "to": "guest2", "line": "A pint of the red. Please. Ma'am.", "delivery": "fast", "emotion": "scared", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Stick with me tonight. I'm going to show you guys Canada from A to zee.", "emotion": "proud" },
+        { "type": "say", "character": "guest1", "line": "Zed.", "delivery": "deadpan" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "A to zed. You said zee." },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "I did not say zee.", "emotion": "angry" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "You just said it again.", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "He's right, actually. Zed is the older form. Zee is basically a colonial—", "interrupted": true, "gesture": "point" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted.", "delivery": "deadpan" },
+        { "type": "move", "character": "guest1", "to": "robin" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Wendell Thibodeau, Thunder Bay. I audit Canadian content for national radio. I decide what counts." },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Born in Vancouver, plus. Hockey sweater, plus." },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Says zee. Orders beer by pointing, like a cowboy. New York has sanded you right down." },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Thirty-one percent." },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Thirty-one percent what?", "emotion": "confused" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Canadian. I couldn't legally put you on the radio.", "laugh": "laugh", "react": [{ "character": "robin", "gesture": "jaw_drop" }] }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Wendell audits the rest: Marshall forty-four, Ted thirty-six, Barney zero. Barney's briefcase is set up. Robin appeals; Wendell sets three rounds and mentions the fifty-percent pin. Robin steals Barney's catchphrase and loses two more points.",
+      "cast": [
+        { "character": "robin", "mark": "table_left" },
+        { "character": "guest1", "mark": "friend" },
+        { "character": "marshall", "mark": "patron_left" },
+        { "character": "lily", "mark": "patron_right" },
+        { "character": "ted", "mark": "bar_stool" },
+        { "character": "guest2", "mark": "bartender" }
+      ],
+      "beats": [
+        { "type": "narrate", "line": "By nine o'clock, Wendell had audited the whole table." },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Minnesota. Owns a snowmobile. Apologized to his stool when he sat on it. Forty-four percent." },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lily! I'm thirteen points more Canadian than Robin!", "emotion": "excited", "gesture": "fist_pump", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Thirty-six. You apologize constantly, but only while correcting people." },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "That's fair. Sorry. Although, technically—", "gesture": "point", "laugh": "chuckle" },
+        { "type": "enter", "character": "barney", "to": "bar_friend" },
+        { "type": "hold", "character": "barney", "prop": "briefcase" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "What up, hosers!", "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Zero.", "delivery": "deadpan" },
+        { "type": "say", "character": "barney", "to": "guest1", "line": "Thank you.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Why do you have a briefcase at a bar?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Please.", "laugh": "chuckle" },
+        { "type": "act", "character": "robin", "gesture": "stand" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "I want a re-audit.", "emotion": "angry" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "You may appeal. Three rounds. Hockey. Apology. Canadian content." },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Anyone who reaches fifty percent gets the pin." },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "There's a pin.", "delivery": "whisper", "emotion": "excited", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Challenge accepted." },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Hey!", "emotion": "angry", "gesture": "point" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Borrowing an American catchphrase. Minus two." },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Twenty-nine?", "delivery": "shout", "emotion": "angry", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Round one, hockey. Ted is the quizmaster and never finishes a question. Robin's contempt for Toronto wins her six points and gets her back on the radio.",
+      "cast": [
+        { "character": "robin", "mark": "table_left" },
+        { "character": "guest1", "mark": "table_right" },
+        { "character": "ted", "mark": "friend" },
+        { "character": "lily", "mark": "patron_left" },
+        { "character": "marshall", "mark": "patron_right" },
+        { "character": "barney", "mark": "bar_stool" },
+        { "character": "guest2", "mark": "bartender" }
+      ],
+      "beats": [
+        { "type": "say", "character": "ted", "to": "robin", "line": "Round one. Hockey. Question one. How many players does each team—", "interrupted": true },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Six.", "delivery": "deadpan" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Have on the ice. Correct. Question two. The Stanley Cup was first awarded in—", "interrupted": true },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Eighteen ninety-three.", "delivery": "deadpan" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Robin, I wrote a lot of question.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Question three. Who designed Toronto City Hall?" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Who cares?", "delivery": "deadpan" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Viljo Revell! Two curved towers, cradling a—", "interrupted": true, "emotion": "excited", "gesture": "hands_up" },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "She doesn't care about Toronto. Plus six.", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Thirty-five! I'm on the radio!", "emotion": "excited", "gesture": "fist_pump", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "That's my girl! Hate it more!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Between rounds, Wendell tells Robin about his one perfect score: a girl in bangles at a mall in 1990. Future Ted promises to skip the song and doesn't. Marshall grew up on it in St. Cloud. Barney smells the Sparkles angle.",
+      "cast": [
+        { "character": "guest1", "mark": "bar_stool" },
+        { "character": "robin", "mark": "bar_friend" },
+        { "character": "guest2", "mark": "bartender" },
+        { "character": "barney", "mark": "patron_left" },
+        { "character": "marshall", "mark": "patron_right" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "robin", "prop": "beer" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Hockey's nice. But round three is the one that matters." },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Twenty-two years, I've given one perfect score. A mall in Manitoba, nineteen ninety. A girl in bangles." },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "A song called From A to Zed." },
+        { "type": "act", "character": "robin", "gesture": "spit_take", "shot": "closeup" },
+        { "type": "narrate", "line": "Out of respect for your Aunt Robin, I'll skip the song." },
+        {
+          "type": "cutaway",
+          "style": "flashback",
+          "label": "Canada, 1990",
+          "location": "canadian_mall",
+          "time": "day",
+          "cast": [{ "character": "robin_sparkles", "mark": "stage" }, { "character": "guest1", "mark": "audience" }],
+          "beats": [
+            { "type": "hold", "character": "guest1", "prop": "book" },
+            { "type": "score", "music": "upbeat" },
+            { "type": "say", "character": "robin_sparkles", "to": "guest1", "line": "A is for Alberta, B is for my boy!", "delivery": "sing", "emotion": "excited", "gesture": "dance", "laugh": "laugh" },
+            { "type": "say", "character": "robin_sparkles", "to": "guest1", "line": "C is for the Canadarm, it fills my heart with joy!", "delivery": "sing", "emotion": "happy", "gesture": "point" },
+            { "type": "say", "character": "robin_sparkles", "to": "guest1", "line": "From A to Zed, I'm seeing red, and white, and red again!", "delivery": "sing", "emotion": "excited", "gesture": "dance", "laugh": "laugh" },
+            { "type": "say", "character": "guest1", "to": "robin_sparkles", "line": "One hundred.", "emotion": "crying", "laugh": "laugh", "shot": "closeup" },
+            { "type": "score", "music": "none" }
+          ]
+        },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "A to Zed? That was huge on St. Cloud radio! I can't name the provinces without dancing!", "emotion": "excited", "gesture": "dance", "laugh": "chuckle" },
+        { "type": "act", "character": "barney", "to": "robin", "gesture": "double_take" },
+        { "type": "move", "character": "barney", "to": "robin" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "There's a second song?", "delivery": "whisper", "emotion": "excited", "gesture": "lean_in", "laugh": "big" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Not one word.", "delivery": "deadpan", "emotion": "angry" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Barney bribes Moira to rig round three's karaoke, learning what 'sorry' means in Newfoundland. Robin catches him and threatens him with the other sixty-five percent.",
+      "cast": [{ "character": "barney", "mark": "bar_stool" }, { "character": "guest2", "mark": "bartender" }, { "character": "robin", "mark": "table_left" }],
+      "beats": [
+        { "type": "say", "character": "barney", "to": "guest2", "line": "Moira. Gorgeous. Does your karaoke machine have a song called From A to Zed?", "emotion": "flirty" },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "Every karaoke machine in Canada has A to Zed. It's the law.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "hold", "character": "barney", "prop": "envelope" },
+        { "type": "give", "character": "barney", "to": "guest2" },
+        { "type": "say", "character": "barney", "to": "guest2", "line": "Then cue it up for round three.", "emotion": "smug" },
+        { "type": "say", "character": "guest2", "to": "barney", "line": "Sorry?", "delivery": "deadpan", "emotion": "angry", "shot": "closeup" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "guest2", "line": "Please?", "emotion": "scared", "laugh": "laugh" },
+        { "type": "move", "character": "robin", "to": "bar_friend" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Whatever you're doing, stop.", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Robin, you have the most Canadian song in history, and you're losing to a cardigan." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Nobody in this bar hears that song." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "I'm thirty-five percent Canadian, Barney. The other sixty-five percent owns a handgun.", "delivery": "deadpan", "gesture": "lean_in", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Lily coaches Robin for the apology round. Robin can't say it. Lily finds her the right target, and Lily being Lily, saves him.",
+      "cast": [{ "character": "robin", "mark": "table_left" }, { "character": "lily", "mark": "table_right" }, { "character": "ted", "mark": "friend" }],
+      "beats": [
+        { "type": "say", "character": "lily", "to": "robin", "line": "Round two is apologies. Robin, apologize to me. For anything." },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Lily. I am so...", "emotion": "nervous" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Can I just buy you a scotch?", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Scotch is not an apology!", "emotion": "angry" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "It is in my family.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Okay. Think of someone you've really wronged. Picture his face.", "gesture": "lean_in" },
+        { "type": "act", "character": "robin", "to": "ted", "gesture": "think" },
+        { "type": "act", "character": "lily", "to": "ted", "gesture": "none" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Why is everybody looking at me?", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Don't apologize to him yet. Save it for the round. It's our best material.", "delivery": "whisper", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Round two. Robin's apology to Ted comes out American. Marshall apologizes to the antlers and climbs to forty-nine. Lily threatens him with the mudroom.",
+      "cast": [
+        { "character": "robin", "mark": "table_left" },
+        { "character": "guest1", "mark": "table_right" },
+        { "character": "ted", "mark": "friend" },
+        { "character": "lily", "mark": "patron_left" },
+        { "character": "marshall", "mark": "patron_right" },
+        { "character": "barney", "mark": "bar_stool" },
+        { "character": "guest2", "mark": "bartender" }
+      ],
+      "beats": [
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Round two. Apologize to someone in this bar. Sincerely." },
+        { "type": "act", "character": "robin", "gesture": "stand" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted. I'm sorry." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "ted", "line": "That you feel that way.", "laugh": "laugh", "react": [{ "character": "lily", "gesture": "facepalm" }] },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "That's the national apology of the United States. Minus five.", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "line": "Thirty.", "emotion": "sad", "gesture": "head_in_hands" },
+        { "type": "act", "character": "marshall", "gesture": "stand" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "Wendell, I'd like to apologize to the antlers on that wall." },
+        { "type": "say", "character": "marshall", "line": "Buddy, I am so sorry about the rest of you.", "emotion": "sad", "laugh": "big" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Ninety-one. Mister Eriksen, you're at forty-nine.", "emotion": "proud" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "One percent from a pin!", "emotion": "excited", "gesture": "fist_pump" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Marshall. If that pin touches your chest, you're sleeping in the mudroom.", "delivery": "deadpan", "emotion": "angry", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Round three: Canadian content. The machine chooses, Moira rigged it, and it's A to Zed. Barney is exposed for forty dollars. Robin claims not to know it, takes the thirty percent and walks to the bar. Marshall asks if he can sing it instead.",
+      "cast": [
+        { "character": "guest1", "mark": "karaoke" },
+        { "character": "robin", "mark": "table_left" },
+        { "character": "lily", "mark": "table_right" },
+        { "character": "ted", "mark": "friend" },
+        { "character": "marshall", "mark": "patron_left" },
+        { "character": "barney", "mark": "patron_right" },
+        { "character": "guest2", "mark": "bartender" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "guest1", "prop": "microphone" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Round three. Canadian content. Moira, let the machine choose." },
+        { "type": "say", "character": "guest2", "to": "guest1", "line": "Track forty-two. From A to Zed.", "delivery": "deadpan" },
+        { "type": "say", "character": "guest1", "line": "Oh. Oh, my.", "emotion": "crying", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin, it's A to Zed! It's the most beautiful song ever written!", "emotion": "excited" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "You did this.", "emotion": "angry", "gesture": "point" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "I would never.", "emotion": "smug", "gesture": "hands_up" },
+        { "type": "say", "character": "guest2", "to": "robin", "line": "He paid me forty dollars.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Miss Scherbatsky?" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "I don't know it.", "delivery": "deadpan" },
+        { "type": "say", "character": "guest2", "to": "robin", "line": "Sorry?", "delivery": "deadpan", "emotion": "angry" },
+        { "type": "say", "character": "robin", "to": "guest2", "line": "I don't know it, ma'am.", "emotion": "scared", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "Then I file you at thirty percent." },
+        { "type": "act", "character": "robin", "gesture": "stand" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "File it." },
+        { "type": "move", "character": "robin", "to": "bar_stool" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "Can I sing it?", "emotion": "nervous", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The heart. Robin at the bar tells Barney what the song was before it was a joke. Barney admits it is embarrassing, then hands her the briefcase. She takes it and goes.",
+      "cast": [{ "character": "robin", "mark": "bar_stool" }, { "character": "barney", "mark": "bar_friend" }],
+      "beats": [
+        { "type": "hold", "character": "barney", "prop": "briefcase" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Whatever's in the briefcase. No.", "delivery": "deadpan" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "You haven't even—", "interrupted": true },
+        { "type": "say", "character": "robin", "to": "barney", "line": "No.", "laugh": "chuckle" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "robin", "to": "barney", "line": "I was fifteen. Every Saturday, a different mall. And they knew the words, Barney. Every town." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Then I moved here, and it was a joke. So I made it a joke first.", "emotion": "sad" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "And if you sing it tonight, and nobody laughs?" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Then I've been embarrassed of the wrong thing this whole time.", "shot": "push_in" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "robin", "line": "I'm not going to pretend it isn't embarrassing. I've watched your tape two hundred times." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Two hundred?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Some of those were research.", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "But that girl never once said zee." },
+        { "type": "give", "character": "barney", "to": "robin" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "act", "character": "robin", "gesture": "stand" },
+        { "type": "exit", "character": "robin" }
+      ]
+    },
+    {
+      "resume": "the-mic",
+      "summary": "Back to the opening. Robin sings A to Zed; Wendell recognizes her; Marshall discovers his childhood idol is Robin; the whole bar sings the hook. One hundred percent. Marshall gets his pin. Barney, filming, says zee.",
+      "wardrobe": [{ "character": "robin", "topStyle": "leather", "top": "denim", "under": "pink", "pants": "denim", "hairStyle": "curly", "extras": ["headband"] }],
+      "beats": [
+        { "type": "score", "music": "upbeat" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "A is for Alberta, B is for my boy!", "delivery": "sing", "emotion": "nervous", "gesture": "dance" },
+        { "type": "say", "character": "guest1", "line": "Bangles.", "delivery": "whisper", "emotion": "surprised", "gesture": "jaw_drop", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "C is for the Canadarm, it fills my heart with joy!", "delivery": "sing", "emotion": "happy", "gesture": "point" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lily. Robin is the bangle girl.", "emotion": "crying", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "E is for eh, eh, eh!", "delivery": "sing", "emotion": "embarrassed", "gesture": "dance", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "line": "From A to Zed, I'm seeing red, and white, and red again!", "delivery": "sing", "emotion": "happy", "gesture": "dance", "laugh": "applause", "chorus": ["marshall", "lily", "ted", "guest1", "guest2"], "shot": "wide" },
+        { "type": "score", "music": "none" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "One hundred percent. And I gave you thirty-one.", "emotion": "crying" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "You gave me a hundred first.", "emotion": "proud" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin, you taught a twelve-year-old in St. Cloud every province in your country.", "emotion": "proud" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Knows every word. Fifty percent, Mister Eriksen. You've earned the pin." },
+        { "type": "act", "character": "marshall", "to": "guest1", "emotion": "proud", "gesture": "salute" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Mudroom.", "delivery": "deadpan" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Worth it.", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Got it. Every second. Robin Sparkles, live, from A to zee.", "emotion": "proud" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Zed.", "delivery": "deadpan", "chorus": ["robin", "marshall", "lily", "ted", "guest2"], "shot": "wide" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "barney", "line": "Sorry.", "emotion": "scared", "laugh": "laugh", "shot": "closeup" },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Two percent.", "delivery": "deadpan", "laugh": "big" }
+      ]
+    }
+  ]
+}
