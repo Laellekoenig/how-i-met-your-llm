@@ -7,7 +7,8 @@ import { KID_MARKS } from '../world/sets/future';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
 import { pick, rand } from '../util';
-import { joinRoute, routeNodes, walkRoute } from './navigation';
+import { SEATED_SPACE, SPACE, joinRoute, routeNodes, walkRoute, type Person } from './navigation';
+import { Crowd, type Seat } from './crowd';
 
 export interface FrozenScene {
   set: StageSet;
@@ -54,6 +55,10 @@ export class Stage {
   /** Stop-motion: when set, the world only moves in steps this many seconds apart, like a burst of photos. */
   strobe = 0;
   private strobeDt = 0;
+  /** A split screen is up: its sets share the same floor space, so nobody there gives way to anybody. */
+  private split = false;
+  /** Who gives way to whom, so nobody walks through anybody. */
+  private crowd = new Crowd(a => Object.values(this.actors).includes(a), a => this.seatOf(a));
 
   constructor(private scene: THREE.Scene) {
     this.sets = buildSets();
@@ -218,6 +223,8 @@ export class Stage {
     this.current.group.visible = true;
     this.current.setTime(time);
     this.time = time;
+    this.split = false;
+    this.crowd.clear();
     for (const c of CHARACTER_IDS) this.dress(c, outfitAt(c, id));
     for (const a of Object.values(this.actors)) {
       a.root.visible = false;
@@ -396,6 +403,7 @@ export class Stage {
     const a = this.actors[id];
     const pos = this.markPosition(m, name, id);
     pos.y = this.floorY(pos.x, pos.z);
+    this.crowd.forget(a);
     a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop });
     a.root.visible = true;
     this.occupy(id, name);
@@ -469,6 +477,7 @@ export class Stage {
   moveTo(id: CharacterId, target: string): Promise<void> {
     const a = this.actors[id];
     if (!a.root.visible) return this.enter(id, target);
+    this.crowd.forget(a);
     const prevMarkName = this.actorMark.get(id);
     let name: string;
     let dest: THREE.Vector3;
@@ -489,7 +498,8 @@ export class Stage {
       dest = (otherMark?.approach ?? this.current.nodes[node]).clone();
       if (dest.distanceTo(op) < 0.4) {
         const adjacent = this.current.edges.flatMap(([x, y]) => x === node ? [y] : y === node ? [x] : []);
-        const nearby = adjacent.sort((x, y) => this.current.nodes[x].distanceTo(op) - this.current.nodes[y].distanceTo(op))[0];
+        // Stop on the near side of them, not past them where they'd be walked through to get there.
+        const nearby = adjacent.sort((x, y) => this.current.nodes[x].distanceTo(a.position) - this.current.nodes[y].distanceTo(a.position))[0];
         if (nearby) dest.lerp(this.current.nodes[nearby], Math.min(1, 0.85 / dest.distanceTo(this.current.nodes[nearby])));
       }
       facing = Math.atan2(op.x - dest.x, op.z - dest.z) * 0.6;
@@ -526,7 +536,10 @@ export class Stage {
     const leaving = [a.position.clone(), ...pts, ...(curMark?.approach ? [curMark.approach.clone()] : [])];
     const arriving = [...(approach ? [approach.clone()] : []), dest];
     // Cars keep every seat on the way; on foot, cut across wherever the furniture allows.
-    const path = (!this.current.seated && walkRoute(this.current, leaving, fromNode, arriving, node)) || [...leaving, ...route, ...arriving];
+    // On foot, they go around whoever stands about too, if there's a way.
+    const people = this.current.seated ? [] : this.peopleAround(a);
+    const path = (!this.current.seated && (walkRoute(this.current, leaving, fromNode, arriving, node, people) || walkRoute(this.current, leaving, fromNode, arriving, node)))
+      || [...leaving, ...route, ...arriving];
     const m = this.current.marks[name];
     return a.walk(joinRoute(path).slice(1), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop });
   }
@@ -575,6 +588,7 @@ export class Stage {
     const m = this.current.marks[this.actorMark.get(id) ?? ''];
     const node = m?.node ?? this.nearestNode(a.position);
     const dest = (m?.approach ?? this.current.nodes[node]).clone();
+    this.crowd.forget(a);
     this.occupy(id, null);
     this.actorNode.set(id, node);
     return a.walk([dest], { facing: a.facing, seat: null });
@@ -601,6 +615,7 @@ export class Stage {
   leave(id: CharacterId) {
     this.actors[id].root.visible = false;
     this.actors[id].hold(null);
+    this.crowd.forget(this.actors[id]);
     this.occupy(id, null);
   }
 
@@ -612,6 +627,7 @@ export class Stage {
     this.current = this.sets[id] ?? this.current;
     this.current.group.visible = true;
     this.current.setTime(time);
+    this.split = true;
     this.occupancy.clear();
     this.actorMark.clear();
     this.actorNode.clear();
@@ -645,6 +661,7 @@ export class Stage {
       this.establishing!.update(dt);
       return;
     }
+    if (!this.split && !this.paused && !this.current.seated) this.crowd.update(this.current, this.inTheWay(), dt);
     for (const a of Object.values(this.actors)) if (a.root.visible) a.update(dt, t);
     // step actors up onto raised floors
     const floorAt = this.current.floorAt;
@@ -671,6 +688,28 @@ export class Stage {
       e.actor.update(dt, t);
     }
     this.current.update?.(dt, t);
+  }
+
+  /** Everyone on the current set a walker could bump into: the cast, and the background people too. */
+  private inTheWay() {
+    const extras = this.extras.filter(e => e.set === this.current.id && e.actor.root.visible).map(e => e.actor);
+    return [...this.onStageIds().map(id => this.actors[id]), ...extras];
+  }
+
+  /** The seat someone in the cast is sitting in, for getting up out of it to let someone by. */
+  private seatOf(a: Actor): Seat | null {
+    const id = this.onStageIds().find(id => this.actors[id] === a);
+    const m = this.current.marks[(id && this.actorMark.get(id)) ?? ''];
+    if (!m || m.seat === null) return null;
+    return { pos: m.pos.clone(), approach: m.approach?.clone(), facing: m.facing, height: m.seat, pose: m.pose, prop: m.prop };
+  }
+
+  /** Where everyone else on the set is standing or sitting, or will be once they've got where they're going. */
+  private peopleAround(me: Actor): Person[] {
+    return this.inTheWay().filter(a => a !== me).map(a => ({
+      at: (a.remainingPath.at(-1) ?? a.position).clone(),
+      room: a.isSitting || a.headingToSeat ? SEATED_SPACE : SPACE,
+    }));
   }
 
   occluders(): THREE.Mesh[] {

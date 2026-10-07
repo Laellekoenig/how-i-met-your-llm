@@ -5,7 +5,7 @@ import { walkingBlockers } from './helpers/geometry';
 import { routeNodes } from '../src/show/navigation';
 import { Director } from '../src/show/director';
 import type { Actor } from '../src/world/actor';
-import type { CharacterId } from '../src/script/types';
+import { isCharacterId, isKid, type CharacterId } from '../src/script/types';
 import { SCRIPTS } from './helpers/episodes';
 import type { Beat, Costume, Scene } from '../src/script/types';
 
@@ -179,6 +179,99 @@ describe('current set navigation', () => {
     stage.place('ted', 'table_2_left');
     expect(diner.actor.root.visible).toBe(false);
   });
+});
+
+/** Run the stage until nobody's walking (or stepping back), and how close any two people came while someone was. */
+async function closestPass(maxSeconds = 20) {
+  let closest = Infinity;
+  const busy = () => stage.onStageIds().some(id => stage.actors[id].isWalking) || (stage as unknown as { crowd: { aside: Map<unknown, unknown> } }).crowd.aside.size > 0;
+  for (let tick = 0; tick < maxSeconds * 30; tick++) {
+    stage.update(1 / 30, tick / 30);
+    // Let exits finish (and hide whoever left) as they would between frames.
+    for (let k = 0; k < 6; k++) await null;
+    const ids = stage.onStageIds();
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+      const a = stage.actors[ids[i]], b = stage.actors[ids[j]];
+      if (a.isWalking || b.isWalking) closest = Math.min(closest, Math.hypot(a.position.x - b.position.x, a.position.z - b.position.z));
+    }
+    if (!busy()) break;
+  }
+  expect(busy()).toBe(false);
+  return closest;
+}
+
+const flatTo = (id: CharacterId, p: THREE.Vector3) => Math.hypot(stage.actors[id].position.x - p.x, stage.actors[id].position.z - p.z);
+
+describe('nobody walks through anybody', () => {
+  test('two people crossing the room pass each other instead of walking through', async () => {
+    stage.setLocation('apartment', 'day');
+    stage.place('ted', 'kitchen_passthrough');
+    stage.place('marshall', 'fireplace');
+    void stage.moveTo('ted', 'fireplace');
+    void stage.moveTo('marshall', 'kitchen_passthrough');
+    expect(await closestPass()).toBeGreaterThan(0.45);
+  });
+
+  test('walking over to someone in a queue stops on the near side of them', async () => {
+    stage.setLocation('store', 'day');
+    stage.place('ted', 'queue');
+    stage.place('marshall', 'checkout');
+    void stage.moveTo('marshall', 'ted');
+    expect(await closestPass()).toBeGreaterThan(0.45);
+    expect(flatTo('marshall', stage.current.marks.checkout.pos)).toBeLessThan(flatTo('ted', stage.current.marks.checkout.pos) + 0.5);
+  });
+
+  test('someone standing in the only way through steps aside, and back again after', async () => {
+    stage.setLocation('apartment', 'day');
+    stage.place('barney', 'kitchen_doorway');
+    stage.place('ted', 'center');
+    const home = stage.actors.barney.position.clone();
+    void stage.moveTo('ted', 'kitchen_stove');
+    let stepped = 0;
+    for (let tick = 0; tick < 30; tick++) {
+      stage.update(1 / 30, tick / 30);
+      stepped = Math.max(stepped, flatTo('barney', home));
+    }
+    expect(stepped).toBeGreaterThan(0.2);
+    expect(await closestPass()).toBeGreaterThan(0.45);
+    expect(flatTo('ted', stage.current.marks.kitchen_stove.pos)).toBeLessThan(0.01);
+    expect(flatTo('barney', home)).toBeLessThan(0.01);
+  });
+
+  test('sliding out of a booth, whoever sits nearer the end gets up to let them out and sits back down', async () => {
+    stage.setLocation('restaurant', 'day');
+    stage.place('ted', 'booth_left');
+    stage.place('lily', 'booth_middle');
+    void stage.moveTo('lily', 'host');
+    expect(await closestPass()).toBeGreaterThan(0.4);
+    const seat = stage.current.marks.booth_left;
+    expect(flatTo('ted', seat.pos)).toBeLessThan(0.01);
+    expect(stage.actors.ted.isSitting).toBe(true);
+  });
+
+  test('every scene plays without anyone walking through anyone', async () => {
+    const bumps: string[] = [];
+    for (const ep of SCRIPTS) for (const [i, scene] of ep.scenes.entries()) {
+      if (scene.resume) continue;
+      stage.setLocation(scene.location, scene.time);
+      if (stage.current.seated) continue;
+      for (const c of scene.cast) if (isCharacterId(c.character) && !isKid(c.character)) stage.place(c.character, c.mark);
+      // The staging beats in order, each given the time to play out the player gives it.
+      for (const b of scene.beats) {
+        if (!('character' in b) || !isCharacterId(b.character) || isKid(b.character)) continue;
+        const who = b.character;
+        if (b.type === 'enter') void (stage.onStage(who) ? b.to && stage.moveTo(who, b.to) : stage.enter(who, b.to));
+        else if (!stage.onStage(who)) continue;
+        else if (b.type === 'move') void stage.moveTo(who, b.to === who ? 'center' : b.to);
+        else if (b.type === 'exit') void stage.exit(who);
+        else if (b.type === 'act' && (b.gesture === 'sit' || b.gesture === 'stand')) void (b.gesture === 'sit' ? stage.sitDown(who) : stage.standUp(who));
+        else continue;
+        const closest = await closestPass();
+        if (closest < 0.4) bumps.push(`${ep.code} scene ${i + 1} (${scene.location}): ${b.type} ${who}, ${closest.toFixed(2)}m`);
+      }
+    }
+    expect(bumps).toEqual([]);
+  }, 120_000);
 });
 
 /** Every set a scene's beats cut away to: cutaways (and the ones inside them), montage shots, split-screen panels. */
