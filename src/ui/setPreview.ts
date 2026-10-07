@@ -103,6 +103,7 @@ export function setPreview(stage: Stage, director: Director) {
   document.body.append(bar);
   const updateShot = () => {
     stage.endEstablishing();
+    director.fresh();
     if (current === 'atlantic_city') {
       director.establish(stage.establish('atlantic_city', 'atlantic_city_casino', time), true);
       return;

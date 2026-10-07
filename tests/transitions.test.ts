@@ -38,10 +38,11 @@ function playback(incoming: Scene) {
     seatKids() {}, setWardrobe() {}, castIds: () => [], onStage: () => false,
   };
   const director = {
-    current: { kind: 'wide' }, moving: true,
+    current: { kind: 'wide' }, moving: true, settling: 0,
     establish(_shot: unknown, moving: boolean) { this.current = { kind: 'establishing' }; this.moving = moving; },
     resume(shot: { kind: string }) { this.current = shot; },
     coverage() { this.current = { kind: 'wide' }; },
+    fresh() {},
   };
   const renderer = { fade: 1, rewind: 0, dream: 0, ripple: 0, memory: 0, still: 0 };
   const overlay = overlayStub();

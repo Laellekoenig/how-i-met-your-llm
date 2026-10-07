@@ -36,10 +36,20 @@ function sameFraming(a: Framing, b: Framing) {
   return a.pos.distanceTo(b.pos) < 0.25 && look(a).angleTo(look(b)) < 0.07 && Math.abs(a.fov - b.fov) < 4;
 }
 
+/** The shortest a shot stays up on the show, in seconds: anything briefer reads as a glitch, not an edit. */
+export const MIN_SHOT = 1.2;
+
 /** Multi-camera sitcom coverage: wides, singles, two-shots, over-the-shoulders. Shots are locked off
  *  unless the script asks for a move (a push-in, an establishing pan). */
 export class Director {
   private shot: ActiveShot | null = null;
+  /** A cut asked for before the shot on screen had its minimum: it goes in once that's up. */
+  private pending: ActiveShot | null = null;
+  /** The next cut is to a new place (another set, a scene staged afresh): no minimum on the shot before it. */
+  private hard = false;
+  /** How long a shot stays up before the next cut may replace it. The show holds to MIN_SHOT; at 0
+   *  (set tours, tests) every angle asked for goes up at once. */
+  minShot = 0;
   private lastCut = 0;
   /** When a walker last made us look for a wider angle; it may turn out to be the one we're on. */
   private lastReframe = 0;
@@ -67,7 +77,17 @@ export class Director {
     return this.camera.clone();
   }
 
-  private cut(s: ActiveShot) {
+  /** Whatever was on screen before, the next cut goes in at once: a scene staged anew, a jump to another set. */
+  fresh() {
+    this.hard = true;
+  }
+
+  /** Seconds until the shot chosen has been up for its minimum: any held-back cut has gone in and played. */
+  get settling() {
+    return Math.max(0, this.minShot - (this.time - this.lastCut)) + (this.pending ? this.minShot : 0);
+  }
+
+  private cut(s: ActiveShot, hard = false) {
     s.followRoot = s.follow?.root.getWorldPosition(new THREE.Vector3());
     // Asked for the angle we're already on: stay on it. Re-cutting would restart a push or drift and
     // re-aim a single from scratch, a visible hitch between two copies of the same shot.
@@ -77,10 +97,24 @@ export class Director {
       on.subject = s.subject;
       on.subjects = s.subjects;
       on.followRoot = s.followRoot;
+      this.pending = null;
+      this.hard = false;
       return;
     }
+    // Cutting away from a shot only just put up flashes it for a moment. Hold it until it has played,
+    // and let the new line start over the end of it.
+    if (!hard && !this.hard && on && this.time - this.lastCut < this.minShot) {
+      this.pending = s;
+      return;
+    }
+    this.commit(s);
+  }
+
+  private commit(s: ActiveShot) {
     s.base ??= { pos: s.pos.clone(), target: s.target.clone(), fov: s.fov };
     this.shot = s;
+    this.pending = null;
+    this.hard = false;
     this.lastCut = this.time;
     this.apply(0);
     this.onCut?.();
@@ -92,7 +126,7 @@ export class Director {
   }
 
   establish(s: EstablishingShot, moving = true) {
-    this.cut({ kind: 'establishing', pos: s.pos.clone(), target: s.target.clone(), fov: s.fov, push: 0, drift: moving ? s : undefined });
+    this.cut({ kind: 'establishing', pos: s.pos.clone(), target: s.target.clone(), fov: s.fov, push: 0, drift: moving ? s : undefined }, true);
   }
 
   /** Prefer a tight authored angle only when every subject is framed and unobstructed. */
@@ -357,7 +391,7 @@ export class Director {
 
   /** Pick coverage for a line of dialogue. */
   onLine(speaker: CharacterId, to?: CharacterId) {
-    const s = this.shot;
+    const s = this.current;
     const since = this.time - this.lastCut;
     if (s && s.subject === speaker && s.kind !== 'wide' && this.rng() < 0.65) return;
     if (s && s.subject === speaker && since < 2.5) return;
@@ -377,7 +411,7 @@ export class Director {
 
   /** The couch is nearly always the locked-off two-shot; now and then a single on whoever's talking. */
   onCouchLine(speaker: CharacterId) {
-    const s = this.shot;
+    const s = this.current;
     if (s?.kind === 'closeup' && s.subject === speaker) return;
     if (this.rng() < 0.3) this.closeup(speaker);
     else if (s?.kind !== 'wide') this.wide(0);
@@ -388,7 +422,7 @@ export class Director {
     const target = heads.reduce((sum, h) => sum.add(h), new THREE.Vector3()).divideScalar(Math.max(1, heads.length));
     target.y += o.aim ?? -0.06;
     const pos = target.clone().add(new THREE.Vector3(Math.sin(o.yaw) * o.dist, o.lift, Math.cos(o.yaw) * o.dist));
-    this.cut({ kind: 'selfie', pos, target, fov: o.fov, push: 0 });
+    this.cut({ kind: 'selfie', pos, target, fov: o.fov, push: 0 }, true);
   }
 
   /** The next photo in a burst: the same shot, taken from a hand's width away and a hair tighter or looser. */
@@ -402,23 +436,28 @@ export class Director {
     this.apply(0);
   }
 
+  /** The shot chosen: the one on screen, or the one about to replace it. */
   get current() {
-    return this.shot;
+    return this.pending ?? this.shot;
   }
 
   /** Go back to a shot held earlier, e.g. after cutting away to the kids. */
   resume(shot: ActiveShot | null) {
     // A wardrobe change in between swaps the actor a single was following.
     if (shot?.follow && shot.subject && shot.follow !== this.stage.actors[shot.subject]) shot.follow = this.stage.actors[shot.subject];
-    if (shot) this.cut(shot);
-    else this.wide(0);
+    if (shot) this.cut(shot, true);
+    else {
+      this.fresh();
+      this.wide(0);
+    }
   }
 
   update(dt: number) {
     if (this.held) return;
     this.time += dt;
+    if (this.pending && this.time - this.lastCut >= this.minShot) this.commit(this.pending);
     const s = this.shot;
-    if (s && s.kind !== 'establishing' && !s.follow && this.time - Math.max(this.lastCut, this.lastReframe) > 0.5) {
+    if (s && !this.pending && s.kind !== 'establishing' && !s.follow && this.time - Math.max(this.lastCut, this.lastReframe) > 0.5) {
       const ids = s.subjects?.filter(id => this.stage.onStage(id)) ?? [];
       const moving = ids.map(id => this.stage.actors[id]).filter(a => a.isWalking);
       if (moving.length && !this.covers(s, moving)) {
@@ -455,7 +494,7 @@ export class Director {
           // Can't track alongside: pan from where we stand while they're still in view, rather than
           // cut to a fresh single on the same person.
           else if (!this.sees(s.pos, s.follow)) {
-            this.closeup(s.subject!);
+            if (!this.pending) this.closeup(s.subject!);
             return;
           }
           s.target.add(displacement);

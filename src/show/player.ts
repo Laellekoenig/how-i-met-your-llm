@@ -1,5 +1,5 @@
 import type { Stage } from './stage';
-import type { Director } from './director';
+import { MIN_SHOT, type Director } from './director';
 import type { Renderer } from '../engine/renderer';
 import type { Overlay, Panel } from '../ui/overlay';
 import { audio } from '../audio/audio';
@@ -137,6 +137,7 @@ export class Player {
     private source: ContentSource,
   ) {
     stage.onDoorShut = () => audio.doorShut();
+    director.minShot = MIN_SHOT;
   }
 
   skip(level: 'scene' | 'episode') {
@@ -224,6 +225,20 @@ export class Player {
   /** Playback time freezes on pause; all waits and fades abort on skip. */
   private wait(seconds: number) {
     return this.animate(seconds, () => {});
+  }
+
+  /** The tail before a hard cut away: at least `seconds`, and long enough for the last shot asked for to have played. */
+  private async settle(seconds = 0) {
+    const d = this.director;
+    let shot, left;
+    do {
+      shot = d.current;
+      left = d.settling;
+      await this.wait(Math.max(seconds, left));
+      seconds = 0;
+      // Go again if someone walking out of frame prompted another angle meanwhile, or if the camera's clock
+      // fell behind ours (slow frames).
+    } while (d.settling > 0 && (d.current !== shot || d.settling < left));
   }
 
   private async animate(seconds: number, update: (progress: number) => void) {
@@ -552,6 +567,7 @@ export class Player {
         } else if (item.coldOpen || item.couch?.length) {
           this.stage.setLocation('future', 'night');
           this.stage.seatKids();
+          this.director.fresh();
           this.director.wide(0);
           audio.ambience('none');
           this.renderer.fade = 0;
@@ -563,7 +579,7 @@ export class Player {
             await this.untilUnpaused();
             await this.beat(b);
           }
-          await this.wait(0.3);
+          await this.settle(0.3);
         }
         this.stage.setWardrobe([]);
         await this.quiet();
@@ -651,7 +667,7 @@ export class Player {
     await this.wait(0.25);
 
     await this.playBeats(scene.beats.slice(firstBeat), scene.location === 'future');
-    await this.wait(0.6);
+    await this.settle(0.6);
   }
 
   private async playBeats(beats: Beat[], onCouch: boolean) {
@@ -675,6 +691,8 @@ export class Player {
    * by default a clean, silent cut, in normal color, with no card.
    */
   private async playSequence(q: Sequence) {
+    // the shot we leave has had its moment
+    await this.settle();
     const st = this.stage, r = this.renderer;
     const shot = this.director.current;
     const ambience = st.current.ambience;
@@ -702,7 +720,7 @@ export class Player {
       await this.edit(edit, 'in');
       await this.wait(0.2);
       await this.playBeats(q.beats, false);
-      await this.wait(0.3);
+      await this.settle(0.3);
       this.hideCaption();
       await this.edit(edit, 'out');
     } finally {
@@ -759,6 +777,8 @@ export class Player {
    * across them (a phone call, the same conversation in three places); then back to the scene as it was.
    */
   private async playSplit(b: SplitBeat) {
+    // the shot we leave has had its moment
+    await this.settle();
     const st = this.stage, r = this.renderer;
     const shot = this.director.current;
     const ambience = st.current.ambience;
@@ -785,6 +805,8 @@ export class Player {
         st.focusPanel(b.panels[i].location);
         const others = groups.flat().filter((id) => !ids.includes(id));
         for (const id of others) st.actors[id].root.visible = false;
+        // (each panel is framed now, for the snapshot)
+        this.director.fresh();
         if (ids.length === 1) this.director.closeup(ids[0]);
         else if (ids.length === 2) this.director.twoShot(ids[0], ids[1]);
         else this.director.coverage(ids, false);
@@ -868,6 +890,7 @@ export class Player {
       }
     }
 
+    this.director.fresh();
     this.director.coverage(this.stage.castIds());
     this.overlay.year(onCouch);
     if (card?.label) this.overlay.location(card.label, card.look);
@@ -900,6 +923,8 @@ export class Player {
    * each with its own little card, then back to the scene exactly as we left it.
    */
   private async playMontage(m: MontageBeat) {
+    // the shot we leave has had its moment
+    await this.settle();
     const st = this.stage;
     const shot = this.director.current;
     const ambience = st.current.ambience;
@@ -919,7 +944,7 @@ export class Player {
         audio.ambience('none');
         await this.wait(0.15);
         await Promise.all([this.playBeats(s.beats, false), this.wait(1.6)]);
-        await this.wait(0.35);
+        await this.settle(0.35);
       }
     } finally {
       audio.stopBed();
@@ -949,8 +974,9 @@ export class Player {
       else if (to) this.cam.twoShot(who, to);
       else this.cam.closeup(who);
       const d = b.gesture ? this.gesture(who, b.gesture, to, 0, b.emotion) : 0;
-      // caught at the height of it
-      await this.wait(d ? d * 0.45 : 0.4);
+      // caught at the height of it, on the shot asked for (once the one before has had its moment;
+      // the freeze itself holds the new one)
+      await this.wait(Math.max(d ? d * 0.45 : 0.4, this.director.settling - MIN_SHOT));
       rest = d * 0.55;
     }
     if (b.sound) audio.cue(b.sound);
@@ -1028,12 +1054,11 @@ export class Player {
     };
     const spread = Math.max(0, ...ids.flatMap((a) => ids.map((b) => st.actors[a].position.distanceTo(st.actors[b].position))));
     if (ids.length > 2 && spread > 2.6) {
-      // too far apart for one shot: cut from face to face
+      // too far apart for one shot: cut from face to face, each held long enough to read
       for (const id of ids.slice(0, 3)) {
         take(id);
-        await this.wait(0.6);
+        await this.settle(0.6);
       }
-      await this.wait(clamp(longest * 0.8 - 1.8, 0, 0.6));
       return;
     }
     if (ids.length === 1) take(ids[0]);
@@ -1043,6 +1068,8 @@ export class Player {
 
   /** Hard cut to Penny and Luke on the couch in 2030, play their beats, then cut straight back to the story. */
   private async cutaway(beats: Beat[]) {
+    // the shot we leave has had its moment
+    await this.settle();
     const st = this.stage;
     const shot = this.director.current;
     const ambience = st.current.ambience;
@@ -1052,6 +1079,7 @@ export class Player {
     audio.ambience('none');
     this.overlay.osd(null);
     this.renderer.dream = this.renderer.memory = this.renderer.video = 0;
+    this.director.fresh();
     this.director.wide(0);
     this.overlay.year(true);
     try {
@@ -1060,7 +1088,7 @@ export class Player {
         await this.untilUnpaused();
         await this.beat(b);
       }
-      await this.wait(0.3);
+      await this.settle(0.3);
     } finally {
       st.cutBack();
       this.overlay.year(false);

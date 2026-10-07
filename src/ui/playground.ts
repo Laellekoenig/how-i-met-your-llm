@@ -493,6 +493,8 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
   function cut(angle: Angle) {
     freeCam(false);
     stage.endEstablishing();
+    // a picked angle goes up at once, however recently the camera last cut
+    director.fresh();
     angle.go();
     say(angle.name);
   }
@@ -878,6 +880,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       for (const outfit of work ? (['casual', 'work'] as const) : [undefined]) {
         if (run !== generation) return;
         player.stageNow({ ...scene([]), cast: [{ character: id, mark, ...(outfit ? { outfit } : {}) }] });
+        director.fresh();
         director.closeup(id);
         say(`${charName(id)} (${id})${outfit ? ` · ${outfit}` : ''}`);
         await player.perform([{ type: 'say', character: id, line: `I'm ${charName(id)}.`, shot: 'closeup' }]);
