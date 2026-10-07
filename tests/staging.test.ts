@@ -73,28 +73,62 @@ describe('current set navigation', () => {
     });
   }
 
-  test('short moves still go around the coffee table and use the original seat approach', () => {
+  test('short moves still go around the coffee table and get up along the seat approach', () => {
     stage.setLocation('apartment', 'day');
     stage.place('ted', 'couch_center');
     void stage.moveTo('ted', 'center');
     const path = stage.actors.ted.remainingPath;
-    expect(path[0].distanceTo(stage.current.marks.couch_center.approach!)).toBeLessThan(0.001);
+    // Straight up off the cushion toward its approach, turning off once the way round the table is clear.
+    const { pos, approach } = stage.current.marks.couch_center;
+    const stepOut = new THREE.Line3(pos, approach!).closestPointToPoint(path[0], true, new THREE.Vector3());
+    expect(path[0].distanceTo(stepOut)).toBeLessThan(0.001);
+    expect(path[0].distanceTo(pos)).toBeGreaterThan(0.4);
     for (let i = 1; i < path.length; i++) expect(walkingBlockers(stage.current, path[i - 1], path[i])).toEqual([]);
     finishMove('ted');
     expect(stage.actors.ted.position.distanceTo(stage.current.marks.center.pos)).toBeLessThan(0.01);
   });
 
-  test('an interrupted walk keeps its remaining corners before taking the next route', () => {
+  test('an interrupted walk turns for the new mark instead of finishing the old one first', () => {
     stage.setLocation('apartment', 'day');
     stage.place('ted', 'kitchen');
     void stage.moveTo('ted', 'center');
     stage.update(0.05, 0);
-    const pending = stage.actors.ted.remainingPath;
     void stage.moveTo('ted', 'bedroom_ted');
-    expect(stage.actors.ted.remainingPath.slice(0, pending.length)).toEqual(pending);
+    const path = [stage.actors.ted.position.clone(), ...stage.actors.ted.remainingPath];
+    expect(path.some(p => p.distanceTo(stage.current.marks.center.pos) < 0.5)).toBe(false);
+    for (let i = 1; i < path.length; i++) expect(walkingBlockers(stage.current, path[i - 1], path[i])).toEqual([]);
     finishMove('ted');
     expect(stage.actors.ted.position.y).toBeCloseTo(0.3, 2);
   });
+
+  test('walks head straight for the mark wherever nothing stands in the way', () => {
+    stage.setLocation('apartment', 'day');
+    stage.place('ted', 'kitchen');
+    void stage.moveTo('ted', 'center');
+    // Out of the kitchen and straight across the room: no dog-leg down past the dining table.
+    const path = stage.actors.ted.remainingPath;
+    expect(path.length).toBeLessThanOrEqual(3);
+    for (const p of path) expect(p.z).toBeLessThan(0.7);
+  });
+
+  test('nobody walks away from where they are going to touch a waypoint behind them', () => {
+    let away = 0;
+    for (const set of Object.values(stage.sets)) {
+      if (set.seated) continue;
+      for (const from of Object.keys(set.marks)) for (const to of Object.keys(set.marks)) {
+        if (from === to) continue;
+        stage.setLocation(set.id, 'day');
+        stage.place('ted', from);
+        void stage.moveTo('ted', to);
+        const path = [stage.actors.ted.position.clone(), ...stage.actors.ted.remainingPath];
+        const end = path.at(-1)!;
+        // Getting up out of a seat and stepping onto the mark are authored; everything between should close in.
+        for (let i = 2; i < path.length - 1; i++) away += Math.max(0, path[i].distanceTo(end) - path[i - 1].distanceTo(end));
+      }
+    }
+    // Furniture still forces the odd detour around a chair; before straightening this was ~1375m.
+    expect(away).toBeLessThan(250);
+  }, 60_000);
 
   test('walking over to someone still on their way meets them where they stop, not on top of them', () => {
     stage.setLocation('maclarens_sidewalk', 'night');
