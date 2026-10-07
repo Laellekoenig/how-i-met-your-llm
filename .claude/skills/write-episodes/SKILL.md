@@ -21,11 +21,18 @@ Read [the story-structure reference](../../../docs/story-structure-reference.md)
 the supported ways to open on the story, use narration, and cut to the kids.
 Read [the music reference](../../../docs/music-reference.md) for the musical approach: most scenes and ordinary
 dialogue stay unscored; music needs a specific story purpose and a planned entry and exit. Zero authored music is valid.
+Read [the location reference](../../../docs/location-reference.md) for home-base storytelling and restrained
+use of special destinations such as laser tag and the Hoser Hut.
 
 For each episode you'll write, settle on a premise. Use the user's pitches as given. For any others, brainstorm
 about twice as many as you need and keep the strongest and most varied set. Vary which character leads the A-story,
 the sets, the guest stars and the kind of comic engine (a scheme, a rule, a bet, a secret, a misunderstanding).
-Favor characters and sets the catalog has used least. Assign consecutive codes starting at the next free one.
+Give underused characters a turn when the story suits them; choose sets for the story, never to fill a catalog quota.
+MacLaren's and the apartment remain home base. Special locations such as `laser_tag` and `hoser_hut` must not be
+an episode's main location: keep special-location material to one or two brief, motivated scenes in total when
+needed, with the main story developing in the regular settings. An episode with no special visit is normal.
+Check recent episodes and the current batch for repeated destinations; avoid consecutive returns by default and
+don't substitute a different novelty venue in every episode. Assign consecutive codes starting at the next free one.
 Read the openings and endings of a few recent episodes. For each pitch, choose an opening image/first speaker,
 where (if anywhere) the kids interrupt, and an ending device. Keep the opening short: everything before the
 main titles is a quick hook of roughly 3-8 lines (never more than 10) that ends on a button, and the setup
@@ -38,9 +45,10 @@ Launch one `episode-writer` agent per episode, all in the same message so they r
 - its code, and the exact file name pattern `episodes/<code lowercased>-<slug>.json`
 - its premise (the pitch, a logline, or just a lead character and an engine; leave the writer room to find the story)
 - any characters or sets to feature
+- the main location and any special visit's story purpose and brief scope; a requested set can feature in a short scene
 - the proposed opening, couch placement and ending, with the story reason (the writer may improve them)
 - any story reason for music, otherwise an unscored default; the writer should plan both ends of any cue
-- one line on each of the *other* episodes being written now, including their framing choices, so they don't overlap
+- one line on each of the *other* episodes being written now, including their framing choices and special locations, so they don't overlap
 
 ## 3. Notes and sign-off
 
@@ -58,7 +66,10 @@ When the writers report back:
    batch's first images and last beats; don't accept identical framing with different nouns. Check music coverage as well: most dialogue should be unscored, each cue needs a purpose
    and an exit, and music must not leak through scene/cutaway returns or resume unexpectedly after a montage.
    Cut routine tender endings, scene-long mood beds and decorative stings; compare the batch for repeated music
-   habits without imposing a cue quota. If an episode falls short,
+   habits without imposing a cue quota. Check location balance: special visits stay brief and supporting, never
+   the main setting. Count their full presence through resumed scenes, cutaways, replays and montages; two long
+   scenes or many tiny returns can still dominate. Compare recent episodes and the batch for overuse, and move
+   generic conversations back to the regular settings. If an episode falls short,
    send its writer specific notes with SendMessage, for example "scene 2 sags in the middle; Robin has nothing to
    play; the runner never pays off". Then re-check.
 3. Watch at least one new episode in the running app (`bun dev`, then open `/?ep=<CODE>&dev&mute`) and take

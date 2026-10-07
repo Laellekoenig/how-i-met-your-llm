@@ -86,7 +86,7 @@ ${marks}
 
 You can also use a character id as a move/enter target to walk over next to that person.
 
-Spread scenes around: MacLaren's and the apartment are home base, but use the other sets when the story goes there.
+MacLaren's and the apartment are home base; choose other everyday sets when the story needs them. Special destinations such as laser_tag and hoser_hut must never be an episode's main location. Keep special-location material to one or two brief, story-motivated scenes in total, with the main story developing in the regular settings; zero special visits is normal. Review their full presence through cutaways, resumed scenes, replays, split screens and montages, not just scene count. Check recent episodes and the current batch for overuse: avoid consecutive returns by default, and don't rotate novelty venues into every episode. New or underused sets do not need a turn. Read docs/location-reference.md for the research and planning guidance.
 - rooftop: the apartment building's roof. Late-night talks, big confessions, "sandwiches", watching the skyline.
 - barneys_office: Barney's corner office at GNB (nobody knows what he does there: "Please."). Barney's schemes, Marshall dropping by from his GNB job.
 - office: a generic open-plan office: Marshall's law firm, Ted's architecture firm, Robin's newsroom, a temp job. Say whose office it is in the scene.

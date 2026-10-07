@@ -18,7 +18,7 @@ Use as many scenes as the story needs, but get into each one late and get out as
 - `bun run bible`: read all of it. It's the show bible (characters, voices, running gags), every set with its
   marks, and the exact episode file format. Marks and vocabulary come from there and nowhere else.
 - `bun run episodes list`: every episode so far, plus the next free code. Don't repeat a premise, a guest-star
-  hook or a central joke. Notice which characters and sets have been used least and give them a turn.
+  hook or a central joke. Give underused characters a turn when appropriate; a rarely used set is not a reason to visit it.
 - `bun run episodes ledger`: the continuity ledger. Eras, what's currently true (jobs, relationships), and bets,
   promises and costume consequences still open. Don't contradict it by accident; pay off an open thread if it suits.
 - `bun run episodes read <file>` on one or two existing episodes, to calibrate the rhythm and the density of jokes and stagecraft
@@ -27,6 +27,8 @@ Use as many scenes as the story needs, but get into each one late and get out as
   images, first speakers, kids' placement and endings; the catalog's old couch openings are not a template.
 - Read [the music reference](../../docs/music-reference.md). Start from unscored dialogue; the catalog's music
   density is not a target. Original score, featured songs and musical jokes serve different story purposes.
+- Read [the location reference](../../docs/location-reference.md). Keep MacLaren's and the apartment as home
+  base; check recent episodes and the current batch for repeated special destinations, including their cutaways.
 
 Use the code you were given. If you weren't given one, take the next free code from `list`. If you were told what
 other episodes are being written at the same time, stay clear of their premises.
@@ -44,6 +46,12 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
 - **A-story and B-story**: the A-story belongs to one or two of the gang. The B-story gives the others something of
   their own, and ideally collides with the A-story in the last scene. Every main character gets at least one great
   line and something to want.
+- **Locations**: name the main setting and the story reason for each special visit. Special destinations such as
+  `laser_tag` and `hoser_hut` must never be the episode's main location. Keep special-location material to one or
+  two brief scenes in total, only when it supplies a specific complication, reveal or payoff; zero is normal.
+  Let the main story develop in the regular settings. Avoid consecutive returns to a special destination by
+  default, and don't turn each episode into an outing to a different novelty venue. A pitch involving laser tag
+  can show the decisive moment there while the friends' conflict and its consequences unfold at home base.
 - **The heart**: a sincere moment, earned. It can be undercut by a joke, or it can be left alone: the show could
   move from broad comedy to something genuinely painful and stay there. An emotional ending, an unanswered question
   or a quiet visual beat can close a scene or the episode without a laugh. Don't reach for an `aww` to tell the
@@ -143,6 +151,10 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
      Count the lines before the main titles: over 8 needs a reason and over 10 gets cut or moved after the titles.
    - For every couch visit, identify the exact setup it reacts to or the new information it prompts. Cut filler.
    - Check that the ending lands without a compulsory Future Ted summary; remove narration that repeats the action.
+   - Review location balance by story weight and actual dialogue/action, not just scene count. Special locations
+     stay brief and supporting; include resumed scenes, nested cutaways, replays, split screens and montage shots
+     in their footprint. Move generic conversations to regular settings and cut repeated visits; check recent
+     episodes and the batch so even a brief special visit doesn't become an every-episode habit.
    - Check every cue, card, look and score you added earns its place; remove any that only announce the obvious.
    - Trace each music cue from entry to exit, including carryover through cutaways, scene changes and montage
      returns. Most dialogue should remain unscored. Remove decorative beds, shorten overlong spans, and use
@@ -159,5 +171,5 @@ around it and mention it in your report.
 
 ## 6. Report back
 
-Reply briefly: the file path, code, title, logline, opening choice (with its pre-titles line count) and couch placement, one line per scene with its line count, the guest stars, your favorite joke,
+Reply briefly: the file path, code, title, logline, opening choice (with its pre-titles line count) and couch placement, one line per scene with its location and line count, the guest stars, your favorite joke,
 the continuity you recorded, and any warnings you deliberately left in, with the reason.
