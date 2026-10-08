@@ -3,10 +3,7 @@
   "title": "The Guest Lecture",
   "logline": "Ted’s architecture idol agrees to guest-lecture his class, and remembers him as the boy who sent her forty fan letters.",
   "coldOpen": "Kids, in 1997 I wrote a fan letter to the greatest architect alive. In 2010 she finally answered it. In front of my class.",
-  "couch": [
-    { "type": "say", "character": "luke", "line": "Was it a restraining order?", "emotion": "bored" },
-    { "type": "narrate", "line": "It was not a restraining order.", "laugh": "chuckle" }
-  ],
+  "couch": [{ "type": "say", "character": "luke", "line": "Ugh." }, { "type": "narrate", "line": "And no, it was not a restraining order.", "laugh": "chuckle" }],
   "guests": [
     {
       "id": "guest1",

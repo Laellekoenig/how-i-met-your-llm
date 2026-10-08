@@ -108,7 +108,7 @@ describe('validating the new beats', () => {
     const act = { type: 'act', character: 'ted', gesture: 'nod' };
     expect(errors([
       { type: 'montage', music: 'upbeat', shots: [shot()] },
-      { type: 'montage', music: 'disco', shots: [shot([act, act, act, act]), shot([{ type: 'say', character: 'luke', line: 'Boring.' }]), { ...shot(), cast: [{ character: 'ted', mark: 'nowhere' }] }] },
+      { type: 'montage', music: 'disco', shots: [shot([act, act, act, act]), shot([{ type: 'say', character: 'luke', line: 'Ugh.' }]), { ...shot(), cast: [{ character: 'ted', mark: 'nowhere' }] }] },
       { type: 'cutaway', style: 'imagined', label: 'Ted\'s dream', location: 'rooftop', time: 'night', cast: [], beats: [{ type: 'montage', music: 'upbeat', shots: [shot(), shot()] }] },
     ])).toEqual([
       'scenes[0].beats[0]: 1 shots: a montage has 2-6',

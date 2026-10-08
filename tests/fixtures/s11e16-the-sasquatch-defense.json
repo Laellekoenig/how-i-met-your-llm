@@ -4,8 +4,8 @@
   "logline": "Brad Morris recruits Marshall as the human wall for his team in the Bar League, Manhattan's lawyers-only laser tag league, and twenty years of Bigfoot hunting turn out to have made Marshall invisible. When Marshall won't switch firms to stay on the team, Brad's favor becomes a grudge match for the Golden Gavel against Marshall's hastily hired paralegals: Ted, Robin, Lily and a Barney who cannot stop glowing.",
   "coldOpen": "Kids, in the spring of 2012, your Uncle Marshall became the most feared man in the New York legal community. Not in a courtroom. In a warehouse on Thirty-Ninth Street, wearing a vest that beeped.",
   "couch": [
-    { "type": "say", "character": "luke", "line": "Uncle Marshall? Feared?", "emotion": "confused" },
-    { "type": "narrate", "line": "For about two Thursdays. Then he met someone scarier.", "laugh": "chuckle" }
+    { "type": "act", "character": "luke", "gesture": "crack_up" },
+    { "type": "narrate", "line": "Yes, Luke, feared. For about two Thursdays. Then he met someone scarier.", "laugh": "chuckle" }
   ],
   "guests": [
     {
@@ -224,8 +224,8 @@
         { "type": "say", "character": "marshall", "to": "brad", "line": "Brad, that last one was never about Bigfoot.", "emotion": "nervous", "laugh": "laugh" },
         { "type": "say", "character": "brad", "to": "marshall", "line": "See you Thursday, Sasquatch. Oh, and I'm bringing Hollandaise.", "emotion": "smug", "laugh": "ooh" },
         { "type": "exit", "character": "brad" },
-        { "type": "say", "character": "penny", "line": "Wait. Brad listened to three years of Bigfoot? Dad, is this a love story?", "delivery": "deadpan" },
-        { "type": "narrate", "line": "Penny, every story about Uncle Marshall is a love story. Most of them are about sandwiches.", "laugh": "laugh" },
+        { "type": "say", "character": "penny", "line": "Seriously, Dad?" },
+        { "type": "narrate", "line": "Yes, three years of Bigfoot. Every story about Uncle Marshall is a love story. Most are about sandwiches.", "laugh": "laugh" },
         { "type": "say", "character": "marshall", "to": "lily", "line": "Guys. He's bringing the corgi.", "delivery": "whisper", "emotion": "nervous" },
         { "type": "say", "character": "robin", "to": "marshall", "line": "Marshall, it's a corgi. It's a loaf of bread that hates you.", "delivery": "deadpan", "laugh": "big" }
       ]

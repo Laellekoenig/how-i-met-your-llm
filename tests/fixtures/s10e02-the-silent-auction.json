@@ -3,10 +3,7 @@
   "title": "The Silent Auction",
   "logline": "Lily’s school auction pits Marshall against his own mother for a canoe, under an auctioneer who talks faster than anyone can bid.",
   "coldOpen": "Kids, every spring your Aunt Lily’s school held a silent auction. In 2010 it was neither silent, nor technically an auction.",
-  "couch": [
-    { "type": "say", "character": "penny", "line": "So what was it?", "emotion": "confused" },
-    { "type": "narrate", "line": "A hostage situation. With a canoe.", "laugh": "laugh" }
-  ],
+  "couch": [{ "type": "say", "character": "penny", "line": "Wait. What?" }, { "type": "narrate", "line": "A hostage situation. With a canoe.", "laugh": "laugh" }],
   "guests": [
     {
       "id": "guest1",
@@ -157,8 +154,8 @@
         { "type": "say", "character": "ted", "to": "lily", "line": "Is it any good?" },
         { "type": "say", "character": "lily", "to": "ted", "line": "It rhymes Lily with really, really.", "delivery": "deadpan", "laugh": "big" },
         { "type": "narrate", "line": "Marshall kept that canoe for twenty years. He never once put it in the water.", "laugh": "chuckle" },
-        { "type": "say", "character": "luke", "line": "Can we have the canoe?", "emotion": "excited", "chorus": ["penny"] },
-        { "type": "narrate", "line": "Ask Uncle Marshall. He’ll say when you’re older.", "laugh": "laugh" }
+        { "type": "say", "character": "luke", "line": "What?!", "chorus": ["penny"] },
+        { "type": "narrate", "line": "It’s in his garage. Ask Uncle Marshall. He’ll say when you’re older.", "laugh": "laugh" }
       ]
     }
   ]

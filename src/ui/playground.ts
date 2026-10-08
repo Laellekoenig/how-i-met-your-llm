@@ -852,11 +852,11 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
       { type: 'split', label: 'Three places at once', panels: (['apartment', 'barneys', 'office'] as SceneLocationId[]).map((loc, i) => ({ location: loc, time: st.time, cast: [{ character: [st.a, st.b, 'lily' as CharacterId][i], mark: someMark(loc) }] })),
         beats: [{ type: 'say', character: st.a, line: 'One.' }, { type: 'say', character: st.b, line: 'Two.' }, { type: 'say', character: 'lily', line: 'Three.' }] },
     ] },
-    { name: 'The kids', hint: 'Penny and Luke chime in from 2030, Future Ted answers', beats: () => [
+    { name: 'The kids', hint: 'Penny and Luke react from 2030 with their recorded takes, Future Ted answers', beats: () => [
       { type: 'say', character: st.a, line: 'And that is the whole story.' },
-      { type: 'say', character: 'penny', line: 'Dad, that is not the whole story.' },
-      { type: 'say', character: 'luke', line: 'Is this going to take long?', emotion: 'bored' },
-      { type: 'narrate', line: 'Fine. It took a little longer.' },
+      { type: 'say', character: 'penny', line: 'Seriously, Dad?' },
+      { type: 'act', character: 'luke', gesture: 'head_in_hands' },
+      { type: 'narrate', line: 'Fine. It was not the whole story.' },
       { type: 'say', character: st.b, line: 'And we are back.' },
     ] },
     { name: 'Walk every mark', hint: 'A walks to every mark on the set (vehicles: slides between seats)', beats: () => marksOf().filter((m) => !st.cast.some((c) => c.mark === m && c.character !== st.a))
@@ -969,7 +969,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
         button('▶ closing credits', () => void air([{ kind: 'episode-end', episode: { id: `playground-${++aired}`, code: 'S99E99', title: 'Playground', logline: '' } }], 'the closing credits')),
         button('▶ couch cold open', () => void air([{ kind: 'episode-start', episode: { id: `playground-${++aired}`, code: 'S99E99', title: 'Playground', logline: '' },
           coldOpen: 'Kids, I want to tell you about the playground.',
-          couch: [{ type: 'say', character: 'penny', line: 'Is this another architecture story?' }, { type: 'narrate', line: 'No. Well. Partly.' }, { type: 'say', character: 'luke', line: 'Ugh.', emotion: 'bored' }] }], 'a couch cold open')),
+          couch: [{ type: 'narrate', line: 'It is not an architecture story. Well. Partly.' }, { type: 'say', character: 'luke', line: 'Ugh.' }] }], 'a couch cold open')),
       ),
       h('h4', { textContent: 'Checker' }), report,
     );

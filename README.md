@@ -31,8 +31,8 @@ Episodes are written ahead of time by agents, not live. In Claude Code, run `/wr
 episode in parallel ([`.claude/agents/episode-writer.md`](.claude/agents/episode-writer.md), which holds the
 story and joke craft guide), and reviews what they write. You can also ask for the `episode-writer` agent directly.
 The [story-structure reference](docs/story-structure-reference.md) documents how the original show varies its
-openings, narration and kids' interruptions. Writers choose the opening, couch placement and ending for each
-story, then compare those choices across a batch. A couch appearance or final Future Ted moral is optional.
+openings and narration. Writers choose the opening, any kid reaction and the ending for each story, then compare
+those choices across a batch. A couch appearance or final Future Ted moral is optional.
 
 The writers' tools, which work just as well by hand:
 
@@ -60,8 +60,10 @@ and following scene carryover. These are static line counts, not percentages of 
   them, and carry listener `react`ions; most beats take a `shot`. Scenes can be named and `resume`d (intercutting).
   See [Staging devices](#staging-devices) and [Time, memory and the edit](#time-memory-and-the-edit).
 - **The kids** (`src/world/sets/future.ts`): episodes can open on Penny and Luke on the black Chesterfield in Ted's
-  2030 living room, or directly on the story. They can interrupt later or stay offscreen for the whole episode.
-  Penny and Luke never appear in the story: any `say`/`act`
+  2030 living room, or directly on the story. Their couch scenes were recorded before the series was filmed, so
+  they barely talk: Future Ted does, and the kids only have a fixed reel of stock reactions (`KID_TAKES` in
+  `src/script/types.ts`: "What?!", "Ew!", "Is this going to take long?", an eye roll...), each played the same way
+  every time. Penny and Luke never appear in the story: any `say`/`act`
   beat of theirs hard-cuts to the couch (along with Future Ted's answer) and then straight back to the scene.
 - **The main titles** (`src/show/mainTitles.ts`): a twelve-second edit of six candid bar photographs, with close-ups,
   pairs and the whole gang. The white, loosely stacked serif name appears over the second photo; made-up creators
@@ -76,7 +78,7 @@ and following scene carryover. These are static line counts, not percentages of 
   See [the closing-credit references](docs/closing-credits-reference.md).
 - **The episodes** (`episodes/`, `src/script/`): each file holds a title, logline, optional couch opening (`coldOpen`
   and/or `couch`), guest stars and as many staged scenes as the story needs. Without a couch opening, the first scene plays before
-  the main titles. Ordinary `narrate` beats play over the story; kids' reactions can be placed within scene beats.
+  the main titles. Ordinary `narrate` beats play over the story; a recorded kids' reaction can be placed within scene beats.
   The show bible (`bible.ts`) holds the characters, catchphrases, every
   set's marks and the stagecraft vocabulary. The validator (`validate.ts`) replays each scene's blocking to check that
   everyone who speaks is on stage, marks exist and aren't double-booked, and that nobody slides through a limo partition.

@@ -18,7 +18,8 @@ Run `bun run episodes list` to see what has aired and the next free code, and `b
 continuity so far (open bets and promises are good story seeds). Work out how many episodes to write: the
 number in the args, one per pitch given, or 1 if the args say neither.
 Read [the story-structure reference](../../../docs/story-structure-reference.md) for researched examples and
-the supported ways to open on the story, use narration, and cut to the kids.
+the supported ways to open on the story and use narration. The kids barely talk: their couch scenes were recorded
+before the series, so they only have the stock takes in `bun run bible`, and Future Ted does the talking.
 Read [the music reference](../../../docs/music-reference.md) for the musical approach: most scenes and ordinary
 dialogue stay unscored; music needs a specific story purpose and a planned entry and exit. Zero authored music is valid.
 Read [the location reference](../../../docs/location-reference.md) for home-base storytelling and restrained
@@ -34,10 +35,10 @@ needed, with the main story developing in the regular settings. An episode with 
 Check recent episodes and the current batch for repeated destinations; avoid consecutive returns by default and
 don't substitute a different novelty venue in every episode. Assign consecutive codes starting at the next free one.
 Read the openings and endings of a few recent episodes. For each pitch, choose an opening image/first speaker,
-where (if anywhere) the kids interrupt, and an ending device. Keep the opening short: everything before the
+whether a stock kid take earns a spot (usually not), and an ending device. Keep the opening short: everything before the
 main titles is a quick hook of roughly 3-8 lines (never more than 10) that ends on a button, and the setup
-continues after the titles. Compare these across the batch: vary repeated defaults without a quota or rotation. A couch-free episode and an episode with only a middle couch interruption
-are both valid; Future Ted's voice-over does not require showing the kids.
+continues after the titles. Compare these across the batch: vary repeated defaults without a quota or rotation. A couch-free episode
+is the norm; Future Ted's voice-over does not require showing the kids, and a couch opening is Ted talking, not the kids.
 
 ## 2. Writers' room
 
@@ -46,7 +47,7 @@ Launch one `episode-writer` agent per episode, all in the same message so they r
 - its premise (the pitch, a logline, or just a lead character and an engine; leave the writer room to find the story)
 - any characters or sets to feature
 - the main location and any special visit's story purpose and brief scope; a requested set can feature in a short scene
-- the proposed opening, couch placement and ending, with the story reason (the writer may improve them)
+- the proposed opening, any kid take and ending, with the story reason (the writer may improve them)
 - any story reason for music, otherwise an unscored default; the writer should plan both ends of any cue
 - one line on each of the *other* episodes being written now, including their framing choices and special locations, so they don't overlap
 
@@ -56,13 +57,14 @@ When the writers report back:
 1. Run `bun run episodes check` (all episodes) and `bun test`. Every episode must have 0 errors and the tests must pass.
 2. Read each new episode with `bun run episodes read <file>`. Hold it to the bar: a real story, character-specific
    jokes, scenes that end where they should (a button or a deliberate quiet ending), a heart beat that isn't
-   explained away, and an earned ending (dialogue, visual payoff, kids or narration). Cues, cards and looks should
+   explained away, and an earned ending (dialogue, visual payoff, a stock kid reaction or narration). Cues, cards and looks should
    be choices, not decoration; the laugh track should be restrained (no cheering, rare `aww`/`ooh`/`gasp`).
    Check scene length (`read` prints each scene's line count): most scenes 5-20 lines, none over 25; send long
    ones back to be cut or split by intercutting. Check that the opening hooks us and gets to the titles fast:
    the pre-titles material (`coldOpen` + `couch`, or `scenes[0]` in a story opening) should be about 3-8 lines
    and never over 10; send longer ones back to be trimmed or to move the setup after the titles. Check that
-   every couch visit has a story trigger, and that narration adds something beyond what we just saw. Compare the
+   the kids have at most one or two recorded takes, each with a setup that makes the stock line land, and that
+   narration adds something beyond what we just saw. Compare the
    batch's first images and last beats; don't accept identical framing with different nouns. Check music coverage as well: most dialogue should be unscored, each cue needs a purpose
    and an exit, and music must not leak through scene/cutaway returns or resume unexpectedly after a montage.
    Cut routine tender endings, scene-long mood beds and decorative stings; compare the batch for repeated music

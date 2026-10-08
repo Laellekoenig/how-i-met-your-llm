@@ -8,7 +8,7 @@ import { CHARACTERS, charName, setGuests } from '../src/world/characters';
 import { Director } from '../src/show/director';
 import { Player } from '../src/show/player';
 import { speech } from '../src/audio/speech';
-import type { Beat, EpisodeScript, GuestStar, ShowItem } from '../src/script/types';
+import { KID_TAKES, kidTake, type Beat, type EpisodeScript, type GuestStar, type ShowItem } from '../src/script/types';
 import { overlayStub } from './helpers/overlay';
 
 const spies: { mockRestore(): void }[] = [];
@@ -80,15 +80,38 @@ describe('the validator', () => {
   });
 
   test('the kids stay on the couch', () => {
-    expect(errors([say('penny', 'Dad.')])).toBe('');
+    expect(errors([say('penny', 'Seriously, Dad?')])).toBe('');
     expect(errors([{ type: 'enter', character: 'luke' }])).toContain('never leaves the 2030 couch');
     expect(errors([], { scenes: [{ location: 'maclarens', time: 'night', cast: [{ character: 'penny', mark: 'booth_end' }], beats: [say('ted')] }] })).toContain('only ever on the 2030 couch');
+  });
+
+  test('the kids only have the takes recorded before the series', () => {
+    expect(errors([say('penny', 'What?!', { chorus: ['luke'], laugh: 'laugh' }), say('luke', 'Ew!', { chorus: ['penny'] })])).toBe('');
+    expect(errors([{ type: 'act', character: 'luke', gesture: 'head_in_hands' }, { type: 'act', character: 'penny', gesture: 'eye_roll' }])).toBe('');
+    expect(errors([say('penny', 'Wait, so you married Aunt Robin?')])).toContain('penny has no recorded take');
+    expect(errors([say('luke', 'Seriously, Dad?')])).toContain('luke has no recorded take');
+    expect(errors([say('penny', 'Ugh.', { chorus: ['luke'] })])).toContain('no recorded take "Ugh." together');
+    expect(errors([{ type: 'act', character: 'penny', gesture: 'slow_clap' }])).toContain('no recorded take with "gesture": "slow_clap"');
+    expect(errors([say('luke', 'Gross.', { emotion: 'happy', to: 'penny' })])).toContain('"emotion", "to": the kids\' takes were recorded');
+    const report = validateEpisode(episode([say('penny', 'Wait. What?'), say('luke', 'Ugh.'), say('penny', 'Dad!', { chorus: ['luke'] })]), sets);
+    expect(report.warnings.map((w) => w.message).join('\n')).toContain("3 kids' takes");
+  });
+
+  test('every recorded take is writable as listed', () => {
+    for (const t of KID_TAKES) {
+      const who = t.who === 'both' ? 'penny' : t.who;
+      const b = t.line
+        ? { type: 'say', character: who, line: t.line, ...(t.who === 'both' ? { chorus: ['luke'] } : {}) }
+        : { type: 'act', character: who, gesture: t.gesture };
+      expect(kidTake(b), JSON.stringify(b)).toBe(t);
+      expect(errors([b as Beat]), JSON.stringify(b)).toBe('');
+    }
   });
 
   test('openings and endings are story choices, with optional but nonempty coldOpen text', () => {
     const ep = episode([say('ted', 'The end.', { laugh: 'laugh' })], { coldOpen: undefined });
     expect(messages(ep)).toEqual([]);
-    expect(messages({ ...ep, couch: [say('penny', 'What happened next?')] })).toEqual([]);
+    expect(messages({ ...ep, couch: [say('penny', 'When do we get to Mom?')] })).toEqual([]);
     for (const coldOpen of ['', '  ', null, 42]) {
       expect(messages({ ...ep, coldOpen }).join('\n')).toContain('"coldOpen" must be a non-empty string');
     }

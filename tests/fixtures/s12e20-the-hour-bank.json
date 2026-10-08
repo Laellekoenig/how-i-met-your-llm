@@ -4,8 +4,8 @@
   "logline": "At Kevin's first party with the gang, Marshall corners him by the dip with his oldest theory: the hour that vanishes every March is being stolen. Kevin, the most rational man Robin has ever dated, realizes his therapy hour is only fifty minutes, and within a week he's planning a rooftop stakeout with a net. Ted, Lily and Barney each try to deprogram him and each makes it worse, while Marshall starts to worry that his first believer is a better truther than he is.",
   "coldOpen": "Kids, in the spring of 2012, your Aunt Robin was dating the calmest, most reasonable man in New York. Then he spent ten minutes in our kitchen with your Uncle Marshall.",
   "couch": [
-    { "type": "say", "character": "penny", "line": "Let me guess. Bigfoot.", "delivery": "deadpan" },
-    { "type": "narrate", "line": "Bigfoot was just the gateway theory.", "laugh": "chuckle" }
+    { "type": "act", "character": "luke", "gesture": "head_in_hands" },
+    { "type": "narrate", "line": "Yes, Bigfoot. But Bigfoot was just the gateway theory.", "laugh": "chuckle" }
   ],
   "scenes": [
     {
@@ -158,7 +158,7 @@
         { "type": "pause", "seconds": 1.5 },
         { "type": "say", "character": "ted", "line": "Huh.", "emotion": "confused", "laugh": "laugh", "shot": "closeup" },
         { "type": "say", "character": "robin", "to": "ted", "line": "Ted. Don't you dare huh.", "emotion": "angry", "gesture": "point", "laugh": "laugh" },
-        { "type": "say", "character": "penny", "line": "Dad. Did you get converted?", "emotion": "smug" },
+        { "type": "say", "character": "penny", "line": "Wait. What?" },
         { "type": "narrate", "line": "Kids, I was not converted. I was curious. For about nine months.", "laugh": "chuckle" },
         { "type": "move", "character": "ted", "to": "couch_right" },
         { "type": "act", "character": "lily", "gesture": "stand" },

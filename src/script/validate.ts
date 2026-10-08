@@ -1,7 +1,7 @@
 import {
   CHARACTER_IDS, CHART_STYLES, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS,
   GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LEGACY_INSERT_KINDS, LAUGHS, MONTAGE_MUSIC, OFFSCREEN, OUTFITS, PROPS, SCENE_LOCATION_IDS,
-  SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isCharacterId, isGuest, isKid,
+  KID_TAKES, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isCharacterId, isGuest, isKid, kidTake,
 } from './types';
 import { replayBeats } from './strands';
 import type { Beat, EpisodeScript } from './types';
@@ -363,6 +363,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
       const kid = !!who && isKid(who);
       if (kid) {
         if (type !== 'say' && type !== 'act') err(p, `${who} never leaves the 2030 couch: they can only say and act`);
+        else recorded(b, who, p);
         if (st?.split) err(p, 'the kids can\'t interrupt a split screen');
         if (!muted) count.kids++;
       }
@@ -372,10 +373,6 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
         if (kid) err(p, 'the kids are on the couch, never offscreen');
         else if (st?.at.has(who)) err(p, `${who} is on stage: "offscreen" is for a voice we hear but don't see`);
         for (const k of ['chorus', 'gesture', 'shot']) if (b[k] !== undefined) err(p, `"${k}" needs them on screen: not with "offscreen"`);
-      }
-      if (kid && type === 'say' && b.chorus !== undefined) {
-        // the kids can say something together on the couch, and that's all
-        if (!Array.isArray(b.chorus) || b.chorus.some((c) => !isKid(String(c)) || c === who)) err(p, '"chorus" on a kid\'s line is the other kid');
       }
       if ((type === 'say' || type === 'act') && b.to !== undefined) {
         const to = character(b.to, p, '"to"');
@@ -597,6 +594,21 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     beats(b.beats, all, `${p}.beats`, depth, budget, undefined, 'split');
   };
 
+  /** A kid's beat is one of the takes recorded before the series was filmed, played exactly as it was shot. */
+  const recorded = (b: Obj, who: string, p: string) => {
+    const said = b.type === 'say';
+    if (said && b.chorus !== undefined && (!Array.isArray(b.chorus) || b.chorus.length !== 1 || !isKid(String(b.chorus[0])) || b.chorus[0] === who)) {
+      return err(p, '"chorus" on a kid\'s line is the other kid');
+    }
+    const extra = Object.keys(b).filter((k) => !['type', 'character', said ? 'line' : 'gesture', 'chorus', 'laugh'].includes(k));
+    if (extra.length) err(p, `${list(extra.map((k) => `"${k}"`))}: the kids' takes were recorded before the series was filmed, so how they're played comes with the take`);
+    if (kidTake(b as Parameters<typeof kidTake>[0])) return;
+    const both = said && b.chorus !== undefined;
+    const takes = KID_TAKES.filter((t) => (said ? !!t.line : !t.line) && (both ? t.who === 'both' : t.who === who));
+    const options = takes.map((t) => JSON.stringify(said ? t.line : t.gesture));
+    err(p, `${who} has no recorded take ${said ? `"${String(b.line)}"` : `with "gesture": ${JSON.stringify(b.gesture)}`}${both ? ' together' : ''}: the kids' scenes were shot before the series, so ${both ? 'together they' : 'they'} can only ${said ? 'say' : 'do'} ${list(options)}`);
+  };
+
   /** Listener reactions: people on stage, never the speaker or the kids. */
   const reactions = (raw: unknown, st: Stage | null, p: string, speaker?: string) => {
     if (raw === undefined) return;
@@ -658,19 +670,16 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
     if (kind !== 'chart' && b.items !== undefined) err(p, '"items" are only for a chart');
   };
 
-  // ---- the kids' reaction to the cold open
+  // ---- the couch opening: Future Ted talking to the kids, who mostly listen
   if (ep.couch !== undefined) {
     if (!Array.isArray(ep.couch)) err('couch', 'must be an array of beats');
     else ep.couch.forEach((b, i) => {
       const p = `couch[${i}]`;
-      if (!isObj(b) || !((b.type === 'say' && isKid(String(b.character))) || b.type === 'narrate')) {
-        err(p, 'the couch is only penny/luke "say" beats and Future Ted "narrate" answers');
+      if (!isObj(b) || !(((b.type === 'say' || b.type === 'act') && isKid(String(b.character))) || b.type === 'narrate')) {
+        err(p, 'the couch is only Future Ted "narrate" beats and the odd penny/luke take ("say" or "act")');
       }
     });
-    // (the couch reaction isn't one of the episode's couch cutaways)
-    const before = count.kids;
     beats(ep.couch, null, 'couch', 0, { left: Infinity });
-    count.kids = before;
   }
 
   // ---- scenes
@@ -730,7 +739,7 @@ export function validateEpisode(ep: unknown, sets: Sets): Report {
   }
 
   for (const [id, name] of guests) if (!speakers.has(id)) warn('guests', `${name} (${id}) never says a line`);
-  if (count.kids > 3) warn('', `${count.kids} kids' reaction beats: check that each couch visit serves a specific story beat and stays brief`);
+  if (count.kids > 2) warn('', `${count.kids} kids' takes: they barely talk (Future Ted does), so keep it to one or two where a reveal earns a stock reaction`);
   if (count.montages > 1) warn('', `${count.montages} montages: one per episode at most`);
   if (count.inserts > 3) warn('', `${count.inserts} inserts: two or three per episode`);
   if (count.freezes > 1) warn('', `${count.freezes} freeze frames: one per episode at most`);

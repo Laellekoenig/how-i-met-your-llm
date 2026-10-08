@@ -176,9 +176,8 @@
       "beats": [
         { "type": "say", "character": "ted", "to": "ranjit", "line": "And on your left, once again, the Woolworth Building. Note the gargoyles.", "emotion": "excited", "gesture": "point" },
         { "type": "say", "character": "ranjit", "to": "ted", "line": "Mister Ted, we have passed it eleven times.", "laugh": "laugh" },
-        { "type": "say", "character": "penny", "line": "Wait. Dad. You said you refused.", "emotion": "suspicious" },
-        { "type": "say", "character": "luke", "line": "You're literally in the limo.", "delivery": "deadpan" },
-        { "type": "narrate", "line": "I said I refused, Luke. I never said for how long.", "laugh": "laugh" },
+        { "type": "say", "character": "penny", "line": "Seriously, Dad?" },
+        { "type": "narrate", "line": "I said I refused, kids. I never said for how long.", "laugh": "laugh" },
         {
           "type": "replay",
           "of": "recruit",

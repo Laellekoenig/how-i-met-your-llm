@@ -4,9 +4,9 @@
   "logline": "The gang discovers that Robin and Marshall have spent thirty-one Wednesdays secretly winning pub quiz at another bar as Team Polar Vortex, and it plays exactly like an affair. Ted, Lily and Barney demand a rematch and cram with a solo rival who has finished second thirty-one weeks running, while Lily's lasagna bribe puts Marshall between his wife and his quiz wife.",
   "coldOpen": "Kids, in the spring of 2012, your Aunt Robin and your Uncle Marshall had a secret. Every Wednesday night for thirty-one weeks, they snuck off together to another bar. And they were very, very good together.",
   "couch": [
-    { "type": "say", "character": "penny", "line": "Dad. Did Uncle Marshall cheat on Aunt Lily with Aunt Robin?", "emotion": "surprised" },
-    { "type": "narrate", "line": "What? No. Kids, it was a pub quiz." },
-    { "type": "say", "character": "luke", "line": "Boo.", "delivery": "deadpan", "emotion": "bored" },
+    { "type": "say", "character": "penny", "line": "What?!", "chorus": ["luke"] },
+    { "type": "narrate", "line": "No. No! Kids, it was a pub quiz." },
+    { "type": "say", "character": "luke", "line": "Ugh." },
     { "type": "narrate", "line": "Luke, there were stakes. A twenty-dollar bar tab, and our entire friendship.", "laugh": "chuckle" }
   ],
   "guests": [
