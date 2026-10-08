@@ -205,16 +205,19 @@ export function buildProp(kind: Prop): THREE.Group {
       break;
     }
     case 'laptop': {
-      // open in both arms, the screen turned out to show everyone else
+      // open, held out level on both palms the way you'd read it: the hinge away from the holder, the lid tipped
+      // back so the screen faces them, and the lit logo on its back to everyone else
       const shell = toon('#9aa0a8', { emissive: '#2a2e34', emissiveIntensity: 0.3 });
-      part(g, roundedBox(0.34, 0.016, 0.24, 0.006), shell, 0, 0, 0.02);
-      part(g, box(0.3, 0.003, 0.12), toon('#2a2c30'), 0, 0.01, 0.05);
+      part(g, roundedBox(0.34, 0.016, 0.24, 0.006), shell, 0, 0, 0.09);
+      part(g, box(0.3, 0.003, 0.11), toon('#2a2c30'), 0, 0.009, 0.13);
+      part(g, box(0.1, 0.002, 0.06), toon('#82878e'), 0, 0.009, 0.03);
       const lid = new THREE.Group();
-      lid.position.set(0, 0.008, -0.1);
-      lid.rotation.x = -0.35;
+      lid.position.set(0, 0.008, 0.205);
+      lid.rotation.x = 0.3;
       g.add(lid);
       part(lid, roundedBox(0.34, 0.22, 0.012, 0.006), shell, 0, 0.11, 0);
-      part(lid, box(0.31, 0.19, 0.002), glow('#9fd0ff', 0.8), 0, 0.11, 0.007);
+      part(lid, box(0.31, 0.19, 0.002), glow('#9fd0ff', 0.8), 0, 0.11, -0.007);
+      part(lid, new THREE.CircleGeometry(0.018, 14), glow('#e8f2ff', 0.9), 0, 0.12, 0.0065);
       break;
     }
     case 'videotape': {

@@ -2045,7 +2045,7 @@ export class Actor {
       shape(side, 'grip');
     };
     if (grip === 'arms') {
-      const supports: Partial<Record<Prop, V3>> = { gift: [0.11, -0.11, 0], laptop: [0.14, -0.027, 0.07], goat: [0.145, -0.1, 0.04], french_horn: [0.1, -0.12, 0.015] };
+      const supports: Partial<Record<Prop, V3>> = { gift: [0.11, -0.11, 0], laptop: [0.13, -0.027, 0.08], goat: [0.145, -0.1, 0.04], french_horn: [0.1, -0.12, 0.015] };
       const [x, y, z] = supports[this.prop!] ?? [0.1, -0.1, 0];
       for (const sd of [1, -1]) palm(sd, this.chest.position.clone().add(v(sd * x, y, z)), v(0, 0, 1), v(0, 1, 0), 1, 'relaxed');
     } else if (busy) {
