@@ -115,7 +115,7 @@ In the car, limo and taxi everyone is seated: "move" means sliding over to anoth
 # Scene transitions
 For subway, laser_tag, wesleyan_dorm, hospital, elevator, canadian_mall, hoser_hut, courtroom and lusty_leopard, use cut (or an intentional rewind); their interiors have no dedicated exterior.
 Choose the incoming transition for each scene ("transition"; leave it out to choose automatically from changes in time and place). Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
-- cut: straight into the scene without a sound cue. Best for immediate continuations and punchline reveals.
+- cut: straight into the scene without a sound cue. Best for immediate continuations and punchline reveals. Between two scenes on the same set, a cut dips briefly through black so the change of scene reads; for a time jump there, a label ("Two hours later") or a skyline still helps.
 - skyline: a brief day/night New York skyline shot. Good after the titles or for time passing.
 - atlantic_city: the ocean, boardwalk and period casino skyline; automatic for an Atlantic City casino arrival, also usable explicitly for a limo arriving there. Day/night supported.
 - exterior: the outside of the destination building (or street traffic for a car/cab/limo), then cut inside. Good for a new location.
