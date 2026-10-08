@@ -129,11 +129,24 @@ $('btn-back').addEventListener('click', () => player.back('scene'));
 $('btn-skip').addEventListener('click', () => player.skip('scene'));
 $('btn-skip-ep').addEventListener('click', () => player.skip('episode'));
 // Fullscreen the letterboxing wrapper, not the screen itself, so the picture keeps its aspect.
+// On a phone it also turns the picture sideways, the way a video player does (where the browser allows it).
+type Orientation = ScreenOrientation & { lock?: (o: 'landscape') => Promise<void> };
 function toggleFullscreen() {
-  if (document.fullscreenElement) void document.exitFullscreen();
-  else void $('screen-wrap').requestFullscreen();
+  if (document.fullscreenElement) {
+    void document.exitFullscreen();
+    return;
+  }
+  void $('screen-wrap')
+    .requestFullscreen()
+    .then(() => {
+      if (matchMedia('(pointer: coarse)').matches) return (screen.orientation as Orientation).lock?.('landscape');
+    })
+    .catch(() => {});
 }
 $('btn-full').addEventListener('click', toggleFullscreen);
+$('btn-touch-full').addEventListener('click', toggleFullscreen);
+// (iPhone Safari only fullscreens videos; there, turning the phone sideways fills the screen anyway)
+$('btn-touch-full').classList.toggle('hidden', !document.fullscreenEnabled);
 $('btn-guide').addEventListener('click', () => openGuide());
 $('btn-menu').addEventListener('click', () => openGuide());
 // Back returns to the guide; forward airs the episode that was picked again.
