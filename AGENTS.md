@@ -12,7 +12,7 @@ Episodes are pre-written JSON files in `episodes/` (no live generation). To writ
 
 ## README
 
-Keep `README.md` short and plain. Put details that only agents need here or in `docs/`. When a change alters what the gang looks like at MacLaren's (characters, faces, gestures, the set, lighting, the picture style), run `bun run screenshot` to refresh `docs/screenshot.png` and commit it. The script (`scripts/screenshot.ts`) needs a local Chrome; set `CHROME` if it isn't at the macOS default path.
+Keep `README.md` short and plain. Put details that only agents need here or in `docs/`. When a change alters what the gang looks like at MacLaren's (characters, faces, gestures, the set, lighting, the picture style), run `bun run screenshot` to refresh `docs/screenshot.png` and commit it. If Ted's look or the picture filter changes, also run `bun run favicon` to regenerate the icons in `public/`. Both scripts (`scripts/screenshot.ts`, `scripts/favicon.ts`) need a local Chrome; set `CHROME` if it isn't at the macOS default path.
 
 ## Running and debugging
 
