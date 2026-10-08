@@ -1,7 +1,7 @@
 ---
 name: write-episodes
 description: >-
-  Write new episodes of How I Met Your LLM. Runs a quick pitch session, then launches episode-writer agents in
+  Write new episodes of how i met your slop. Runs a quick pitch session, then launches episode-writer agents in
   parallel, one per episode, and checks their work. Use when asked to write, generate or add episodes.
   Args: a count ("3"), pitches ("Barney gets banned from Costco; Robin's hockey team"), or both.
 ---
