@@ -35,9 +35,15 @@ const bench = new Workbench();
 const player = new Player(stage, director, renderer, overlay, panel, inPlayground ? bench : syndication);
 let onAir = requested >= 0;
 let airing: string | undefined;
+/** The episode index a history entry was tuned to, if it's an entry for watching rather than the guide. */
+const tunedEntry = (state: unknown = history.state) => (state as { tuned?: number } | null)?.tuned;
+/** A URL with its bare flags left bare: `?dev&mute`, not `?dev=&mute=`. */
+const bareFlags = (url: URL) => url.href.replace(/([?&][^=&#]+)=(?=&|#|$)/g, '$1');
 
 /** Air an episode from its cold open, picked in the guide; syndication carries on from there. */
 function tune(index: number) {
+  // An episode sits a history entry above the guide, so the browser's back button returns to it.
+  if (tunedEntry() === undefined) history.pushState({ tuned: index }, '');
   closeGuide();
   syndication.seek(index);
   // (off the air, the player is already waiting on the pick)
@@ -52,6 +58,8 @@ function openGuide() {
     return;
   }
   if (guide.open) return;
+  // (step back off the episode's entry rather than stacking another guide on top of it)
+  if (tunedEntry() !== undefined) history.back();
   if (onAir) {
     onAir = false;
     syndication.off();
@@ -127,6 +135,14 @@ function toggleFullscreen() {
 }
 $('btn-full').addEventListener('click', toggleFullscreen);
 $('btn-guide').addEventListener('click', () => openGuide());
+$('btn-menu').addEventListener('click', () => openGuide());
+// Back returns to the guide; forward airs the episode that was picked again.
+window.addEventListener('popstate', (e) => {
+  if (inPlayground || touring) return;
+  const index = tunedEntry(e.state);
+  if (index === undefined) openGuide();
+  else if (guide.open) tune(index);
+});
 // The playground and the show swap places: each keeps dev mode and ?mute.
 $('btn-playground').classList.toggle('on', inPlayground);
 $('btn-playground').addEventListener('click', () => {
@@ -143,7 +159,7 @@ function setDevMode(on: boolean) {
   const url = new URL(location.href);
   if (on) url.searchParams.set('dev', '');
   else url.searchParams.delete('dev');
-  history.replaceState(null, '', url.href.replace(/([?&][^=&#]+)=(?=&|#|$)/g, '$1'));
+  history.replaceState(history.state, '', bareFlags(url));
   if (!on) setPaused(false);
 }
 setDevMode(inPlayground || params.has('dev'));
@@ -197,6 +213,14 @@ if (inPlayground) {
   playground({ stage, director, renderer, player, bench });
 } else if (!touring) {
   if (!onAir) openGuide();
+  // `?ep` opens on the episode with the guide one step back, as if it had been picked there.
+  else if (tunedEntry() === undefined) {
+    const here = location.href;
+    const guideUrl = new URL(here);
+    guideUrl.searchParams.delete('ep');
+    history.replaceState(null, '', bareFlags(guideUrl));
+    history.pushState({ tuned: requested }, '', here);
+  }
   void player.run();
 }
 
