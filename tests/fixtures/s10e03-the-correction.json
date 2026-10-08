@@ -4,8 +4,8 @@
   "logline": "Ted corrects Robin’s pronunciation on live television, and her new producer turns it into the station’s hottest segment.",
   "coldOpen": "Kids, everybody has a calling. Mine, it turned out, was correcting people on live television.",
   "couch": [
-    { "type": "say", "character": "penny", "line": "Was it a calling, or were you just annoying?", "emotion": "smug" },
-    { "type": "narrate", "line": "Those can be the same thing.", "laugh": "chuckle" }
+    { "type": "act", "character": "penny", "gesture": "eye_roll" },
+    { "type": "narrate", "line": "I know. Calling, annoying. Those can be the same thing.", "laugh": "chuckle" }
   ],
   "guests": [
     {
@@ -137,8 +137,8 @@
         { "type": "say", "character": "guest1", "to": "guest2", "line": "Get that man a segment!", "delivery": "shout", "emotion": "excited", "laugh": "laugh" },
         { "type": "act", "character": "guest1", "to": "guest2", "emotion": "excited", "gesture": "fist_bump" },
         { "type": "narrate", "line": "Hector’s segment ran for eleven years. Nobody ever corrected him.", "laugh": "laugh" },
-        { "type": "say", "character": "luke", "line": "So you got cancelled by the camera guy.", "emotion": "bored" },
-        { "type": "narrate", "line": "It was a mutual decision.", "laugh": "big" }
+        { "type": "say", "character": "penny", "line": "Seriously, Dad?" },
+        { "type": "narrate", "line": "Yes, I got cancelled by the camera guy. It was a mutual decision.", "laugh": "big" }
       ]
     }
   ]

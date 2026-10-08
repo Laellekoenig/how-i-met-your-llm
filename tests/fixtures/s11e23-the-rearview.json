@@ -4,8 +4,8 @@
   "logline": "Barney discovers that Ranjit has spent nine years quietly running Rearview, a matchmaking service built on everything he overhears in the back of the limo, with two hundred and twelve couples and zero divorces. Barney tries to buy it, beat it and sabotage it, while Ted, Robin and Lily secretly chase their own files, until a two a.m. break-in reveals who Ranjit's best source has been all along.",
   "coldOpen": "Kids, your Uncle Barney's Playbook had a perfect success rate. Of course, he defined success as never seeing the woman again. Then, in the fall of 2012, he found out the most successful romantic in New York had been sitting four feet in front of him for nine years.",
   "couch": [
-    { "type": "say", "character": "luke", "line": "It was Ranjit.", "delivery": "deadpan", "emotion": "bored" },
-    { "type": "narrate", "line": "Luke, it's a story. You're supposed to let me reveal things.", "laugh": "chuckle" }
+    { "type": "say", "character": "luke", "line": "Dad, we get it." },
+    { "type": "narrate", "line": "Fine. It was Ranjit. You're supposed to let me reveal things.", "laugh": "chuckle" }
   ],
   "guests": [
     {
@@ -92,8 +92,8 @@
         { "type": "say", "character": "ranjit", "to": "ted", "line": "Still number forty!", "emotion": "happy", "gesture": "thumbs_up", "laugh": "laugh" },
         { "type": "say", "character": "ted", "to": "ranjit", "line": "How am I still forty? It's been two years!", "emotion": "angry" },
         { "type": "say", "character": "ranjit", "to": "ted", "line": "Nobody I match ever comes back.", "emotion": "happy", "laugh": "laugh" },
-        { "type": "say", "character": "penny", "line": "Dad. You were on a waiting list to get set up by a limo driver?", "delivery": "deadpan" },
-        { "type": "narrate", "line": "Penny, it was a very exclusive limo driver.", "laugh": "laugh" },
+        { "type": "say", "character": "penny", "line": "Seriously, Dad?" },
+        { "type": "narrate", "line": "Yes, a waiting list. It was a very exclusive limo driver.", "laugh": "laugh" },
         { "type": "say", "character": "lily", "to": "ranjit", "line": "Ranjit. Hypothetically. Do you have files on all of us?", "delivery": "whisper", "gesture": "lean_in" },
         { "type": "say", "character": "ranjit", "to": "lily", "line": "Of course. Miss Lily, yours has an appendix.", "emotion": "happy" },
         { "type": "say", "character": "lily", "to": "marshall", "line": "Baby, I have an appendix!", "emotion": "excited" },

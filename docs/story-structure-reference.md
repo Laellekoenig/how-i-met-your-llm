@@ -14,6 +14,10 @@ precise shot timing. Write original stories rather than reproducing these plots 
 | [Mary the Paralegal, S1E19](https://transcripts.foreverdreaming.org/viewtopic.php?t=11661) | Opens with the gang at the bar three months earlier, jumps forward to the consequences, and ends on a dialogue callback after Ted's hotel-room revenge. | Neither a spoken narrator introduction nor a final narrator moral is compulsory. An in-scene joke can close the episode. |
 | [Brunch, S2E3](https://www.springfieldspringfield.co.uk/view_episode_scripts.php?tv-show=how-i-met-your-mother&episode=s02e03) | Presents the unhappy brunch, then reconstructs three strands that explain it. | A glimpse of the result can create a question; subsequent time shifts should answer it. |
 
+The kids' couch scenes were recorded before the series was filmed, so the actors wouldn't visibly age over the
+run, and the same small stock of reactions had to serve every episode. We do the same: Penny and Luke have a fixed reel of recorded takes (`KID_TAKES` in
+`src/script/types.ts`, listed in `bun run bible`), and Future Ted does the talking.
+
 Pamela Fryman's [DGA profile](https://www.dga.org/craft/dgaq/issues/1001-spring-2010/profile-pamela-fryman)
 describes the show's unusually large number of scenes and its blend of multi-camera production with a
 single-camera sensibility, with episodes of 60–80 scenes and comedy frequently made in the edit. That is not a
@@ -24,12 +28,13 @@ replays with changes (`replay`) and nested cutaways are all available. Borrow pu
 
 Choose three things independently in the beat sheet:
 
-- **Entry:** an exchange on the couch, a scene already in motion, Future Ted over the story, or an intriguing
+- **Entry:** Future Ted on the couch, a scene already in motion, Future Ted over the story, or an intriguing
   outcome followed by an explained rewind. Pick the hook the premise needs.
-- **Couch visits:** none, an opening, a middle interruption, a closing reaction, or a motivated combination.
-  Each visit should challenge Ted's account, expose sanitizing, ask a question that triggers a correction, or
-  land a specific reaction to what we just saw. Avoid interchangeable complaints that the story is too long.
-- **Exit:** a character button, a visual/runner payoff, a kids' reaction, or Future Ted adding a new perspective.
+- **Kid takes:** usually none; at most one or two, as a middle interruption or a closing reaction. The kids
+  only have stock takes recorded before the series, so the setup must make the stock line land: "What?!" on a
+  reveal, "Ew!" on a gross detail, "So... sandwiches." on Ted's sanitizing. Ted answers with a `narrate` beat.
+  Anything a kid would ask or notice, Ted says himself.
+- **Exit:** a character button, a visual/runner payoff, a stock kids' reaction, or Future Ted adding a new perspective.
   Don't append a moral that merely restates the scene.
 
 Whichever entry you choose, get to the titles quickly. The pre-titles material is a hook, not the first act:
@@ -39,19 +44,20 @@ Future Ted is still the retrospective storyteller even when the kids never appea
 withhold information, misremember, correct himself, or set up a reveal. He need not say “Kids” every time.
 The kids hear the account; they do not see our camera shots or participate in past events.
 
-Across a batch, compare opening images, first speakers, couch placement and endings as well as premises.
+Across a batch, compare opening images, first speakers, kid takes and endings as well as premises.
 Vary repeated defaults deliberately, without imposing a percentage, rotation or obligatory kids appearance.
 
 ## Encoding it in this repo
 
-- **Couch first:** optional `coldOpen` is a Future Ted string spoken over the kids; optional `couch` holds their
-  `say` beats and his `narrate` answers. A nonempty `couch` can start with a kid even without `coldOpen`.
+- **Couch first:** optional `coldOpen` is a Future Ted string spoken over the kids; optional `couch` holds more
+  of his `narrate` beats and at most one recorded kid take. A nonempty `couch` can stand without `coldOpen`.
   Main titles follow this exchange, then `scenes[0]`.
 - **Story first:** omit both `coldOpen` and `couch`. `scenes[0]` plays once before the main titles; subsequent
   scenes follow normally. Start with dialogue/action, or a `narrate` beat over the set. Use `transition: "cut"`
   for an immediate interior opening, or `skyline`/`exterior` for narration over an establishing shot.
   This is our supported title boundary, not a claim that the original always puts titles after one scene.
-- **Middle or end:** put Penny/Luke `say` or `act` beats at the relevant point in a scene's `beats` array.
+- **Middle or end:** put a Penny/Luke take (`say` with one of their recorded lines, or `act` with one of their
+  silent gestures, nothing else but an optional `laugh`) at the relevant point in a scene's `beats` array.
   Consecutive kid beats, `narrate` answers, `laugh` and `pause` beats stay on the couch; the next story beat
   resumes the saved scene. Never put the kids in `cast`, move them into a story set, or put later reactions
   in the top-level `couch` array. A lone `narrate` beat stays over the story unless it follows a couch cut.
@@ -61,11 +67,11 @@ For example, these original beats belong between story beats, with Ted already i
 ```json
 [
   { "type": "narrate", "line": "I handled the criticism with complete dignity." },
-  { "type": "say", "character": "penny", "line": "Is this before or after you wrote the complaint poem?" },
-  { "type": "narrate", "line": "The sonnet was an appeal." },
+  { "type": "say", "character": "penny", "line": "Seriously, Dad?" },
+  { "type": "narrate", "line": "Fine. I wrote a complaint poem. The sonnet was an appeal." },
   { "type": "say", "character": "ted", "line": "Does anybody know a rhyme for refund?", "laugh": "laugh" }
 ]
 ```
 
-The first narration plays over the story; Penny and the answer play on the couch; younger Ted resumes the
+The first narration plays over the story; Penny's stock take and Ted's answer play on the couch; younger Ted resumes the
 story. See `bun run bible` for the full schema and `bun run episodes read <file>` to review the title boundary.

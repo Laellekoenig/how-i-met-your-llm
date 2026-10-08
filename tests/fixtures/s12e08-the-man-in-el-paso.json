@@ -3,10 +3,7 @@
   "title": "The Man in El Paso",
   "logline": "Ted's red cowboy boots end up on the shelf of a Ninth Avenue thrift store, and the shy Foley artist who buys them for eleven dollars becomes the coolest man in New York overnight. While Ted learns the boots were never the problem, Marshall sweats out a guilty secret that isn't his, and Barney bets Robin he can out-cool a man who barely talks.",
   "coldOpen": "Kids, in the spring of 2013, a total stranger bought my red cowboy boots for eleven dollars. Within a week, he was the coolest man in New York.",
-  "couch": [
-    { "type": "say", "character": "luke", "line": "Dad. You're wearing them right now.", "emotion": "bored" },
-    { "type": "narrate", "line": "Spoilers, Luke.", "laugh": "chuckle" }
-  ],
+  "couch": [{ "type": "say", "character": "luke", "line": "Ugh." }, { "type": "narrate", "line": "Yes, Luke. These boots.", "laugh": "chuckle" }],
   "guests": [
     {
       "id": "guest1",
@@ -323,7 +320,7 @@
         { "type": "say", "character": "ted", "to": "guest2", "line": "Can I explain?", "emotion": "nervous" },
         { "type": "say", "character": "guest2", "to": "ted", "line": "No.", "delivery": "deadpan", "laugh": "big" },
         { "type": "narrate", "line": "That fall, a movie sheriff walked into a saloon on my left heel. And I never explained the boots again." },
-        { "type": "say", "character": "penny", "line": "Dad. You've been explaining them for twenty minutes.", "delivery": "deadpan" },
+        { "type": "say", "character": "luke", "line": "Dad, we get it." },
         { "type": "narrate", "line": "His name was Esteban, kids. He had a garage in El Paso and a dog with three legs.", "laugh": "big" }
       ]
     }

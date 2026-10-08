@@ -361,10 +361,8 @@
         { "type": "say", "character": "patrice", "to": "robin", "line": "Me?", "emotion": "happy", "gesture": "cover_mouth" },
         { "type": "say", "character": "robin", "to": "patrice", "line": "Don't make it weird.", "delivery": "deadpan", "laugh": "chuckle" },
         { "type": "narrate", "line": "Robin never did change that form." },
-        { "type": "say", "character": "penny", "line": "Wait. Patrice? Aunt Patrice? Cookies-every-Arbor-Day Aunt Patrice?", "emotion": "surprised" },
-        { "type": "say", "character": "luke", "to": "penny", "line": "Aunt Robin always says if anything ever happens to her, call Patrice." },
-        { "type": "say", "character": "penny", "to": "luke", "line": "We thought that was a threat.", "laugh": "laugh" },
-        { "type": "narrate", "line": "From Aunt Robin, that's a love letter." }
+        { "type": "say", "character": "penny", "line": "Wait. What?" },
+        { "type": "narrate", "line": "Yes. That Aunt Patrice. You two always thought 'call Patrice' was a threat. From Aunt Robin, it's a love letter.", "laugh": "laugh" }
       ]
     }
   ]

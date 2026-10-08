@@ -1,7 +1,7 @@
 import {
   CHARACTER_IDS, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS, GUEST_EXTRAS, GUEST_HAIR,
   GUEST_HAIR_STYLES, GUEST_SKIN, GUEST_TOPS, LAUGHS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OUTFITS, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS,
-  isGuest, isKid,
+  KID_TAKES, isGuest, isKid,
 } from './types';
 import type { StageSet } from '../world/sets/common';
 
@@ -24,6 +24,12 @@ export function showBible(sets: Record<string, StageSet>) {
         }).join('\n');
     })
     .join('\n\n');
+  const kidTakes = () => (['both', 'penny', 'luke'] as const).map((who) => {
+    const takes = KID_TAKES.filter((t) => t.who === who);
+    const said = takes.filter((t) => t.line).map((t) => JSON.stringify(t.line));
+    const silent = takes.filter((t) => !t.line).map((t) => t.gesture);
+    return `- ${who === 'both' ? 'together' : who}: ${[...said, ...silent.length ? [`silent ${silent.join(', ')}`] : []].join(', ')}`;
+  }).join('\n');
 
   return `# How I Met Your LLM — show bible
 
@@ -34,7 +40,7 @@ Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate 
 
 # Story shape and framing
 There is no required scene count or cutaway count: the original cut between dozens of short scenes, returned to conversations, nested flashbacks and let comedy happen in the edit. Use as many scenes as the story needs, but keep each one short: most run 5-20 lines and none should pass 25. Break a longer conversation up by intercutting it with another strand, cutting away, or jumping past the middle. A scene doesn't have to end on a laugh: an emotional ending, an unanswered question or a quiet visual beat can stand without a joke after it.
-Read docs/story-structure-reference.md for researched examples from the show and the encoding guide. Choose the opening, couch visits and ending independently for the premise. Open with the gang already in a scene, narration over the story, an outcome followed by an explained rewind, or a couch exchange. The kids may appear only in the middle, only at the end, more than once when earned, or not at all. Future Ted remains the retrospective storyteller when the couch is absent. A closing character joke or visual payoff is as valid as narration; don't append a moral that repeats the action. Compare recent episodes and the current batch to avoid repeating the same first image, first speaker and ending device. There is no required ratio of couch openings.
+Read docs/story-structure-reference.md for researched examples from the show and the encoding guide. Choose the opening, couch visits and ending independently for the premise. Open with the gang already in a scene, narration over the story, an outcome followed by an explained rewind, or Future Ted on the 2030 couch. The kids barely talk (their scenes were recorded before the series, see The kids): a stock reaction may land in the middle or at the end when a moment earns it, but usually they don't appear at all. Future Ted remains the retrospective storyteller when the couch is absent. A closing character joke or visual payoff is as valid as narration; don't append a moral that repeats the action. Compare recent episodes and the current batch to avoid repeating the same first image, first speaker and ending device. There is no required ratio of couch openings.
 
 # Main cast
 - ted — Ted Mosby. Architect and part-time professor, hopeless romantic searching for "the one". Pretentious about words and buildings ("Actually, it's pronounced..."), says "Hi, I'm Ted Mosby, architect". Owns red cowboy boots. Gets carried away with grand gestures.
@@ -76,10 +82,13 @@ Use only a few supporting characters per episode, chosen for the story. Do not p
 HIMYM runs on one-off characters: Ted's date of the week, the woman Barney is running a play on, a bouncer, a rival architect, a client, a game-show host. Each episode can cast up to 3 guest stars in "guests". They take the ids guest1, guest2 and guest3, in the order listed; always refer to them by those ids in scenes (cast, character, to). Describe how they look and sound so they read instantly on screen (see the guest fields below), and give each one a specific comic hook in their role. Invent new names (not anyone above). A guest is never the kids' mother.
 
 # The kids (2030)
-Future Ted is telling this whole story to his two teenagers, who sit on the couch in his living room in 2030, facing him. They are never in the story itself.
-- penny — Penny Mosby, Ted's daughter, about 15. Sharp and sarcastic, sees straight through Dad's stories: notices when Mom hasn't shown up yet, when he's sanitizing ("So... you were all 'eating sandwiches'?"), or when it's suspiciously about Aunt Robin again.
-- luke — Luke Mosby, Ted's son, about 13. Slumped, bored, deadpan; groans at long tangents and perks up for slaps, fights and anything gross.
-Any say or act beat by penny or luke in a scene cuts away to them on the couch. Consecutive kid beats, narrate answers, laughs and pauses stay there; the next story beat cuts back to the saved scene. A standalone narrate beat otherwise stays over the story. Use brief visits where a particular reveal, evasion or contradiction earns a reaction or question; omit them when they add nothing. The kids hear Dad's account, not our camera shots. Never put them in a scene's cast and never move/enter/exit them. Top-level "couch" is only for an opening exchange; middle and closing reactions belong at the relevant point in a scene's beats.
+Future Ted is telling this whole story to his two teenagers, who sit on the couch in his living room in 2030, facing him. They are never in the story itself. Like the original show, their couch scenes were recorded before the series was filmed: the kids don't know what happens in any episode, so they have no lines about it. All they have is a short reel of stock reactions, played the same way every time. Future Ted does the talking; the kids listen.
+- penny — Penny Mosby, Ted's daughter, about 15. Sharp and sarcastic; sees through Dad's sanitizing and suspects every story is about Aunt Robin.
+- luke — Luke Mosby, Ted's son, about 13. Slumped, bored, deadpan; groans at long tangents and perks up for anything gross or violent.
+The recorded takes, the only things they can say or do:
+${kidTakes()}
+A kid's "say" beat is { "type": "say", "character": "penny", "line": <one of her lines, exactly> }; the ones they say together are "character": "penny" (or "luke") with "chorus" set to the other kid. A silent take is { "type": "act", "character": "luke", "gesture": <one of his> }. Only "laugh" can be added: the emotion, gesture and delivery come with the take, and "to", "shot", "react" and the rest aren't allowed. Write the moment so a stock reaction lands as a joke: a gross reveal for "Ew!", a sanitized story for "So... sandwiches.", a tangent for "Is this going to take long?". Ted's answer is a narrate beat.
+Any kid beat in a scene cuts away to them on the couch. Consecutive kid beats, narrate answers, laughs and pauses stay there; the next story beat cuts back to the saved scene. A standalone narrate beat otherwise stays over the story. Most episodes need no kid take at all, and never more than one or two: the couch is Future Ted's. The kids hear Dad's account, not our camera shots. Never put them in a scene's cast and never move/enter/exit them. Top-level "couch" is an opening on the 2030 couch, mostly Future Ted (coldOpen and narrate beats) with at most one take; middle and closing reactions belong at the relevant point in a scene's beats.
 
 # Sets and marks (where characters can stand or sit)
 ${marks}
@@ -164,7 +173,7 @@ Most lines need no delivery. Use it when the performance is the joke:
 - offscreen: "phone" or "voice" for a line heard but not seen (see Split screens and phone calls).
 
 # Group lines and reactions
-- "chorus" on a say beat: everyone else saying the line at the same time ("ALL: What?!"). The caption reads "Ted & Marshall", or "Everyone" when it's the whole room. penny and luke can say a line together on the couch.
+- "chorus" on a say beat: everyone else saying the line at the same time ("ALL: What?!"). The caption reads "Ted & Marshall", or "Everyone" when it's the whole room. penny and luke say their "both" takes together on the couch.
 - "react" on a say beat (or an insert) cuts to the listeners when it lands: [{ "character": "marshall", "gesture": "spit_take" }, { "character": "lily", "emotion": "surprised" }]. One reactor gets a closeup cheated toward the camera; a cluster gets a group shot; people spread around the room get quick cuts face to face. For reveals and big punchlines, not every line.
 
 # Props
@@ -180,7 +189,7 @@ Leave coverage to the director, except when a shot is the joke. "shot" on a say,
 - Footage the characters watch (Robin Sparkles on a VHS, Barney's video résumé, a news clip): a cutaway with "look": "video" plays as tape with a VCR's on-screen display; a freeze frame inside it is somebody hitting pause, and a replay with "look": "video" winds it back to watch again. Cut back to the viewers between them for their reactions.
 
 # Stagecraft vocabulary
-characters: ${CHARACTER_IDS.filter((c) => !isGuest(c) && !isKid(c)).join(', ')}; guest1-guest3 (this episode's guests); penny, luke (couch only)
+characters: ${CHARACTER_IDS.filter((c) => !isGuest(c) && !isKid(c)).join(', ')}; guest1-guest3 (this episode's guests); penny, luke (couch only, recorded takes only)
 emotions: ${EMOTIONS.join(', ')}. An emotion shows in the face and the whole body (sad slumps, angry clenches fists, smug and proud stand hands on hips, scared hunches up, bored shifts from foot to foot, embarrassed and flirty blush, crying has tears) and holds for a few seconds before they relax back to their usual selves, so put it on the line where it lands; drunk lasts the scene. Listeners nod along and pick up a little of the speaker's mood on their own.
 gestures: ${GESTURES.join(', ')}. salute is Ted and Robin's (and the gang's) crisp salute. Done to someone ("to"): high_five, hug, slap, kiss and fist_bump (the bro fist) bring the other person in; a kiss without "to" is blown. sit/stand: into the nearest free seat, or up out of it. phone_call holds a phone to their ear for the whole line. lean_in for secrets and flirting, jaw_drop for disbelief, spit_take (a sip sprayed across the room) works best as a reaction. double_take (looks, looks away, snaps back wide-eyed; best with "to" or as a reaction), eye_roll, crack_up (doubled over laughing), sob, slow_clap (sarcastic or sincere), hands_on_hips, head_in_hands, air_quotes, fist_pump, cover_mouth (a gasp). crack_up, sob, eye_roll, cover_mouth, fist_pump, head_in_hands and double_take bring their own face (laughing, crying, bored, surprised, excited, sad, surprised) unless the beat sets an emotion; hands_on_hips, head_in_hands and sob last the whole line they're on.
 props: ${PROPS.join(', ')}
@@ -195,7 +204,7 @@ One JSON file per episode: episodes/<code>-<slug>.json, e.g. episodes/s11e03-the
   "title": "The Slap Bet Inflation",
   "logline": "One or two sentences: the premise.",
   "coldOpen": "That winter, ...",   // optional: Future Ted over the couch, 1-3 sentences
-  "couch": [ ...beats ],            // optional opening: penny/luke "say" and Future Ted "narrate"; may stand alone
+  "couch": [ ...beats ],            // optional opening: Future Ted "narrate" beats and at most one recorded kid take; may stand alone
   "guests": [ ...guest stars ],     // optional, up to 3: guest1, guest2, guest3 in order
   "wardrobe": [ ...costumes ],      // optional: worn all episode
   "continuity": { ... },            // optional: notes for the continuity ledger (below)
@@ -271,6 +280,6 @@ Staging rules (\`bun run episodes check\` enforces them):
 - "to" on say/act is the character being addressed or gestured at; use it on most lines so people look at each other.
 - Lines are spoken aloud by text-to-speech: no stage directions, parentheses or asterisks in them. Mostly under 18 words, never over 35.
 - Put a "laugh" on real punchlines (roughly every 2-4 lines, varying the kind), never on setups. A laugh on a narrate beat works too.
-- Keep narration purposeful: a time jump, reveal, correction, withheld detail or couch answer. Avoid explaining what we already see. End on the strongest earned beat, whether a joke, a visual payoff, kids, narration, or something sincere left unanswered.
+- Keep narration purposeful: a time jump, reveal, correction, withheld detail or an answer to the kids. Avoid explaining what we already see. End on the strongest earned beat, whether a joke, a visual payoff, kids, narration, or something sincere left unanswered.
 - PG-13: innuendo OK, nothing explicit, no slurs, no real-world politics. Original jokes and plots; catchphrases in moderation.`;
 }

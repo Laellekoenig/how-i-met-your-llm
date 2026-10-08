@@ -138,7 +138,7 @@ describe('validating the new devices', () => {
     ]);
     expect(errors([{
       type: 'split', panels: [panel('apartment', 'lily', 'couch_left'), panel('office', 'lily', 'cubicle_1')],
-      beats: [{ type: 'move', character: 'lily', to: 'center' }, { type: 'cutaway', style: 'imagined', location: 'rooftop', time: 'night', cast: [], beats: [] }, say('penny', 'Dad?')],
+      beats: [{ type: 'move', character: 'lily', to: 'center' }, { type: 'cutaway', style: 'imagined', location: 'rooftop', time: 'night', cast: [], beats: [] }, say('penny', 'Seriously, Dad?')],
     }])).toEqual([
       'scenes[0].beats[0].panels[1]: lily can\'t be in two panels at once',
       expect.stringContaining('scenes[0].beats[0].beats[0]: a split screen holds say, narrate, act'),

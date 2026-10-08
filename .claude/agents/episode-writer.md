@@ -24,7 +24,8 @@ Use as many scenes as the story needs, but get into each one late and get out as
 - `bun run episodes read <file>` on one or two existing episodes, to calibrate the rhythm and the density of jokes and stagecraft
   (not the scene length: older episodes let scenes run long).
 - Read [the researched story-structure guide](../../docs/story-structure-reference.md). Notice recent opening
-  images, first speakers, kids' placement and endings; the catalog's old couch openings are not a template.
+  images, first speakers, kids' placement and endings; the catalog's old couch openings are not a template, and
+  older episodes give the kids dialogue they no longer have.
 - Read [the music reference](../../docs/music-reference.md). Start from unscored dialogue; the catalog's music
   density is not a target. Original score, featured songs and musical jokes serve different story purposes.
 - Read [the location reference](../../docs/location-reference.md). Keep MacLaren's and the apartment as home
@@ -57,18 +58,24 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   or a quiet visual beat can close a scene or the episode without a laugh. Don't reach for an `aww` to tell the
   audience how to feel.
 - **The opening**: choose the best entry into this particular story: gang dialogue/action, narration over the
-  story, a glimpse of the outcome before a rewind, or a couch exchange. Name the first image and first speaker.
-  Do not default to a "Kids, ..." setup. For a story opening, omit `coldOpen` and `couch`; `scenes[0]` plays before
-  the titles. For a couch opening, use `coldOpen` and/or `couch`; the latter can start with a kid's question.
+  story, a glimpse of the outcome before a rewind, or Future Ted on the 2030 couch. Name the first image and first
+  speaker. Do not default to a "Kids, ..." setup. For a story opening, omit `coldOpen` and `couch`; `scenes[0]`
+  plays before the titles. A couch opening is Future Ted talking (`coldOpen` and/or `narrate` beats in `couch`),
+  with at most one recorded kid take.
   Keep it short and get to the titles fast: the pre-titles material is a hook, not the first act. Aim for 3-8
   lines and never more than 10, ending on a button. Land the premise (or a tease of it) and cut; the setup,
   introductions and exposition belong after the titles, in `scenes[1]` onward.
-- **The frame**: decide whether the kids appear at all, and why each visit belongs at that exact beat. They can
-  interrupt in the middle or supply a final reaction without appearing at the start. Put those visits in the
-  scene's beats, not the top-level `couch`. Future Ted's ordinary `narrate` beats play over the story; his answer
-  immediately after a kid stays on the couch. He can sanitize, misremember, correct himself, withhold a detail,
-  or jump in time. Give those devices a payoff rather than making every story an identical narrated lesson.
-- **The ending**: choose a character joke, visual/runner payoff, couch reaction, or Future Ted recontextualizing
+- **The frame**: Future Ted is the storyteller; the kids barely talk. Like the original show, their couch scenes
+  were recorded before the series was filmed, so they only have the stock takes listed in the bible ("What?!",
+  "Ew!", "Is this going to take long?", an eye roll...), played the same way every time, and never a line about
+  this episode's events. Most episodes need no take at all; never use more than one or two. If you use one, set up
+  the moment so the stock reaction lands as a joke (a gross detail for "Ew!", a sanitized story for "So...
+  sandwiches."), put it in the scene's beats at that exact point, and give Ted the answer as a `narrate` beat
+  right after (it stays on the couch). Anything a kid would have asked or noticed, Ted says himself ("And yes,
+  kids, I know what you're thinking."). His ordinary `narrate` beats play over the story. He can sanitize,
+  misremember, correct himself, withhold a detail, or jump in time. Give those devices a payoff rather than
+  making every story an identical narrated lesson.
+- **The ending**: choose a character joke, visual/runner payoff, a stock kid reaction, or Future Ted recontextualizing
   what happened. An opening question may earn a callback; narration and an opening/closing pair are optional.
 - **Music**: default to none. Most scenes and ordinary dialogue should be unscored; zero authored music is valid.
   If a passage needs music, name its specific purpose, entry beat and exit beat: an earned emotional turn, a
@@ -104,9 +111,10 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
   (`applause` is only for a crowd inside the story), and `ooh`, `aww` and `gasp` are rare, deliberate choices. The
   laugh track never changes faces: if someone should laugh, sulk or keep staring, stage it with `emotion`, `react`
   or a gesture. If a line tagged with a laugh isn't actually funny, fix the line, don't keep the tag.
-- Keep couch visits brief and motivated; zero is a valid choice. A question can force Ted to correct his account,
-  a reaction can puncture a reveal, or a skeptical look can expose sanitizing. Avoid generic "Dad, get on with it"
-  filler. The kids react to Dad's account, not to camera shots, and never interact with the gang in the past.
+- Don't write dialogue for the kids: use only their recorded takes, exactly as the bible lists them, with nothing
+  but an optional `laugh` (their emotion, gesture and delivery come with the take). Zero is the usual choice. A
+  take earns its place when the setup makes it funny: a stock "What?!" puncturing a reveal, an eye roll at Dad's
+  sanitizing. The kids react to Dad's account, not to camera shots, and never interact with the gang in the past.
 
 ## 4. Write for this stage
 
@@ -149,7 +157,8 @@ Write the beat sheet out for yourself first (in your head or a scratch note; don
      and the heart lands without being explained.
    - Check the opening image and title boundary. Is this the right entry for this premise, or copied scaffolding?
      Count the lines before the main titles: over 8 needs a reason and over 10 gets cut or moved after the titles.
-   - For every couch visit, identify the exact setup it reacts to or the new information it prompts. Cut filler.
+   - For every kid take, identify the exact setup it reacts to and check the stock line lands as a joke there.
+     Cut any that are filler; zero is fine. Check no kid line was invented (`check` rejects them).
    - Check that the ending lands without a compulsory Future Ted summary; remove narration that repeats the action.
    - Review location balance by story weight and actual dialogue/action, not just scene count. Special locations
      stay brief and supporting; include resumed scenes, nested cutaways, replays, split screens and montage shots
@@ -171,5 +180,5 @@ around it and mention it in your report.
 
 ## 6. Report back
 
-Reply briefly: the file path, code, title, logline, opening choice (with its pre-titles line count) and couch placement, one line per scene with its location and line count, the guest stars, your favorite joke,
+Reply briefly: the file path, code, title, logline, opening choice (with its pre-titles line count), any kid takes and where, one line per scene with its location and line count, the guest stars, your favorite joke,
 the continuity you recorded, and any warnings you deliberately left in, with the reason.

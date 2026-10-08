@@ -6,7 +6,7 @@ import { audio } from '../audio/audio';
 import { speech, deliveryRate, estimateDuration } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName, outfitAt } from '../world/characters';
 import {
-  KIDS, PAIRED_GESTURES, isCharacterId, isKid, playbookTitle,
+  KIDS, PAIRED_GESTURES, isCharacterId, isKid, kidTake, playbookTitle,
   type Beat, type CastPlacement, type CharacterId, type Costume, type CutawayBeat, type CutawayLook, type CutawayStyle, type CutawayTransition,
   type Emotion, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind, type MontageBeat, type MontageMusic, type Reaction,
   type ReplayBeat, type Scene, type SceneLocationId, type Score, type ShowItem, type SoundCue, type SplitBeat, type TimeOfDay,
@@ -1217,6 +1217,9 @@ export class Player {
   private async say(b: BeatOf<'say'>) {
     const st = this.stage;
     if (!isCharacterId(b.character)) return;
+    // the kids' lines were recorded before the series: played the way they were shot
+    const take = kidTake(b);
+    if (take) b = { ...b, emotion: take.emotion, gesture: take.gesture, delivery: take.delivery };
     await this.quiet();
     if (b.offscreen) {
       await this.offscreen(b);
@@ -1337,7 +1340,7 @@ export class Player {
   private async act(b: BeatOf<'act'>) {
     const st = this.stage;
     if (!isCharacterId(b.character) || !b.gesture || b.gesture === 'none' || !st.onStage(b.character)) return;
-    st.actors[b.character].setEmotion(b.emotion);
+    st.actors[b.character].setEmotion(kidTake(b)?.emotion ?? b.emotion);
     const to = this.addressee(b.character, b.to);
     this.panel.line('stage', `${charName(b.character)} ${gestureText(b.gesture, to)}.`);
     const cam = this.cam;

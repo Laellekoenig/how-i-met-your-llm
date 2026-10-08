@@ -3,10 +3,7 @@
   "title": "The Understudy",
   "logline": "Barney hires a community-theater actor to be Barney at the boring parts of his life. The actor turns out to be a better Barney than Barney.",
   "coldOpen": "Kids, in the winter of 2009, your Uncle Barney had a problem. There was only one of him. So he held auditions.",
-  "couch": [
-    { "type": "say", "character": "luke", "line": "Please tell me he built a robot.", "emotion": "bored" },
-    { "type": "narrate", "line": "Worse. He hired an actor.", "laugh": "chuckle" }
-  ],
+  "couch": [{ "type": "say", "character": "luke", "line": "Cool!" }, { "type": "narrate", "line": "It was not cool. He hired an actor.", "laugh": "chuckle" }],
   "guests": [
     {
       "id": "guest1",
@@ -134,8 +131,8 @@
         { "type": "say", "character": "guest1", "line": "The curtain falls on Barney, and the understudy takes a bow!", "delivery": "sing", "emotion": "happy", "gesture": "hands_up", "laugh": "big" },
         { "type": "exit", "character": "guest1" },
         { "type": "narrate", "line": "Gordon went on to play Barney at four bar mitzvahs and one divorce hearing. Rave reviews.", "laugh": "laugh" },
-        { "type": "say", "character": "luke", "line": "Did Uncle Barney ever get his job back?", "emotion": "bored" },
-        { "type": "narrate", "line": "He did. Gordon got the promotion.", "laugh": "big" }
+        { "type": "say", "character": "penny", "line": "Wait. What?" },
+        { "type": "narrate", "line": "Barney got his job back, kids. Gordon got the promotion.", "laugh": "big" }
       ]
     }
   ]

@@ -9,9 +9,54 @@ export const GUEST_IDS = ['guest1', 'guest2', 'guest3'] as const satisfies reado
 export type GuestId = (typeof GUEST_IDS)[number];
 export const isGuest = (id: string | undefined): id is GuestId => (GUEST_IDS as readonly string[]).includes(id ?? '');
 
-/** Ted's kids only exist in 2030, on the couch. Anything they say or do cuts away to them. */
+/** Ted's kids only exist in 2030, on the couch. Anything they say or do cuts away to them (see KID_TAKES). */
 export const KIDS = ['penny', 'luke'] as const satisfies readonly CharacterId[];
 export const isKid = (id: string | undefined) => (KIDS as readonly string[]).includes(id ?? '');
+
+/**
+ * The kids' couch scenes were all recorded before the series was filmed, so Penny and Luke only have these takes:
+ * a handful of stock reactions, each performed the same way every time. A kid's "say" beat is one of the lines
+ * (`both` is Penny with Luke in the chorus, either way round); a kid's "act" beat is one of the silent ones.
+ * Future Ted does the talking.
+ */
+export interface KidTake {
+  who: Kid | 'both';
+  /** Absent for a silent reaction. */
+  line?: string;
+  emotion: Emotion;
+  gesture?: Gesture;
+  delivery?: Delivery;
+}
+export type Kid = (typeof KIDS)[number];
+export const KID_TAKES: readonly KidTake[] = [
+  { who: 'both', line: 'What?!', emotion: 'surprised', gesture: 'jaw_drop' },
+  { who: 'both', line: 'Ew!', emotion: 'disgusted' },
+  { who: 'both', line: 'Dad!', emotion: 'embarrassed' },
+  { who: 'penny', line: 'Wait. What?', emotion: 'surprised', gesture: 'double_take' },
+  { who: 'penny', line: 'Seriously, Dad?', emotion: 'suspicious' },
+  { who: 'penny', line: 'Is this about Aunt Robin again?', emotion: 'smug' },
+  { who: 'penny', line: 'When do we get to Mom?', emotion: 'bored' },
+  { who: 'penny', line: 'So... sandwiches.', emotion: 'smug', gesture: 'air_quotes', delivery: 'deadpan' },
+  { who: 'luke', line: 'Is this going to take long?', emotion: 'bored' },
+  { who: 'luke', line: 'Ugh.', emotion: 'bored' },
+  { who: 'luke', line: 'Gross.', emotion: 'disgusted' },
+  { who: 'luke', line: 'Cool!', emotion: 'excited', gesture: 'fist_pump' },
+  { who: 'luke', line: 'Dad, we get it.', emotion: 'bored', delivery: 'deadpan' },
+  { who: 'penny', emotion: 'smug', gesture: 'eye_roll' },
+  { who: 'penny', emotion: 'surprised', gesture: 'cover_mouth' },
+  { who: 'luke', emotion: 'bored', gesture: 'head_in_hands' },
+  { who: 'luke', emotion: 'laughing', gesture: 'crack_up' },
+];
+
+/** The recorded take a kid's say or act beat plays, if there is one. */
+export function kidTake(b: { type: string; character?: unknown; line?: unknown; gesture?: unknown; chorus?: unknown }): KidTake | undefined {
+  const who = String(b.character);
+  if (!isKid(who)) return undefined;
+  if (b.type === 'act') return KID_TAKES.find((t) => t.who === who && !t.line && t.gesture === b.gesture);
+  if (b.type !== 'say') return undefined;
+  const both = Array.isArray(b.chorus) && b.chorus.length > 0;
+  return KID_TAKES.find((t) => t.line === b.line && (both ? t.who === 'both' : t.who === who));
+}
 
 /** Where the story's scenes take place. */
 export const SCENE_LOCATION_IDS = ['maclarens', 'apartment', 'barneys', 'rooftop', 'barneys_office', 'office', 'metro_news_one', 'store', 'restaurant', 'lecture_hall', 'car', 'limo', 'taxi', 'subway', 'laser_tag', 'wesleyan_dorm', 'hospital', 'elevator', 'canadian_mall', 'maclarens_sidewalk', 'hoser_hut', 'courtroom', 'atlantic_city_casino', 'lusty_leopard'] as const;

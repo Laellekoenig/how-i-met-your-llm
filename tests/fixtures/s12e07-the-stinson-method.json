@@ -4,8 +4,8 @@
   "logline": "Robin trusts Lily with a nine-day secret, and Lily, who has never kept one, goes to Barney for lessons in lying. She graduates as a monster who beats a polygraph examiner and lies about everything, which unnerves Ted and Robin and scares Marshall half to death, and the one person most desperate for her to crack turns out to be Robin.",
   "coldOpen": "Kids, your Aunt Lily has never kept a secret in her life. Except for nine days in 2013, when she became the best liar in New York, and it terrified everyone who loved her.",
   "couch": [
-    { "type": "say", "character": "luke", "line": "She told me who the killer was while we were still buying the tickets.", "emotion": "bored" },
-    { "type": "narrate", "line": "It was a cartoon about a penguin, Luke. She was right, though.", "laugh": "laugh" }
+    { "type": "say", "character": "luke", "line": "Dad, we get it." },
+    { "type": "narrate", "line": "I know, Luke. She told you who the killer was. It was a cartoon about a penguin.", "laugh": "laugh" }
   ],
   "guests": [
     {
@@ -282,7 +282,7 @@
         { "type": "say", "character": "lily", "to": "ted", "line": "Vault.", "emotion": "smug", "laugh": "laugh" },
         { "type": "say", "character": "guest1", "to": "ted", "line": "True.", "delivery": "deadpan", "laugh": "laugh" },
         { "type": "narrate", "line": "That Friday, Lily told the doorman, both movers and the shelf-liner guy. Barney swore off apprentices forever." },
-        { "type": "say", "character": "penny", "line": "Good. Because Uncle Barney definitely never taught me anything.", "emotion": "smug" },
+        { "type": "act", "character": "penny", "gesture": "eye_roll" },
         { "type": "narrate", "line": "Penny. Your left ear just went pink.", "laugh": "big" }
       ]
     }

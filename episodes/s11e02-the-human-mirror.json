@@ -3,12 +3,10 @@
   "title": "The Human Mirror",
   "logline": "After her meddling sends Wendy's boyfriend and cat to Phoenix, Lily vows a month without meddling and Marshall bets his beloved Bigfoot sweatshirt she can't. Then Ted falls for Juniper, a copy editor who instantly loves whatever the person in front of her loves, and only Lily can see it.",
   "couch": [
-    { "type": "say", "character": "luke", "line": "Dad, Aunt Lily signed me up for ballroom dancing so I'd meet someone.", "emotion": "embarrassed" },
-    { "type": "say", "character": "penny", "to": "luke", "line": "He's the only boy. They had to put him on a schedule.", "emotion": "smug", "laugh": "laugh" },
-    { "type": "say", "character": "luke", "line": "Can you make her stop?", "emotion": "sad" },
+    { "type": "narrate", "line": "Kids, last spring your Aunt Lily signed Luke up for ballroom dancing so he'd meet someone. He was the only boy.", "laugh": "laugh" },
+    { "type": "say", "character": "luke", "line": "Ugh." },
     { "type": "narrate", "line": "Nobody can make your Aunt Lily stop. But once, in the spring of 2009, she tried to stop herself." },
-    { "type": "say", "character": "penny", "line": "How long did she last?", "emotion": "suspicious" },
-    { "type": "narrate", "line": "That depends on how you define meddling. Your Aunt Lily defined it very, very narrowly.", "laugh": "laugh" }
+    { "type": "narrate", "line": "She defined stopping very, very narrowly.", "laugh": "laugh" }
   ],
   "guests": [
     {
