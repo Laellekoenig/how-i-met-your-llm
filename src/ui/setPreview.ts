@@ -11,6 +11,13 @@ const previews = {
     ['robin', 'booth_right_front'],
     ['barney', 'booth_right_back'],
   ],
+  restaurant: [
+    ['ted', 'table_left'],
+    ['robin', 'table_right'],
+    ['lily', 'booth_left'],
+    ['marshall', 'booth_middle'],
+    ['barney', 'booth_right'],
+  ],
   car: [
     ['marshall', 'driver'],
     ['ted', 'front_passenger'],
