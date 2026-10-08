@@ -1,8 +1,8 @@
 {
-  "name": "himyllm",
+  "name": "himyslop",
   "private": true,
   "version": "0.1.0",
-  "description": "How I Met Your LLM — an endless HIMYM-style sitcom in the browser, written by AI agents",
+  "description": "how i met your slop — an endless HIMYM-style sitcom in the browser, written by AI agents",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "scripts": {

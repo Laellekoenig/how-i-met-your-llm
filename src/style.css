@@ -216,7 +216,7 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   letter-spacing: -0.04em;
   line-height: 1;
 }
-.logo .llm { color: var(--umbrella); }
+.logo .last { color: var(--umbrella); }
 /* Main titles: candid, full-frame bar snapshots with the original's loose white serif lettering. */
 #title-card {
   position: absolute;

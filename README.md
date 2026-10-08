@@ -1,4 +1,4 @@
-# how i met your LLM
+# how i met your slop
 
 An endless, AI-generated *How I Met Your Mother*–style sitcom in the browser, in the spirit of *Nothing, Forever*.
 Low-poly puppets perform pre-written episodes, written by AI agents, on twenty-three sets (MacLaren's, the apartment,

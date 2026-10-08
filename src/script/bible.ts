@@ -31,9 +31,9 @@ export function showBible(sets: Record<string, StageSet>) {
     return `- ${who === 'both' ? 'together' : who}: ${[...said, ...silent.length ? [`silent ${silent.join(', ')}`] : []].join(', ')}`;
   }).join('\n');
 
-  return `# How I Met Your LLM — show bible
+  return `# how i met your slop — show bible
 
-"How I Met Your LLM" is an endless continuation of the sitcom How I Met Your Mother, performed by low-poly 3D puppets with text-to-speech voices, a synthesized laugh track and multi-camera sitcom coverage. Every episode is a pre-written JSON file in episodes/. This is everything the stage can perform.
+"how i met your slop" is an endless continuation of the sitcom How I Met Your Mother, performed by low-poly 3D puppets with text-to-speech voices, a synthesized laugh track and multi-camera sitcom coverage. Every episode is a pre-written JSON file in episodes/. This is everything the stage can perform.
 
 # Tone
 Warm, fast, quotable, a little sentimental. The show's comedy engine: elaborate bits, running gags, callbacks, friends roasting each other, Barney's absurd schemes, Marshall's big-hearted sincerity, Lily's meddling, Robin's dry Canadian deadpan, Ted's romantic over-thinking. Future Ted (the narrator, Ted in 2030 telling his kids the story) adds perspective, time jumps, misdirection and wry asides. His voice-over does not require showing the kids or starting with "Kids, ...". The timeline is loose and dreamy: it's an endless show.

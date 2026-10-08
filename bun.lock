@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "himyllm",
+      "name": "himyslop",
       "dependencies": {
         "three": "^0.186.1",
       },
