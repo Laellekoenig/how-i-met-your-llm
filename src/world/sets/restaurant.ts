@@ -8,7 +8,7 @@ import { chair, label } from './furnishings';
  * Flexible neighborhood restaurant: dates at a two-top, gang dinners in the booth. White tablecloths,
  * candles and a rose on every table; a wine rack and gilt mirror on the paneled left wall; café
  * curtains in the street windows; a coat rack by the host stand; a swinging kitchen door with a lit
- * porthole behind the booth; dark beams and a lazy ceiling fan overhead.
+ * porthole behind the booth; a busy dining bay, dark beams and a lazy ceiling fan overhead.
  */
 export function buildRestaurant(): StageSet {
   const g = new THREE.Group(); g.name = 'restaurant';
@@ -67,8 +67,9 @@ export function buildRestaurant(): StageSet {
   for (let i = 0; i < 3; i++) g.add(mesh(new THREE.SphereGeometry(0.055, 6, 4).scale(1.3, 0.7, 1), toon('#d8a35a'), 3.8 + i * 0.06, 0.9, -1.62 + (i - 1) * 0.04, false));
   for (const [dx, c] of [[0, '#f4f0e6'], [0.07, '#2a2a2a']] as const) g.add(mesh(cyl(0.02, 0.025, 0.08, 6), toon(c), 2.3 + dx, 0.86, -1.6, false));
 
-  // Two intimate tables, their chairs angled so the director can see faces.
-  for (const [x, z] of [[-3.7, -1.55], [-3.7, 1.25]]) {
+  // Date tables and a neighboring dining bay. Keep the central aisle and the
+  // route from the booth to the service station open; patrons sit at real seats.
+  for (const [x, z] of [[-3.7, -1.55], [-3.7, 1.25], [-3.7, 4.45], [3.45, 2.0], [3.45, 4.45]]) {
     g.add(occluder(mesh(cyl(0.69, 0.69, 0.07, 16), walnut, x, 0.78, z)));
     g.add(mesh(cyl(0.73, 0.76, 0.15, 16), linen, x, 0.742, z));
     g.add(mesh(cyl(0.06, 0.1, 0.7), brass, x, 0.37, z, false));
@@ -77,7 +78,18 @@ export function buildRestaurant(): StageSet {
     chair(g, x + 1.0, z, -Math.PI / 2 + 0.25, '#5b6a4c');
     placeSetting(x - 0.3, z); placeSetting(x + 0.3, z); candle(x, z - 0.25); rose(x + 0.12, z + 0.3);
     wine(x - 0.05, z + 0.42);
+    // Folded burgundy menus and a bread basket make the tables read as dinner in progress.
+    const menu = mesh(box(0.16, 0.2, 0.018), toon('#74373a'), x + 0.18, 0.92, z - 0.34, false);
+    menu.rotation.x = -0.2; g.add(menu);
+    g.add(mesh(cyl(0.12, 0.09, 0.06, 8), toon('#a8743a'), x - 0.22, 0.85, z - 0.25, false));
+    for (const dx of [-0.05, 0.04]) g.add(mesh(new THREE.SphereGeometry(0.055, 6, 4).scale(1.3, 0.7, 1), toon('#d8a35a'), x - 0.22 + dx, 0.895, z - 0.25, false));
   }
+  // A low, planted divider gives the dining bay an edge without hiding faces.
+  g.add(occluder(mesh(roundedBox(0.34, 0.58, 1.6, 0.04), walnut, 1.4, 0.29, 3.05)));
+  g.add(mesh(box(0.38, 0.05, 1.66), brass, 1.4, 0.59, 3.05, false));
+  const greenery = new THREE.Group(); greenery.position.y = 0.62; g.add(greenery);
+  for (const z of [2.45, 2.85, 3.25, 3.65]) plant(greenery, 1.4, z, 0.6);
+  for (const z of [3.15, 5.35]) frame(g, 6.44, 2.0, z, 1.15, 0.9, 245 + Math.round(z * 10), -Math.PI / 2, '#b99354');
   // Host stand, specials board, and a service station with bottles.
   g.add(occluder(mesh(box(0.65, 1.05, 0.5), walnut, -0.35, 0.525, -2.55)));
   g.add(mesh(box(0.45, 0.025, 0.3), toon('#f2e8c9'), -0.35, 1.065, -2.55, false));
@@ -178,7 +190,7 @@ export function buildRestaurant(): StageSet {
   runnerEdge.rotation.x = -Math.PI / 2;
   g.add(runnerEdge);
   const lamps: THREE.PointLight[] = [];
-  for (const [x, z] of [[-3.7, -1.5], [-3.7, 1.25], [2.0, -1.85], [4.4, -1.85]]) {
+  for (const [x, z] of [[-3.7, -1.5], [-3.7, 1.25], [2.0, -1.85], [4.4, -1.85], [3.45, 2.0], [3.45, 4.45], [-3.7, 4.45]]) {
     const l = pendant(g, x, 2.55, z, '#b69255', { color: '#ffd097', intensity: 2.2, distance: 5 });
     if (l) lamps.push(l);
   }
@@ -186,8 +198,8 @@ export function buildRestaurant(): StageSet {
   keyLight(g, '#ffdfab', 1.7, [0, 6, 6], [0, 0, -1]);
   return {
     id: 'restaurant', name: 'The Restaurant', group: g,
-    nodes: nodes({ door: [-0.8, -3.3], host: [-1.25, -2.45], center: [-0.8, 0], left: [-1.9, -0.55], back_inner: [-1.9, -2.65], back_left: [-3.7, -2.65], back_outer: [-5.4, -2.65], far_left: [-5.5, -0.55], outer_front: [-5.25, 2.3], front_left: [-3.7, 2.3], inner_front: [-1.7, 2.3], front: [1, 1.1], booth_left: [0.55, -2.78], booth_right: [5.85, -2.78], booth_aisle_l: [0.25, -0.8], booth_back_l: [0.25, -2.78], booth_aisle_r: [6.2, -0.8], booth_back_r: [6.2, -2.78], booth_head_l: [0.55, -1.1], booth_head_r: [5.5, -1.0], booth_front: [3.2, -0.85], service: [5.2, 1.1], kitchen: [6.08, -3.3] }),
-    edges: [['door', 'host'], ['host', 'center'], ['host', 'left'], ['left', 'back_inner'], ['back_inner', 'back_left'], ['back_left', 'back_outer'], ['back_outer', 'far_left'], ['left', 'center'], ['far_left', 'outer_front'], ['outer_front', 'front_left'], ['front_left', 'inner_front'], ['inner_front', 'center'], ['center', 'front'], ['front', 'booth_front'], ['front', 'booth_aisle_l'], ['booth_aisle_l', 'booth_back_l'], ['booth_back_l', 'booth_left'], ['booth_aisle_l', 'booth_head_l'], ['booth_front', 'service'], ['booth_front', 'booth_aisle_r'], ['booth_aisle_r', 'booth_back_r'], ['booth_back_r', 'booth_right'], ['booth_back_r', 'kitchen'], ['booth_front', 'booth_head_r']],
+    nodes: nodes({ door: [-0.8, -3.3], host: [-1.25, -2.45], center: [-0.8, 0], left: [-1.9, -0.55], back_inner: [-1.9, -2.65], back_left: [-3.7, -2.65], back_outer: [-5.4, -2.65], far_left: [-5.5, -0.55], outer_front: [-5.25, 2.3], front_left: [-3.7, 2.3], window_front: [-3.7, 3.3], inner_front: [-1.7, 2.3], front: [1, 1.1], booth_left: [0.55, -2.78], booth_right: [5.85, -2.78], booth_aisle_l: [0.25, -0.8], booth_back_l: [0.25, -2.78], booth_aisle_r: [6.2, -0.8], booth_back_r: [6.2, -2.78], booth_head_l: [0.55, -1.1], booth_head_r: [5.5, -1.0], booth_front: [3.2, -0.85], service: [5.2, 1.1], dining_aisle: [5.2, 3.3], dining_front: [3.45, 3.3], kitchen: [6.08, -3.3] }),
+    edges: [['door', 'host'], ['host', 'center'], ['host', 'left'], ['left', 'back_inner'], ['back_inner', 'back_left'], ['back_left', 'back_outer'], ['back_outer', 'far_left'], ['left', 'center'], ['far_left', 'outer_front'], ['outer_front', 'front_left'], ['front_left', 'inner_front'], ['front_left', 'window_front'], ['inner_front', 'center'], ['center', 'front'], ['front', 'booth_front'], ['front', 'booth_aisle_l'], ['booth_aisle_l', 'booth_back_l'], ['booth_back_l', 'booth_left'], ['booth_aisle_l', 'booth_head_l'], ['booth_front', 'service'], ['booth_front', 'booth_aisle_r'], ['booth_aisle_r', 'booth_back_r'], ['booth_back_r', 'booth_right'], ['booth_back_r', 'kitchen'], ['booth_front', 'booth_head_r'], ['service', 'dining_aisle'], ['dining_aisle', 'dining_front']],
     door: 'door',
     doors: { door: entrance },
     marks: {
@@ -195,6 +207,12 @@ export function buildRestaurant(): StageSet {
       table_right: mark(-2.74, -1.53, -Math.PI / 2 + 0.25, 'left', 'right chair at the date table', { seat: 0.47, approach: [-2.5, -0.55] }),
       table_2_left: mark(-4.66, 1.27, Math.PI / 2 - 0.25, 'front_left', 'left chair at the second table', { seat: 0.47, approach: [-4.7, 2.25] }),
       table_2_right: mark(-2.74, 1.27, -Math.PI / 2 + 0.25, 'front_left', 'right chair at the second table', { seat: 0.47, approach: [-2.7, 2.25] }),
+      dining_left: mark(2.49, 2.02, Math.PI / 2 - 0.25, 'front', 'left chair in the neighboring dining bay', { seat: 0.47, approach: [2.45, 1.1] }),
+      dining_right: mark(4.41, 2.02, -Math.PI / 2 + 0.25, 'service', 'right chair in the neighboring dining bay', { seat: 0.47, approach: [4.45, 1.1] }),
+      dining_front_left: mark(2.49, 4.47, Math.PI / 2 - 0.25, 'dining_front', 'left chair at the foreground dining table', { seat: 0.47, approach: [2.45, 3.55] }),
+      dining_front_right: mark(4.41, 4.47, -Math.PI / 2 + 0.25, 'dining_front', 'right chair at the foreground dining table', { seat: 0.47, approach: [4.45, 3.55] }),
+      window_front_left: mark(-4.66, 4.47, Math.PI / 2 - 0.25, 'window_front', 'left chair at the foreground window table', { seat: 0.47, approach: [-4.7, 3.55] }),
+      window_front_right: mark(-2.74, 4.47, -Math.PI / 2 + 0.25, 'window_front', 'right chair at the foreground window table', { seat: 0.47, approach: [-2.7, 3.55] }),
       booth_left: mark(2.0, -2.78, 0.15, 'booth_left', 'left end of the banquette', { seat: 0.47, approach: [0.55, -2.78] }),
       booth_middle: mark(3.2, -2.78, 0, 'booth_left', 'middle of the banquette', { seat: 0.47, approach: [0.55, -2.78] }),
       booth_right: mark(4.4, -2.78, -0.15, 'booth_right', 'right end of the banquette', { seat: 0.47, approach: [5.85, -2.78] }),
@@ -207,9 +225,9 @@ export function buildRestaurant(): StageSet {
       door: mark(-0.8, -3.5, 0, 'door', 'restaurant entrance'),
     },
     wides: [
-      { pos: v3(0, 2.65, 9.1), target: v3(0, 1.2, -1.5), fov: 49 },
-      { pos: v3(-3.7, 1.75, 3.6), target: v3(-3.7, 1.1, -1.5), fov: 46 },
-      { pos: v3(3.1, 1.9, 4.5), target: v3(3.2, 1.2, -2.2), fov: 48 },
+      { pos: v3(0, 2.05, 10.2), target: v3(0, 1.0, -0.6), fov: 54, label: 'Dining room wide' },
+      { pos: v3(-3.7, 1.75, 0.5), target: v3(-3.7, 1.1, -1.55), fov: 58, label: 'Date table' },
+      { pos: v3(3.2, 1.9, 0.9), target: v3(3.2, 1.2, -2.2), fov: 54, label: 'Group banquette' },
     ],
     ambience: 'bar', background: [], doorSound: 'bell',
     update(dt) { blades.rotation.y += dt * 1.6; },

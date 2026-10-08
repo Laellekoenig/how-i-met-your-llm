@@ -163,6 +163,7 @@ export class Stage {
       a.place(p, m.facing, m.seat);
       s.group.add(a.root);
       this.extras.push({ actor: a, set, talkT: rand(0, 3), chatty, mark: markName });
+      return a;
     };
     atMark('hoser_hut', 'bartender', 'Canadian bartender', { ...looks[0], top: '#6c3038', topStyle: 'flannel', plaid: ['#312b29', '#a67258'] });
     atMark('hoser_hut', 'patron_left', 'Hockey fan', { ...looks[2], top: '#254974', topStyle: 'sweater' }, true);
@@ -175,8 +176,17 @@ export class Stage {
     atMark('lusty_leopard', 'patron_right', 'Lounge guest', looks[1], true);
     atMark('store', 'cashier', 'Shopkeeper', { ...looks[0], top: '#567754' });
     atMark('metro_news_one', 'camera_operator', 'Camera operator', { ...looks[2], top: '#41464c', topStyle: 'tee' });
-    atMark('restaurant', 'table_2_left', 'Diner', looks[0], true);
-    atMark('restaurant', 'table_2_right', 'Diner', looks[1], true);
+    // Dinner pairs look at each other, with occupied seats yielding to the cast.
+    for (const [i, [left, right]] of [
+      ['table_2_left', 'table_2_right'], ['dining_left', 'dining_right'], ['dining_front_left', 'dining_front_right'], ['window_front_left', 'window_front_right'],
+    ].entries()) {
+      const a = atMark('restaurant', left, 'Diner', { ...looks[i % looks.length], top: ['#5a6b7a', '#a47750', '#655875', '#4e6b59'][i], topStyle: i === 1 ? 'sweater' : 'polo' }, true);
+      const b = atMark('restaurant', right, 'Diner', { ...looks[1], top: ['#9a3a4a', '#52756c', '#b17d55', '#aa6258'][i], hair: i === 1 ? '#674025' : '#1a1210' }, true);
+      a.holdingGlass = b.holdingGlass = true;
+      a.lookAt = b.headWorld; b.lookAt = a.headWorld;
+    }
+    atMark('restaurant', 'host', 'Host', { ...looks[0], top: '#303b36', topStyle: 'blazer', under: '#f4ead6', tie: '#78363c' });
+    atMark('restaurant', 'service', 'Waiter', { ...looks[2], top: '#eee7d8', topStyle: 'shirt', vest: '#36302d', tie: '#78363c', extras: ['apron'] });
     for (const [i, spot] of ['student_1_2', 'student_1_5', 'student_2_1', 'student_2_4', 'student_3_3', 'student_3_6'].entries()) {
       atMark('lecture_hall', spot, 'Student', looks[i % looks.length]);
     }
