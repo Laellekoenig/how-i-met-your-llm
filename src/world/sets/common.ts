@@ -13,6 +13,7 @@ export interface Mark {
   hint: string; // description for the LLM
   pose?: SitPose; // how to sit here
   prop?: THREE.Object3D; // held in the lap by whoever sits here
+  depth?: number; // a deep couch: how far forward of the mark its front edge is, so knees clear it
 }
 
 export interface Shot {
@@ -63,7 +64,7 @@ export interface StageSet {
 
 export const v3 = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-export function mark(x: number, z: number, facing: number, node: string, hint: string, opts: { seat?: number; approach?: [number, number]; pose?: SitPose; prop?: THREE.Object3D } = {}): Mark {
+export function mark(x: number, z: number, facing: number, node: string, hint: string, opts: { seat?: number; approach?: [number, number]; pose?: SitPose; prop?: THREE.Object3D; depth?: number } = {}): Mark {
   return {
     pos: v3(x, 0, z),
     facing,
@@ -73,6 +74,7 @@ export function mark(x: number, z: number, facing: number, node: string, hint: s
     hint,
     pose: opts.pose,
     prop: opts.prop,
+    depth: opts.depth,
   };
 }
 

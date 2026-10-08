@@ -36,7 +36,7 @@ export interface FrozenScene {
   background: Set<CharacterId>;
   outfits: Map<CharacterId, Outfit>;
   actors: {
-    id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D;
+    id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D; depth?: number;
     emotion: Actor['emotion']; holdingGlass: boolean; held: Prop | null;
   }[];
 }
@@ -222,7 +222,7 @@ export class Stage {
         const pos = a.isWalking ? (a.remainingPath.at(-1) ?? a.position.clone()) : a.position.clone();
         return {
           id, pos, facing: mark && (a.isWalking || mark.seat !== null) ? mark.facing : a.targetFacing,
-          seat: mark?.seat ?? null, pose: mark?.pose, prop: mark?.prop, emotion: a.emotion, holdingGlass: a.holdingGlass,
+          seat: mark?.seat ?? null, pose: mark?.pose, prop: mark?.prop, depth: mark?.depth, emotion: a.emotion, holdingGlass: a.holdingGlass,
           held: a.prop,
         };
       }),
@@ -239,7 +239,7 @@ export class Stage {
     for (const id of f.background) this.backgroundIds.add(id);
     for (const s of f.actors) {
       const a = this.actors[s.id];
-      a.place(s.pos, s.facing, s.seat, { pose: s.pose, prop: s.prop });
+      a.place(s.pos, s.facing, s.seat, { pose: s.pose, prop: s.prop, depth: s.depth });
       a.setEmotion(s.emotion);
       a.holdingGlass = s.holdingGlass;
       a.hold(s.held);
@@ -447,7 +447,7 @@ export class Stage {
     pos.y = this.floorY(pos.x, pos.z);
     this.crowd.forget(a);
     this.leaveDoor(id);
-    a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop });
+    a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop, depth: m.depth });
     a.root.visible = true;
     this.occupy(id, name);
   }
@@ -469,7 +469,7 @@ export class Stage {
     for (const id of KIDS) {
       const m = this.sets.future.marks[KID_MARKS[id]];
       const a = this.actors[id];
-      a.place(m.pos.clone(), m.facing, m.seat, { pose: m.pose, prop: m.prop });
+      a.place(m.pos.clone(), m.facing, m.seat, { pose: m.pose, prop: m.prop, depth: m.depth });
       a.setEmotion('bored');
       a.root.visible = true;
     }
@@ -582,7 +582,7 @@ export class Stage {
     const path = (!this.current.seated && (walkRoute(this.current, leaving, fromNode, arriving, node, people) || walkRoute(this.current, leaving, fromNode, arriving, node)))
       || [...leaving, ...route, ...arriving];
     const m = this.current.marks[name];
-    return a.walk(joinRoute(path).slice(1), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop });
+    return a.walk(joinRoute(path).slice(1), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop, depth: m?.depth });
   }
 
   /** The free seat closest to someone (for sliding over to them in a car). */
@@ -830,7 +830,7 @@ export class Stage {
     const id = this.onStageIds().find((id) => this.actors[id] === a);
     const m = this.current.marks[(id && this.actorMark.get(id)) ?? ''];
     if (!m || m.seat === null) return null;
-    return { pos: m.pos.clone(), approach: m.approach?.clone(), facing: m.facing, height: m.seat, pose: m.pose, prop: m.prop };
+    return { pos: m.pos.clone(), approach: m.approach?.clone(), facing: m.facing, height: m.seat, pose: m.pose, prop: m.prop, depth: m.depth };
   }
 
   /** Where everyone else on the set is standing or sitting, or will be once they've got where they're going. */

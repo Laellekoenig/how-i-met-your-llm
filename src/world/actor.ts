@@ -42,6 +42,8 @@ export const WALK_SPEED = 1.45;
 export const SCOOT_SPEED = 0.9;
 /** How far in front of a seat someone stops to turn round, before sitting back down into it (clear of the cushion). */
 const SIT_STEP = 0.5;
+/** Room for the shins in front of a seat's front edge, so a deep couch doesn't swallow them. */
+const SHIN_ROOM = 0.07;
 /** Clothing skinned between the hips and the spine. Camera occlusion rays refresh matrices with updateWorldMatrix,
  * which SkinnedMesh doesn't hook, so keep its attached bind inverse current there too. */
 class WaistMesh extends THREE.SkinnedMesh {
@@ -83,6 +85,7 @@ export class Actor {
   readonly root = new THREE.Group();
   readonly height: number;
   readonly legLen: number;
+  private readonly thigh: number;
   readonly bodyMeshes: THREE.Mesh[] = [];
 
   private hips = new THREE.Group();
@@ -121,13 +124,15 @@ export class Actor {
   seatHeight: number | null = null;
   private sitBlend = 0;
   private sitPose: SitPose = 'upright';
+  /** How far in front of them the seat's front edge is, on seats deeper than a thigh. Kept while getting up. */
+  private seatDepth: number | null = null;
   private lapProp: THREE.Object3D | null = null;
   private path: THREE.Vector3[] = [];
   private scooting = false;
   /** Whether the walk ends in a seat (rather than standing on the spot). */
   private toSeat = false;
   /** The seat at the end of the walk: how high it is and which way it faces. */
-  private seatGoal: { height: number; facing: number } | null = null;
+  private seatGoal: { height: number; facing: number; depth?: number } | null = null;
   /** Seconds to stand and let someone by before walking on. */
   waiting = 0;
   private onArrive: (() => void) | null = null;
@@ -202,6 +207,7 @@ export class Actor {
     this.headH = 0.14 * H;
     this.torsoLen = 0.31 * H;
     this.legLen = H - this.headH - 0.03 * H - this.torsoLen;
+    this.thigh = (this.legLen - 0.04) / 2;
     const rest = def.manner?.rest;
     this.restFace = rest ? lerpFace(FACES.neutral, FACES[rest.emotion], rest.amount) : { ...FACES.neutral };
     this.face = { ...this.restFace };
@@ -214,7 +220,7 @@ export class Actor {
   private build(L: Look) {
     const H = L.height, s = H / 1.8, b = L.build, fem = L.female;
     const tl = this.torsoLen, hh = this.headH;
-    const thigh = (this.legLen - 0.04) / 2, shin = thigh;
+    const thigh = this.thigh, shin = thigh;
     const upper = 0.17 * H, fore = 0.17 * H;
     const bx = s * b, bz = s * Math.pow(b, 0.8), ba = s * Math.sqrt(b);
     const DS = THREE.DoubleSide;
@@ -1174,13 +1180,14 @@ export class Actor {
     return this.seatHeight !== null;
   }
 
-  place(pos: THREE.Vector3, facing: number, seatHeight: number | null, opts: { pose?: SitPose; prop?: THREE.Object3D } = {}) {
+  place(pos: THREE.Vector3, facing: number, seatHeight: number | null, opts: { pose?: SitPose; prop?: THREE.Object3D; depth?: number } = {}) {
     this.root.position.copy(pos);
     this.root.rotation.y = facing;
     this.facing = this.targetFacing = facing;
     this.seatHeight = seatHeight;
     this.sitBlend = seatHeight !== null ? 1 : 0;
     this.sitPose = seatHeight !== null ? opts.pose ?? 'upright' : 'upright';
+    this.seatDepth = seatHeight !== null ? opts.depth ?? null : null;
     this.setLapProp(opts.prop ?? null);
     this.path = [];
     this.scooting = false;
@@ -1204,13 +1211,13 @@ export class Actor {
   }
 
   /** Walk along waypoints; resolves when arrived. With `scoot`, slide along them sitting down (there's no standing up in a car). */
-  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean; pose?: SitPose; prop?: THREE.Object3D }) {
+  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean; pose?: SitPose; prop?: THREE.Object3D; depth?: number }) {
     return new Promise<void>((resolve) => {
       if (this.onArrive) this.onArrive();
       this.path = points.map((p) => p.clone());
       this.scooting = !!final.scoot;
       this.toSeat = final.seat !== null;
-      this.seatGoal = final.seat !== null && !final.scoot ? { height: final.seat, facing: final.facing } : null;
+      this.seatGoal = final.seat !== null && !final.scoot ? { height: final.seat, facing: final.facing, depth: final.depth } : null;
       this.waiting = 0;
       this.seatHeight = final.scoot ? final.seat ?? this.seatHeight ?? 0.42 : null; // stand up first
       this.sitPose = 'upright';
@@ -1222,6 +1229,7 @@ export class Actor {
         this.targetFacing = final.facing;
         this.seatHeight = final.seat;
         this.sitPose = final.pose ?? 'upright';
+        if (final.seat !== null) this.seatDepth = final.depth ?? null;
         this.setLapProp(final.prop ?? null);
         resolve();
       };
@@ -1366,6 +1374,7 @@ export class Actor {
     const settling = !!seatAt && Math.hypot(seatAt.x - pos.x, seatAt.z - pos.z) <= SIT_STEP + 0.01;
     const turned = settling && Math.abs(angleDiff(this.facing, this.seatGoal!.facing)) < 0.35;
     const sitting = this.seatHeight !== null || turned;
+    if (turned) this.seatDepth = this.seatGoal!.depth ?? null;
     this.sitBlend += ((sitting ? 1 : 0) - this.sitBlend) * damp(7, dt);
     let moving = false;
     if (settling) {
@@ -1432,8 +1441,10 @@ export class Actor {
     target.rKnee = lerp(Math.max(0, -Math.cos(ph)) * 0.9 * ws, Math.PI / 2, sb);
     const seat = this.seatHeight ?? this.seatGoal?.height ?? 0.45;
     this.hips.position.y = lerp(this.legLen + Math.abs(Math.cos(ph)) * 0.035 * w, seat + 0.06, sb) + this.bounce;
-    // shift hips back onto the seat when sitting
-    this.hips.position.z = -0.12 * sb;
+    // shift hips back onto the seat when sitting, but on a deep seat only as far as keeps the knees over its
+    // front edge: shorter legs perch further forward, rather than hanging down inside the couch
+    const perch = this.seatDepth === null || this.sitPose === 'cross_legged' ? -0.12 : this.seatDepth + SHIN_ROOM - this.thigh;
+    this.hips.position.z = Math.max(-0.12, perch) * sb;
 
     // arms: rest pose / walk swing / sitting
     target.lSh = [Math.sin(ph) * 0.45 * w - 0.35 * sb, 0, 0.09];

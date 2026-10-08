@@ -268,7 +268,7 @@ export function buildFuture(): StageSet {
     door: 'door',
     marks: {
       couch_left: mark(-0.5, CZ + 0.1, 0, 'couch', 'the black tufted Chesterfield, left cushion: Penny, cross-legged, hugging a striped pillow', { seat: SEAT, approach: [-0.5, CZ + 0.75], pose: 'cross_legged', prop: pennyPillow }),
-      couch_right: mark(0.52, CZ + 0.1, 0, 'couch', 'the black tufted Chesterfield, right cushion: Luke, slouched with an arm along the back', { seat: SEAT, approach: [0.52, CZ + 0.75], pose: 'sprawl' }),
+      couch_right: mark(0.52, CZ + 0.1, 0, 'couch', 'the black tufted Chesterfield, right cushion: Luke, slouched with an arm along the back', { seat: SEAT, approach: [0.52, CZ + 0.75], pose: 'sprawl', depth: 0.36 }),
       center: mark(0, 1.3, Math.PI, 'center', "in front of the coffee table, where Dad's chair would be"),
       door: mark(2.8, 1.5, -Math.PI / 2, 'door', 'off to the side, toward the hall'),
     },
