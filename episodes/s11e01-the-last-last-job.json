@@ -1,0 +1,329 @@
+{
+  "code": "S11E01",
+  "title": "The Last Last Job",
+  "logline": "When Ranjit announces he's retiring to walk the Appalachian Trail, Barney cheers him on in public and in private books him solid as Mister Pennyworth of London, a client who needs one last job, then another, then a month-long wedding. The gang catch on one at a time. Marshall, who's training Ranjit for the trail, finds out last.",
+  "continuity": {
+    "era": "spring 2011",
+    "facts": {
+      "ranjit.job": "retired from driving; hiking the Appalachian Trail north from Georgia",
+      "ranjit.history": "Barney's driver for 12 years; drove the cab on his first day in a suit",
+      "ranjit.fares": "never refused a fare in twelve years",
+      "ranjit.goodbyes": "never says goodbye; he says Hello! coming and going",
+      "ranjit.drinking": "doesn't drink; his special limo-bar bottle was iced tea",
+      "barney.driving": "learned to drive in a week; drove the limo 23 hours to Georgia",
+      "barney.driver": "none since Ranjit retired",
+      "barney.alias": "Mister Pennyworth of Pennyworth Holdings, London (terrible accent)",
+      "barney.card": "credit card ends in 6969; he reads it out loud when he pays",
+      "marshall.ranjit": "Ranjit's trail coach; gave him a training binder and wool socks",
+      "marshall.slap_bet": "threatened a slap over the Pennyworth scheme, didn't use it"
+    },
+    "changes": ["ranjit.job"],
+    "opens": [
+      {
+        "id": "ranjit-on-the-trail",
+        "note": "Ranjit is walking to Maine and told Barney to follow him north; whether he drives again after the trail is open."
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "location": "limo",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Pre-titles. Barney in the power seat asks Ranjit to surprise him. Ranjit does: he's retiring to walk the Appalachian Trail. Barney is thrilled, he says, while pouring his scotch on his shoes.",
+      "cast": [{ "character": "barney", "mark": "rear_seat_left" }, { "character": "ranjit", "mark": "driver" }],
+      "beats": [
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Ranjit. Surprise me. Take me somewhere legendary.", "emotion": "smug" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Hello! Okay. Surprise. I am retiring.", "emotion": "happy" },
+        { "type": "pause", "seconds": 1.2 },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "That's not a club.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Friday is my last day, Mister Barney. I am going to walk the Appalachian Trail. Georgia to Maine." },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Walk? With your legs? Ranjit, I pay you so neither of us has to do that.", "emotion": "disgusted", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Two thousand miles. No traffic. Nobody yelling, faster, Ranjit, she is getting away.", "emotion": "happy", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Well, that's wonderful. I'm thrilled for you. Genuinely. Couldn't be happier.", "delivery": "fast", "emotion": "happy" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Mister Barney, you are pouring your scotch on your shoes.", "laugh": "big", "react": [{ "character": "barney", "gesture": "double_take" }] }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "exterior",
+      "summary": "Barney breaks the news at the booth with a big smile. Marshall's lifelong dream; he'll coach. Robin wants the bottle Ranjit keeps for the day he stops driving. Barney can't drive, fold or find his dry cleaner. Then he remembers Ranjit has never turned down a fare, and leaves to make a call.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_front" }
+      ],
+      "beats": [
+        { "type": "enter", "character": "barney", "to": "booth_side" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Great news, everybody. Ranjit is retiring! He's walking the Appalachian Trail. Two thousand miles of dirt, on purpose.", "emotion": "happy", "gesture": "thumbs_up" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "That's my dream! That's been my dream since Boy Scouts! Oh, he's going to need a coach.", "emotion": "excited", "gesture": "fist_pump" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Baby, you quit Boy Scouts because the hike was uphill.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Both ways, Lily. It was uphill both ways.", "emotion": "sad", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Wait. Ranjit keeps a bottle in the limo bar that nobody's allowed to touch. It's for the day he stops driving." },
+        { "type": "say", "character": "robin", "to": "ted", "line": "I have been circling that bottle for six years.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "So who's going to drive you around?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "I'll hire someone. How hard is it to find a man who'll drive you to Philadelphia at four a.m. and never ask why?", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Or you could learn to drive." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ted, I don't drive. I don't fold. I don't know where my dry cleaner is. Ranjit knows where my dry cleaner is.", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ranjit knows where everything is.", "delivery": "slow", "emotion": "sad", "react": [{ "character": "lily", "emotion": "suspicious" }] },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "But he's earned it. Twelve years, that man has never turned down a fare. Not once.", "emotion": "proud" },
+        { "type": "say", "character": "barney", "line": "Never once.", "gesture": "think", "shot": "push_in" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Excuse me. I need to make a call.", "emotion": "smug" },
+        { "type": "exit", "character": "barney" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "He's going to do something terrible." },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "He's going to do something beautiful.", "emotion": "happy" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "With Barney, that's usually the same thing.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "barneys",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Barney, as Mister Pennyworth of London, books Ranjit for a week at four times his rate. Ranjit has never refused a fare: one last job. He hangs up with Hello! Lily heard everything; Ranjit never says goodbye, and Barney has been counting. She won't stop him. She's been waiting ten years to watch him have a feeling.",
+      "cast": [{ "character": "barney", "mark": "couch_center" }],
+      "beats": [
+        {
+          "type": "split",
+          "panels": [
+            { "location": "barneys", "time": "day", "cast": [{ "character": "barney", "mark": "couch_center" }] },
+            { "location": "limo", "time": "day", "cast": [{ "character": "ranjit", "mark": "driver" }] }
+          ],
+          "beats": [
+            { "type": "say", "character": "barney", "to": "ranjit", "line": "Hello, Ranjit? This is Mister Pennyworth. Of Pennyworth Holdings. In London. England.", "delivery": "slow", "gesture": "phone_call", "laugh": "chuckle" },
+            { "type": "say", "character": "ranjit", "to": "barney", "line": "Hello, Mister Pennyworth!", "emotion": "happy", "gesture": "phone_call" },
+            { "type": "say", "character": "barney", "to": "ranjit", "line": "I require a driver for one week, starting Saturday. Triple your rate.", "gesture": "phone_call" },
+            { "type": "say", "character": "ranjit", "to": "barney", "line": "So sorry. Saturday I fly to Georgia. I am retiring.", "gesture": "phone_call" },
+            { "type": "say", "character": "barney", "to": "ranjit", "line": "Quadruple.", "gesture": "phone_call" },
+            { "type": "pause", "seconds": 1 },
+            { "type": "say", "character": "ranjit", "to": "barney", "line": "Twelve years, I have never refused a fare. Okay. One last job.", "gesture": "phone_call" },
+            { "type": "say", "character": "barney", "to": "ranjit", "line": "Jolly good. Cheerio. Tally-ho.", "emotion": "smug", "gesture": "phone_call", "laugh": "laugh" },
+            { "type": "say", "character": "ranjit", "to": "barney", "line": "Hello!", "emotion": "happy", "gesture": "phone_call" }
+          ]
+        },
+        { "type": "enter", "character": "lily", "to": "center" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Your door was open. Tally-ho?", "emotion": "suspicious", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Terribly sorry, madam. Have we met?", "delivery": "slow", "emotion": "smug", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "That was the worst British accent I've ever heard. And I've heard Ted order a scone.", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "You're sabotaging your driver's retirement because you're going to miss him." },
+        { "type": "say", "character": "barney", "to": "lily", "line": "I won't miss him. I'll miss his parking.", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Did he just hang up on you with hello?", "emotion": "confused" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "He always does. Ranjit doesn't do goodbyes. Twelve years, not once." },
+        { "type": "say", "character": "lily", "to": "barney", "line": "And you've been counting.", "emotion": "smug" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "I notice things. About staff.", "emotion": "embarrassed", "laugh": "chuckle" },
+        { "type": "move", "character": "lily", "to": "kitchen" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Oh, I'm not going to stop you. I've waited ten years to watch you have a feeling. I'm getting snacks.", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Marshall's training binder. Ranjit arrives: he starts a week late for Mister Pennyworth, who books him and never shows. Robin asks about the bottle. Pennyworth's card ends in 6969. Robin and Ted clock it, Lily already knew, and Marshall thinks it's a fun coincidence.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_front" },
+        { "character": "barney", "mark": "booth_right_back" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "marshall", "prop": "book" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Ranjit's training binder. Blisters, bears, and what to do when you start talking to a rock.", "emotion": "proud", "laugh": "chuckle" },
+        { "type": "enter", "character": "ranjit", "to": "booth_side" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "Hello! Mister Marshall, I have news. I start the trail one week late.", "emotion": "happy" },
+        { "type": "say", "character": "marshall", "to": "ranjit", "line": "What? Why?", "emotion": "sad" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "A new client. Mister Pennyworth. He books me all week, but he never gets in the car." },
+        { "type": "say", "character": "ted", "to": "ranjit", "line": "So you just sit outside an empty building?", "emotion": "confused" },
+        { "type": "say", "character": "ranjit", "to": "ted", "line": "For four times the money. It is the best job I have ever had.", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "ranjit", "line": "Does this push back the bottle?", "emotion": "suspicious" },
+        { "type": "say", "character": "ranjit", "to": "robin", "line": "The day I stop driving, Miss Robin. And please stop visiting it at night.", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "ted", "line": "Strange man. He paid in advance. His card ends in six nine six nine.", "react": [{ "character": "robin", "emotion": "suspicious" }, { "character": "ted", "gesture": "double_take" }, { "character": "lily", "emotion": "smug" }] },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Common number.", "emotion": "nervous" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Barney, you read that number out loud every time you pay. You think it's a pickup line.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "Okay! Mister Pennyworth's empty building is waiting. Hello!", "emotion": "happy", "gesture": "wave" },
+        { "type": "exit", "character": "ranjit" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney, what a coincidence! You and Mister Pennyworth have the same card number! You guys should get a drink!", "emotion": "excited", "laugh": "laugh" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "We really should.", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "id": "recruit",
+      "location": "barneys",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Future Ted's account: Barney asks him to book Ranjit for a full day, and Ted nobly refuses. Played straight. It isn't what happened.",
+      "cast": [{ "character": "barney", "mark": "center" }, { "character": "ted", "mark": "couch_right" }],
+      "beats": [
+        { "type": "narrate", "line": "Barney needed one more last job. So he came to me. And I did the right thing." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Ted. Book Ranjit for one full day on the Pennyworth account. I pay. You ride." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "No, Barney. That man has a mountain waiting. I won't steal one step of it.", "emotion": "proud" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "You're right. You're a better man than me, Ted.", "emotion": "sad" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "I know. Let him go, buddy.", "emotion": "proud", "gesture": "nod", "laugh": "chuckle" },
+        { "type": "exit", "character": "ted" }
+      ]
+    },
+    {
+      "location": "limo",
+      "time": "day",
+      "transition": "exterior",
+      "summary": "Ranjit's second last job: a nine-hour architecture tour, given by Ted. The kids catch the sanitizing, and the replay shows what actually got him. Ranjit asks Ted to thank Barney for the tour; Ted, who can't keep a secret, has never heard of a Barney. Gargoyles again.",
+      "cast": [{ "character": "ted", "mark": "rear_seat_left" }, { "character": "ranjit", "mark": "driver" }],
+      "beats": [
+        { "type": "say", "character": "ted", "to": "ranjit", "line": "And on your left, once again, the Woolworth Building. Note the gargoyles.", "emotion": "excited", "gesture": "point" },
+        { "type": "say", "character": "ranjit", "to": "ted", "line": "Mister Ted, we have passed it eleven times.", "laugh": "laugh" },
+        { "type": "say", "character": "penny", "line": "Wait. Dad. You said you refused.", "emotion": "suspicious" },
+        { "type": "say", "character": "luke", "line": "You're literally in the limo.", "delivery": "deadpan" },
+        { "type": "narrate", "line": "I said I refused, Luke. I never said for how long.", "laugh": "laugh" },
+        {
+          "type": "replay",
+          "of": "recruit",
+          "from": 1,
+          "style": "flashback",
+          "changes": [
+            {
+              "at": 2,
+              "replace": [
+                { "type": "say", "character": "ted", "to": "barney", "line": "No, Barney. That man has a mountain wait—", "interrupted": true, "emotion": "proud" },
+                { "type": "say", "character": "barney", "to": "ted", "line": "Nine hours, Ted. He can't leave the car. And he's never heard the word cornice." },
+                { "type": "pause", "seconds": 1.2 },
+                { "type": "say", "character": "ted", "to": "barney", "line": "Can I bring a laser pointer?", "emotion": "excited", "laugh": "laugh" }
+              ]
+            },
+            { "at": 3, "replace": [] },
+            { "at": 4, "replace": [] },
+            { "at": 5, "replace": [] }
+          ]
+        },
+        { "type": "say", "character": "ranjit", "to": "ted", "line": "Mister Ted. When you see Mister Barney, please tell him thank you for the tour." },
+        { "type": "say", "character": "ted", "to": "ranjit", "line": "Barney? This is a Pennyworth booking. I don't know any Barneys. Who's Barney?", "delivery": "fast", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "ranjit", "to": "ted", "line": "Okay. Gargoyles again?", "emotion": "happy" },
+        { "type": "say", "character": "ted", "to": "ranjit", "line": "Gargoyles again.", "emotion": "happy", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Ranjit's last last job: Mister Pennyworth's daughter's wedding, all of April. Too late for Maine; the trail waits a year. Marshall finally puts it together, and he's the last one. Everyone else knew. He has a slap ready and doesn't use it: a slap would make Barney feel better.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_front" },
+        { "character": "barney", "mark": "booth_right_back" }
+      ],
+      "beats": [
+        { "type": "enter", "character": "ranjit", "to": "booth_side" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "Hello! Mister Pennyworth's daughter is getting married. He needs me for the wedding.", "emotion": "happy" },
+        { "type": "say", "character": "marshall", "to": "ranjit", "line": "One day? Fine. I'll move leg day.", "laugh": "chuckle" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "The wedding is all of April." },
+        { "type": "say", "character": "robin", "to": "ranjit", "line": "Nobody has a month-long wedding.", "delivery": "deadpan" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "The British do. Very long vows. Everyone keeps apologizing.", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "So, no trail this year, Coach. The mountain in Maine closes in October. If I start in May, I finish in the snow." },
+        { "type": "say", "character": "marshall", "to": "ranjit", "line": "But your calves, Ranjit. We've been building your calves.", "emotion": "sad", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "Next year. Maybe. One last job, again. Hello!", "gesture": "wave" },
+        { "type": "exit", "character": "ranjit" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "What kind of monster books a man for a month-long wedding?", "emotion": "angry" },
+        { "type": "pause", "seconds": 1.2 },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Pennyworth. Six nine six nine. Barney?", "delivery": "slow", "gesture": "double_take" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "In my defense, I've been incredibly supportive.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Did you know?", "emotion": "angry" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Day one, baby." },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Day four." },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "Day four. And then a nine-hour day.", "laugh": "laugh" },
+        { "type": "move", "character": "marshall", "to": "booth_side" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "You know I've got a slap with your name on it.", "emotion": "angry", "react": [{ "character": "barney", "emotion": "scared" }] },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "But a slap would make you feel better.", "emotion": "sad" },
+        { "type": "exit", "character": "marshall" }
+      ]
+    },
+    {
+      "location": "limo",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Barney cancels the Pennyworth wedding. Ranjit always knew it was him; he took the jobs because he never refuses a fare, the money was good, and he wanted to see if Barney would ever just say it. Barney does: twelve years, the longest steady relationship he's ever had. He tells Ranjit to go. Where to? Home.",
+      "cast": [{ "character": "barney", "mark": "rear_seat_left" }, { "character": "ranjit", "mark": "driver" }],
+      "beats": [
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Bad news, Ranjit. The Pennyworth wedding is off." },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Oh no. What happened?", "emotion": "surprised" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "The father of the bride realized he was being incredibly selfish.", "emotion": "sad" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Mister Barney. I know you are Mister Pennyworth." },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Since when?", "emotion": "surprised" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Since hello. Twelve years, I know your voice. Even in British.", "emotion": "happy", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Then why did you keep saying yes?" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "I have never refused a fare. Also, you paid four times.", "laugh": "laugh" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "And I wanted to see if you would ever just say it." },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "You drove the cab the first day I ever wore a suit." },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "You tipped me in breath mints.", "emotion": "happy", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Twelve years. Every bad idea. Every four a.m. And you never once asked me how it went." },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "I always knew how it went." },
+        { "type": "score", "music": "tender" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "You're the longest steady relationship I've ever had.", "emotion": "sad", "shot": "push_in" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "You are my favorite passenger, Mister Barney. Also my only one.", "emotion": "happy" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Go walk to Maine, Ranjit." },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Are you sure?" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "No." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Go anyway." },
+        { "type": "score", "music": "none" },
+        { "type": "pause", "seconds": 1.2 },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Where to, Mister Barney?" },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Home." }
+      ]
+    },
+    {
+      "location": "limo",
+      "time": "day",
+      "transition": "exterior",
+      "label": "Springer Mountain, Georgia",
+      "summary": "One last job: Barney at the wheel, Ranjit in the power seat, the gang in the back after twenty-three hours in the right lane. The bottle is iced tea. Lily missed the only part she wanted. Coach Marshall's socks. Ted's ranger station tour gets one word. Ranjit says hello, Barney says hello back, and asks which way is New York.",
+      "wardrobe": [{ "character": "ranjit", "topStyle": "flannel", "top": "green", "pants": "tan", "boots": true, "extras": ["cap"] }],
+      "cast": [
+        { "character": "barney", "mark": "driver" },
+        { "character": "ranjit", "mark": "rear_seat_left" },
+        { "character": "robin", "mark": "rear_seat_right" },
+        { "character": "ted", "mark": "bench_1" },
+        { "character": "lily", "mark": "bench_2" },
+        { "character": "marshall", "mark": "bench_3" }
+      ],
+      "beats": [
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Springer Mountain, Georgia, sir. One last job.", "emotion": "proud" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "Twenty-three hours. In the right lane.", "delivery": "deadpan", "emotion": "bored" },
+        { "type": "say", "character": "robin", "to": "ranjit", "line": "He learned to drive on Tuesday. We got passed by a riding mower.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Safety first. A rule I've believed in since Tuesday.", "emotion": "proud", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "ranjit", "line": "Ranjit. You have officially stopped driving. The bottle." },
+        { "type": "hold", "character": "ranjit", "prop": "glass" },
+        { "type": "give", "character": "ranjit", "to": "robin" },
+        { "type": "act", "character": "robin", "gesture": "drink" },
+        { "type": "say", "character": "robin", "to": "ranjit", "line": "This is iced tea.", "emotion": "disgusted" },
+        { "type": "say", "character": "ranjit", "to": "robin", "line": "I am a driver, Miss Robin. I do not drink. It is very special iced tea.", "emotion": "happy", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "ranjit", "line": "Ranjit. The night he cancelled the wedding. Did he say it?", "delivery": "whisper", "gesture": "lean_in" },
+        { "type": "say", "character": "ranjit", "to": "lily", "line": "He said it." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Twenty-three hours in this car, and I missed the only part I wanted!", "emotion": "angry", "laugh": "laugh" },
+        { "type": "hold", "character": "marshall", "prop": "gift" },
+        { "type": "give", "character": "marshall", "to": "ranjit" },
+        { "type": "say", "character": "marshall", "to": "ranjit", "line": "From your coach. Minnesota wool socks. Change them every day. Promise me." },
+        { "type": "say", "character": "ranjit", "to": "marshall", "line": "I promise, Coach.", "react": [{ "character": "marshall", "gesture": "sob" }] },
+        { "type": "say", "character": "ted", "to": "ranjit", "line": "And before you go, that ranger station is a fascinating example of rustic—", "interrupted": true, "emotion": "excited", "gesture": "point" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "No.", "laugh": "laugh", "chorus": ["lily", "marshall", "barney", "ranjit"] },
+        { "type": "pause", "seconds": 1.2 },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "Hello, Mister Barney." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "ranjit", "line": "Hello, Ranjit." },
+        { "type": "exit", "character": "ranjit" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "barney", "line": "Ranjit! Which way is New York?", "delivery": "shout" },
+        { "type": "say", "character": "ranjit", "to": "barney", "line": "North! Follow me!", "laugh": "big", "offscreen": "voice" }
+      ]
+    }
+  ]
+}
