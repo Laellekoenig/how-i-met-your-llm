@@ -32,7 +32,12 @@ async function load(file: string): Promise<{ file: string; episode: unknown; par
   }
 }
 
+const loadAll = () => Promise.all(allFiles().map(load));
+
 const sets = () => testStage().sets;
+
+/** "1 error", "3 warnings". */
+const count = (n: number, thing: string) => `${n} ${thing}${n === 1 ? '' : 's'}`;
 
 async function check(files: string[]) {
   const loaded = await Promise.all(files.map(load));
@@ -60,7 +65,7 @@ async function check(files: string[]) {
     warnings += report.warnings.length;
   }
   // codes and titles are unique across the whole catalog, not just the files being checked
-  const catalog = files.length === allFiles().length ? loaded : await Promise.all(allFiles().map(load));
+  const catalog = files.length === allFiles().length ? loaded : await loadAll();
   const clashes = validateCatalog(catalog).filter((i) => files.includes(i.path));
   for (const i of clashes) console.log(`${basename(i.path)}: error: ${i.message}`);
   errors += clashes.length;
@@ -72,12 +77,12 @@ async function check(files: string[]) {
     console.log(`${basename(file)}: warning: continuity: ${issue.message}`);
     warnings++;
   }
-  console.log(`\n${files.length} episode${files.length === 1 ? '' : 's'}: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}`);
+  console.log(`\n${count(files.length, 'episode')}: ${count(errors, 'error')}, ${count(warnings, 'warning')}`);
   return errors === 0;
 }
 
 async function list() {
-  const loaded = (await Promise.all(allFiles().map(load))).filter((l) => !l.parseError);
+  const loaded = (await loadAll()).filter((l) => !l.parseError);
   const episodes = loaded.map((l) => l.episode as EpisodeScript).sort(byCode);
   for (const ep of episodes) {
     const places = [...new Set(ep.scenes.flatMap((s) => (s.location ? [s.location] : [])))].join(', ');
@@ -95,7 +100,7 @@ const spoken = (beats: Beat[]): string[] =>
 
 /** The ledger: where the catalog's continuity notes leave the world. */
 async function continuity() {
-  const episodes = (await Promise.all(allFiles().map(load))).filter((l) => !l.parseError).map((l) => l.episode as EpisodeScript);
+  const episodes = (await loadAll()).filter((l) => !l.parseError).map((l) => l.episode as EpisodeScript);
   const book = ledger(episodes);
   const noted = episodes.filter((e) => e.continuity).length;
   console.log(`# Continuity ledger (${noted} of ${episodes.length} episodes have notes)\n`);

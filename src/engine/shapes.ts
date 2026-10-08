@@ -3,12 +3,6 @@ import * as THREE from 'three';
 // Smooth, organic geometry for characters: parametric surfaces, lofts through
 // keyed cross-sections, tapered capsules. Everything is built procedurally.
 
-const smooth = (a: number, b: number, x: number) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-};
-export { smooth as smoothstep };
-
 /** Signed power, used for superellipse cross-sections. */
 const spow = (x: number, e: number) => Math.sign(x) * Math.pow(Math.abs(x), e);
 

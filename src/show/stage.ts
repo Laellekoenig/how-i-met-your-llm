@@ -6,7 +6,7 @@ import { buildSets } from '../world/sets';
 import { KID_MARKS } from '../world/sets/future';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
 import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
-import { pick, rand } from '../util';
+import { minBy, pick, rand } from '../util';
 import { SEATED_SPACE, SPACE, joinRoute, routeNodes, walkRoute, type Person } from './navigation';
 import { Crowd, type Seat } from './crowd';
 
@@ -75,7 +75,7 @@ export class Stage {
   /** A split screen is up: its sets share the same floor space, so nobody there gives way to anybody. */
   private split = false;
   /** Who gives way to whom, so nobody walks through anybody. Whoever's working a door keeps to their way. */
-  private crowd = new Crowd(a => Object.values(this.actors).includes(a) && !this.atDoor(a), a => this.seatOf(a));
+  private crowd = new Crowd((a) => Object.values(this.actors).includes(a) && !this.atDoor(a), (a) => this.seatOf(a));
   /** Who's going through a door right now, and which; their turn ends when they're told to do anything else. */
   private doorWork = new Map<CharacterId, { door: Door; turn: number }>();
   private doorTurns = 0;
@@ -90,7 +90,7 @@ export class Stage {
       s.group.visible = false;
       scene.add(s.group);
       const meshes: THREE.Mesh[] = [];
-      s.group.traverse(o => { if (o instanceof THREE.Mesh) meshes.push(o); });
+      s.group.traverse((o) => { if (o instanceof THREE.Mesh) meshes.push(o); });
       this.scenery.set(s, meshes);
     }
     for (const id of CHARACTER_IDS) {
@@ -257,9 +257,7 @@ export class Stage {
       a.holdingGlass = false;
       a.hold(null);
     }
-    this.occupancy.clear();
-    this.actorMark.clear();
-    this.actorNode.clear();
+    this.clearMarks();
     this.backgroundIds.clear();
     this.doorWork.clear();
     this.doorQueue.clear();
@@ -397,6 +395,13 @@ export class Stage {
     return !who || who === forChar;
   }
 
+  /** Nobody is on any mark. */
+  private clearMarks() {
+    this.occupancy.clear();
+    this.actorMark.clear();
+    this.actorNode.clear();
+  }
+
   private occupy(id: CharacterId, mark: string | null) {
     const prev = this.actorMark.get(id);
     if (prev && this.occupancy.get(prev) === id) this.occupancy.delete(prev);
@@ -489,16 +494,8 @@ export class Stage {
   }
 
   private nearestNode(p: THREE.Vector3) {
-    let best = '';
-    let bd = Infinity;
-    for (const [k, v] of Object.entries(this.current.nodes)) {
-      const d = v.distanceTo(p);
-      if (d < bd) {
-        bd = d;
-        best = k;
-      }
-    }
-    return best;
+    const nodes = this.current.nodes;
+    return minBy(Object.keys(nodes), (k) => nodes[k].distanceTo(p)) ?? '';
   }
 
   /** Walk to a mark or next to another character. */
@@ -582,18 +579,11 @@ export class Stage {
   private seatNear(other: CharacterId, id: CharacterId) {
     if (!this.onStage(other)) return undefined;
     const p = this.actors[other].position;
+    const marks = this.current.marks;
     const reserved = this.current.reserved ?? [];
-    let best: string | undefined;
-    let bd = Infinity;
-    for (const [k, m] of Object.entries(this.current.marks)) {
-      if (m.seat === null || k === this.current.door || reserved.includes(k) || !this.isFree(k, id)) continue;
-      const d = m.pos.distanceTo(p);
-      if (d > 0.1 && d < bd) {
-        bd = d;
-        best = k;
-      }
-    }
-    return best;
+    const seats = Object.keys(marks).filter((k) => marks[k].seat !== null && k !== this.current.door && !reserved.includes(k)
+      && this.isFree(k, id) && marks[k].pos.distanceTo(p) > 0.1);
+    return minBy(seats, (k) => marks[k].pos.distanceTo(p));
   }
 
   /** Sit down in the nearest free seat they can get to. */
@@ -602,17 +592,11 @@ export class Stage {
     const a = this.actors[id];
     if (!this.onStage(id) || a.isSitting || this.current.seated) return Promise.resolve();
     const from = this.actorNode.get(id) ?? this.nearestNode(a.position);
+    const marks = this.current.marks;
     const doors = [this.current.door, ...Object.values(this.current.entrances ?? {}), ...(this.current.reserved ?? [])];
-    let best: string | undefined;
-    let bd = Infinity;
-    for (const [k, m] of Object.entries(this.current.marks)) {
-      if (m.seat === null || doors.includes(k) || !this.isFree(k, id) || !routeNodes(this.current, from, m.node)) continue;
-      const d = m.pos.distanceTo(a.position);
-      if (d < bd) {
-        bd = d;
-        best = k;
-      }
-    }
+    const seats = Object.keys(marks).filter((k) => marks[k].seat !== null && !doors.includes(k) && this.isFree(k, id)
+      && routeNodes(this.current, from, marks[k].node));
+    const best = minBy(seats, (k) => marks[k].pos.distanceTo(a.position));
     return best ? this.moveTo(id, best) : Promise.resolve();
   }
 
@@ -669,9 +653,7 @@ export class Stage {
     this.current.group.visible = true;
     this.current.setTime(time);
     this.split = true;
-    this.occupancy.clear();
-    this.actorMark.clear();
-    this.actorNode.clear();
+    this.clearMarks();
     this.syncExtras();
   }
 
@@ -829,13 +811,13 @@ export class Stage {
 
   /** Everyone on the current set a walker could bump into: the cast, and the background people too. */
   private inTheWay() {
-    const extras = this.extras.filter(e => e.set === this.current.id && e.actor.root.visible).map(e => e.actor);
-    return [...this.onStageIds().map(id => this.actors[id]), ...extras];
+    const extras = this.extras.filter((e) => e.set === this.current.id && e.actor.root.visible).map((e) => e.actor);
+    return [...this.onStageIds().map((id) => this.actors[id]), ...extras];
   }
 
   /** The seat someone in the cast is sitting in, for getting up out of it to let someone by. */
   private seatOf(a: Actor): Seat | null {
-    const id = this.onStageIds().find(id => this.actors[id] === a);
+    const id = this.onStageIds().find((id) => this.actors[id] === a);
     const m = this.current.marks[(id && this.actorMark.get(id)) ?? ''];
     if (!m || m.seat === null) return null;
     return { pos: m.pos.clone(), approach: m.approach?.clone(), facing: m.facing, height: m.seat, pose: m.pose, prop: m.prop };
@@ -843,7 +825,7 @@ export class Stage {
 
   /** Where everyone else on the set is standing or sitting, or will be once they've got where they're going. */
   private peopleAround(me: Actor): Person[] {
-    return this.inTheWay().filter(a => a !== me).map(a => ({
+    return this.inTheWay().filter((a) => a !== me).map((a) => ({
       at: (a.remainingPath.at(-1) ?? a.position).clone(),
       room: a.isSitting || a.headingToSeat ? SEATED_SPACE : SPACE,
     }));
@@ -852,10 +834,10 @@ export class Stage {
   occluders(): THREE.Mesh[] {
     // Include walls, chair backs and new props automatically, even without a legacy tag.
     this.current.group.updateWorldMatrix(true, true);
-    return (this.scenery.get(this.current) ?? []).filter(o => {
+    return (this.scenery.get(this.current) ?? []).filter((o) => {
       for (let parent: THREE.Object3D | null = o; parent; parent = parent.parent) if (!parent.visible) return false;
       const materials = Array.isArray(o.material) ? o.material : [o.material];
-      return materials.some(m => m.visible && (!m.transparent || m.opacity >= 0.8));
+      return materials.some((m) => m.visible && (!m.transparent || m.opacity >= 0.8));
     });
   }
 }

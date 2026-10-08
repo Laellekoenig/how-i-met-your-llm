@@ -7,11 +7,11 @@ import { damp, mulberry32 } from '../util';
 
 type ShotKind = 'wide' | 'closeup' | 'two' | 'ots' | 'establishing' | 'selfie';
 
-interface ActiveShot {
+/** Where the lens is, what it's aimed at, and how wide it sees. */
+type Framing = { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
+
+interface ActiveShot extends Framing {
   kind: ShotKind;
-  pos: THREE.Vector3;
-  target: THREE.Vector3;
-  fov: number;
   follow?: Actor;
   followOffset?: THREE.Vector3;
   push: number; // dolly speed toward target, m/s; 0 for a locked-off shot
@@ -25,10 +25,8 @@ interface ActiveShot {
   /** The aim is easing onto a new framing after a big head move, like sitting down. */
   reframing?: boolean;
   /** Where the shot was framed when we cut to it, before any jog, push or drift. */
-  base?: { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
+  base?: Framing;
 }
-
-type Framing = { pos: THREE.Vector3; target: THREE.Vector3; fov: number };
 
 /** Two framings a viewer can't tell apart: cutting from one to the other only reads as a jump. */
 function sameFraming(a: Framing, b: Framing) {
@@ -131,33 +129,33 @@ export class Director {
 
   /** Prefer a tight authored angle only when every subject is framed and unobstructed. */
   coverage(ids: CharacterId[], allowCloseup = true) {
-    const actors = ids.filter(id => this.stage.onStage(id)).map(id => this.stage.actors[id]);
+    const actors = ids.filter((id) => this.stage.onStage(id)).map((id) => this.stage.actors[id]);
     if (!actors.length) return this.wide(0);
     const wides = this.stage.current.wides;
-    const moving = actors.filter(a => a.isWalking);
+    const moving = actors.filter((a) => a.isWalking);
     let best = 0, score = -1;
     for (let i = wides.length - 1; i >= 0; i--) {
       const shot = wides[i];
-      const visible = actors.filter(a => this.covers(shot, [a]));
+      const visible = actors.filter((a) => this.covers(shot, [a]));
       if (visible.length === actors.length) { best = i; break; }
-      const value = visible.length + visible.filter(a => a.isWalking).length * (actors.length + 1);
+      const value = visible.length + visible.filter((a) => a.isWalking).length * (actors.length + 1);
       if (value >= score) { score = value; best = i; }
     }
     const priority = moving.length ? moving : actors.slice(0, 1);
-    if (allowCloseup && !priority.every(a => this.covers(wides[best], [a]))) return this.closeup(priority[0].def.id);
+    if (allowCloseup && !priority.every((a) => this.covers(wides[best], [a]))) return this.closeup(priority[0].def.id);
     this.wide(best);
-    this.shot!.subjects = actors.map(a => a.def.id);
+    this.shot!.subjects = actors.map((a) => a.def.id);
   }
 
   private framePoints(actors: Actor[]) {
-    return actors.flatMap(a => {
+    return actors.flatMap((a) => {
       const head = a.headWorld;
       return [head.clone().add(new THREE.Vector3(0, 0.1, 0)), head.clone().add(new THREE.Vector3(0, -0.35, 0))];
     });
   }
 
-  private covers(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }, actors: Actor[]) {
-    return this.allInFrame(shot.pos, shot.target, shot.fov, this.framePoints(actors)) && actors.every(a => this.sees(shot.pos, a));
+  private covers(shot: Framing, actors: Actor[]) {
+    return this.allInFrame(shot.pos, shot.target, shot.fov, this.framePoints(actors)) && actors.every((a) => this.sees(shot.pos, a));
   }
 
   /** A copy of the lens set up for a shot, to test what it would see. */
@@ -180,7 +178,7 @@ export class Director {
   }
 
   /** Reverse angles must have scenery behind the subject, not the missing fourth wall. */
-  private hasBackdrop(shot: { pos: THREE.Vector3; target: THREE.Vector3; fov: number }) {
+  private hasBackdrop(shot: Framing) {
     const cam = this.probe(shot.pos, shot.target, shot.fov);
     const objects = this.stage.occluders();
     const open = this.stage.current.openSide;
@@ -208,6 +206,11 @@ export class Director {
     return this.stage.current.cameraBounds?.containsPoint(pos) ?? true;
   }
 
+  /** A framing we can cut to: the lens is on the set, everyone is in frame and in view, and there's scenery behind them. */
+  private usable(shot: Framing, actors: Actor[]) {
+    return this.inside(shot.pos) && this.covers(shot, actors) && this.hasBackdrop(shot);
+  }
+
   /** Nothing in the way of someone's face from here: their head, and down to their chin. */
   private sees(from: THREE.Vector3, a: Actor) {
     const head = a.headWorld;
@@ -219,7 +222,7 @@ export class Director {
     if (distance < 0.3) return false;
     const objects: THREE.Object3D[] = this.stage.occluders();
     const actors = [...Object.values(this.stage.actors),
-      ...this.stage.extras.filter(e => e.set === this.stage.current.id).map(e => e.actor)];
+      ...this.stage.extras.filter((e) => e.set === this.stage.current.id).map((e) => e.actor)];
     for (const a of actors) if (a.root.visible && !ignore.includes(a)) {
       a.root.updateWorldMatrix(true, true);
       objects.push(...a.bodyMeshes);
@@ -235,7 +238,7 @@ export class Director {
       if (this.ray.intersectObjects(objects, false).length) return false;
       // Back faces also matter: otherwise a camera outside a wall sees through it.
       this.ray.set(to, dir.clone().negate());
-      if (this.ray.intersectObjects(objects, false).some(hit => hit.distance >= 0.12 && !hit.object.userData.cameraBackdrop)) return false;
+      if (this.ray.intersectObjects(objects, false).some((hit) => hit.distance >= 0.12 && !hit.object.userData.cameraBackdrop)) return false;
     }
     return true;
   }
@@ -252,16 +255,16 @@ export class Director {
     const target = actors.reduce((sum, a) => sum.add(a.headWorld), new THREE.Vector3()).divideScalar(actors.length);
     target.y -= 0.16;
     const forward = new THREE.Vector3(Math.sin(actors[0].facing), 0, Math.cos(actors[0].facing));
-    const candidates = mounts.map(pos => {
+    const candidates = mounts.map((pos) => {
       const angle = pos.clone().sub(target).setY(0).normalize().dot(forward);
       // A rear passenger's single belongs in the rear compartment, not far away on the hood.
       const score = (1 - angle) * 2 + (kind === 'closeup' ? Math.abs(pos.distanceTo(target) - 1.3) : 0);
       return { pos, angle, score };
-    }).filter(c => c.angle > 0.35).sort((a, b) => a.score - b.score);
+    }).filter((c) => c.angle > 0.35).sort((a, b) => a.score - b.score);
     for (const { pos } of candidates) for (const fov of [24, 28, 32, 38, 44, 50, 58, 66]) {
-      if (!this.inside(pos) || !this.covers({ pos, target, fov }, actors) || !this.hasBackdrop({ pos, target, fov })) continue;
+      if (!this.usable({ pos, target, fov }, actors)) continue;
       this.cut({ kind, pos: pos.clone(), target, fov, push: 0,
-        subject: actors[0].def.id, subjects: actors.map(a => a.def.id) });
+        subject: actors[0].def.id, subjects: actors.map((a) => a.def.id) });
       return true;
     }
     return false;
@@ -285,21 +288,21 @@ export class Director {
     const audience = new THREE.Vector3(0, 0, 1);
     // Keep reverse coverage for students and chairs facing into the room.
     const candidates = [forward.clone().lerp(look, 0.35).normalize(),
-      ...[0.65, -0.65, 1.1, -1.1, 1.4, -1.4].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
-      ...[0.3, 0.65, 1].map(blend => look.clone().lerp(audience, blend).normalize())];
+      ...[0.65, -0.65, 1.1, -1.1, 1.4, -1.4].map((angle) => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)),
+      ...[0.3, 0.65, 1].map((blend) => look.clone().lerp(audience, blend).normalize())];
     // A push-in starts from a medium shot further back and creeps in over several seconds; inside a car
     // there's less room to back off.
     const dists = pushIn ? [3.3, 2.8, 2.35] : this.stage.current.cameraBounds ? [2.35, 1.65, 1.15, 0.85, 0.6] : [2.35, 1.65, 1.15];
     // On an open set, someone facing upstage has no reverse: their single is a profile from the side.
     const profiles = this.stage.current.openSide
-      ? [1.57, -1.57, 1.8, -1.8].map(angle => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)) : [];
+      ? [1.57, -1.57, 1.8, -1.8].map((angle) => forward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle)) : [];
     for (const [ds, minDot] of [[candidates, 0.05], [profiles, -0.25]] as const) for (const dist of dists) for (const d of ds) {
       if (d.lengthSq() < 0.1 || d.dot(forward) < minDot) continue;
       const pos = head.clone().addScaledVector(d, dist);
       pos.y = head.y + 0.08;
       const target = head.clone().add(new THREE.Vector3(0, -0.16, 0));
       const fov = pushIn ? 34 : dist < 0.7 ? 60 : dist < 1 ? 50 : dist < 1.5 ? 44 : 32;
-      if (this.inside(pos) && this.covers({ pos, target, fov }, [a]) && this.hasBackdrop({ pos, target, fov })) {
+      if (this.usable({ pos, target, fov }, [a])) {
         this.cut({ kind: 'closeup', pos, target, fov, follow: a, followOffset: new THREE.Vector3(0, -0.16, 0),
           push: pushIn ? 0.32 : 0, pushFor: pushIn ? 6 : undefined, subject: id, subjects: [id] });
         return;
@@ -334,7 +337,7 @@ export class Director {
     for (const [d, fov] of tries) {
       const pos = mid.clone().addScaledVector(perp, d);
       pos.y = mid.y + 0.1;
-      if (this.inside(pos) && this.covers({ pos, target, fov }, [A, B]) && this.hasBackdrop({ pos, target, fov }))
+      if (this.usable({ pos, target, fov }, [A, B]))
         return this.cut({ kind: 'two', pos, target, fov, push: 0, subject: a, subjects: [a, b] });
     }
     this.closeup(a, b);
@@ -376,7 +379,7 @@ export class Director {
 
   /** On a group: a single, a two-shot, or the widest angle that holds them all. For reactions and lines said together. */
   group(ids: CharacterId[], toward?: CharacterId) {
-    const on = ids.filter(id => this.stage.onStage(id));
+    const on = ids.filter((id) => this.stage.onStage(id));
     // a single reaction is shot from the side of whoever they're reacting to, so the face reads
     if (on.length === 1) this.closeup(on[0], toward);
     else if (on.length === 2) this.twoShot(on[0], on[1]);
@@ -385,7 +388,7 @@ export class Director {
 
   private nearest(id: CharacterId) {
     const p = this.stage.actors[id].position;
-    return this.stage.castIds().filter(o => o !== id)
+    return this.stage.castIds().filter((o) => o !== id)
       .sort((a, b) => this.stage.actors[a].position.distanceTo(p) - this.stage.actors[b].position.distanceTo(p))[0];
   }
 
@@ -458,8 +461,8 @@ export class Director {
     if (this.pending && this.time - this.lastCut >= this.minShot) this.commit(this.pending);
     const s = this.shot;
     if (s && !this.pending && s.kind !== 'establishing' && !s.follow && this.time - Math.max(this.lastCut, this.lastReframe) > 0.5) {
-      const ids = s.subjects?.filter(id => this.stage.onStage(id)) ?? [];
-      const moving = ids.map(id => this.stage.actors[id]).filter(a => a.isWalking);
+      const ids = s.subjects?.filter((id) => this.stage.onStage(id)) ?? [];
+      const moving = ids.map((id) => this.stage.actors[id]).filter((a) => a.isWalking);
       if (moving.length && !this.covers(s, moving)) {
         this.lastReframe = this.time;
         this.coverage(ids);
@@ -513,7 +516,7 @@ export class Director {
     if (dt > 0 && s.push && this.time - this.lastCut < (s.pushFor ?? 4)) {
       const dir = s.target.clone().sub(s.pos);
       const next = s.pos.clone().addScaledVector(dir.normalize(), s.push * dt);
-      const actors = (s.subjects ?? []).filter(id => this.stage.onStage(id)).map(id => this.stage.actors[id]);
+      const actors = (s.subjects ?? []).filter((id) => this.stage.onStage(id)).map((id) => this.stage.actors[id]);
       if (next.distanceTo(s.target) > 1 && this.covers({ ...s, pos: next }, actors)) s.pos.copy(next);
     }
     this.camera.position.copy(s.pos);

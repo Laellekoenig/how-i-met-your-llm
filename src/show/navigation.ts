@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import type { StageSet } from '../world/sets/common';
 
+/** Distance across the floor, ignoring height. */
+export const flat = (a: THREE.Vector3, b: THREE.Vector3) => Math.hypot(a.x - b.x, a.z - b.z);
+
 /** Keep every authored corner: proximity alone never permits cutting through scenery. */
 export function routeNodes(set: StageSet, from: string, to: string): THREE.Vector3[] | null {
   const { nodes, edges } = set;
@@ -14,7 +17,7 @@ export function routeNodes(set: StageSet, from: string, to: string): THREE.Vecto
     if (current === to) {
       const path = [to];
       while (path[0] !== from) path.unshift(previous.get(path[0])!);
-      return path.map(key => nodes[key].clone());
+      return path.map((key) => nodes[key].clone());
     }
     pending.delete(current);
     for (const [a, b] of edges) {
@@ -32,7 +35,7 @@ export function routeNodes(set: StageSet, from: string, to: string): THREE.Vecto
 
 /** Remove repeated waypoints without dropping routing corners. */
 export function joinRoute(points: THREE.Vector3[]): THREE.Vector3[] {
-  return points.filter((p, i) => !i || Math.hypot(p.x - points[i - 1].x, p.z - points[i - 1].z) > 0.01);
+  return points.filter((p, i) => !i || flat(p, points[i - 1]) > 0.01);
 }
 
 /** How far a walker's body reaches either side of the line they walk. */
@@ -81,7 +84,7 @@ function scenery(set: StageSet) {
  * long as the walk never brushes it any closer than that.
  */
 export function clear(set: StageSet, from: THREE.Vector3, to: THREE.Vector3) {
-  const floors = [from, to, from.clone().lerp(to, 0.5)].map(p => set.floorAt?.(p.x, p.z) ?? 0);
+  const floors = [from, to, from.clone().lerp(to, 0.5)].map((p) => set.floorAt?.(p.x, p.z) ?? 0);
   const low = Math.min(...floors) + 0.3, high = Math.max(...floors) + 1.65;
   const a = new THREE.Vector3(), b = new THREE.Vector3(), hit = new THREE.Vector3(), ray = new THREE.Ray();
   return !scenery(set).some(({ shape, bounds, inverse, world }) => {
@@ -115,8 +118,6 @@ export function free(set: StageSet, p: THREE.Vector3) {
   });
 }
 
-const flat = (a: THREE.Vector3, b: THREE.Vector3) => Math.hypot(a.x - b.x, a.z - b.z);
-
 /** How close two people may pass (centre to centre) before they'd be walking into each other; less beside a seat. */
 export const SPACE = 0.5;
 export const SEATED_SPACE = 0.42;
@@ -147,7 +148,7 @@ export function crowded(people: Person[], a: THREE.Vector3, b: THREE.Vector3) {
 export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, end: THREE.Vector3[], to: string, people: Person[] = []): THREE.Vector3[] | null {
   const keys = Object.keys(set.nodes), index = new Map(keys.map((k, i) => [k, i]));
   if (!index.has(from) || !index.has(to) || !start.length || !end.length) return null;
-  const points = [...keys.map(k => set.nodes[k]), ...start, end[0]];
+  const points = [...keys.map((k) => set.nodes[k]), ...start, end[0]];
   const S = keys.length, goal = points.length - 1;
   const linked = points.map(() => new Set<number>());
   const link = (a: number, b: number) => (linked[a].add(b), linked[b].add(a));
@@ -194,7 +195,7 @@ export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, e
     if (current === goal) {
       const path = [goal];
       while (path[0] !== S) path.unshift(previous.get(path[0])!);
-      const route = path.map(i => points[i].clone());
+      const route = path.map((i) => points[i].clone());
       // Round off each aisle corner: cut in along either leg as far as the way past it stays clear.
       // Getting up, they turn off the step out of their seat as soon as the way on is clear.
       const reach = (ok: (t: number) => boolean) => {
@@ -205,24 +206,24 @@ export function walkRoute(set: StageSet, start: THREE.Vector3[], from: string, e
       for (let k = 1; k < route.length - 1; k++) {
         if (path[k] < S || path[k] > goal) {
           const [last, corner, next] = [route[k - 1], route[k].clone(), route[k + 1]];
-          route[k].lerp(next, reach(t => {
+          route[k].lerp(next, reach((t) => {
             const p = corner.clone().lerp(next, t);
             return free(set, p) && clear(set, last, p) && !near(p) && !crowded(people, last, p) && !crowded(people, p, next);
           }));
           const cut = route[k].clone();
-          route[k].lerp(last, reach(t => {
+          route[k].lerp(last, reach((t) => {
             const p = cut.clone().lerp(last, t);
             return free(set, p) && clear(set, p, next) && !near(p) && !crowded(people, p, next) && !crowded(people, last, p);
           }));
         } else if (path[k] === goal - 1 && path[k - 1] >= S) {
           const [seat, step, next] = [route[k - 1], route[k].clone(), route[k + 1]];
-          route[k].lerp(seat, reach(t => {
+          route[k].lerp(seat, reach((t) => {
             const p = step.clone().lerp(seat, t);
             return free(set, p) && clear(set, p, next) && !crowded(people, p, next);
           }));
         }
       }
-      return [...route, ...end.slice(1).map(p => p.clone())];
+      return [...route, ...end.slice(1).map((p) => p.clone())];
     }
     open.delete(current);
     done.add(current);

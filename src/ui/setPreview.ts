@@ -1,6 +1,7 @@
 import type { Stage } from '../show/stage';
 import type { Director } from '../show/director';
 import type { CharacterId, LocationId } from '../script/types';
+import { el } from './dom';
 
 const previews = {
   maclarens: [
@@ -74,32 +75,21 @@ export function setPreview(stage: Stage, director: Director) {
   if (!requested || (!Object.hasOwn(previews, requested) && requested !== 'atlantic_city')) return false;
   let current = requested as PreviewId;
   let time: 'day' | 'night' = params.get('time') === 'day' ? 'day' : 'night';
-  const bar = document.createElement('div');
-  bar.className = 'set-preview';
+  const bar = el('div', 'set-preview');
   bar.setAttribute('aria-label', 'Set preview');
-  const title = document.createElement('span');
-  title.textContent = 'ON LOCATION';
-  bar.append(title);
-  const places = document.createElement('select');
+  const places = el('select');
   places.setAttribute('aria-label', 'Location');
   for (const id of [...Object.keys(previews), 'atlantic_city'] as PreviewId[]) {
-    const o = document.createElement('option');
-    o.value = id;
-    o.textContent = id === 'atlantic_city' ? 'Atlantic City · Arrival' : stage.sets[id].name;
-    places.append(o);
+    places.append(option(id, id === 'atlantic_city' ? 'Atlantic City · Arrival' : stage.sets[id].name));
   }
   places.value = current;
-  bar.append(places);
-  const shots = document.createElement('select');
+  const shots = el('select');
   shots.setAttribute('aria-label', 'Camera angle');
-  bar.append(shots);
-  const daylight = document.createElement('button');
+  const daylight = el('button');
   daylight.type = 'button';
-  bar.append(daylight);
-  const guide = document.createElement('a');
+  const guide = el('a', '', 'TV guide');
   guide.href = `/${params.has('mute') ? '?mute' : ''}`;
-  guide.textContent = 'TV guide';
-  bar.append(guide);
+  bar.append(el('span', '', 'ON LOCATION'), places, shots, daylight, guide);
   document.body.append(bar);
   const updateShot = () => {
     stage.endEstablishing();
@@ -127,9 +117,7 @@ export function setPreview(stage: Stage, director: Director) {
     const previous = shots.value;
     shots.replaceChildren();
     if (current === 'atlantic_city') {
-      const option = document.createElement('option');
-      option.textContent = 'Boardwalk arrival';
-      shots.append(option);
+      shots.append(el('option', '', 'Boardwalk arrival'));
       shots.disabled = true;
     } else {
       shots.disabled = false;
@@ -146,12 +134,7 @@ export function setPreview(stage: Stage, director: Director) {
         ['shoulder:forward', 'Over the shoulder'],
         ['shoulder:reverse', 'Reverse shoulder'],
       ];
-      for (const [value, name] of options) {
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = name;
-        shots.append(option);
-      }
+      for (const [value, name] of options) shots.append(option(value, name));
       if (options.some(([value]) => value === previous)) shots.value = previous;
     }
     updateShot();
@@ -167,4 +150,10 @@ export function setPreview(stage: Stage, director: Director) {
   });
   show();
   return true;
+}
+
+function option(value: string, text: string) {
+  const o = el('option', '', text);
+  o.value = value;
+  return o;
 }

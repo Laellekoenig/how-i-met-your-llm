@@ -144,7 +144,7 @@ export function buildCampusExterior(
     for (let x = 3.5; x <= 26; x += 1.5) block(0.045, 0.9, 0.045, iron, side * x, 0.5, 19.35);
     block(23.5, 0.04, 0.05, iron, side * 15, 0.93, 19.35);
   }
-  const rng = mulberry32(1897), foliage = ['#386638', '#527b39', '#668c42', '#447343'].map(c => toon(c));
+  const rng = mulberry32(1897), foliage = ['#386638', '#527b39', '#668c42', '#447343'].map((c) => toon(c));
   for (const side of [-1, 1]) for (let i = 0; i < 5; i++) {
     const grove = mesh(new THREE.IcosahedronGeometry(4.8, 1), foliage[i % foliage.length], side * (19 + i * 6), 3.7, -24);
     grove.scale.set(1.2, 0.95, 1); g.add(grove);

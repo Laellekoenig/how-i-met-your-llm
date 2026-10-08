@@ -4,13 +4,13 @@ import type { LipTrack } from './lipsync';
 import type { Emotion, Prop } from '../script/types';
 import { toon, mesh, cyl } from '../engine/materials';
 import { plaid, tweed, denim, tieWeave, kitchenPrint, wardrobePrint, shirtStripes, knit } from '../engine/textures';
-import { Profile, limb, ellipsoid, surface, smoothstep } from '../engine/shapes';
+import { Profile, limb, ellipsoid, surface } from '../engine/shapes';
 import { buildHairGeometry } from './hair';
 import { buildProp, GRIP } from './props';
 import { Hand, handOrientation, reachArm, type HandShape } from './hands';
 import { FACES, HOLD, MIRROR, lerpFace, type Face } from './faces';
 import { GESTURE_BEATS, GESTURE_DUR, IDLE_DUR, type Motion } from './gestures';
-import { clamp, damp, dampAngle, angleDiff, noise1, rand, lerp } from '../util';
+import { clamp, damp, dampAngle, angleDiff, noise1, rand, lerp, smoothstep } from '../util';
 
 type V3 = [number, number, number];
 
@@ -507,7 +507,7 @@ export class Actor {
         add(this.spine, placket(neckY, (blouse ? 1.025 : 0.99) * tl, (y) => (blouse ? 0.33 : 0.2) * ramp(neckY, 0.99 * tl, y), 0.002, skin), false);
         if (blouse) {
           add(this.spine, placket(-0.16 * tl, neckY, () => 0.075, 0.004, toon(shade(L.under!, 0.91), { side: DS })), false);
-          buttons([-0.09, 0.1, 0.29, 0.48, 0.67, 0.86].map(y => y * tl), 0.009, toon(L.underButtons!));
+          buttons([-0.09, 0.1, 0.29, 0.48, 0.67, 0.86].map((y) => y * tl), 0.009, toon(L.underButtons!));
         }
         const vTop = nr + 0.016 * s;
         const open = byWidth(drape, 0.015, (y) => fittedBlazer
@@ -533,7 +533,7 @@ export class Actor {
         if (L.jacketCut === 'zip') {
           // Open, fitted zip-front jacket: a small standing collar, shoulder tabs
           // and slanted zip pockets, rather than the generic jacket's wide lapels.
-          const open = byWidth(torso, 0.014, y => (0.045 + 0.019 * smoothstep(0.58 * tl, tl, y)) * s);
+          const open = byWidth(torso, 0.014, (y) => (0.045 + 0.019 * smoothstep(0.58 * tl, tl, y)) * s);
           shell(0.014, -0.16 * tl, torso.yMax, open, topDS);
           add(this.spine, collar(collarOpen(0.064 * s, 0.016), 0.016, 0.019 * s, topDS, 0.009));
           const hardware = toon('#b7a887', { side: DS });
@@ -552,7 +552,7 @@ export class Actor {
             const snap = mesh(ellipsoid(0.004 * s, 0.004 * s, 0.003 * s, 6, 4), hardware);
             snap.position.copy(onTorso(0.926 * tl, sg * 1.03, 0.027)); add(this.spine, snap, false);
           }
-          add(this.spine, placket(0.87 * tl, 0.99 * tl, y => 0.43 * Math.sqrt(ramp(0.87 * tl, 0.99 * tl, y)), 0.002, skin), false);
+          add(this.spine, placket(0.87 * tl, 0.99 * tl, (y) => 0.43 * Math.sqrt(ramp(0.87 * tl, 0.99 * tl, y)), 0.002, skin), false);
           add(this.spine, mesh(torso.geometry({ seg: 26, rows: 3, e: E, y: [0.975 * tl, torso.yMax], inflate: 0.004 }), skin), false);
           break;
         }
@@ -579,9 +579,9 @@ export class Actor {
           const tee = layeredCardigan.tee ? fabric(knit(layeredCardigan.tee), 0.04, DS) : skin;
           // An unbuttoned Oxford shirt over a crew-neck tee, each following the torso.
           add(this.spine, placket(0.76 * tl, torso.yMax,
-            y => 0.48 * ramp(0.76 * tl, 0.99 * tl, y), 0.004, tee), false);
+            (y) => 0.48 * ramp(0.76 * tl, 0.99 * tl, y), 0.004, tee), false);
           add(this.spine, placket(0.965 * tl, torso.yMax,
-            y => 0.38 * Math.sqrt(ramp(0.965 * tl, 1.025 * tl, y)), 0.006, skin), false);
+            (y) => 0.38 * Math.sqrt(ramp(0.965 * tl, 1.025 * tl, y)), 0.006, skin), false);
           add(this.spine, mesh(surface(24, 3, (u, v, p) => {
             const a = 0.4 + u * (Math.PI * 2 - 0.8);
             p.set((nr + 0.011 * s) * Math.sin(a), tl + (0.002 + v * 0.026) * s,
@@ -595,9 +595,9 @@ export class Actor {
               p.copy(inner).lerp(outer, u).lerp(point, v);
             }, { uv: [0.065 * s, 0.08 * s] }), underDS), false);
           }
-          buttons([0.15, 0.32, 0.49, 0.66].map(y => y * tl), 0.007, dark);
+          buttons([0.15, 0.32, 0.49, 0.66].map((y) => y * tl), 0.007, dark);
           const open = byWidth(drape, 0.017,
-            y => lerp(0.077 * s, 0.097 * s, ramp(0.4 * tl, 0.98 * tl, y)));
+            (y) => lerp(0.077 * s, 0.097 * s, ramp(0.4 * tl, 0.98 * tl, y)));
           shell(0.017, -0.15 * tl, drape.yMax, open, knitMat, drape);
           shell(0.02, -0.15 * tl, -0.07 * tl, open, knitRib, drape);
           // Broad ribbed bands and the thin blue piping in the reference portrait.
@@ -651,7 +651,7 @@ export class Actor {
       case 'sweater':
         if (L.neckline === 'v') {
           // A visible crew-neck undershirt inside the V, not a shirt collar.
-          add(this.spine, placket(0.78 * tl, torso.yMax, y => 0.45 * ramp(0.78 * tl, 0.99 * tl, y), 0.004, underDS), false);
+          add(this.spine, placket(0.78 * tl, torso.yMax, (y) => 0.45 * ramp(0.78 * tl, 0.99 * tl, y), 0.004, underDS), false);
           add(this.spine, mesh(new THREE.CylinderGeometry(nr + 0.004, nr + 0.009, 0.014 * s, 16, 1, true), underDS, 0, tl + 0.004 * s, -0.01 * s), false);
         } else if (L.neckline === 'turtleneck') {
           add(this.spine, collar(0, 0.007, 0.044 * s, topDS, 0.002));
@@ -695,7 +695,7 @@ export class Actor {
         break;
       case 'dress':
         // Victoria's scoop-neck plum dress, with folded ruffles along both shoulder straps.
-        add(this.spine, placket(0.73 * tl, 0.99 * tl, y => 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y)), 0.003, skin), false);
+        add(this.spine, placket(0.73 * tl, 0.99 * tl, (y) => 0.75 * Math.sqrt(ramp(0.73 * tl, 0.99 * tl, y)), 0.003, skin), false);
         add(this.spine, mesh(torso.geometry({ seg: 26, rows: 3, e: E, y: [0.975 * tl, torso.yMax], inflate: 0.004 }), skin), false);
         if (L.dressRuffles !== false) for (const sg of [-1, 1]) add(this.spine, mesh(surface(6, 24, (u, v, p) => {
           const y = (0.74 + 0.25 * v) * tl;
@@ -801,7 +801,7 @@ export class Actor {
       add(this.skirt!, mesh(ap.geometry({ seg: 12, rows: 8, arc: [-1.2, 1.2] }), apMat));
       add(this.skirt!, mesh(new Profile([[0.03 * s, r * 1.02, r * 0.75], [0.07 * s, r, r * 0.74]]).geometry({ seg: 20, rows: 1 }), apMat), false);
       if (L.apron?.bib) {
-        add(this.spine, placket(0.02 * tl, 0.84 * tl, y => lerp(0.83, 0.57, y / tl), 0.017, apMat));
+        add(this.spine, placket(0.02 * tl, 0.84 * tl, (y) => lerp(0.83, 0.57, y / tl), 0.017, apMat));
         for (const sg of [-1, 1]) add(this.spine, mesh(surface(2, 8, (u, v, p) => {
           torso.point((0.8 + 0.2 * v) * tl, sg * (0.48 + u * 0.13), p, 0.019, E);
         }), toon('#ece6d8', { side: DS })), false);
@@ -1150,7 +1150,7 @@ export class Actor {
   }
 
   get remainingPath() {
-    return this.path.map(p => p.clone());
+    return this.path.map((p) => p.clone());
   }
 
   get isWalking() {
@@ -1935,7 +1935,7 @@ export class Actor {
       case 'suit_up': lapels(e); break;
       case 'hands_on_hips': hips(e); break;
       case 'slow_clap': {
-        const together = Math.max(...GESTURE_BEATS.slow_clap!.map(b => 1 - smoothstep(0.018, 0.08, Math.abs(u - b))));
+        const together = Math.max(...GESTURE_BEATS.slow_clap!.map((b) => 1 - smoothstep(0.018, 0.08, Math.abs(u - b))));
         // With a drink, tap the back of the occupied hand instead of clapping air.
         for (const sd of busy ? [1] : [1, -1]) bodyPalm(sd, busy ? lerp(0.1, -0.24 * width, together) : sd * lerp(0.14, 0.017, together), 0.32, busy ? 0.24 : 0.31, [0, 0.65, 1], [-sd, 0, 0]);
         break;
