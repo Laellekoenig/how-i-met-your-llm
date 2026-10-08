@@ -13,3 +13,11 @@ export function sceneTransition(scene: Scene, previous: Scene | null, index: num
   if (index === 0 || !previous || previous.time !== scene.time) return 'skyline';
   return previous.location === scene.location ? 'cut' : 'exterior';
 }
+
+/**
+ * Back to back on the same set, a straight cut reads as the cast teleporting: the people jump between marks
+ * (or swap out) with no sign that time has passed. Those cuts dip through black instead.
+ */
+export function dipsToBlack(scene: Scene, previous: Scene | null, transition: Transition): boolean {
+  return transition === 'cut' && previous?.location === scene.location;
+}

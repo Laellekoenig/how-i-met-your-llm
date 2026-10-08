@@ -16,7 +16,7 @@ import { GRIP, PROP_NAME } from '../world/props';
 import { sleep, clamp, pick, prefersReducedMotion, rand } from '../util';
 import { lipTrack } from '../world/lipsync';
 import { gestureDuration, impliedEmotion } from '../world/gestures';
-import { sceneTransition } from './transitions';
+import { dipsToBlack, sceneTransition } from './transitions';
 import { BURSTS, GANG, HUDDLE_AT, TITLE_TAIL, type Burst } from './mainTitles';
 import { openingCredits, closingCredits, type CreditCard } from './credits';
 
@@ -659,6 +659,13 @@ export class Player {
           this.renderer.rewind = 0;
         }
       } else this.stageScene(scene, card, scene.strand?.before);
+    } else if (dipsToBlack(scene, this.previousScene, transition)) {
+      // same set, a new scene: fade out, swap everyone over in the dark, fade back up
+      await this.fade(0, 0.35);
+      this.stageScene(scene, card, scene.strand?.before);
+      cue();
+      await this.wait(0.15);
+      await this.fade(1, 0.4);
     } else {
       this.stageScene(scene, card, scene.strand?.before);
       if (transition === 'cut') cue();

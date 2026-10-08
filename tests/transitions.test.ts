@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
-import { sceneTransition } from '../src/show/transitions';
+import { dipsToBlack, sceneTransition } from '../src/show/transitions';
 import { validateEpisode } from '../src/script/validate';
 import { testStage } from './helpers/sets';
 import { rerun } from './helpers/episodes';
@@ -27,7 +27,7 @@ async function eventually(check: () => boolean, timeout = 1000) {
 }
 
 /** Exercise the real playback loop with observable stage/graphics ports, without needing WebGL. */
-function playback(incoming: Scene) {
+function playback(incoming: Scene, previous: Scene | null = null) {
   const stage = {
     outside: false,
     current: { id: 'apartment', ambience: 'none', background: [] },
@@ -51,6 +51,7 @@ function playback(incoming: Scene) {
   let requests = 0;
   const source = { next: () => ++requests === 1 ? Promise.resolve(item) : new Promise<ShowItem>(() => {}) };
   const player = new Player(stage as never, director as never, renderer as never, overlay as never, { line() {} } as never, source);
+  (player as unknown as { previousScene: Scene | null }).previousScene = previous;
   void player.run();
   return { stage, director, renderer, player, finished: () => requests > 1 };
 }
@@ -80,6 +81,15 @@ describe('script compatibility and intentional time jumps', () => {
     expect(sceneTransition(scene({ transition: 'cut' }), null, 0)).toBe('cut');
     expect(sceneTransition(scene({ transition: 'rewind' }), scene(), 1)).toBe('rewind');
     expect(sceneTransition(scene({ location: 'future', transition: 'rewind' }), scene(), 1)).toBe('cut');
+  });
+
+  test('back-to-back scenes on the same set dip through black; other cuts stay straight', () => {
+    const bar = scene();
+    expect(dipsToBlack(scene({ cast: [{ character: 'ted', mark: 'booth_1' }] }), bar, 'cut')).toBe(true);
+    expect(dipsToBlack(scene({ time: 'day' }), bar, 'cut')).toBe(true);
+    expect(dipsToBlack(scene({ location: 'apartment' }), bar, 'cut')).toBe(false);
+    expect(dipsToBlack(scene(), null, 'cut')).toBe(false);
+    for (const t of ['skyline', 'exterior', 'rewind'] as const) expect(dipsToBlack(scene(), bar, t)).toBe(false);
   });
 
   test('episode files can only ask for transitions the player knows', () => {
@@ -169,6 +179,25 @@ describe('transition playback', () => {
     expect(p.renderer.rewind).toBe(0);
     p.player.skip('scene');
     await eventually(p.finished);
+  });
+
+  test('a cut on the same set restages in the dark and fades back up', async () => {
+    const p = playback(scene({ transition: 'cut' }), scene());
+    const fades: number[] = [];
+    await eventually(() => { fades.push(p.renderer.fade); return p.stage.current.id === 'maclarens'; });
+    expect(p.renderer.fade).toBe(0);
+    await eventually(() => p.renderer.fade === 1, 1500);
+    expect(Math.min(...fades)).toBeLessThan(1);
+    p.player.skip('scene');
+    await eventually(p.finished);
+  });
+
+  test('skipping mid-dip leaves the picture up', async () => {
+    const p = playback(scene({ transition: 'cut' }), scene());
+    await eventually(() => p.renderer.fade < 1 && p.renderer.fade > 0);
+    p.player.skip('scene');
+    await eventually(p.finished);
+    expect(p.renderer.fade).toBe(1);
   });
 
   test('direct cuts do not fade through black', async () => {
