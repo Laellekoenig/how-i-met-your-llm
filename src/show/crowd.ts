@@ -118,7 +118,7 @@ function giveWayFor(set: StageSet, me: Body, others: Body[], hit: Bump): { plan:
 }
 
 /** A seat someone gets up out of to let a walker by, and back into after. */
-export interface Seat { pos: THREE.Vector3; approach?: THREE.Vector3; facing: number; height: number; pose?: SitPose; prop?: THREE.Object3D }
+export interface Seat { pos: THREE.Vector3; approach?: THREE.Vector3; facing: number; height: number; pose?: SitPose; prop?: THREE.Object3D; depth?: number }
 
 /** Someone who stepped out of a walker's way, and how they get back once the walker is past. */
 interface Aside { walker: Actor; back: THREE.Vector3[]; final: Parameters<Actor['walk']>[1] }
@@ -217,7 +217,7 @@ export class Crowd {
       const facing = them.actor.facing;
       void them.actor.walk(path, { facing, seat: null });
       this.aside.set(them.actor, seat
-        ? { walker: me.actor, back: [up!, seat.pos.clone()], final: { facing: seat.facing, seat: seat.height, pose: seat.pose, prop: seat.prop } }
+        ? { walker: me.actor, back: [up!, seat.pos.clone()], final: { facing: seat.facing, seat: seat.height, pose: seat.pose, prop: seat.prop, depth: seat.depth } }
         : { walker: me.actor, back: [home.clone()], final: { facing, seat: null } });
       return true;
     }

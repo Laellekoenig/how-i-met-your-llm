@@ -50,7 +50,7 @@ export function apartmentSeating(g: THREE.Group): Record<string, Mark> {
     ['couch_right', 0.9, 'sofa_right', 'right'],
   ] as const) {
     seats[name] = mark(cx + offset, cz + 0.1, 0, node, `the rust-orange sofa, ${label} cushion`, {
-      seat: 0.45, approach: [cx + offset, cz + 0.75],
+      seat: 0.45, approach: [cx + offset, cz + 0.75], depth: 0.35,
     });
   }
   // Dark wood fronts on the upholstered arms, plus the red throw over the middle of the back.
@@ -70,6 +70,7 @@ export function apartmentSeating(g: THREE.Group): Record<string, Mark> {
 
   // Red tub chair just forward of the sofa's right arm, mostly facing the audience.
   const red = seat('armchair', 2.0, -0.65, -0.25, 0.45, 'red_chair', 'red tub armchair beside the right end of the sofa');
+  seats.armchair.depth = 0.33;
   const redFabric = toon('#b21e2d');
   red.add(occluder(mesh(roundedBox(1.0, 0.28, 0.86, 0.09), redFabric, 0, 0.29, 0)));
   red.add(mesh(roundedBox(0.73, 0.14, 0.68, 0.06), toon('#bf2834'), 0, 0.4, 0.07));

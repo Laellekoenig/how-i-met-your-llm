@@ -99,7 +99,7 @@ export function buildCanadianMall(): StageSet {
       dancer_right: mark(1.1, -1.4, -0.1, 'stage', 'right side of the performance dais'),
       audience: mark(-0.9, 1.65, Math.PI, 'front', 'watching Robin perform'),
       friend: mark(0.9, 1.65, Math.PI, 'front', 'beside the audience, facing the stage'),
-      bench: mark(-6.35, 1.02, 0, 'bench_left', 'sitting on the mall bench', { seat: 0.52, approach: [-6.35, 1.85] }),
+      bench: mark(-6.35, 1.02, 0, 'bench_left', 'sitting on the mall bench', { seat: 0.52, approach: [-6.35, 1.85], depth: 0.3 }),
       directory: mark(3.4, 2.15, -0.5, 'directory', 'beside the mall directory'),
       door: mark(6, -3.7, 0, 'door', 'arriving from the mall concourse'),
     },
