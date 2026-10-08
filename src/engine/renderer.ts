@@ -310,7 +310,7 @@ export class Renderer {
     this.resize();
   }
 
-  resize() {
+  private resize() {
     const w = Math.max(1, this.container.clientWidth);
     const h = Math.max(1, this.container.clientHeight);
     this.gl.setSize(w, h, false);
@@ -321,7 +321,8 @@ export class Renderer {
     this.updateTarget();
   }
 
-  updateTarget() {
+  /** Size the low-res picture and the smear's history buffers to the screen and the picture settings. */
+  private updateTarget() {
     const w = this.container.clientWidth || 16;
     const h = this.container.clientHeight || 9;
     const pr = this.gl.getPixelRatio();
@@ -365,10 +366,9 @@ export class Renderer {
     u.uStill.value = this.still;
     u.uWhip.value = this.whip;
     u.uVideo.value = this.video;
+    u.uSnap.value = this.snap;
     u.cameraNear.value = this.camera.near;
     u.cameraFar.value = this.camera.far;
-
-    u.uSnap.value = this.snap;
     this.lastTime = time;
 
     this.gl.setRenderTarget(this.rt);

@@ -1,4 +1,5 @@
 import { el } from './dom';
+import { clamp } from '../util';
 
 /**
  * The TV guide the show starts on: one channel per season, its episodes airing back to back in half-hour slots
@@ -91,8 +92,8 @@ export class Guide {
   key(e: KeyboardEvent) {
     const [row, slot] = this.position(this.selected);
     const move = (r: number, s: number) => {
-      const line = this.rows[Math.max(0, Math.min(this.rows.length - 1, r))];
-      this.select(Number(line[Math.max(0, Math.min(line.length - 1, s))].dataset.index));
+      const line = this.rows[clamp(r, 0, this.rows.length - 1)];
+      this.select(Number(line[clamp(s, 0, line.length - 1)].dataset.index));
     };
     switch (e.code) {
       case 'ArrowUp': move(row - 1, slot); break;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { WALK_SPEED, type Actor, type SitPose } from '../world/actor';
 import type { StageSet } from '../world/sets/common';
-import { SEATED_SPACE, SPACE, clear, free } from './navigation';
+import { SEATED_SPACE, SPACE, clear, flat, free } from './navigation';
 
 /** How far ahead (seconds of walking) a walker looks for someone in the way, and how finely. */
 const HORIZON = 2;
@@ -16,11 +16,9 @@ interface Plan { from: THREE.Vector3; path: THREE.Vector3[]; wait: number }
 interface Body { actor: Actor; plan: Plan; sitting: boolean; walker: boolean }
 interface Bump { other: Body; t: number; at: THREE.Vector3 }
 
-const flat = (a: THREE.Vector3, b: THREE.Vector3) => Math.hypot(a.x - b.x, a.z - b.z);
-
 /** Whether p is too close to anywhere on the rest of someone's way to share the floor with them. */
 function onTheWay(p: THREE.Vector3, plan: Plan) {
-  const way = [plan.from, ...plan.path].map(q => q.clone().setY(0)), foot = new THREE.Vector3(), line = new THREE.Line3();
+  const way = [plan.from, ...plan.path].map((q) => q.clone().setY(0)), foot = new THREE.Vector3(), line = new THREE.Line3();
   return way.some((q, i) => flat(i ? line.set(way[i - 1], q).closestPointToPoint(p.clone().setY(0), true, foot) : q, p) < SPACE);
 }
 
@@ -79,7 +77,7 @@ function detour(set: StageSet, plan: Plan, hit: Bump, room: number, side: number
   const kept = points.slice(1).filter((_, i) => total[i + 1] < Math.max(into, 0));
   const rejoin = along(plan, out).at;
   const legs = [kept.at(-1) ?? plan.from, ...corners, rejoin];
-  if (corners.some(p => !free(set, p))) return null;
+  if (corners.some((p) => !free(set, p))) return null;
   for (let i = 1; i < legs.length; i++) if (!clear(set, legs[i - 1], legs[i])) return null;
   return { ...plan, path: [...kept, ...corners, rejoin, ...points.slice(1).filter((_, i) => total[i + 1] > out)] };
 }
@@ -99,7 +97,7 @@ function giveWayFor(set: StageSet, me: Body, others: Body[], hit: Bump): { plan:
   const before = lengths(me.plan).total.at(-1)!;
   const options: { plan: Plan; cost: number }[] = [];
   if (hit.other.walker) {
-    const wait = WAITS.find(w => !bump({ ...me.plan, wait: me.plan.wait + w }, others));
+    const wait = WAITS.find((w) => !bump({ ...me.plan, wait: me.plan.wait + w }, others));
     if (wait !== undefined) options.push({ plan: { ...me.plan, wait: me.plan.wait + wait }, cost: wait });
   }
   // Pass on the side away from them, or keep right if they're dead ahead.
@@ -153,7 +151,7 @@ export class Crowd {
 
   /** `people` is everyone on the set a walker could bump into, walking or not. */
   update(set: StageSet, people: Actor[], dt: number) {
-    const bodies: Body[] = people.map(actor => ({
+    const bodies: Body[] = people.map((actor) => ({
       actor,
       plan: { from: actor.position.clone().setY(0), path: actor.remainingPath, wait: actor.waiting },
       sitting: actor.isSitting && !actor.isWalking,
@@ -162,17 +160,17 @@ export class Crowd {
     for (const [actor, t] of this.retry) if (t <= dt) this.retry.delete(actor); else this.retry.set(actor, t - dt);
     for (const me of bodies) {
       if (!me.walker || this.retry.has(me.actor)) continue;
-      const others = bodies.filter(b => b !== me);
+      const others = bodies.filter((b) => b !== me);
       const hit = bump(me.plan, others);
       if (!hit) continue;
       // (someone going through a door keeps to their way, but others still make way for them)
       const choices = this.movable(me.actor) ? [{ who: me, way: giveWayFor(set, me, others, hit) }] : [];
       const them = hit.other;
       if (them.walker && !this.retry.has(them.actor) && this.movable(them.actor)) {
-        const theirs = bump(them.plan, bodies.filter(b => b !== them));
-        if (theirs?.other === me) choices.push({ who: them, way: giveWayFor(set, them, bodies.filter(b => b !== them), theirs) });
+        const theirs = bump(them.plan, bodies.filter((b) => b !== them));
+        if (theirs?.other === me) choices.push({ who: them, way: giveWayFor(set, them, bodies.filter((b) => b !== them), theirs) });
       }
-      const pick = choices.filter(c => c.way).sort((a, b) => a.way!.cost - b.way!.cost)[0];
+      const pick = choices.filter((c) => c.way).sort((a, b) => a.way!.cost - b.way!.cost)[0];
       if (pick) {
         pick.who.plan = pick.way!.plan;
         pick.who.actor.waiting = pick.way!.plan.wait;
@@ -194,22 +192,22 @@ export class Crowd {
     const from = up ?? home;
     const s = (hit.t - me.plan.wait) * WALK_SPEED, { heading } = along(me.plan, s);
     const right = new THREE.Vector3(-heading.z, 0, heading.x);
-    const others = bodies.filter(b => b !== me && b !== them);
+    const others = bodies.filter((b) => b !== me && b !== them);
     // Any way out of the way will do, the shortest step first: to the side they're already on, then any side, and
     // back towards the walker last.
     const lateral = from.clone().sub(along(me.plan, s).at).dot(right) >= 0 ? 1 : -1;
     const ways = Array.from({ length: 16 }, (_, i) => {
       const angle = (i / 16) * Math.PI * 2, way = right.clone().multiplyScalar(lateral * Math.cos(angle)).addScaledVector(heading, Math.sin(angle));
       return { way, rank: Math.abs(Math.sin(angle)) - Math.cos(angle) * 0.1 + (Math.sin(angle) < -0.1 ? 1 : 0) };
-    }).sort((a, b) => a.rank - b.rank).map(w => w.way);
+    }).sort((a, b) => a.rank - b.rank).map((w) => w.way);
     for (const reach of [0.4, 0.55, 0.7, 0.85, 1, 1.2]) for (const way of ways) {
       const spot = from.clone().addScaledVector(way, reach);
-      if (onTheWay(spot, me.plan) || others.some(b => flat(b.plan.from, spot) < SPACE) || !free(set, spot)) continue;
+      if (onTheWay(spot, me.plan) || others.some((b) => flat(b.plan.from, spot) < SPACE) || !free(set, spot)) continue;
       const path = [...(up ? [up] : []), spot];
       if ([from, ...path].some((p, i, all) => i > 0 && !clear(set, all[i - 1], p))) continue;
       const stepping: Body = { ...them, sitting: false, walker: true, plan: { from: home, path, wait: seat ? 0.3 : 0 } };
       if (bump(stepping.plan, others)) continue;
-      const wait = [0, ...WAITS].find(w => !bump({ ...me.plan, wait: me.plan.wait + w }, [...others, stepping]));
+      const wait = [0, ...WAITS].find((w) => !bump({ ...me.plan, wait: me.plan.wait + w }, [...others, stepping]));
       if (wait === undefined) continue;
       me.plan = { ...me.plan, wait: me.plan.wait + wait };
       me.actor.waiting = me.plan.wait;
@@ -233,10 +231,10 @@ export class Crowd {
       // Once they've stopped, go back anyway: if they stopped in the way, they're asked to make way in turn.
       if (walker.isWalking && people.includes(walker)) {
         const way = { from: walker.position, path: walker.remainingPath, wait: 0 };
-        if (back.some(p => onTheWay(p, way))) continue;
+        if (back.some((p) => onTheWay(p, way))) continue;
       }
       this.aside.delete(a);
-      void a.walk(back.map(p => p.clone()), final);
+      void a.walk(back.map((p) => p.clone()), final);
     }
   }
 }

@@ -1,8 +1,27 @@
 export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 export const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** Eases from 0 at `a` to 1 at `b`, flat at both ends. */
+export const smoothstep = (a: number, b: number, x: number) => {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
 export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
 export const pick = <T>(arr: readonly T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+/** The item with the lowest score (the first of any tied), or undefined if there are none. */
+export function minBy<T>(items: Iterable<T>, score: (item: T) => number): T | undefined {
+  let best: T | undefined;
+  let lowest = Infinity;
+  for (const item of items) {
+    const s = score(item);
+    if (s < lowest) {
+      lowest = s;
+      best = item;
+    }
+  }
+  return best;
+}
 
 /** The viewer has asked for less motion (never outside a browser). */
 export const prefersReducedMotion = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;

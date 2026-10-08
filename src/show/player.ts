@@ -29,6 +29,9 @@ class Skip extends Error {}
 /** One kind of beat, by its `type`. */
 type BeatOf<T extends Beat['type']> = Extract<Beat, { type: T }>;
 
+/** Someone who can be on stage in the story: anyone in the cast but Penny and Luke, who stay on the couch in 2030. */
+const inStory = (id: unknown): id is CharacterId => isCharacterId(id) && !isKid(id);
+
 /** Lines and reactions from Penny or Luke: these happen on the couch in 2030. */
 const isKidBeat = (b: Beat) => (b.type === 'say' || b.type === 'act') && isKid(b.character);
 
@@ -49,6 +52,9 @@ const LOCKED_OFF = new Proxy({}, { get: () => () => undefined }) as Director;
 
 /** Gestures that last as long as the line they're on. */
 const HELD: Gesture[] = ['phone_call', 'lean_in', 'arms_crossed', 'hands_on_hips', 'head_in_hands', 'sob'];
+
+/** Gestures the other person does too: hands meet, glasses clink, they hug and kiss back. */
+const JOINED: Gesture[] = ['high_five', 'hug', 'cheers', 'kiss', 'fist_bump'];
 
 /** What a cutaway is, for the transcript. */
 const STYLE_NAME: Record<CutawayStyle, string> = {
@@ -181,7 +187,7 @@ export class Player {
 
   /** Dev playground: put a scene on stage at once, dressed and blocked, without playing any of it. */
   stageNow(scene: Scene) {
-    this.cleanup();
+    this.reset();
     this.episodeWardrobe = [];
     this.dress(scene);
     this.stageScene(scene, scene.label ? { label: scene.label } : undefined);
@@ -197,15 +203,10 @@ export class Player {
       await this.playBeats(beats, this.stage.current.id === 'future');
     } catch (e) {
       if (!(e instanceof Skip)) console.error(e);
-      this.cleanup();
+      this.reset();
     } finally {
       this.playing = false;
     }
-  }
-
-  /** Dev playground: take down captions, cards, looks and music left over from the last beats. */
-  reset() {
-    this.cleanup();
   }
 
   private async nextItem(): Promise<ShowItem> {
@@ -299,7 +300,7 @@ export class Player {
         await this.play(item);
       } catch (e) {
         if (!(e instanceof Skip)) console.error(e);
-        this.cleanup();
+        this.reset();
         // (re-read: skip() may have changed it while we were awaiting)
         if ((this.skipLevel as string) === 'scene') this.skipLevel = 'none';
       } finally {
@@ -311,8 +312,7 @@ export class Player {
   /** The cold open cuts to six still photographs: the name early, creators on the last group portrait. */
   private async mainTitles() {
     // A story cold open can leave a score running. Titles are a fresh musical boundary.
-    this.score = null;
-    audio.stopBed(0.05);
+    this.endScore(0.05);
     const st = this.stage, r = this.renderer;
     const reducedMotion = prefersReducedMotion();
     this.overlay.hideCaption();
@@ -411,8 +411,7 @@ export class Player {
   /** Brief, static crew cards on black, cut to the theme reprise with the playback clock. */
   private async endCredits() {
     await this.quiet();
-    this.score = null;
-    audio.stopBed();
+    this.endScore();
     this.credits = [];
     this.overlay.hideCaption();
     this.overlay.hideLocation();
@@ -437,7 +436,8 @@ export class Player {
     }
   }
 
-  private cleanup() {
+  /** Take down captions, cards, looks and music left over from whatever was cut short (or, in the playground, the last beats). */
+  reset() {
     this.stopSpeech();
     this.overlay.hideCaption();
     this.overlay.hideCards();
@@ -530,14 +530,18 @@ export class Player {
 
   private setScore(music: Score) {
     this.hushed = music === 'silence';
-    if (music === 'none' || music === 'silence') {
-      this.score = null;
-      audio.stopBed(0.6);
-    } else {
+    if (music === 'none' || music === 'silence') this.endScore(0.6);
+    else {
       this.score = music;
       if (audio.bedKind !== music) audio.montage(music);
     }
     this.room();
+  }
+
+  /** The underscore stops, fading out over `fade` seconds. */
+  private endScore(fade?: number) {
+    this.score = null;
+    audio.stopBed(fade);
   }
 
   private async fade(to: number, seconds: number) {
@@ -551,8 +555,7 @@ export class Player {
         // The script chooses a couch exchange or a story scene before the titles.
         this.currentEpisode = item.episode.id;
         this.previousScene = null;
-        this.score = null;
-        audio.stopBed(0.05);
+        this.endScore(0.05);
         this.billing = openingCredits();
         this.credits = [];
         this.panel.line('sep', `${item.episode.code} — ${item.episode.title}`);
@@ -597,10 +600,9 @@ export class Player {
         this.dress(item.scene);
         await this.playScene(item.scene, item.index);
         break;
-      case 'episode-end': {
+      case 'episode-end':
         await this.endCredits();
         break;
-      }
     }
   }
 
@@ -793,7 +795,7 @@ export class Player {
         else st.setLocation(p.location, p.time);
         const ids: CharacterId[] = [];
         for (const c of p.cast) {
-          if (!isCharacterId(c.character) || isKid(c.character) || groups.flat().includes(c.character)) continue;
+          if (!inStory(c.character) || groups.flat().includes(c.character)) continue;
           if (i || c.outfit) st.dress(c.character, c.outfit ?? outfitAt(c.character, p.location));
           st.place(c.character, c.mark);
           ids.push(c.character);
@@ -860,7 +862,7 @@ export class Player {
     // (people a replay reveals go on their own marks, below)
     const revealed = new Set(add.map((c) => c.character));
     for (const c of scene.cast) {
-      if (!isCharacterId(c.character) || isKid(c.character) || present.has(c.character)) continue;
+      if (!inStory(c.character) || present.has(c.character)) continue;
       present.add(c.character);
       if (c.outfit) this.stage.dress(c.character, c.outfit);
       this.stage.place(c.character, c.mark);
@@ -871,14 +873,14 @@ export class Player {
         continue;
       }
       for (const who of participants(b)) {
-        if (!isCharacterId(who) || isKid(who) || present.has(who) || entering.has(who) || revealed.has(who)) continue;
+        if (!inStory(who) || present.has(who) || entering.has(who) || revealed.has(who)) continue;
         present.add(who);
         this.stage.place(who, this.stage.resolveMark(undefined, who));
       }
     }
     this.fastForward(before);
     for (const c of add) {
-      if (!isCharacterId(c.character) || isKid(c.character) || this.stage.onStage(c.character)) continue;
+      if (!inStory(c.character) || this.stage.onStage(c.character)) continue;
       present.add(c.character);
       if (c.outfit) this.stage.dress(c.character, c.outfit);
       this.stage.place(c.character, c.mark);
@@ -901,7 +903,7 @@ export class Player {
   private fastForward(beats: Beat[]) {
     const st = this.stage;
     for (const b of beats) {
-      if (!('character' in b) || !isCharacterId(b.character) || isKid(b.character)) continue;
+      if (!('character' in b) || !inStory(b.character)) continue;
       const who = b.character;
       if (b.type === 'enter') void (st.onStage(who) ? b.to && st.moveTo(who, b.to) : st.enter(who, b.to, true));
       else if (!st.onStage(who)) continue;
@@ -1013,7 +1015,7 @@ export class Player {
     }
     // Explain the play (or read an older insert's line) once we're back with the cast.
     const line = clean(b.line ?? '');
-    const reader = isCharacterId(b.character) && !isKid(b.character) ? b.character : undefined;
+    const reader = inStory(b.character) ? b.character : undefined;
     await this.untilUnpaused();
     if (line && reader) {
       await this.beat({ type: 'say', character: reader, line, react: b.react, laugh: b.laugh });
@@ -1292,7 +1294,7 @@ export class Player {
   }
 
   private async move(b: BeatOf<'move'>) {
-    if (!isCharacterId(b.character) || isKid(b.character)) return;
+    if (!inStory(b.character)) return;
     const st = this.stage;
     const target = b.to === b.character ? 'center' : b.to;
     this.panel.line('stage', `${charName(b.character)} moves to ${humanize(target)}.`);
@@ -1302,7 +1304,7 @@ export class Player {
   }
 
   private async enter(b: BeatOf<'enter'>) {
-    if (!isCharacterId(b.character) || isKid(b.character)) return;
+    if (!inStory(b.character)) return;
     const st = this.stage;
     if (st.onStage(b.character)) {
       if (b.to) await this.beat({ type: 'move', character: b.character, to: b.to });
@@ -1319,7 +1321,7 @@ export class Player {
 
   private async exit(b: BeatOf<'exit'>) {
     const st = this.stage;
-    if (!isCharacterId(b.character) || isKid(b.character) || !st.onStage(b.character)) return;
+    if (!inStory(b.character) || !st.onStage(b.character)) return;
     this.panel.line('stage', `${charName(b.character)} leaves.`);
     const p = st.exit(b.character);
     this.director.wide(0);
@@ -1453,7 +1455,7 @@ export class Player {
       else if (gg === 'spit_take') audio.spray();
       else if (gg === 'slow_clap') audio.clap();
     };
-    const together = other && (g === 'high_five' || g === 'hug' || g === 'cheers' || g === 'kiss' || g === 'fist_bump');
+    const together = other && JOINED.includes(g);
     if (together) {
       if (!other.isSitting) other.faceTowards(a.position, 0.1);
       other.lookAt = a.headWorld;

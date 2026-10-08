@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Profile, curve, surface, smoothstep, ellipsoid } from '../engine/shapes';
+import { Profile, curve, surface, ellipsoid } from '../engine/shapes';
+import { smoothstep } from '../util';
 import type { HairStyle } from './characters';
 
 // Hair is a shell grown off the head surface between a per-style hairline and
@@ -170,7 +171,7 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
         [1.15, 0.65], [1.23, 0.44], [1.35, 0.45], [1.49, 0.61],
         [1.85, 0.52], [2.3, 0.25], [Math.PI, 0.2]]);
       out.head.push(shell(c, {
-        line: a => line(a) + 0.012 * Math.sin(a * 9) * front(a),
+        line: (a) => line(a) + 0.012 * Math.sin(a * 9) * front(a),
         thick: (f, a) => {
           const crown = smoothstep(0.8, 0.94, f);
           const forelock = crown * (1 - smoothstep(0.96, 1, f));
@@ -178,7 +179,7 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
           return (0.035 + 0.027 * crown + 0.055 * front(a, 1.1) * forelock + wave * forelock)
             * taper(f) * (1 - 0.48 * gauss(Math.abs(a), 1.29, 0.13));
         },
-        edge: a => 0.22 + 0.3 * front(a) - 0.12 * gauss(Math.abs(a), 1.29, 0.13),
+        edge: (a) => 0.22 + 0.3 * front(a) - 0.12 * gauss(Math.abs(a), 1.29, 0.13),
         warp: (f, a, _v, p) => {
           const sweep = front(a, 1.2) * smoothstep(0.8, 0.94, f) * (1 - smoothstep(0.97, 1, f));
           p.x -= 0.045 * hh * sweep;
@@ -194,14 +195,14 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       const line = sym([[0, 0.82], [0.4, 0.85], [0.7, 0.87], [1.0, 0.75],
         [1.23, 0.59], [1.4, 0.61], [1.8, 0.57], [2.25, 0.3], [Math.PI, 0.22]]);
       out.head.push(shell(c, {
-        line: a => line(a) + 0.015 * gauss(a, -0.5, 0.16),
+        line: (a) => line(a) + 0.015 * gauss(a, -0.5, 0.16),
         thick: (f, a) => {
           const lift = front(a, 1.15) * smoothstep(0.82, 0.91, f);
           const ridges = 0.014 * (0.5 + 0.5 * Math.sin(a * 24 + f * 30));
           return (0.028 + 0.065 * lift + 0.025 * top(f) + ridges * lift)
             * (1 - 0.5 * gauss(a, -0.55, 0.075)) * taper(f);
         },
-        edge: a => 0.2 + 0.35 * front(a),
+        edge: (a) => 0.2 + 0.35 * front(a),
         warp: (f, a, _v, p) => {
           const lift = front(a, 1.2) * smoothstep(0.83, 0.95, f);
           p.x += 0.035 * hh * lift;
@@ -217,10 +218,10 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       const line = sym([[0, 0.81], [0.45, 0.8], [0.9, 0.73], [1.1, 0.64],
         [1.22, 0.45], [1.34, 0.44], [1.48, 0.61], [1.85, 0.53], [2.3, 0.25], [Math.PI, 0.18]]);
       out.head.push(shell(c, {
-        line: a => line(a) - 0.035 * gauss(a, -0.2, 0.3),
+        line: (a) => line(a) - 0.035 * gauss(a, -0.2, 0.3),
         thick: (f, a) => (0.05 + 0.055 * top(f) + 0.045 * front(a) * smoothstep(0.79, 0.91, f)
           + 0.016 * Math.sin(a * 8 + f * 19) + 0.01 * Math.cos(a * 13 - f * 11)) * taper(f),
-        edge: a => 0.45 + 0.35 * front(a) - 0.3 * gauss(Math.abs(a), 1.29, 0.14),
+        edge: (a) => 0.45 + 0.35 * front(a) - 0.3 * gauss(Math.abs(a), 1.29, 0.14),
         warp: (f, a, _v, p) => {
           const lift = front(a, 1.15) * smoothstep(0.82, 0.97, f);
           p.x -= 0.065 * hh * lift;
@@ -383,13 +384,13 @@ export function buildHairGeometry(style: HairStyle, c: HairCtx): HairParts {
       // layers. Face-framing locks turn with her head; the back rests on her shoulders.
       const line = sym([[0, 0.85], [0.45, 0.83], [0.85, 0.71], [1.2, 0.58], [1.7, 0.5], [Math.PI, 0.43]]);
       out.head.push(shell(c, {
-        line: a => line(a) - 0.05 * gauss(a, 0.5, 0.35),
+        line: (a) => line(a) - 0.05 * gauss(a, 0.5, 0.35),
         thick: (f, a) => (0.055 + 0.026 * top(f) + 0.018 * gauss(a, 0.5, 0.6)
           + 0.006 * Math.sin(a * 21 + f * 12)) * (1 - 0.6 * gauss(a, -0.3, 0.06)),
         edge: () => 0.55,
       }, 56, 24));
       out.head.push(drape(c, { top: 0.85, bottom: -0.3,
-        open: f => 0.98 + 0.2 * smoothstep(0.5, -0.2, f),
+        open: (f) => 0.98 + 0.2 * smoothstep(0.5, -0.2, f),
         thick: 0.065, flare: 0.11, wave: 0.012, back: 0.05 }, 40, 22));
       const back = backSheet(c, c.neckBase + 0.11, 0.3 * (hh / 0.24), 0.009);
       // A soft, uneven hem instead of a straight curtain across the back.
