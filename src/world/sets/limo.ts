@@ -161,15 +161,22 @@ export function buildLimo(): StageSet {
     g.add(mesh(roundedBox(0.1, 0.18, 0.3, 0.04), leather, 2.6, SEAT + 0.75, z, false));
     g.add(mesh(box(0.5, SEAT - 0.12, 0.45), paintHi, 2.95, (SEAT - 0.12) / 2, z, false));
   }
-  // dash, steering wheel, a glowing cluster
-  g.add(mesh(box(0.35, 0.3, NEAR - FAR), paintHi, NOSE - 0.18, 0.72, PZ));
-  g.add(mesh(box(0.38, 0.03, NEAR - FAR), trim, NOSE - 0.18, 0.88, PZ, false));
-  g.add(mesh(box(0.02, 0.1, 0.3), glow('#6ad0ff', 0.9), NOSE - 0.36, 0.8, -0.42, false));
-  const wheel = mesh(new THREE.TorusGeometry(0.17, 0.02, 4, 12), toon('#141414'), NOSE - 0.13, 0.86, -0.42, false);
-  wheel.rotation.y = Math.PI / 2;
-  wheel.rotation.x = -0.4;
+  // dash, a glowing cluster, and the steering wheel out in front of it where the driver's hands are,
+  // its column running forward and down into the dash
+  const DX0 = NOSE - 0.02, DX1 = NOSE + 0.28, TILT = 0.3;
+  g.add(mesh(box(DX1 - DX0, 0.3, NEAR - FAR), paintHi, (DX0 + DX1) / 2, 0.72, PZ));
+  g.add(mesh(box(DX1 - DX0 + 0.03, 0.03, NEAR - FAR), trim, (DX0 + DX1) / 2 - 0.015, 0.88, PZ, false));
+  g.add(mesh(box(0.02, 0.1, 0.3), glow('#6ad0ff', 0.9), DX0 - 0.005, 0.8, -0.42, false));
+  const grip = toon('#2c2f35');
+  const wheel = new THREE.Group();
+  wheel.position.set(NOSE - 0.08, 0.9, -0.42);
+  wheel.rotation.set(0, Math.PI / 2, 0);
+  wheel.rotateX(TILT);
+  wheel.add(mesh(new THREE.TorusGeometry(0.17, 0.02, 4, 14), grip, 0, 0, 0, false));
+  wheel.add(mesh(cyl(0.045, 0.045, 0.04, 8).rotateX(Math.PI / 2), grip, 0, 0, 0.01, false)); // hub
+  for (const a of [0, Math.PI]) wheel.add(mesh(box(0.15, 0.025, 0.012), grip, Math.cos(a) * 0.1, -0.02, 0.005, false).rotateZ(-0.15 * Math.cos(a))); // spokes
+  wheel.add(mesh(cyl(0.025, 0.03, 0.16, 6).rotateX(Math.PI / 2), grip, 0, 0, 0.1, false)); // column
   g.add(wheel);
-  g.add(mesh(cyl(0.025, 0.025, 0.3, 4), toon('#141414'), NOSE - 0.09, 0.78, -0.42, false).rotateZ(1.1));
   // windshield and hood
   const ws = mesh(new THREE.PlaneGeometry(0.95, NEAR - FAR), tint, NOSE + 0.2, 1.25, PZ, false);
   ws.rotation.set(0, -Math.PI / 2, 0);
