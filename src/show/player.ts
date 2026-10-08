@@ -733,7 +733,6 @@ export class Player {
       st.thaw(frozen);
       this.look = outer.look;
       this.showTape();
-      this.overlay.year(st.current.id === 'future');
       this.room(ambience);
       this.director.resume(shot);
     }
@@ -956,7 +955,6 @@ export class Player {
       st.thaw(frozen);
       this.overlay.hideLocation();
       this.showTape();
-      this.overlay.year(st.current.id === 'future');
       this.room(ambience);
       this.director.resume(shot);
     }

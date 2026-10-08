@@ -37,7 +37,7 @@ export class Overlay {
     this.clearCaptionSpace();
   }
 
-  /** "2030" at the bottom of the frame while we're on the couch with the kids. */
+  /** "2030" low in the frame for a few seconds as we arrive on the couch with the kids. */
   year(on: boolean) {
     const wasOn = !this.yearEl.classList.contains('hidden');
     this.yearEl.classList.toggle('hidden', !on);

@@ -96,7 +96,7 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   text-shadow: 0.055em 0.065em 0 #000, 0 0 0.12em rgba(0, 0, 0, 0.8);
   pointer-events: none;
 }
-#loc-label { animation: fadeinout 3.6s forwards; }
+#loc-label, #year { animation: fadeinout 3.6s forwards; }
 @keyframes fadeinout { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 
 /* the VCR's on-screen display over footage */
@@ -112,12 +112,7 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
   text-shadow: 0.12em 0.12em 0 #0018a8, -0.06em 0 0 #ff2a2a;
 }
 
-/* The couch's year stays on screen; time/place labels fade after the cut. */
-#year {
-  transition: bottom 0.25s ease-out;
-  animation: yearIn 0.5s ease-out;
-}
-@keyframes yearIn { from { opacity: 0; } to { opacity: 1; } }
+#year { transition: bottom 0.25s ease-out; }
 
 #caption {
   position: absolute;
