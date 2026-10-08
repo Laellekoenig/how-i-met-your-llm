@@ -38,7 +38,7 @@ export class Guide {
   constructor(private root: HTMLElement, private listings: Listing[], private onPick: (index: number) => void) {
     const head = el('header', 'guide-head');
     const logo = el('div', 'logo guide-logo');
-    logo.append('how i met your ', el('span', 'llm', 'llm'));
+    logo.append('how i met your ', el('span', 'last', 'slop'));
     head.append(logo, this.clockEl);
 
     const info = el('section', 'guide-info');
