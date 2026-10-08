@@ -1685,9 +1685,11 @@ export class Actor {
       const yaw = angleDiff(this.facing, Math.atan2(this.lookAt.x - hp.x, this.lookAt.z - hp.z));
       const yawC = clamp(yaw, -1.2, 1.2);
       this.lookYaw = yawC;
-      // seated people twist their torso a bit; the head turns most of the rest, the eyes finish the job
-      target.spine[1] += yawC * 0.3;
-      target.head[1] += yawC * 0.5;
+      // seated people twist their torso a bit; the head turns most of the rest, the eyes finish the job.
+      // A driver keeps both hands on the wheel, so it's nearly all neck.
+      const torso = this.sitPose === 'driving' ? 0.05 : 0.3;
+      target.spine[1] += yawC * torso;
+      target.head[1] += yawC * (0.8 - torso);
       // side-eye: the head turns away, the eyes stay on them
       target.head[1] -= (Math.sign(yawC) || 1) * 0.35 * f.side;
       // when standing and the target is far around, turn the body
