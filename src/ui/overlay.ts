@@ -49,13 +49,14 @@ export class Overlay {
   /** Lift time/place supers above subtitles, without bouncing down again between lines in the same shot. */
   private clearCaptionSpace() {
     if (this.caption.classList.contains('hidden')) return;
-    const screen = this.loc.parentElement!.getBoundingClientRect();
-    if (!screen.height) return;
-    const gap = screen.height * 0.025;
-    const need = (screen.bottom - this.caption.getBoundingClientRect().top + gap) / screen.height * 100;
+    // (layout offsets, not client rects: a phone's stand-in fullscreen turns the whole picture sideways)
+    const height = this.loc.parentElement!.clientHeight;
+    if (!height) return;
+    const gap = height * 0.025;
+    const need = (height - this.caption.offsetTop + gap) / height * 100;
     for (const label of [this.loc, this.yearEl]) {
       if (label.classList.contains('hidden')) continue;
-      const now = (screen.bottom - label.getBoundingClientRect().bottom) / screen.height * 100;
+      const now = (height - label.offsetTop - label.offsetHeight) / height * 100;
       if (need > now) label.style.bottom = `${need}%`;
     }
   }

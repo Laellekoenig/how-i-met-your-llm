@@ -52,12 +52,15 @@
               </div>
             </div>
 
+            <button id="paused" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11L13 8z" /></svg></button>
+
             <div id="guide" class="hidden"></div>
 
           </div>
           <div id="touch-bar">
             <button id="btn-menu" aria-label="Back to the TV guide">&larr; TV guide</button>
-            <button id="btn-touch-full" aria-label="Fullscreen"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h5v2H4v3H2zM9 2h5v5h-2V4H9zM2 9h2v3h3v2H2zM12 9h2v5H9v-2h3z" /></svg>full screen</button>
+            <button id="btn-touch-pause" aria-label="Pause"><svg class="pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3h3v10H4zM9 3h3v10H9z" /></svg><svg class="play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11L13 8z" /></svg></button>
+            <button id="btn-touch-full" aria-label="Fullscreen"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h5v2H4v3H2zM9 2h5v5h-2V4H9zM2 9h2v3h3v2H2zM12 9h2v5H9v-2h3z" /></svg><span>full screen</span></button>
           </div>
         </div>
 
