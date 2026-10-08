@@ -13,7 +13,8 @@
     "test": "bun test",
     "bible": "bun scripts/episodes.ts bible",
     "episodes": "bun scripts/episodes.ts",
-    "screenshot": "bun scripts/screenshot.ts"
+    "screenshot": "bun scripts/screenshot.ts",
+    "favicon": "bun scripts/favicon.ts"
   },
   "dependencies": {
     "three": "^0.186.1"
