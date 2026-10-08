@@ -109,12 +109,15 @@ const vol = $<HTMLInputElement>('volume');
 vol.addEventListener('input', () => audio.setVolume(Number(vol.value)));
 
 const pauseBtn = $('btn-pause');
+const touchPause = $('btn-touch-pause');
 function setPaused(paused: boolean) {
   if (player.paused === paused) return;
   player.paused = paused;
-  pauseBtn.classList.toggle('paused', player.paused);
-  pauseBtn.title = player.paused ? 'Play (space)' : 'Pause (space)';
-  pauseBtn.setAttribute('aria-label', player.paused ? 'Play' : 'Pause');
+  document.body.classList.toggle('paused', paused);
+  pauseBtn.classList.toggle('paused', paused);
+  pauseBtn.title = paused ? 'Play (space)' : 'Pause (space)';
+  touchPause.classList.toggle('paused', paused);
+  for (const btn of [pauseBtn, touchPause]) btn.setAttribute('aria-label', paused ? 'Play' : 'Pause');
   if (player.paused) {
     speechSynthesis?.pause();
     void audio.ctx?.suspend();
@@ -124,29 +127,58 @@ function setPaused(paused: boolean) {
   }
 }
 pauseBtn.addEventListener('click', () => setPaused(!player.paused));
+touchPause.addEventListener('click', () => setPaused(!player.paused));
+$('paused').addEventListener('click', () => setPaused(false));
 $('btn-back-ep').addEventListener('click', () => player.back('episode'));
 $('btn-back').addEventListener('click', () => player.back('scene'));
 $('btn-skip').addEventListener('click', () => player.skip('scene'));
 $('btn-skip-ep').addEventListener('click', () => player.skip('episode'));
 // Fullscreen the letterboxing wrapper, not the screen itself, so the picture keeps its aspect.
 // On a phone it also turns the picture sideways, the way a video player does (where the browser allows it).
+// iPhone Safari only fullscreens videos, so there the picture fills the window instead (body.faux-full).
 type Orientation = ScreenOrientation & { lock?: (o: 'landscape') => Promise<void> };
+const screenWrap = $('screen-wrap');
+const touchFull = $('btn-touch-full');
+const isFullscreen = () => !!document.fullscreenElement || document.body.classList.contains('faux-full');
 function toggleFullscreen() {
-  if (document.fullscreenElement) {
-    void document.exitFullscreen();
-    return;
+  if (document.fullscreenElement) void document.exitFullscreen();
+  else if (isFullscreen() || !document.fullscreenEnabled) {
+    document.body.classList.toggle('faux-full');
+    fullscreenChanged();
+  } else {
+    void screenWrap
+      .requestFullscreen()
+      .then(() => {
+        if (matchMedia('(pointer: coarse)').matches) return (screen.orientation as Orientation).lock?.('landscape');
+      })
+      .catch(() => {});
   }
-  void $('screen-wrap')
-    .requestFullscreen()
-    .then(() => {
-      if (matchMedia('(pointer: coarse)').matches) return (screen.orientation as Orientation).lock?.('landscape');
-    })
-    .catch(() => {});
 }
+function fullscreenChanged() {
+  const full = isFullscreen();
+  touchFull.querySelector('span')!.textContent = full ? 'exit' : 'full screen';
+  touchFull.setAttribute('aria-label', full ? 'Exit fullscreen' : 'Fullscreen');
+}
+document.addEventListener('fullscreenchange', fullscreenChanged);
 $('btn-full').addEventListener('click', toggleFullscreen);
-$('btn-touch-full').addEventListener('click', toggleFullscreen);
-// (iPhone Safari only fullscreens videos; there, turning the phone sideways fills the screen anyway)
-$('btn-touch-full').classList.toggle('hidden', !document.fullscreenEnabled);
+touchFull.addEventListener('click', toggleFullscreen);
+// Sideways or fullscreen, the touch buttons float over the picture: a tap brings them up for a few seconds.
+// (the tap that brings them up doesn't also press the button that appears under the finger)
+let controlsTimer = 0;
+let revealing = false;
+screenWrap.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse') return;
+  const onBar = !!(e.target as HTMLElement).closest('#touch-bar');
+  const show = onBar || !screenWrap.classList.contains('controls');
+  revealing = !onBar && show;
+  screenWrap.classList.toggle('controls', show);
+  clearTimeout(controlsTimer);
+  if (show) controlsTimer = setTimeout(() => screenWrap.classList.remove('controls'), 3500);
+});
+$('touch-bar').addEventListener('click', (e) => {
+  if (revealing) e.stopPropagation();
+  revealing = false;
+}, true);
 $('btn-guide').addEventListener('click', () => openGuide());
 $('btn-menu').addEventListener('click', () => openGuide());
 // Back returns to the guide; forward airs the episode that was picked again.
@@ -173,7 +205,6 @@ function setDevMode(on: boolean) {
   if (on) url.searchParams.set('dev', '');
   else url.searchParams.delete('dev');
   history.replaceState(history.state, '', bareFlags(url));
-  if (!on) setPaused(false);
 }
 setDevMode(inPlayground || params.has('dev'));
 
@@ -182,13 +213,14 @@ window.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.code === 'KeyD') setDevMode(!devMode());
   else if (e.code === 'KeyF') toggleFullscreen();
+  else if (e.code === 'Escape' && document.body.classList.contains('faux-full')) toggleFullscreen();
   else if (e.code === 'Escape') openGuide();
   else if (guide.open) guide.key(e);
-  else if (!devMode()) return;
   else if (e.code === 'Space') {
     e.preventDefault();
     setPaused(!player.paused);
-  } else if (e.code === 'ArrowRight') player.skip(e.shiftKey ? 'episode' : 'scene');
+  } else if (!devMode()) return;
+  else if (e.code === 'ArrowRight') player.skip(e.shiftKey ? 'episode' : 'scene');
   else if (e.code === 'ArrowLeft') player.back(e.shiftKey ? 'episode' : 'scene');
 });
 

@@ -63,27 +63,32 @@ input { font-family: var(--mono); }
   box-shadow: 0 0 0 1px #000, 0 0 0 8px #0b0b0b, 0 0 0 9px var(--line), 0 30px 80px rgba(0, 0, 0, 0.7);
 }
 
-/* Phones held upright: the picture leaves the screen mostly black and there's no Escape key, so a way back
-   to the guide sits just under it, next to a fullscreen button that turns the phone sideways like a video. */
+/* Phones and tablets have no keyboard, so they get a bar of buttons: back to the guide, pause and fullscreen.
+   Held upright, the picture leaves the screen mostly black, so the bar sits just under it. Sideways or
+   fullscreen, it floats over the bottom of the picture like a video player's, shown for a moment by a tap. */
 #touch-bar { display: none; }
-@media (orientation: portrait) and (pointer: coarse) {
+@media (pointer: coarse) {
   #screen-wrap { position: relative; }
   body:not(.dev):not(.guide-open) #touch-bar {
     display: flex;
     gap: 10px;
     position: absolute;
     left: 50%;
-    top: calc(50% + 100cqw * 9 / 32 + 24px);
+    bottom: 5%;
+    z-index: 2;
     transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
   }
-  #screen-wrap:fullscreen #touch-bar { display: none !important; }
+  #screen-wrap.controls #touch-bar { opacity: 1; pointer-events: auto; }
   #touch-bar button {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 18px;
+    padding: 12px 16px;
     font-size: 12px;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     white-space: nowrap;
     color: var(--ink);
@@ -93,6 +98,30 @@ input { font-family: var(--mono); }
   }
   #touch-bar button:active { background: var(--umbrella); color: #111; }
   #touch-bar svg { width: 13px; height: 13px; fill: currentColor; }
+  #touch-bar #btn-touch-pause { padding: 12px 15px; }
+  #btn-touch-pause svg.play, #btn-touch-pause.paused svg.pause { display: none; }
+  #btn-touch-pause.paused svg.play { display: block; }
+}
+@media (orientation: portrait) and (pointer: coarse) {
+  body:not(.faux-full) #screen-wrap:not(:fullscreen) #touch-bar {
+    top: calc(50% + 100cqw * 9 / 32 + 24px);
+    bottom: auto;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+/* Where the browser can't fullscreen the page (iPhone Safari only fullscreens videos), the picture fills the
+   window instead, turned sideways if the phone is upright, so it fills the screen once the phone is turned. */
+body.faux-full #screen-wrap { position: fixed; inset: 0; z-index: 10; background: #000; }
+body.faux-full #screen { border-radius: 0; box-shadow: none; }
+@media (orientation: portrait) {
+  body.faux-full #screen-wrap {
+    inset: 0 auto auto 100%;
+    width: 100dvh;
+    height: 100vw;
+    transform-origin: top left;
+    transform: rotate(90deg);
+  }
 }
 #screen-wrap:fullscreen { background: #000; }
 #screen-wrap:fullscreen #screen { border-radius: 0; box-shadow: none; }
@@ -339,6 +368,25 @@ body:not(.dev) #transport, body:not(.dev) #panel { display: none; }
 }
 .standby-title { font-size: clamp(16px, 4.2cqw, 40px); font-weight: 600; letter-spacing: 0.25em; }
 #standby-msg { margin-top: 10px; color: var(--umbrella); font-size: clamp(10px, 1.8cqw, 16px); }
+
+/* paused by the viewer: a play button over the picture, like a video player's */
+#paused {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(44px, 14cqh, 96px);
+  aspect-ratio: 1;
+  padding: 0;
+  place-items: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+}
+body.paused:not(.guide-open) #paused { display: grid; }
+#paused svg { width: 42%; height: 42%; margin-left: 8%; fill: currentColor; }
 
 /* the browser holds the sound back until the viewer first clicks or presses a key */
 #sound-hint {
