@@ -1,0 +1,371 @@
+{
+  "code": "S11E04",
+  "title": "The Contact-versary",
+  "logline": "Ten seconds before air, Robin brushes off Patrice with a \"Whatever, Patrice\" and becomes Patrice's emergency contact by accident, and Patrice celebrates it as the biggest milestone of her life. While Robin tries to undo it without saying it out loud, the gang holds an Emergency Contact Combine to decide who should have been her first call, and they're so focused on it that they miss the call.",
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Nurse Dolores",
+      "role": "Night-shift triage nurse at the hospital who has seen everything and is impressed by none of it. Answers nearly every question with the same two words: Sit down.",
+      "gender": "female",
+      "height": "average",
+      "build": "broad",
+      "skin": "brown",
+      "hair": "gray",
+      "hairStyle": "updo",
+      "topStyle": "shirt",
+      "top": "teal",
+      "pants": "teal",
+      "extras": ["glasses"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    }
+  ],
+  "continuity": {
+    "era": "fall 2011",
+    "facts": {
+      "robin.emergency_contact": "Patrice (by accident, then on purpose; never changed)",
+      "robin.blood_type": "O negative (Patrice knew; Robin and the gang did not)",
+      "ted.emergency_contact": "his mom, which hurts Marshall",
+      "marshall.emergency_contact": "Lily, and vice versa",
+      "barney.emergency_contact": "Patrice, replacing his 71-year-old concierge Pellegrino",
+      "patrice.role": "volunteer HR liaison at the station; collects the emergency contact forms",
+      "patrice.cat": "Mister Buttons, who once slept in a lampshade for two days unnoticed",
+      "robin.injury": "sprained ankle from a nine-year-old's slap shot during a youth hockey segment",
+      "patrice.future": "Aunt Patrice to Ted's kids in 2030; mails cookies every Arbor Day"
+    },
+    "opens": [{ "id": "barney-patrice-contact", "note": "Barney made Patrice his emergency contact at the hospital. Nobody has told Pellegrino." }]
+  },
+  "scenes": [
+    {
+      "id": "whatever",
+      "location": "metro_news_one",
+      "time": "night",
+      "transition": "skyline",
+      "summary": "Pre-titles. Ten seconds to air, Patrice needs a name for Robin's blank emergency contact line. Robin waves her off: Whatever, Patrice. Patrice hears her own name. Robin goes live with an unknowingly perfect top story.",
+      "cast": [{ "character": "robin", "mark": "anchor_left" }, { "character": "patrice", "mark": "desk_side" }],
+      "beats": [
+        { "type": "narrate", "line": "That fall, the station asked every employee to name one person they'd trust with their life." },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Robin! HR needs your emergency contact, and you're the only one who left it blank!", "emotion": "excited" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Patrice. We are live in ten seconds.", "delivery": "deadpan" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Just give me a name! Anyone you'd want by your side!" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Whatever, Patrice.", "emotion": "bored", "gesture": "wave" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Me?", "gesture": "cover_mouth", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "line": "Good evening. Our top story tonight: a careless mistake that experts say could last a lifetime.", "emotion": "happy", "laugh": "big", "shot": "closeup" }
+      ]
+    },
+    {
+      "location": "metro_news_one",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Next morning. Patrice arrives for their one-day contact-versary with an emergency kit. Robin realizes, tries to correct it, and is stopped cold by Patrice's sincerity. Patrice hugs her.",
+      "cast": [{ "character": "robin", "mark": "anchor_left" }],
+      "beats": [
+        { "type": "enter", "character": "patrice", "to": "desk_side" },
+        { "type": "hold", "character": "patrice", "prop": "gift" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Happy contact-versary!", "emotion": "excited" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "It's seven in the morning, Patrice. Use words that exist.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "One day ago, you made me your emergency contact! In front of the whole crew!", "emotion": "happy" },
+        { "type": "give", "character": "patrice", "to": "robin" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "It's your emergency kit. Gauze, a flashlight, and your blood type in calligraphy.", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "I don't know my blood type." },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "O negative. The universal donor. Always giving. Just like you.", "emotion": "proud" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Nobody has ever said that to me.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "act", "character": "robin", "gesture": "stand" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Patrice, about the form. I think there was a little misunder—", "interrupted": true },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Do you know how many forms I'm on? Fire drill buddy. Secret Santa alternate. Never anybody's first call." },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "People put me down all the time, Robin. Just never on a form.", "laugh": "chuckle" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Happy contact-versary." },
+        { "type": "act", "character": "patrice", "to": "robin", "emotion": "happy", "gesture": "hug" },
+        { "type": "say", "character": "robin", "line": "This is the emergency.", "delivery": "deadpan", "laugh": "laugh", "shot": "closeup" }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "exterior",
+      "summary": "Robin needs a replacement contact by Friday, quietly. All four volunteer at once. It turns out the line was blank for as long as she's lived in New York, and everyone else at the table has someone. Barney announces an Emergency Contact Combine; Robin isn't coming. She's the prize.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_front" },
+        { "character": "barney", "mark": "booth_right_back" }
+      ],
+      "beats": [
+        { "type": "say", "character": "robin", "to": "ted", "line": "So I need a new emergency contact by Friday. Quietly. Before Patrice buys us matching lockets." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Me.", "gesture": "hands_up", "laugh": "chuckle", "chorus": ["marshall", "lily", "barney"] },
+        { "type": "say", "character": "robin", "to": "lily", "line": "And this is why I never picked anybody.", "delivery": "deadpan" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Wait. Who was it before Patrice?", "emotion": "suspicious" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Nobody. I left it blank.", "gesture": "shrug" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Since when?" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Since I moved to New York.", "react": [{ "character": "marshall", "emotion": "sad" }, { "character": "lily", "emotion": "sad" }] },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin, everybody at this table has someone. I'm Lily's. Lily's mine. Ted's is me.", "emotion": "sad" },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "Mine is technically my mom.", "emotion": "embarrassed", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "Ted, I put you on everything. I put you on my library card.", "gesture": "double_take", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Mine's my concierge, Pellegrino. He has a key, a defibrillator, and no follow-up questions.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "So pick me. I'm calm in a crisis, and I'd finally get to read your medical file.", "gesture": "lean_in", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "If I pick one of you, the other three sulk for a year." },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "I'm already sulking a little.", "emotion": "sad", "laugh": "chuckle" },
+        { "type": "act", "character": "barney", "gesture": "stand" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Then there's only one fair way. The first annual Emergency Contact Combine. Tomorrow night.", "gesture": "suit_up" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "I'm not coming.", "delivery": "deadpan" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Of course not. The prize doesn't attend.", "gesture": "point", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "office",
+      "time": "day",
+      "transition": "cut",
+      "summary": "The station newsroom. Robin tries to scare Patrice off the job. Patrice has a binder. Robin nearly says whatever again and catches herself. Then she learns any new form goes through the HR liaison, who is Patrice.",
+      "cast": [{ "character": "robin", "mark": "cubicle_2" }, { "character": "patrice", "mark": "cubicle_lean" }],
+      "beats": [
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Patrice, before you get attached. Being my emergency contact is a lot of work." },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I love work! I come in on Sundays just to water the plants. Even the fake ones.", "emotion": "excited", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "I play hockey against men with no front teeth. I own five guns. I fly Air Canada.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "hold", "character": "patrice", "prop": "book" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I know! That's why I started a binder!", "emotion": "proud" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Section one, hockey. Section two, firearms. Section three, Robin's feelings. That one's empty, but I'm hopeful.", "laugh": "laugh" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Ooh! Should I be your medical proxy too? In case you can't speak for yourself?" },
+        { "type": "say", "character": "robin", "line": "Whatever, Pa—", "interrupted": true, "emotion": "bored" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Yay!", "emotion": "excited", "gesture": "fist_pump" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "No! Not whatever. Never whatever.", "delivery": "shout", "emotion": "scared", "gesture": "stand", "laugh": "laugh" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I'll put it down as a maybe!", "emotion": "happy", "laugh": "chuckle" },
+        { "type": "hold", "character": "robin", "prop": "envelope" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Hypothetically. If someone wanted to update their form, who would they give it to?" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "The HR liaison!" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "And who is the HR liaison?" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Me! I volunteered! It's like Secret Santa, but for tragedies!", "emotion": "proud", "gesture": "hands_on_hips", "laugh": "laugh" },
+        { "type": "hold", "character": "robin", "prop": "none" }
+      ]
+    },
+    {
+      "id": "combine",
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The Emergency Contact Combine. Phones in the fruit bowl. Nobody knows Robin's blood type; everybody knows her allergies. The hospital round: Ted lectures the nurse about Brutalism, Marshall sobs over a splinter, and Barney is the only one the nurse says yes to.",
+      "cast": [
+        { "character": "barney", "mark": "center" },
+        { "character": "ted", "mark": "couch_left" },
+        { "character": "marshall", "mark": "couch_center" },
+        { "character": "lily", "mark": "couch_right" }
+      ],
+      "beats": [
+        { "type": "say", "character": "barney", "to": "ted", "line": "Phones in the fruit bowl. A true emergency contact has total focus. Round one: Robin's blood type." },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Is scotch a blood type?", "gesture": "think", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Round two. What is Robin allergic to?" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Commitment." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Feelings." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Being called eh." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "All correct.", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Round three. The hospital. Ted, you walk in. Go." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Easy. I'm calm, I'm organized, and I know every entrance to every hospital in Manhattan.", "emotion": "smug" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "location": "hospital",
+          "time": "night",
+          "cast": [{ "character": "ted", "mark": "reception" }, { "character": "guest1", "mark": "receptionist" }],
+          "beats": [
+            { "type": "say", "character": "ted", "to": "guest1", "line": "Before anyone treats her, I have to say: this lobby is a crime against Brutalism.", "gesture": "point" },
+            { "type": "say", "character": "guest1", "to": "ted", "line": "Sit down.", "delivery": "deadpan", "laugh": "laugh" }
+          ]
+        },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "I'm the most emotionally available person she knows. I'd be her rock.", "emotion": "proud" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "location": "hospital",
+          "time": "night",
+          "cast": [{ "character": "marshall", "mark": "reception" }, { "character": "guest1", "mark": "receptionist" }],
+          "beats": [
+            { "type": "say", "character": "marshall", "to": "guest1", "line": "Is she going to make it? Tell me she's going to make it!", "delivery": "shout", "gesture": "sob" },
+            { "type": "say", "character": "guest1", "to": "marshall", "line": "It's a splinter. Sit down.", "delivery": "deadpan", "laugh": "laugh" }
+          ]
+        },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Amateurs. Watch a professional.", "gesture": "suit_up" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "location": "hospital",
+          "time": "night",
+          "cast": [{ "character": "barney", "mark": "reception" }, { "character": "guest1", "mark": "receptionist" }],
+          "beats": [
+            { "type": "say", "character": "barney", "to": "guest1", "line": "Barney Stinson. I'm here for Robin Scherbatsky." },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "Sit down.", "delivery": "deadpan" },
+            { "type": "say", "character": "barney", "to": "guest1", "line": "Only if you sit with me.", "emotion": "flirty", "gesture": "lean_in" },
+            { "type": "pause", "seconds": 1.5 },
+            { "type": "say", "character": "guest1", "to": "barney", "line": "Okay.", "emotion": "flirty", "laugh": "big" }
+          ]
+        },
+        { "type": "say", "character": "barney", "to": "lily", "line": "And that's how you win a hospital.", "emotion": "smug" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "You didn't visit Robin.", "delivery": "deadpan", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "id": "er",
+      "location": "hospital",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The real hospital, same nurse. Robin, alone with a sprained ankle, leaves voicemails for Ted and Marshall. The hospital already called her emergency contact.",
+      "cast": [{ "character": "robin", "mark": "seat_left" }, { "character": "guest1", "mark": "receptionist" }],
+      "beats": [
+        { "type": "narrate", "line": "At nine forty that night, during a live segment on youth hockey, Robin took a slap shot to the ankle from a nine-year-old named Brayden.", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "line": "Ted, it's me. I'm at the hospital. It's nothing. Call me back.", "gesture": "phone_call" },
+        { "type": "say", "character": "robin", "line": "Marshall. Hospital. Ankle. Please don't cry while you listen to this.", "gesture": "phone_call", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Excuse me. Has anyone come for me?" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "We called your emergency contact." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Oh, no.", "emotion": "scared", "laugh": "laugh", "shot": "closeup" }
+      ]
+    },
+    {
+      "resume": "combine",
+      "summary": "Lightning round. The fruit bowl buzzes and Barney says to ignore it. The gang realizes none of them knew her blood type, and Patrice did. Barney admits he's never been anyone's emergency contact. Ted checks the phones.",
+      "beats": [
+        { "type": "say", "character": "barney", "to": "ted", "line": "Lightning round. Robin's in the hospital right now. Who gets there first?" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Me!", "gesture": "hands_up", "laugh": "chuckle", "chorus": ["marshall", "lily"] },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Is the fruit bowl buzzing?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Ignore it. Focus is the whole sport.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "It's buzzing a lot." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Then it's someone with no focus.", "laugh": "chuckle" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Guys. None of us knew her blood type.", "emotion": "sad" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Patrice knows." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "barney", "to": "ted", "line": "I've never been anyone's emergency contact. I think I'd be good at it.", "emotion": "sad" },
+        { "type": "move", "character": "ted", "to": "kitchen_passthrough" },
+        { "type": "hold", "character": "ted", "prop": "phone" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Eleven missed calls. Robin's in the hospital.", "emotion": "scared", "react": [{ "character": "marshall", "gesture": "jaw_drop" }, { "character": "lily", "gesture": "cover_mouth" }] },
+        { "type": "act", "character": "lily", "gesture": "stand" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Okay. Technically, this is still the lightning round.", "laugh": "laugh" }
+      ]
+    },
+    {
+      "resume": "er",
+      "summary": "Patrice arrives straight from home in her pajamas, half a face mask on. Robin snaps the catchphrase; Patrice is unfazed and Robin asks about the cat anyway. Robin finally says it out loud: she said whatever. Patrice knew all along; the replay shows her whisper it. She was hoping to be good enough that Robin would keep her. The one tender cue enters there and leaves before the gang does.",
+      "wardrobe": [{ "character": "patrice", "topStyle": "hoodie", "top": "pink", "pants": "lavender" }],
+      "beats": [
+        { "type": "enter", "character": "patrice", "to": "seat_right" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I came the second they called! I didn't even finish my face mask. Half my face is very relaxed.", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Do you want me to talk? To take your mind off it? My cat, Mister Buttons, once—", "interrupted": true },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Nobody asked you, Patrice." },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "What did Mister Buttons do?" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "He fell asleep in a lampshade for two whole days, and nobody noticed. I relate to him a lot.", "emotion": "happy", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Patrice, why are you like this? I'm horrible to you every single day." },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Most people forget I'm in the room. You never have. Not once. You yell at me every day." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "About the form. I said whatever." },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I know." },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "You knew?", "emotion": "surprised" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I'm sweet, Robin. I'm not deaf.", "laugh": "laugh" },
+        {
+          "type": "replay",
+          "of": "whatever",
+          "from": 4,
+          "to": 6,
+          "style": "flashback",
+          "transition": "rewind",
+          "changes": [
+            { "at": 6, "replace": [{ "type": "say", "character": "patrice", "to": "robin", "line": "Me?", "gesture": "cover_mouth" }] },
+            {
+              "at": 7,
+              "insert": [
+                { "type": "pause", "seconds": 1 },
+                { "type": "say", "character": "patrice", "line": "She meant whatever.", "delivery": "whisper", "emotion": "sad" },
+                { "type": "pause", "seconds": 1 },
+                { "type": "say", "character": "patrice", "line": "I'll take it.", "delivery": "whisper", "emotion": "happy" }
+              ]
+            }
+          ]
+        },
+        { "type": "score", "music": "tender" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "I figured if I was really, really good at it, maybe you'd keep me.", "shot": "push_in" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "You came.", "shot": "two" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "That's the whole job." },
+        { "type": "pause", "seconds": 2 },
+        { "type": "score", "music": "none" }
+      ]
+    },
+    {
+      "location": "taxi",
+      "time": "night",
+      "transition": "exterior",
+      "summary": "Marshall, Lily and Barney race uptown. Marshall offers kidneys, specifically Barney's. Barney pulls rank he doesn't have. Ted took his own cab: he knows a faster entrance. Lily lands the guilt.",
+      "cast": [{ "character": "marshall", "mark": "back_left" }, { "character": "lily", "mark": "back_middle" }, { "character": "barney", "mark": "back_right" }],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "barney", "line": "What if it's bad? What if she needs a kidney? Barney, give her your kidney.", "delivery": "fast", "emotion": "crying" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Why my kidney?" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Mine are spoken for. Lily has dibs.", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "line": "Driver, step on it. I'm her emergency contact.", "delivery": "shout" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "You're not." },
+        { "type": "say", "character": "barney", "to": "lily", "line": "He doesn't know that.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Where's Ted?" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "He took his own cab. He knows a faster entrance.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "She called us eleven times, Marshall. And we were in a fruit bowl.", "emotion": "sad" }
+      ]
+    },
+    {
+      "resume": "er",
+      "summary": "Barney, Marshall and Lily burst in an hour late; Ted arrives last via the loading dock. Marshall hugs her, Ted gets the Sit down he imagined, Lily goes for the chart. The nurse asks who the emergency contact is; four say yes, and Robin points at Patrice. Barney asks Patrice if she's taking new clients.",
+      "beats": [
+        { "type": "enter", "character": "barney", "to": "center" },
+        { "type": "enter", "character": "marshall", "to": "robin" },
+        { "type": "enter", "character": "lily", "to": "coffee" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Robin! We came the second we checked our phones!" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "That was an hour ago.", "delivery": "deadpan" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "In hindsight, the fruit bowl was a mistake.", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Are you okay? Tell me it's bad. I cried the whole cab ride.", "emotion": "crying", "gesture": "hug", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "It's a sprain. Brayden is nine.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "enter", "character": "ted", "to": "reception" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Sorry. The faster entrance was a loading dock.", "emotion": "embarrassed", "laugh": "chuckle" },
+        { "type": "say", "character": "ted", "to": "guest1", "line": "Excuse me, who's treating her? And quick note about this lobby—", "interrupted": true },
+        { "type": "say", "character": "guest1", "to": "ted", "line": "Sit down.", "delivery": "deadpan", "laugh": "big" },
+        { "type": "move", "character": "ted", "to": "side_seat" },
+        { "type": "move", "character": "lily", "to": "reception" },
+        { "type": "say", "character": "lily", "to": "guest1", "line": "Hi. Could I just peek at her chart?", "emotion": "happy" },
+        { "type": "say", "character": "guest1", "to": "lily", "line": "Are you the emergency contact?" },
+        { "type": "say", "character": "lily", "to": "guest1", "line": "Yes.", "chorus": ["ted", "marshall", "barney"] },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "It's her.", "gesture": "point", "shot": "push_in", "react": [{ "character": "patrice", "emotion": "happy", "gesture": "cover_mouth" }] },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "barney", "to": "patrice", "line": "Patrice. My concierge is seventy-one. Are you taking new clients?", "laugh": "laugh" },
+        { "type": "say", "character": "patrice", "to": "barney", "line": "Yes!", "emotion": "excited", "gesture": "fist_pump" }
+      ]
+    },
+    {
+      "location": "metro_news_one",
+      "time": "day",
+      "transition": "cut",
+      "label": "One week later",
+      "summary": "Sandy offers himself as a contact with a camera crew. Patrice brings the update form: who should she put down? Robin, deliberately this time: Whatever, Patrice. Future Ted: she never changed it. The kids realize Patrice is their Aunt Patrice.",
+      "cast": [{ "character": "robin", "mark": "anchor_left" }, { "character": "sandy", "mark": "anchor_right" }],
+      "beats": [
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Robin. I hear you're accepting applications for emergency contact. Sandy Rivers would arrive with a full camera crew.", "emotion": "smug" },
+        { "type": "say", "character": "robin", "to": "sandy", "line": "Why would you bring a camera crew?", "delivery": "deadpan" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Tragedy is ratings, Robin.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "enter", "character": "patrice", "to": "desk_side" },
+        { "type": "hold", "character": "patrice", "prop": "envelope" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Robin! HR says you can update your emergency contact anytime. No pressure!" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "So who should I put down?" },
+        { "type": "pause", "seconds": 2 },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Whatever, Patrice.", "shot": "closeup" },
+        { "type": "say", "character": "patrice", "to": "robin", "line": "Me?", "emotion": "happy", "gesture": "cover_mouth" },
+        { "type": "say", "character": "robin", "to": "patrice", "line": "Don't make it weird.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "narrate", "line": "Robin never did change that form." },
+        { "type": "say", "character": "penny", "line": "Wait. Patrice? Aunt Patrice? Cookies-every-Arbor-Day Aunt Patrice?", "emotion": "surprised" },
+        { "type": "say", "character": "luke", "to": "penny", "line": "Aunt Robin always says if anything ever happens to her, call Patrice." },
+        { "type": "say", "character": "penny", "to": "luke", "line": "We thought that was a threat.", "laugh": "laugh" },
+        { "type": "narrate", "line": "From Aunt Robin, that's a love letter." }
+      ]
+    }
+  ]
+}
