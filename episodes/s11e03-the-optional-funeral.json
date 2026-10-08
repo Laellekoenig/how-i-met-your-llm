@@ -1,0 +1,350 @@
+{
+  "code": "S11E03",
+  "title": "The Optional Funeral",
+  "logline": "When the gang realizes none of them has ever seen Robin cry, Barney bets they can't make it happen before Thanksgiving, and sincerity, a sad-film festival, Sandy Rivers and Robin's own staged funeral all fail. Then, on Thanksgiving Eve at the Hoser Hut, a stranger's phone call does it, and only Ted is there to see.",
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Philippa",
+      "role": "Professional mourner Barney hired for Robin's stress-test funeral. Has wailed at six hundred funerals and never met a single deceased. Treats grief as a trade, like plumbing.",
+      "gender": "female",
+      "height": "short",
+      "build": "broad",
+      "skin": "light",
+      "hair": "gray",
+      "hairStyle": "updo",
+      "topStyle": "dress",
+      "top": "black",
+      "pants": "black",
+      "extras": ["glasses"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    },
+    {
+      "id": "guest2",
+      "name": "Doug",
+      "role": "A big, soft-spoken Hoser Hut regular from Saskatoon. Ted's last research subject. His daughter is playing her Peewee hockey final tonight.",
+      "gender": "male",
+      "height": "tall",
+      "build": "broad",
+      "skin": "fair",
+      "hair": "brown",
+      "hairStyle": "messy",
+      "topStyle": "flannel",
+      "top": "red",
+      "pants": "denim",
+      "extras": ["beard", "cap"],
+      "voice": { "pitch": "low", "pace": "normal" }
+    }
+  ],
+  "continuity": {
+    "era": "fall 2011, the week before Thanksgiving",
+    "facts": {
+      "robin.crying_rule": "Canadians cry twice: a Stanley Cup loss and a funeral (one is optional)",
+      "robin.crying_record": "Gang thinks she never cries; only Ted saw her, Hoser Hut, Thanksgiving Eve 2011",
+      "robin.peewee_final": "Lost 1992 Peewee final; cried, so her dad made her skate laps until it froze",
+      "robin.dad_call": "Phoned her dad on Thanksgiving Eve 2011 for four minutes; Ted learned later",
+      "barney.evidence_glass": "A shot glass promoted to evidence glass; it has never held a tear",
+      "ted.thanksgiving_2011": "Wore a Canadian tuxedo with Marshall and Lily, paying a bet he secretly won",
+      "barney.bet_record": "Believes he won the no-crying bet; calls himself undefeated"
+    },
+    "opens": [
+      {
+        "id": "ted-hoser-hut-secret",
+        "note": "Ted actually won the no-crying bet and paid it anyway. Barney, Marshall and Lily don't know Robin cried at the Hoser Hut."
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "the-booth",
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Pre-titles. Marshall weeps at a phone commercial; Ted realizes nobody has ever seen Robin cry. Barney bets they can't make her. Robin states the Canadian rule.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "marshall", "mark": "booth_left_front" },
+        { "character": "lily", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_front" },
+        { "character": "barney", "mark": "booth_right_back" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "marshall", "prop": "phone" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Marshall. It's a commercial for a data plan.", "delivery": "deadpan" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "The grandpa learned to text, Barney. With his big grandpa thumbs.", "gesture": "sob", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Wait. Has anyone here ever actually seen Robin cry?", "react": [{ "character": "lily", "gesture": "think" }, { "character": "barney", "emotion": "suspicious" }] },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Never. And I'll bet anything none of you can make her cry before Thanksgiving.", "emotion": "smug" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "Oh, you're on.", "gesture": "point" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Good luck. Canadians cry exactly twice. A Stanley Cup loss, and a funeral. And only one of those is optional." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "The funeral?" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "The funeral.", "delivery": "deadpan", "laugh": "big", "shot": "closeup" }
+      ]
+    },
+    {
+      "resume": "the-booth",
+      "summary": "After the titles. Barney's terms: one witnessed tear, the evidence glass, Canadian tuxedos at Thanksgiving. Robin gets a stake of her own. Marshall and Lily declare their methods.",
+      "beats": [
+        { "type": "hold", "character": "marshall", "prop": "none" },
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Ground rules. One tear, witnessed, before Thanksgiving dinner. It goes in the evidence glass." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "That's a shot glass." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "It was. It's been promoted.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "And when we win?" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Then I wear a Canadian tuxedo to Thanksgiving. Denim. Head to toe.", "react": [{ "character": "lily", "gesture": "jaw_drop" }] },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Technically, a true Canadian tuxedo requires both pieces in the same wash." },
+        { "type": "say", "character": "robin", "to": "ted", "line": "In Canada, we just call it a tuxedo.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "And when I win, you three wear it.", "gesture": "point" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "So if I don't cry, I get to watch Ted in double denim?" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Every stonewashed second." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "I have never wanted anything more.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin, I'm not doing this to win. A person who can't cry is a kettle with no spout." },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Eventually, she whistles out of somewhere weird.", "emotion": "nervous", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Relax, baby. I make a five-year-old cry every morning before nine-fifteen." },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Is that part of the job?" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "It's the part I'm best at.", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Marshall's sincere approach: the saddest day of Robin's childhood. She tells the Peewee-final story as a lesson. Marshall weeps. Barney nearly bags the wrong tear. Robin's ruling: dry.",
+      "cast": [{ "character": "robin", "mark": "armchair" }, { "character": "marshall", "mark": "couch_right" }, { "character": "barney", "mark": "woven_chair" }],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "robin", "line": "No tricks. No onions. Just two friends and an open heart.", "gesture": "lean_in" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Then why is Barney here?" },
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Chain of custody.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin. Tell me about the saddest day of your childhood." },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Easy. Peewee final, 1992. We lost in triple overtime." },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "I started crying on the bench, so my dad made me skate laps until it froze." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Best lesson I ever got. Ice is nature's tissue.", "emotion": "proud", "laugh": "laugh" },
+        { "type": "act", "character": "marshall", "gesture": "sob" },
+        { "type": "move", "character": "barney", "to": "marshall" },
+        { "type": "say", "character": "barney", "line": "Is that a tear? Nobody move!", "delivery": "fast" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Oh. It's yours. Gross.", "emotion": "disgusted", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "How many laps, Robin?", "emotion": "crying" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Until it froze, Marshall. It's not a number. It's a temperature.", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Official ruling?" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Dry.", "delivery": "deadpan", "laugh": "chuckle", "react": [{ "character": "marshall", "gesture": "sob" }] }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Ted opens the first annual Mosby Weepathon with laminated programs. Future Ted describes the introduction; Luke asks if it'll take long.",
+      "cast": [
+        { "character": "ted", "mark": "center" },
+        { "character": "lily", "mark": "couch_left" },
+        { "character": "robin", "mark": "couch_center" },
+        { "character": "marshall", "mark": "couch_right" },
+        { "character": "barney", "mark": "armchair" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "ted", "prop": "book" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Welcome to the first annual Mosby Weepathon. Seven films, two intermissions, programs are on your seats.", "emotion": "proud" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted. These programs are laminated." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Tears ruin paper, Robin. I'm a professional.", "laugh": "laugh" },
+        { "type": "narrate", "line": "The Weepathon opened with my forty-minute introduction to the history of the tearjerker, beginning, naturally, with the ancient Greeks." },
+        { "type": "say", "character": "luke", "line": "Is this going to take long?", "laugh": "laugh" },
+        { "type": "narrate", "line": "Nine hours, Luke. That was the whole point." }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "label": "Nine hours later",
+      "summary": "Everyone is a wreck except Robin, who points out the dog died in minute four and Ted paused the film eleven times to discuss the lighting.",
+      "cast": [
+        { "character": "ted", "mark": "striped_chair" },
+        { "character": "lily", "mark": "couch_left" },
+        { "character": "robin", "mark": "couch_center" },
+        { "character": "marshall", "mark": "couch_right" },
+        { "character": "barney", "mark": "armchair" }
+      ],
+      "beats": [
+        { "type": "say", "character": "ted", "line": "And then the lighthouse keeper turned off the light. Because the boat was already home.", "emotion": "crying", "gesture": "sob" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Why would the boat be home, Ted? Why?", "delivery": "shout", "emotion": "crying", "laugh": "laugh" },
+        { "type": "act", "character": "marshall", "emotion": "crying", "gesture": "head_in_hands" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Not crying. Allergic to lighthouses.", "emotion": "crying", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted, the dog died in the first four minutes." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "That was the appetizer!", "gesture": "hands_up", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Then you paused it eleven times to talk about the lighting." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Because it was a tragedy, Robin. The lighting was a tragedy.", "emotion": "crying", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "metro_news_one",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Lily, disguised on camera two, has ghost-written a crossing-guard tearjerker for Sandy Rivers to read live beside Robin. Sandy breaks down. Robin does not, and gives the forecast straight at Lily.",
+      "wardrobe": [{ "character": "lily", "topStyle": "hoodie", "top": "black", "pants": "black", "extras": ["cap"] }],
+      "cast": [{ "character": "robin", "mark": "anchor_left" }, { "character": "sandy", "mark": "anchor_right" }, { "character": "lily", "mark": "camera_operator" }],
+      "beats": [
+        { "type": "narrate", "line": "Lily knew Robin could walk out of a movie. She couldn't walk out of the eleven o'clock news." },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Lily? Are you running camera two?", "delivery": "whisper", "emotion": "suspicious" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Shh. You're on.", "delivery": "whisper", "laugh": "laugh" },
+        { "type": "say", "character": "sandy", "line": "And now, a story I wrote myself.", "delivery": "slow", "laugh": "chuckle", "react": [{ "character": "lily", "gesture": "eye_roll" }] },
+        { "type": "say", "character": "sandy", "line": "For fifty-one years, Walter Pruitt was the crossing guard at P.S. 41.", "delivery": "slow" },
+        { "type": "say", "character": "sandy", "line": "Today was his last day. Every child in the school knitted him one mitten.", "delivery": "slow", "emotion": "sad" },
+        { "type": "say", "character": "sandy", "line": "Walter has two hands. He wore all four hundred.", "delivery": "slow", "emotion": "crying", "gesture": "sob", "laugh": "laugh" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "line": "Thank you, Sandy. Walter, if you're watching: fifty-one years, and nobody taught those kids to knit pairs.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "sandy", "to": "robin", "line": "Forgive me, Robin. That is the most beautiful thing I've ever taken credit for.", "emotion": "crying", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Coming up, weather. Tomorrow's forecast? Dry.", "laugh": "laugh", "shot": "closeup", "react": [{ "character": "lily", "gesture": "facepalm" }] }
+      ]
+    },
+    {
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Two days left. The gang needs a Stanley Cup loss or a funeral. Barney, who is betting she won't cry, has already booked one: a stress test.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "marshall", "mark": "booth_left_back" },
+        { "character": "barney", "mark": "booth_right_front" }
+      ],
+      "beats": [
+        { "type": "say", "character": "lily", "to": "ted", "line": "Two days left. We've tried feelings, cinema and journalism." },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "I'm still trying feelings. I can't stop thinking about the laps.", "emotion": "sad", "laugh": "chuckle" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Her rule is a Stanley Cup loss or a funeral. The Cup is in June, and nobody's dying." },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Not with that attitude.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Relax. I already booked one.", "emotion": "smug" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "You booked a funeral? You're betting she won't cry!", "gesture": "double_take" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Exactly. Before I put money on a horse, I tell it it's adopted.", "laugh": "big" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "It's called a stress test. Banks do them." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "What do you know about banks?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Please.", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Robin Scherbatsky's funeral. Tuesday at eight. Your living room." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Why my living room?" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Mine is for happy things.", "gesture": "suit_up", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "summary": "The stress-test funeral. A hired professional mourner, Lily's surgical eulogy, Marshall's two-word eulogy, and Barney's accidentally sincere one, which gets the professional. Robin stays dry and asks about ham.",
+      "wardrobe": [
+        { "character": "ted", "topStyle": "suit", "top": "black", "under": "white", "tie": "black", "pants": "black" },
+        { "character": "marshall", "topStyle": "suit", "top": "black", "under": "white", "tie": "black", "pants": "black" },
+        { "character": "lily", "topStyle": "dress", "top": "black" },
+        { "character": "robin", "topStyle": "dress", "top": "black" },
+        { "character": "barney", "topStyle": "suit", "top": "black", "under": "white", "tie": "black", "pants": "black" }
+      ],
+      "cast": [
+        { "character": "barney", "mark": "fireplace" },
+        { "character": "lily", "mark": "couch_left" },
+        { "character": "robin", "mark": "couch_center" },
+        { "character": "marshall", "mark": "couch_right" },
+        { "character": "ted", "mark": "armchair" },
+        { "character": "guest1", "mark": "leather_chair" }
+      ],
+      "beats": [
+        { "type": "say", "character": "barney", "to": "robin", "line": "Friends. Mourners. Woman I'm paying. We are gathered to stress-test Robin Scherbatsky.", "laugh": "laugh" },
+        { "type": "say", "character": "guest1", "line": "Why her? Why so young?", "delivery": "shout", "emotion": "crying", "gesture": "sob" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Who is that?" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Philippa. Six hundred funerals. Never met a single one of them." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "She's already more upset than my dad will be.", "delivery": "deadpan", "laugh": "laugh", "react": [{ "character": "ted", "emotion": "sad" }] },
+        { "type": "act", "character": "lily", "gesture": "stand" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Robin Scherbatsky died the way she lived. Alone, far from home, holding a scotch.", "emotion": "sad" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Her last words were, I really should call Canada.", "delivery": "slow", "shot": "push_in" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "lily", "line": "My last words would be, who let Lily do the eulogy?", "laugh": "laugh" },
+        { "type": "act", "character": "lily", "gesture": "sit" },
+        { "type": "act", "character": "marshall", "gesture": "stand" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Robin was. She was.", "emotion": "crying" },
+        { "type": "act", "character": "marshall", "gesture": "sob" },
+        { "type": "act", "character": "marshall", "gesture": "sit" },
+        { "type": "laugh", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Robin. Hockey. Scotch. Five handguns. Never cried once." },
+        { "type": "say", "character": "barney", "to": "ted", "line": "Without her, it'd just be the four of you. And honestly? I don't come for the four of you.", "shot": "push_in" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "guest1", "to": "barney", "line": "Oh. That one got me.", "emotion": "crying", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Barney. Was that sincere?" },
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "Strictly a stress test. And the glass is empty. Thank God.", "emotion": "nervous" },
+        { "type": "act", "character": "robin", "gesture": "stand" },
+        { "type": "say", "character": "robin", "to": "guest1", "line": "Great funeral. Is there ham?" },
+        { "type": "say", "character": "guest1", "to": "robin", "line": "There's always ham.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    },
+    {
+      "location": "hoser_hut",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Thanksgiving Eve. Ted's last-ditch field research. Doug takes a call from his daughter after her Peewee final. Robin, alone at her table, hears every word and cries. Ted sees. He is not here.",
+      "cast": [{ "character": "ted", "mark": "bar_stool" }, { "character": "guest2", "mark": "bar_friend" }],
+      "beats": [
+        { "type": "narrate", "line": "On Thanksgiving Eve, with the bet all but lost, I went to the source." },
+        { "type": "hold", "character": "ted", "prop": "book" },
+        { "type": "say", "character": "ted", "to": "guest2", "line": "Okay, Doug. Last question. What makes a Canadian cry?" },
+        { "type": "say", "character": "guest2", "to": "ted", "line": "Leafs fans cry every spring. Rest of us just go quiet and shovel something.", "laugh": "laugh" },
+        { "type": "hold", "character": "guest2", "prop": "phone" },
+        { "type": "say", "character": "guest2", "to": "ted", "line": "Sorry. My daughter. Peewee final tonight." },
+        { "type": "move", "character": "guest2", "to": "patron_left" },
+        { "type": "enter", "character": "robin", "to": "table_left" },
+        { "type": "act", "character": "ted", "to": "robin", "gesture": "double_take" },
+        { "type": "say", "character": "guest2", "line": "Hey, kiddo. I heard.", "gesture": "phone_call" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "guest2", "line": "No, no. You go ahead and cry. Cry as much as you want.", "gesture": "phone_call" },
+        { "type": "say", "character": "guest2", "line": "You played your heart out. I'm so proud of you.", "gesture": "phone_call" },
+        { "type": "say", "character": "guest2", "line": "I'm coming to get you. Then pancakes. Okay? Pancakes.", "gesture": "phone_call" },
+        { "type": "exit", "character": "guest2" },
+        { "type": "act", "character": "robin", "emotion": "crying", "gesture": "none", "shot": "push_in" },
+        { "type": "pause", "seconds": 2.5 },
+        { "type": "hold", "character": "ted", "prop": "none" },
+        { "type": "act", "character": "ted", "gesture": "stand" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Ted.", "emotion": "crying" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "I'm not here." },
+        { "type": "move", "character": "ted", "to": "table_right" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "I'm just going to not be here for a while." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "ted", "line": "Okay." }
+      ]
+    },
+    {
+      "location": "apartment",
+      "time": "night",
+      "transition": "exterior",
+      "summary": "Thanksgiving. Ted, Marshall and Lily in Canadian tuxedos. Barney calls for the final ruling. Robin looks at Ted: dry. Ted: bone dry. A salute only the two of them see. Future Ted on the part he never saw.",
+      "wardrobe": [
+        { "character": "ted", "topStyle": "shirt", "top": "denim", "pants": "denim" },
+        { "character": "marshall", "topStyle": "shirt", "top": "denim", "pants": "denim" },
+        { "character": "lily", "topStyle": "shirt", "top": "denim", "pants": "denim" }
+      ],
+      "cast": [
+        { "character": "barney", "mark": "center" },
+        { "character": "lily", "mark": "couch_left" },
+        { "character": "marshall", "mark": "couch_center" },
+        { "character": "ted", "mark": "armchair" },
+        { "character": "robin", "mark": "leather_chair" }
+      ],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney, denim on denim chafes. In places I can't mention at a holiday meal.", "emotion": "embarrassed", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "barney", "line": "I own forty-one pairs of shoes, and not one of them goes with this.", "emotion": "angry", "laugh": "chuckle" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Honestly? I'm kind of into it.", "emotion": "proud" },
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "It's Thanksgiving. The evidence glass is empty. Robin Scherbatsky, final ruling." },
+        { "type": "act", "character": "robin", "to": "ted", "gesture": "none" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "robin", "to": "barney", "line": "Dry." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Bone dry.", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "Undefeated! And the denim stays on through pie.", "gesture": "fist_pump", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "line": "To Robin. The last dry eye in New York.", "gesture": "cheers" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "That's beautiful.", "emotion": "crying" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Not in the glass.", "gesture": "shake_head", "laugh": "laugh" },
+        { "type": "act", "character": "robin", "to": "ted", "gesture": "salute" },
+        { "type": "act", "character": "ted", "to": "robin", "gesture": "salute" },
+        { "type": "narrate", "line": "Your Uncle Barney still thinks he won that bet." },
+        { "type": "narrate", "line": "Years later, I found out Aunt Robin called her dad that night. Four minutes. For a Scherbatsky, that's a miniseries.", "laugh": "chuckle" }
+      ]
+    }
+  ]
+}

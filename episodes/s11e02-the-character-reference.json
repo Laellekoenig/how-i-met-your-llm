@@ -1,0 +1,367 @@
+{
+  "code": "S11E02",
+  "title": "The Character Reference",
+  "logline": "Barney secretly applies to mentor a kid and asks Marshall, who is physically incapable of lying, to be his character reference. One question on the form stops him cold: what does Barney actually do for a living?",
+  "guests": [
+    {
+      "id": "guest1",
+      "name": "Gail Pruitt",
+      "role": "Caseworker at Manhattan Bigs, a volunteer mentoring program. Thirty years on the job. Writes down every answer at exactly the speed it was said and reads it back aloud as she goes, so every reference hears his own words get worse.",
+      "gender": "female",
+      "height": "tall",
+      "build": "slim",
+      "skin": "brown",
+      "hair": "gray",
+      "hairStyle": "bob",
+      "topStyle": "cardigan",
+      "top": "mustard",
+      "under": "cream",
+      "pants": "brown",
+      "extras": ["glasses"],
+      "voice": { "pitch": "low", "pace": "slow" }
+    }
+  ],
+  "continuity": {
+    "era": "fall 2011",
+    "facts": {
+      "marshall.job": "lawyer at GNB, two floors below Barney, reporting to Arthur Hobbs",
+      "marshall.canoe_oath": "swore on the Eriksen family canoe; cannot lie, confesses first",
+      "barney.job": "still unknown to the gang; his Little, Dante, knows and thinks it's dumb",
+      "barney.mentor": "a Big at Manhattan Bigs (caseworker Gail Pruitt), Saturdays with Dante, 9",
+      "barney.childhood": "waitlisted for a Big 1983-86; sat on the steps Saturdays in a clip-on",
+      "barney.playbook": "page 112, The Big Brother: never worked, women always asked the kid's name",
+      "arthur.barney_expenses": "approves Barney's expense reports; the purpose line always says Please",
+      "lily.lockpicking": "picks a lock in eight seconds (kindergarten cubbies)",
+      "robin.pickpocket": "her dad made her pickpocket him for her Christmas presents",
+      "lily.bet_winnings": "won $100 from Ted and Robin betting Barney's mentoring was real"
+    },
+    "opens": [
+      {
+        "id": "barney-dante",
+        "note": "Barney spends Saturdays with Dante, nine, who thinks his suit is a Halloween costume. Dante knows what Barney does; the gang still doesn't."
+      },
+      { "id": "arthur-wants-to-know", "note": "Arthur Hobbs asked Marshall to tell him what Barney does if he ever finds out." }
+    ]
+  },
+  "scenes": [
+    {
+      "id": "interview",
+      "location": "maclarens",
+      "time": "day",
+      "transition": "cut",
+      "summary": "Cold open on the outcome: Gail interviews Marshall as Barney's reference and writes down, very slowly, that he has no idea what Barney does.",
+      "cast": [
+        { "character": "marshall", "mark": "booth_left_front", "outfit": "work" },
+        { "character": "guest1", "mark": "booth_right_front" },
+        { "character": "carl", "mark": "behind_bar" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "guest1", "prop": "envelope" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Final question, Mr. Eriksen. What does Barney Stinson do for a living?" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "I have no idea.", "emotion": "embarrassed", "shot": "push_in" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Has. No. Idea.", "delivery": "slow", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "In my defense, we work in the same building.", "emotion": "nervous" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Same. Building.", "delivery": "slow", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "You don't have to write down everything I say.", "gesture": "hands_up" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Don't. Have to. Write down. Everything.", "delivery": "slow", "laugh": "laugh", "react": [{ "character": "marshall", "gesture": "head_in_hands" }] }
+      ]
+    },
+    {
+      "id": "the-ask",
+      "location": "barneys_office",
+      "time": "day",
+      "transition": "rewind",
+      "summary": "Two weeks earlier. Barney swears Marshall to secrecy and asks him to be his reference. Question nine: occupation. 'Please.'",
+      "cast": [{ "character": "barney", "mark": "desk_chair" }],
+      "beats": [
+        { "type": "narrate", "line": "Two weeks earlier." },
+        { "type": "enter", "character": "marshall", "to": "guest_chair_left" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Eriksen. Sit. Carefully. That chair costs more than your Fiero.", "laugh": "chuckle" },
+        { "type": "hold", "character": "barney", "prop": "envelope" },
+        { "type": "give", "character": "barney", "to": "marshall" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Manhattan Bigs. They pair grown men with kids who need one. I applied." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "You want to spend your Saturdays with a child?", "gesture": "jaw_drop" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "I spend my Saturdays with Ted. How much worse can it be?", "gesture": "shrug", "laugh": "laugh" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "I need a reference. Ted would oversell it. He'd call me luminous." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "You're the only man I know who's physically incapable of lying." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "It's the canoe.", "emotion": "proud" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Do not tell me about the canoe.", "gesture": "point", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "And nobody hears about this. Not Ted, not Lily. Nobody." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney, you know I can't lie.", "emotion": "nervous" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Not lying. Not telling. Totally different muscle.", "gesture": "point", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "line": "Good influence on a young person.", "gesture": "think" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "marshall", "line": "Let's circle back.", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "line": "Question nine. Applicant's occupation." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney. What do you actually do?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Please.", "emotion": "smug", "laugh": "laugh", "shot": "closeup" }
+      ]
+    },
+    {
+      "id": "leak",
+      "location": "maclarens",
+      "time": "night",
+      "transition": "exterior",
+      "summary": "Marshall lasts about four seconds against Lily. The canoe oath, Ted's wounded pride, Ted and Robin call it a play, and Lily bets against them for the money.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "lily", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_back" },
+        { "character": "carl", "mark": "behind_bar" }
+      ],
+      "beats": [
+        { "type": "enter", "character": "marshall", "to": "booth_left_front" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Baby. What did Barney want?" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Nothing! Guy stuff. Suits. Scotch. The usual.", "delivery": "fast", "emotion": "nervous" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Marshmallow. Did Barney ask you to keep a secret?", "gesture": "lean_in" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "He applied to mentor a kid, I'm his secret reference, and I don't know what he does!", "delivery": "fast", "emotion": "scared", "laugh": "laugh", "react": [{ "character": "ted", "gesture": "jaw_drop" }, { "character": "robin", "gesture": "spit_take" }] },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Baby, that was fast even for me.", "laugh": "chuckle" },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Why don't you just lie?" },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "Every Eriksen boy swears on the family canoe. Our word holds water, or the whole family goes down." },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "That's a terrible canoe.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "Wait. Why didn't he ask me? I'm his best friend.", "emotion": "sad" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "He said you'd call him luminous." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "He is a little luminous.", "laugh": "laugh" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "It's a play. A guy pushing a kid on a swing? Every woman in that park thinks he's a widower." },
+        { "type": "say", "character": "ted", "to": "robin", "line": "With a heart of gold. He is neither.", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Fifty bucks says it's real." },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Lily, you don't believe that.", "emotion": "suspicious" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "No. But you two are way too sure, and I love money.", "emotion": "smug", "laugh": "laugh" }
+      ]
+    },
+    {
+      "id": "theories",
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Marshall crowdsources question nine. Fixer, spy, paperweight. None of it can go on a sworn statement, so he'll depose Barney.",
+      "cast": [
+        { "character": "marshall", "mark": "center" },
+        { "character": "ted", "mark": "armchair" },
+        { "character": "lily", "mark": "couch_left" },
+        { "character": "robin", "mark": "couch_right" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "marshall", "prop": "envelope" },
+        { "type": "say", "character": "marshall", "line": "Question nine. Occupation. Somebody give me something." },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "He's a fixer. Something goes wrong at GNB, they call Barney.", "gesture": "point" },
+        {
+          "type": "cutaway",
+          "style": "imagined",
+          "location": "barneys_office",
+          "time": "day",
+          "cast": [{ "character": "barney", "mark": "desk_chair" }],
+          "beats": [
+            { "type": "say", "character": "barney", "line": "The chairman's horse is in the lobby again? Nobody make eye contact. I'm on my way.", "gesture": "phone_call", "laugh": "laugh" }
+          ]
+        },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "He's a spy. No job title, perfect suits, disappears for days." },
+        { "type": "say", "character": "marshall", "to": "robin", "line": "He tells women he's a spy." },
+        { "type": "say", "character": "robin", "to": "marshall", "line": "Which is exactly what a spy would do, so you'd think he isn't one.", "delivery": "deadpan", "laugh": "chuckle" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "GNB pays him to sit in that office so he can't work anywhere else. He's a very expensive paperweight.", "emotion": "smug", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "I can't put expensive paperweight on a sworn statement!", "emotion": "angry" },
+        { "type": "say", "character": "marshall", "line": "Fine. I'll do what any good lawyer would do." },
+        { "type": "say", "character": "ted", "to": "marshall", "line": "Ask him?" },
+        { "type": "say", "character": "marshall", "to": "ted", "line": "Depose him.", "emotion": "proud", "laugh": "chuckle" }
+      ]
+    },
+    {
+      "id": "deposition",
+      "location": "apartment",
+      "time": "night",
+      "transition": "cut",
+      "label": "The next night",
+      "summary": "Marshall's speed-round deposition gets Barney to admit Ted is his best friend, but not his job. Barney walks out; Robin has lifted his Playbook.",
+      "cast": [
+        { "character": "marshall", "mark": "dining_chair_2" },
+        { "character": "barney", "mark": "dining_chair_3" },
+        { "character": "ted", "mark": "dining_chair_1" },
+        { "character": "robin", "mark": "kitchen_doorway" }
+      ],
+      "beats": [
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Speed round. Don't think. Favorite drink?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Scotch." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Best suit you own?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "The one I'm buying tomorrow.", "emotion": "smug", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Best friend?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Ted.", "react": [{ "character": "ted", "emotion": "happy" }] },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Strike that from the record.", "emotion": "embarrassed", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Occupation?", "delivery": "fast" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Please.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "You're going to be some kid's role model! What happens when he asks?", "emotion": "angry", "gesture": "facepalm" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "I'll tell him. He won't be bound by a canoe.", "laugh": "chuckle" },
+        { "type": "act", "character": "barney", "gesture": "stand" },
+        { "type": "move", "character": "barney", "to": "door" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Same building, Barney. I'll find out myself.", "gesture": "point" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Nobody gets past my door, Eriksen.", "emotion": "smug" },
+        { "type": "exit", "character": "barney" },
+        { "type": "hold", "character": "robin", "prop": "book" },
+        { "type": "say", "character": "ted", "to": "robin", "line": "Is that his Playbook? Did you just pickpocket Barney?", "emotion": "surprised" },
+        { "type": "say", "character": "robin", "to": "ted", "line": "My dad made me pickpocket him for my Christmas presents. Character building.", "delivery": "deadpan", "laugh": "laugh" }
+      ]
+    },
+    {
+      "id": "the-play",
+      "location": "maclarens",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Ted and Robin find 'The Big Brother' in the Playbook: it never worked, because women always ask the kid's name. Proof, they decide, that Barney is getting a real kid to fix the play. Lily doubles the bet.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "robin", "mark": "booth_right_front" },
+        { "character": "lily", "mark": "booth_left_front" },
+        { "character": "carl", "mark": "behind_bar" }
+      ],
+      "beats": [
+        { "type": "hold", "character": "ted", "prop": "book" },
+        { "type": "insert", "character": "ted", "line": "Page one hundred and twelve. Step one. Casually mention your Little.", "kind": "playbook", "title": "The Big Brother" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Step two. Roll up your sleeves like you just taught him long division.", "laugh": "chuckle" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "And then a note, in Barney's handwriting. Play has never worked. They always ask his name." },
+        { "type": "say", "character": "robin", "to": "lily", "line": "He's not going soft. He's getting a real kid to fix the play." },
+        { "type": "say", "character": "ted", "to": "lily", "line": "It's the most Barney thing I've ever heard.", "laugh": "laugh" },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Or he's trying to be a good person and you two owe me fifty bucks." },
+        { "type": "say", "character": "ted", "to": "lily", "line": "It's a play.", "chorus": ["robin"] },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Then let's make it a hundred.", "emotion": "smug", "gesture": "lean_in" },
+        { "type": "say", "character": "ted", "to": "lily", "line": "Done.", "laugh": "chuckle", "chorus": ["robin"] },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Wow. I didn't even believe it at fifty.", "laugh": "laugh" }
+      ]
+    },
+    {
+      "id": "break-in",
+      "location": "barneys_office",
+      "time": "night",
+      "transition": "cut",
+      "label": "11:04 PM",
+      "summary": "Marshall and Lily break into Barney's office. Arthur Hobbs catches them, and Marshall can only tell the truth. Arthur wants to know too.",
+      "cast": [],
+      "beats": [
+        { "type": "narrate", "line": "Your Uncle Marshall had never broken into anything in his life. Except one vending machine. He left a note and four dollars.", "laugh": "chuckle" },
+        { "type": "enter", "character": "lily", "to": "center" },
+        { "type": "enter", "character": "marshall", "to": "window" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Lilypad, how did you open that door in eight seconds?", "delivery": "whisper" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Twenty kids. Twenty cubbies. Zero trust.", "delivery": "whisper", "emotion": "smug", "laugh": "laugh" },
+        { "type": "move", "character": "lily", "to": "desk_chair" },
+        { "type": "enter", "character": "arthur", "to": "door" },
+        { "type": "say", "character": "arthur", "to": "marshall", "line": "Eriksen. Why are you in Stinson's office at eleven at night?", "emotion": "angry" },
+        { "type": "say", "character": "marshall", "to": "arthur", "line": "Breaking in, sir. My wife picked the lock. We're trying to find out what he does.", "delivery": "fast", "emotion": "scared", "laugh": "laugh" },
+        { "type": "act", "character": "lily", "to": "arthur", "gesture": "wave" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "arthur", "to": "marshall", "line": "I approve his expense reports. Every single one says, purpose, please." },
+        { "type": "say", "character": "arthur", "to": "marshall", "line": "I have signed off on four hundred thousand dollars of please.", "emotion": "angry", "laugh": "big" },
+        { "type": "say", "character": "arthur", "to": "marshall", "line": "Find out. Tell me. Then I was never here." },
+        { "type": "exit", "character": "arthur" }
+      ]
+    },
+    {
+      "resume": "break-in",
+      "id": "letters",
+      "summary": "In the locked drawer: not a job, but Barney's own childhood letters from Manhattan Bigs. Waitlisted. Every one says soon.",
+      "beats": [
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Locked desk drawer. That's the good drawer." },
+        { "type": "hold", "character": "lily", "prop": "envelope" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Manhattan Bigs. Addressed to Barney." },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "That's his application. I've already seen it." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "Not unless he applied in 1983.", "emotion": "confused" },
+        { "type": "move", "character": "marshall", "to": "desk_edge" },
+        { "type": "give", "character": "lily", "to": "marshall" },
+        { "type": "say", "character": "marshall", "line": "Dear Barney. Thank you for your patience. A Big will be in touch with you soon.", "delivery": "slow" },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "There's a whole stack. Eighty-four. Eighty-five. Eighty-six.", "emotion": "sad" },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "They all say soon.", "emotion": "sad" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "marshall", "to": "lily", "line": "Question fourteen asks if he's ever been involved with the program. He left it blank." },
+        { "type": "say", "character": "lily", "to": "marshall", "line": "He was eight.", "shot": "closeup" }
+      ]
+    },
+    {
+      "id": "stoop",
+      "location": "barneys",
+      "time": "night",
+      "transition": "cut",
+      "summary": "Marshall goes straight to Barney's and confesses first. Barney tells him about the Saturdays on the front steps. No music; it ends quietly.",
+      "cast": [{ "character": "barney", "mark": "window" }],
+      "beats": [
+        { "type": "hold", "character": "barney", "prop": "glass" },
+        { "type": "enter", "character": "marshall", "to": "center" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "I broke into your office and read your letters." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Most people open with hello.", "delivery": "deadpan" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Hello.", "emotion": "embarrassed", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "That drawer was locked." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Lily." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Of course.", "laugh": "chuckle" },
+        { "type": "move", "character": "barney", "to": "couch_right" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "My mom signed me up when I was eight. They said it'd be a few weeks." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "So every Saturday I put on my clip-on tie and sat on the front steps. In case it was that Saturday." },
+        { "type": "move", "character": "marshall", "to": "couch_center" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "How many Saturdays?", "emotion": "sad" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Four years' worth." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Then I learned to tie a real one." },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Why didn't you ever tell us?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Ted would've called me luminous.", "laugh": "chuckle" },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "There are six hundred boys on that list, Marshall. Some kid in Queens is sitting on a stoop this Saturday." },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "I own two hundred ties. I can spare a Saturday.", "shot": "push_in" },
+        { "type": "pause", "seconds": 2 }
+      ]
+    },
+    {
+      "resume": "interview",
+      "label": "The next morning",
+      "summary": "Back to the cold open. Marshall still can't answer question nine, so he answers a better one. Gail writes it down at the speed it was said. 'Soon' gets corrected.",
+      "beats": [
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Mr. Eriksen, every reference answers that question. Even his mother answered it." },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "What did she put?" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Astronaut. And pediatrician. In the same box.", "delivery": "deadpan", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "Okay. I don't know what Barney does from nine to five." },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "But when my car died in New Jersey at four in the morning, he was there by five. In a tuxedo.", "laugh": "chuckle" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "When Ted's building got rejected, he showed up with scotch and a shovel. We didn't need the shovel.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "I don't know what he does. I know he shows up.", "shot": "push_in" },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Shows. Up.", "delivery": "slow" },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Thank you, Mr. Eriksen. Tell him he'll hear from us soon." },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "Not soon." },
+        { "type": "say", "character": "marshall", "to": "guest1", "line": "Tell him when. Please." },
+        { "type": "pause", "seconds": 1.5 },
+        { "type": "say", "character": "guest1", "to": "marshall", "line": "Saturday. Ten o'clock. He lives in Queens.", "emotion": "happy" }
+      ]
+    },
+    {
+      "id": "saturday",
+      "location": "maclarens",
+      "time": "night",
+      "transition": "skyline",
+      "label": "Saturday",
+      "summary": "Barney's first Saturday with Dante. A woman at the park asked the kid's name and Barney skipped the play; Lily collects. Dante asked what Barney does, and now exactly one person knows.",
+      "cast": [
+        { "character": "ted", "mark": "booth_end" },
+        { "character": "marshall", "mark": "booth_left_front" },
+        { "character": "lily", "mark": "booth_left_back" },
+        { "character": "robin", "mark": "booth_right_back" },
+        { "character": "carl", "mark": "behind_bar" }
+      ],
+      "beats": [
+        { "type": "enter", "character": "barney", "to": "booth_right_front" },
+        { "type": "say", "character": "ted", "to": "barney", "line": "Well? How was your first Saturday?" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "His name is Dante. He's nine. He thinks my suit is a Halloween costume.", "laugh": "chuckle" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "We're working on it." },
+        { "type": "say", "character": "robin", "to": "barney", "line": "And did any women at the park happen to ask about him?", "emotion": "suspicious" },
+        { "type": "say", "character": "barney", "to": "robin", "line": "One. Gorgeous. Asked his name." },
+        { "type": "say", "character": "ted", "to": "barney", "line": "And you ran the play.", "gesture": "point" },
+        { "type": "say", "character": "barney", "to": "ted", "line": "I told her his name. Then we went and got pretzels." },
+        { "type": "pause", "seconds": 1 },
+        { "type": "say", "character": "lily", "to": "ted", "line": "Pay up.", "emotion": "smug", "gesture": "hands_on_hips" },
+        { "type": "say", "character": "robin", "to": "lily", "line": "Lily, we're kind of having a moment here.", "delivery": "deadpan" },
+        { "type": "say", "character": "lily", "to": "robin", "line": "Have it while you pay me.", "laugh": "laugh" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Did Dante ask what you do?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "First thing. So I told him.", "react": [{ "character": "ted", "gesture": "lean_in" }, { "character": "robin", "gesture": "lean_in" }, { "character": "lily", "gesture": "lean_in" }] },
+        { "type": "say", "character": "lily", "to": "barney", "line": "And?" },
+        { "type": "say", "character": "barney", "to": "lily", "line": "He said it's the dumbest job he's ever heard of.", "laugh": "big" },
+        { "type": "say", "character": "marshall", "to": "barney", "line": "Barney. What do you do?" },
+        { "type": "say", "character": "barney", "to": "marshall", "line": "Please.", "emotion": "smug", "laugh": "laugh", "shot": "closeup" }
+      ]
+    }
+  ]
+}
