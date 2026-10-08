@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { toon, glow, box, mesh, cyl } from '../../engine/materials';
 import { facade, metroNewsLogo, sign, skyGradient, riverWater } from '../../engine/textures';
 import { keyLight, v3 } from './common';
-import type { LocationId, TimeOfDay } from '../../script/types';
+import { NYC_TRANSITIONS, type EstablishingTransition, type LocationId, type TimeOfDay } from '../../script/types';
 import { mulberry32, pick, rand } from '../../util';
 import { buildAtlanticCityExterior } from './atlanticCityExterior';
 import { buildCampusExterior } from './campusExterior';
 import { buildWalkupExterior } from './walkupExterior';
+import { buildNycEstablishing } from './nycEstablishing';
 
 // The show's scene transitions: between scenes HIMYM cuts to New York itself, the skyline across the river or
 // the outside of wherever we're headed, sometimes with Future Ted talking over it.
@@ -23,7 +24,7 @@ export interface EstablishingShot {
 
 export interface Establishing {
   group: THREE.Group;
-  show(kind: 'skyline' | 'exterior' | 'atlantic_city', location: LocationId, time: TimeOfDay): EstablishingShot;
+  show(kind: EstablishingTransition, location: LocationId, time: TimeOfDay, angle?: number): EstablishingShot;
   update(dt: number): void;
 }
 
@@ -63,7 +64,11 @@ export function buildEstablishing(): Establishing {
   const street = buildStreet(dn, nightOnly, nightLights);
   const campus = buildCampusExterior(dn, nightLights);
   const atlantic = buildAtlanticCityExterior(dn);
-  g.add(skyline.group, street.group, campus, atlantic.group);
+  const city = buildNycEstablishing(dn);
+  const rotation = ['skyline', ...NYC_TRANSITIONS] as const;
+  let nextCity = 0;
+  const nextAngle = new Map<string, number>();
+  g.add(skyline.group, street.group, campus, atlantic.group, ...Object.values(city).map(c => c.group));
 
   const hemi = new THREE.HemisphereLight('#8a9ac8', '#2a2420', 1.0);
   g.add(hemi);
@@ -88,16 +93,20 @@ export function buildEstablishing(): Establishing {
 
   return {
     group: g,
-    show(kind, location, time) {
+    show(kind, location, time, angle) {
       setTime(time);
       const atAtlantic = kind === 'atlantic_city' || location === 'atlantic_city_casino';
       atlantic.group.visible = atAtlantic;
       // Interiors without an authored facade use New York geography, never the pub entrance.
       const cityOnly = ['hoser_hut', 'courtroom', 'lusty_leopard'].includes(location);
       const atCampus = !atAtlantic && kind === 'exterior' && location === 'lecture_hall';
-      skyline.group.visible = !atAtlantic && (kind === 'skyline' || cityOnly);
+      // Existing episode files gain new city footage automatically; destination facades stay specific.
+      const selected = !atAtlantic && (kind === 'skyline' || (kind === 'exterior' && cityOnly))
+        ? rotation[nextCity++ % rotation.length] : kind;
+      skyline.group.visible = !atAtlantic && selected === 'skyline';
       street.group.visible = !atAtlantic && !cityOnly && kind === 'exterior' && !atCampus;
       campus.visible = atCampus;
+      for (const [id, c] of Object.entries(city)) c.group.visible = !atAtlantic && selected === id;
       // Keep the portico, steps and lawn inside the campus sun's shadow volume.
       sun.position.set(atCampus ? -24 : -14, atCampus ? 35 : 22, atCampus ? 24 : 18);
       sun.target.position.set(0, 0, atCampus ? 0 : -10);
@@ -107,14 +116,20 @@ export function buildEstablishing(): Establishing {
       shadow.far = atCampus ? 110 : 60;
       shadow.updateProjectionMatrix();
       if (atAtlantic) return shot(v3(-23, 10.2, 39), v3(2, 11, -8), 48, v3(.22, 0, -.11), v3(.06, 0, 0));
-      if (cityOnly) return skyline.framing();
+      if (Object.hasOwn(city, selected)) {
+        const c = city[selected as (typeof NYC_TRANSITIONS)[number]];
+        const index = angle ?? nextAngle.get(selected) ?? 0;
+        if (angle === undefined) nextAngle.set(selected, index + 1);
+        return c.shots[((index % c.shots.length) + c.shots.length) % c.shots.length];
+      }
       if (atCampus) return shot(v3(-6, 5.6, 49), v3(0, 5, -9), 38, v3(0.13, 0.015, -0.22), v3(0.04, 0, 0));
-      return kind === 'skyline' ? skyline.framing() : street.framing(location);
+      return selected === 'skyline' ? skyline.framing() : street.framing(location);
     },
     update(dt) {
       if (atlantic.group.visible) atlantic.update(dt);
       if (skyline.group.visible) skyline.update(dt);
       if (street.group.visible) street.update(dt);
+      for (const c of Object.values(city)) if (c.group.visible) c.update(dt);
     },
   };
 }

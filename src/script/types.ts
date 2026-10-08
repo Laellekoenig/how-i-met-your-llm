@@ -194,7 +194,10 @@ export interface GuestStar {
  * cuts to the New York skyline or the outside of the building first, or uses a rewind cue when Future Ted
  * is getting ahead of himself. An opening narrate beat can play over an establishing shot.
  */
-export const TRANSITIONS = ['cut', 'skyline', 'exterior', 'atlantic_city', 'rewind'] as const;
+export const NYC_TRANSITIONS = ['flatiron', 'washington_square', 'central_park', 'brooklyn_bridge'] as const;
+export const ESTABLISHING_TRANSITIONS = ['skyline', 'exterior', 'atlantic_city', ...NYC_TRANSITIONS] as const;
+export type EstablishingTransition = (typeof ESTABLISHING_TRANSITIONS)[number];
+export const TRANSITIONS = ['cut', ...ESTABLISHING_TRANSITIONS, 'rewind'] as const;
 export type Transition = (typeof TRANSITIONS)[number];
 
 /** A listener's reaction once a line (or an insert) lands: the shocked stare, the spit take. */

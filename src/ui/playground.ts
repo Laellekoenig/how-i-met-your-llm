@@ -13,7 +13,7 @@ import { sleep } from '../util';
 import { GANG } from '../show/mainTitles';
 import { $ } from './dom';
 import {
-  CHARACTER_IDS, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, GESTURES, GUEST_COLORS,
+  CHARACTER_IDS, CUTAWAY_LOOKS, CUTAWAY_STYLES, CUTAWAY_TRANSITIONS, DELIVERIES, EMOTIONS, ESTABLISHING_TRANSITIONS, GESTURES, GUEST_COLORS,
   GUEST_EXTRAS, GUEST_HAIR, GUEST_HAIR_STYLES, GUEST_IDS, GUEST_SKIN, GUEST_TOPS, INSERT_KINDS, LAUGHS, LOCATION_IDS, MONTAGE_MUSIC, MUSIC_DESCRIPTIONS, OFFSCREEN,
   OUTFITS, PAIRED_GESTURES, PROPS, SCENE_LOCATION_IDS, SCORES, SHOTS, SOUND_CUES, TRANSITIONS, isCharacterId, isKid,
   type Beat, type CastPlacement, type CharacterId, type Costume, type EpisodeScript, type GuestStar, type LocationId,
@@ -484,7 +484,7 @@ export function playground(o: { stage: Stage; director: Director; renderer: Rend
     }
     if (on.length > 2) list.push({ name: 'group (everyone)', go: () => director.group(on) });
     if (st.location !== 'future') {
-      for (const kind of ['skyline', 'exterior', 'atlantic_city'] as const) {
+      for (const kind of ESTABLISHING_TRANSITIONS) {
         list.push({ name: `establishing · ${kind}`, go: () => director.establish(stage.establish(kind, st.location, st.time), true) });
       }
     }

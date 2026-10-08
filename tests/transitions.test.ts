@@ -6,7 +6,7 @@ import { rerun } from './helpers/episodes';
 import { Player } from '../src/show/player';
 import { audio } from '../src/audio/audio';
 import { speech } from '../src/audio/speech';
-import type { Scene, ShowItem } from '../src/script/types';
+import { ESTABLISHING_TRANSITIONS, type Scene, type ShowItem } from '../src/script/types';
 import { overlayStub } from './helpers/overlay';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -96,13 +96,13 @@ describe('script compatibility and intentional time jumps', () => {
     const sets = testStage().sets;
     const ep = rerun('The Understudy');
     const withTransition = (transition: unknown) => validateEpisode({ ...ep, scenes: [{ ...ep.scenes[0], transition }, ...ep.scenes.slice(1)] }, sets).errors;
-    for (const t of ['skyline', 'exterior', 'atlantic_city', 'cut', 'rewind', undefined]) expect(withTransition(t)).toEqual([]);
+    for (const t of [...ESTABLISHING_TRANSITIONS, 'cut', 'rewind', undefined]) expect(withTransition(t)).toEqual([]);
     for (const t of [' SKYLINE ', null, 2, 'dissolve', '__proto__']) expect(withTransition(t)).toHaveLength(1);
   });
 });
 
 describe('transition playback', () => {
-  test.each(['exterior', 'atlantic_city'] as const)('%s: narration starts outside and is not repeated inside', async (transition) => {
+  test.each(ESTABLISHING_TRANSITIONS)('%s: narration starts outside and is not repeated inside', async (transition) => {
     let finish!: () => void;
     const done = new Promise<void>((resolve) => { finish = resolve; });
     const spokenOutside: boolean[] = [];

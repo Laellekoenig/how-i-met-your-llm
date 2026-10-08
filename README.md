@@ -89,9 +89,9 @@ and following scene carryover. These are static line counts, not percentages of 
   sets: the city scrolls past outside, and people slide between seats and climb in and out instead of walking.
 - **The look** (`src/engine/renderer.ts`): renders at ~270p, then applies depth-based ink outlines, posterize + Bayer
   dithering, chromatic aberration, scanlines, grain and vignette. Toggle/tune under *picture & sound*.
-- **Scene transitions**: quick cuts, moving day/night Manhattan skyline shots, destination exteriors with passing
+- **Scene transitions**: quick cuts, moving day/night NYC landmark and Manhattan skyline shots, destination exteriors with passing
   cabs, and an optional short rewind cue for narrated flashbacks. An opening Future Ted line can play over the city.
-  Each scene can choose `cut`, `skyline`, `exterior`, or `rewind`; unannotated scenes
+  Each scene can choose `cut`, `skyline`, `exterior`, `atlantic_city`, `flatiron`, `washington_square`, `central_park`, `brooklyn_bridge`, or `rewind`; unannotated scenes
   choose automatically from changes in time and location. Transitions pause and skip with playback; reduced-motion
   preferences disable camera drift and the rewind blur. All scenery and sounds are procedural.
   The pacing and musical punctuation draw on [Pamela Fryman's DGA interview](https://www.dga.org/craft/dgaq/issues/1001-spring-2010/profile-pamela-fryman)
@@ -300,6 +300,31 @@ The coastal composition is an original interpretation, supplemented by [Gensler�
 architecture photographs](https://www.gensler.com/projects/house-of-blues-atlantic-city), rather than an identified
 frame-for-frame episode establishing shot. Interior dimensions and unseen reverse walls are adapted for the
 puppets and camera system. All geometry and textures are procedural; reference photographs are not shipped.
+
+## NYC transition footage
+
+`skyline` now rotates through the existing Manhattan view and four new city cutaways, so existing episodes
+gain variety automatically. Destination `exterior` shots still establish the actual building. Each landmark
+has two slow camera moves, day/night lighting and animated traffic, fountain spray or water where applicable.
+Layered background blocks, occasional rooftop water tanks and setbacks add city detail; slightly tighter
+framing reduces empty sky while keeping the landmarks prominent.
+An explicit landmark transition uses the normal narration, pause, skip and reduced-motion behavior.
+
+Preview silently with `/?set=flatiron&time=day&mute`, changing the landmark, camera angle and lighting with
+the tour controls. The playground's camera panel and scene transition selector expose the same additions.
+
+| Transition | Visual references | Procedural interpretation |
+| --- | --- | --- |
+| `flatiron` | The HIMYM chapter in [The Routledge Companion to Media and the City](https://dokumen.pub/the-routledge-companion-to-media-and-the-city.html) identifies Flatiron and Washington Square in “We're Not From Here”; [NYC photograph from Baruch College](https://presidentsblog.baruch.cuny.edu/appreciate-the-complexity-around-us/) | Rounded limestone wedge, cornice bands, window rows on both faces, Broadway/23rd Street signs, crosswalk and passing yellow cabs. |
+| `washington_square` | Same HIMYM chapter; [NYU's park photograph](https://www.law.nyu.edu/leadershipprogram) | White triumphal arch, circular fountain, Fifth Avenue beyond, benches, globe lamps and autumn trees. |
+| `central_park` | [Bow Bridge, Central Park Conservancy](https://www.centralparknyc.org/locations/bow-bridge) | Curved cream bridge and ornamental railings, lake, rowboat, autumn banks and San Remo twin towers. A broader NYC atmosphere addition, not a claimed replica of a HIMYM frame. |
+| `brooklyn_bridge` | [NYC DOT's bridge reference](https://www.nyc.gov/html/dot/html/infrastructure/brooklyn-bridge.shtml), [photograph from NYU Tandon](https://engineering.nyu.edu/academics/programs/nyu-tandon-bridge/enrolled-bridge-students) | Twin Gothic tower openings, suspension and diagonal stay cables, waterfront promenade and lit skyline. A broader NYC atmosphere addition. |
+
+The show's street-set context also comes from production designer [Stephan Olson's HIMYM portfolio](https://www.stephanolson.com/himym).
+These are original stylized sets; online photographs are reference only and are not bundled.
+Both camera moves for every new landmark were checked in the muted running app, in daylight and at night.
+The raycast audit checks frame coverage at 0, 2 and 4 seconds; playback tests cover opening narration for all establishing transitions.
+[Saved camera audit frames](docs/screenshots/nyc-transitions/) include both angles and lighting states.
 
 ## City interiors and period flashbacks
 
