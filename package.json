@@ -12,13 +12,15 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "bible": "bun scripts/episodes.ts bible",
-    "episodes": "bun scripts/episodes.ts"
+    "episodes": "bun scripts/episodes.ts",
+    "screenshot": "bun scripts/screenshot.ts"
   },
   "dependencies": {
     "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
+    "puppeteer-core": "^25.13.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.2"
   }

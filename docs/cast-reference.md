@@ -183,3 +183,23 @@ photos are not bundled or requested at runtime. Voices remain browser TTS.
 - **The Reunion Tape**: Hammond lectures Ted's class, Punchy arrives in his wedding suit, and an old tape prompts a Robin Sparkles retail-promotion flashback before returning to present-day Robin.
 
 These follow the original four reruns. All dialogue and the short Sparkles jingle are original.
+
+
+## Other recurring characters
+
+Sandy Rivers, Arthur Hobbs, Brad, Victoria, Quinn, Kevin, Judy Eriksen and Scooter each have a distinct procedural
+model, voice profile, caption color and show-bible entry.
+
+Their default outfits are stylized interpretations of these inspected episode stills. Heights and facial
+proportions are artistic approximations; voices use browser TTS. No photographs are bundled or loaded at runtime.
+
+| Character | Visual reference and modeled outfit |
+| --- | --- |
+| Sandy Rivers / Alexis Denisof | [“Come On” news-desk still](https://www.imdb.com/title/tt0774239/characters/nm0219206): swept brown hair, gray suit, pink shirt with white collar, patterned lavender tie and pocket square. |
+| Arthur Hobbs / Bob Odenkirk | [Conference-room still](https://animatedtimes.com/lesser-known-connection-between-how-i-met-your-mother-and-breaking-bad/): receding brown hair, charcoal suit, lavender shirt and purple patterned tie. |
+| Brad Morris / Joe Manganiello | [“Twelve Horny Women” courtroom still](https://www.imdb.com/media/rm1477947136/tt0460649): tall, broad build, dark hair and beard, dark suit, gray shirt and striped tie. |
+| Victoria / Ashley Williams | [Architect’s Ball still](https://www.looper.com/1243957/himym-theory-suggests-ted-victoria-run-in-no-coincidence/): brunette updo, plum sleeveless dress with shoulder ruffles and drop earrings. |
+| Quinn Garvey / Becki Newton | [“The Pre-Nup” conference-room still](https://www.looper.com/753737/its-time-to-talk-about-quinn-from-how-i-met-your-mother/): long blonde waves, burgundy leather jacket, black top and dark jeans. |
+| Kevin / Kal Penn | [“Mystery vs. History” painting still](https://www.imdb.com/title/tt2072524/): short black hair, purple V-neck over a white crew-neck tee and gray jeans. |
+| Judy Eriksen / Suzie Plakson | [HIMYM still on Plakson’s own acting page](https://suzieplakson.com/acting/) ([photo](https://suzieplakson.com/wp-content/uploads/2018/01/plakson3-2.jpg)): tall build, full auburn curls, pale yellow turtleneck and cream printed kitchen apron. The procedural print uses original kitchenware and fruit motifs. |
+| Scooter / David Burtka | [“Something Borrowed” episode still](https://www.apps.disneyplus.com/ph/shows/how-i-met-your-mother/8323/something-borrowed/1770001357/watch): tousled brown hair, brown suit, ivory shirt and red diamond-pattern tie. |
