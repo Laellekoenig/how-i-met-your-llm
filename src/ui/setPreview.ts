@@ -1,6 +1,6 @@
 import type { Stage } from '../show/stage';
 import type { Director } from '../show/director';
-import type { CharacterId, LocationId } from '../script/types';
+import { NYC_TRANSITIONS, type CharacterId, type LocationId } from '../script/types';
 import { el } from './dom';
 
 const previews = {
@@ -73,21 +73,27 @@ const previews = {
     ['ted', 'friend'],
   ],
 } as const satisfies Partial<Record<LocationId, readonly (readonly [CharacterId, string])[]>>;
-type PreviewId = keyof typeof previews | 'atlantic_city';
+const cityPreviews = {
+  flatiron: 'NYC · Flatiron Building', washington_square: 'NYC · Washington Square',
+  central_park: 'NYC · Central Park', brooklyn_bridge: 'NYC · Brooklyn Bridge',
+};
+type CityPreviewId = (typeof NYC_TRANSITIONS)[number];
+type PreviewId = keyof typeof previews | 'atlantic_city' | CityPreviewId;
+const isCity = (id: PreviewId): id is CityPreviewId => Object.hasOwn(cityPreviews, id);
 
 /** Optional, silent set tour. Episodes continue to use the normal player and show guide. */
 export function setPreview(stage: Stage, director: Director) {
   const params = new URLSearchParams(location.search);
   const requested = params.get('set');
-  if (!requested || (!Object.hasOwn(previews, requested) && requested !== 'atlantic_city')) return false;
+  if (!requested || (!Object.hasOwn(previews, requested) && !Object.hasOwn(cityPreviews, requested) && requested !== 'atlantic_city')) return false;
   let current = requested as PreviewId;
   let time: 'day' | 'night' = params.get('time') === 'day' ? 'day' : 'night';
   const bar = el('div', 'set-preview');
   bar.setAttribute('aria-label', 'Set preview');
   const places = el('select');
   places.setAttribute('aria-label', 'Location');
-  for (const id of [...Object.keys(previews), 'atlantic_city'] as PreviewId[]) {
-    places.append(option(id, id === 'atlantic_city' ? 'Atlantic City · Arrival' : stage.sets[id].name));
+  for (const id of [...Object.keys(previews), 'atlantic_city', ...NYC_TRANSITIONS] as PreviewId[]) {
+    places.append(option(id, id === 'atlantic_city' ? 'Atlantic City · Arrival' : isCity(id) ? cityPreviews[id] : stage.sets[id].name));
   }
   places.value = current;
   const shots = el('select');
@@ -103,6 +109,10 @@ export function setPreview(stage: Stage, director: Director) {
     director.fresh();
     if (current === 'atlantic_city') {
       director.establish(stage.establish('atlantic_city', 'atlantic_city_casino', time), true);
+      return;
+    }
+    if (isCity(current)) {
+      director.establish(stage.establish(current, 'maclarens', time, Number(shots.value)), true);
       return;
     }
     const [kind, value] = shots.value.split(':');
@@ -126,6 +136,10 @@ export function setPreview(stage: Stage, director: Director) {
     if (current === 'atlantic_city') {
       shots.append(el('option', '', 'Boardwalk arrival'));
       shots.disabled = true;
+    } else if (isCity(current)) {
+      shots.disabled = false;
+      shots.append(option('0', 'Landmark wide'), option('1', 'Reverse landmark wide'));
+      shots.value = previous === '1' ? '1' : '0';
     } else {
       shots.disabled = false;
       stage.setLocation(current, time);

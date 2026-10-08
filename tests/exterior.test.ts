@@ -2,10 +2,49 @@ import { describe, expect, test } from 'bun:test';
 import * as THREE from 'three';
 import './helpers/sets'; // canvas shim for the procedural textures
 import { buildEstablishing } from '../src/world/sets/establishing';
-import { LOCATION_IDS } from '../src/script/types';
+import { LOCATION_IDS, NYC_TRANSITIONS } from '../src/script/types';
 
 const exterior = buildEstablishing();
 const facade = exterior.group.getObjectByName('exterior_walkup')!;
+
+describe('NYC landmark cutaways', () => {
+  test('automatic city footage covers every landmark once per rotation', () => {
+    const seen = new Set<string>();
+    const activeCity = () => exterior.group.children.filter(o => o instanceof THREE.Group && o.visible);
+    for (let i = 0; i < 5; i++) {
+      exterior.show('skyline', 'maclarens', 'day');
+      const active = activeCity();
+      expect(active).toHaveLength(1);
+      seen.add(active[0].name);
+    }
+    expect(seen.size).toBe(5);
+    for (const id of NYC_TRANSITIONS) expect(seen.has(`exterior_${id}`)).toBe(true);
+    exterior.show('exterior', 'maclarens', 'night');
+    for (const id of NYC_TRANSITIONS) expect(exterior.group.getObjectByName(`exterior_${id}`)!.visible).toBe(false);
+    expect(facade.visible).toBe(true);
+  });
+
+  for (const kind of NYC_TRANSITIONS) for (const angle of [0, 1]) test(`${kind} / angle ${angle}: both lighting states cover the frame throughout the move`, () => {
+    const camera = new THREE.PerspectiveCamera(45, 16 / 9, .1, 600);
+    const ray = new THREE.Raycaster();
+    for (const time of ['day', 'night'] as const) {
+      const shot = exterior.show(kind, 'maclarens', time, angle);
+      const active = exterior.group.children.filter(o => o instanceof THREE.Group && o.visible);
+      expect(active).toHaveLength(1);
+      expect(active[0].name).toBe(`exterior_${kind}`);
+      camera.fov = shot.fov; camera.updateProjectionMatrix();
+      const scenery = visibleMeshes();
+      for (const seconds of [0, 2, 4]) {
+        camera.position.copy(shot.pos).addScaledVector(shot.move, seconds);
+        camera.lookAt(shot.target.clone().addScaledVector(shot.look, seconds)); camera.updateMatrixWorld();
+        for (const x of [-.99, -.5, 0, .5, .99]) for (const y of [-.99, -.5, 0, .5, .99]) {
+          ray.setFromCamera(new THREE.Vector2(x, y), camera);
+          expect(ray.intersectObjects(scenery, false).length, `${time}/${seconds}/${x}/${y}`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+});
 
 describe('establishing frame edges', () => {
   for (const location of LOCATION_IDS) test(`${location}: day and night moves stay within the scenery`, () => {

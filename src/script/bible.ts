@@ -125,12 +125,13 @@ In the car, limo and taxi everyone is seated: "move" means sliding over to anoth
 For subway, laser_tag, wesleyan_dorm, hospital, elevator, canadian_mall, hoser_hut, courtroom and lusty_leopard, use cut (or an intentional rewind); their interiors have no dedicated exterior.
 Choose the incoming transition for each scene ("transition"; leave it out to choose automatically from changes in time and place). Most connections should be quick cuts; use one or two establishing shots per episode for breathing room.
 - cut: straight into the scene without a sound cue. Best for immediate continuations and punchline reveals. Between two scenes on the same set, a cut dips briefly through black so the change of scene reads; for a time jump there, a label ("Two hours later") or a skyline still helps.
-- skyline: a brief day/night New York skyline shot. Good after the titles or for time passing.
+- skyline: brief day/night New York footage, rotating between the Manhattan skyline, Flatiron, Washington Square, Central Park and Brooklyn Bridge. Good after the titles or for time passing.
+- flatiron, washington_square, central_park, brooklyn_bridge: request a specific NYC landmark cutaway; two slow camera moves and day/night lighting for each. These are city atmosphere, not the destination's facade.
 - atlantic_city: the ocean, boardwalk and period casino skyline; automatic for an Atlantic City casino arrival, also usable explicitly for a limo arriving there. Day/night supported.
 - exterior: the outside of the destination building (or street traffic for a car/cab/limo), then cut inside. Good for a new location.
   MacLaren's and the apartment share one building: location maclarens frames the sunken pub entrance; location apartment frames the raised residential stoop and doorway beside it. Use transition exterior with either location to establish that entrance.
 - rewind: a half-second blurred jump with a descending sound cue. ONLY for an actual flashback or a "let me back up" correction, never an ordinary location change. Start with a short narrate beat making the time jump explicit; use cut when returning to the present.
-An opening narrate beat plays over skyline/exterior/atlantic_city footage before we cut inside. Keep it to one short sentence. Establishing transitions have no actors. For outdoor dialogue, use the playable maclarens_sidewalk or rooftop location. The kids' couch cutaways always remain straight cuts.
+An opening narrate beat plays over any establishing footage before we cut inside. Keep it to one short sentence. Establishing transitions have no actors. For outdoor dialogue, use the playable maclarens_sidewalk or rooftop location. The kids' couch cutaways always remain straight cuts.
 Ordinary scene changes have no automatic sound cue. The edit and the soundtrack are separate choices: name a scene "sound" to add a cue, or use "sound": "none" to silence the rewind transition too. Available cues (${SOUND_CUES.join(', ')}). A scene "label" puts a card on screen as it starts ("Meanwhile", "Two weeks later", "9:14 PM"); most scenes need none.
 
 # Cutaways

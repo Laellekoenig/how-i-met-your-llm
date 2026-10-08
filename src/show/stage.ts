@@ -5,7 +5,7 @@ import type { StageSet, Mark, Door } from '../world/sets/common';
 import { buildSets } from '../world/sets';
 import { KID_MARKS } from '../world/sets/future';
 import { buildEstablishing, type Establishing } from '../world/sets/establishing';
-import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, type Costume, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
+import { CHARACTER_IDS, KIDS, isCharacterId, isGuest, isKid, type CharacterId, type Costume, type EstablishingTransition, type GuestStar, type LocationId, type Outfit, type Prop, type TimeOfDay } from '../script/types';
 import { minBy, pick, rand } from '../util';
 import { SEATED_SPACE, SPACE, joinRoute, routeNodes, walkRoute, type Person } from './navigation';
 import { Crowd, type Seat } from './crowd';
@@ -334,7 +334,7 @@ export class Stage {
   }
 
   /** Temporarily replace the story with an actor-free view of New York. Built only when first needed. */
-  establish(kind: 'skyline' | 'exterior' | 'atlantic_city', location: LocationId, time: TimeOfDay) {
+  establish(kind: EstablishingTransition, location: LocationId, time: TimeOfDay, angle?: number) {
     this.endEstablishing();
     if (!this.establishing) {
       this.establishing = buildEstablishing();
@@ -344,7 +344,7 @@ export class Stage {
     for (const id of this.establishingCast) this.actors[id].root.visible = false;
     this.current.group.visible = false;
     this.establishing.group.visible = true;
-    return this.establishing.show(kind, location, time);
+    return this.establishing.show(kind, location, time, angle);
   }
 
   endEstablishing() {

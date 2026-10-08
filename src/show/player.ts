@@ -6,9 +6,9 @@ import { audio } from '../audio/audio';
 import { speech, deliveryRate, estimateDuration } from '../audio/speech';
 import { CHARACTERS, FUTURE_TED_VOICE, charName, outfitAt } from '../world/characters';
 import {
-  KIDS, PAIRED_GESTURES, isCharacterId, isKid, kidTake, playbookTitle,
+  ESTABLISHING_TRANSITIONS, KIDS, PAIRED_GESTURES, isCharacterId, isKid, kidTake, playbookTitle,
   type Beat, type CastPlacement, type CharacterId, type Costume, type CutawayBeat, type CutawayLook, type CutawayStyle, type CutawayTransition,
-  type Emotion, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind, type MontageBeat, type MontageMusic, type Reaction,
+  type Emotion, type EstablishingTransition, type FreezeBeat, type Gesture, type InsertBeat, type LaughKind, type MontageBeat, type MontageMusic, type Reaction,
   type ReplayBeat, type Scene, type SceneLocationId, type Score, type ShowItem, type SoundCue, type SplitBeat, type TimeOfDay,
 } from '../script/types';
 import { replayBeats } from '../script/strands';
@@ -625,11 +625,11 @@ export class Player {
       if (scene.sound && scene.sound !== 'none') audio.cue(scene.sound);
     };
     let firstBeat = 0;
-    if (transition === 'skyline' || transition === 'exterior' || transition === 'atlantic_city') {
+    if ((ESTABLISHING_TRANSITIONS as readonly string[]).includes(transition)) {
       const shot = this.director.current;
       const ambience = this.stage.current.ambience;
       try {
-        this.director.establish(this.stage.establish(transition, scene.location, scene.time), !reducedMotion);
+        this.director.establish(this.stage.establish(transition as EstablishingTransition, scene.location, scene.time), !reducedMotion);
         audio.ambience('none');
         this.renderer.fade = 1;
         cue();
