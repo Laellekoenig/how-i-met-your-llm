@@ -14,6 +14,7 @@ export interface Mark {
   pose?: SitPose; // how to sit here
   prop?: THREE.Object3D; // held in the lap by whoever sits here
   depth?: number; // a deep couch: how far forward of the mark its front edge is, so knees clear it
+  back?: readonly number[]; // how far behind the mark the backrest is, at each of BACK_HEIGHTS (measured by the stage)
 }
 
 export interface Shot {

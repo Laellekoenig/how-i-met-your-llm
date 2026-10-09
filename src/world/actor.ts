@@ -44,6 +44,15 @@ export const SCOOT_SPEED = 0.9;
 const SIT_STEP = 0.5;
 /** Room for the shins in front of a seat's front edge, so a deep couch doesn't swallow them. */
 const SHIN_ROOM = 0.07;
+/** Heights above a seat where the stage measures how far back its backrest is (`Mark.back`). */
+export const BACK_HEIGHTS = [0.12, 0.3, 0.5] as const;
+/** As far back as anyone sitting up leans into a backrest, in radians; a deeper couch leaves a gap behind them. */
+const RECLINE = 0.2;
+/** Where along the thigh a resting hand lies, furthest and nearest: nearer the hip when leaning back, so the
+ * elbow stays bent rather than the arm reaching straight out for the knee. */
+const LAP = [0.6, 0.15] as const;
+/** Which way a resting arm's elbow points (for the left arm): back, tucked in by the body. */
+const LAP_ELBOW = new THREE.Vector3(0.3, -0.2, -1);
 /** Clothing skinned between the hips and the spine. Camera occlusion rays refresh matrices with updateWorldMatrix,
  * which SkinnedMesh doesn't hook, so keep its attached bind inverse current there too. */
 class WaistMesh extends THREE.SkinnedMesh {
@@ -117,6 +126,10 @@ export class Actor {
   private browY0 = 0;
   private headH: number;
   private torsoLen: number;
+  /** For sitting: how far the back sticks out behind the spine, the hip joints out to the side, and the thighs up. */
+  private backDepth = 0;
+  private hipX = 0;
+  private thighR = 0;
 
   // --- state ---
   facing = 0;
@@ -126,13 +139,18 @@ export class Actor {
   private sitPose: SitPose = 'upright';
   /** How far in front of them the seat's front edge is, on seats deeper than a thigh. Kept while getting up. */
   private seatDepth: number | null = null;
+  /** How far behind them the backrest is, at each of `BACK_HEIGHTS` (Infinity: nothing there). Kept while getting up. */
+  private seatBack: readonly number[] | null = null;
+  /** Each hand's resting place on its thigh while sitting (hips space), and the arm pose that puts it there. */
+  private lap: { at: THREE.Vector3; pose: ArmPose }[] | null = null;
+  private lapRig = { sh: new THREE.Group(), el: new THREE.Group(), wrist: new THREE.Group() };
   private lapProp: THREE.Object3D | null = null;
   private path: THREE.Vector3[] = [];
   private scooting = false;
   /** Whether the walk ends in a seat (rather than standing on the spot). */
   private toSeat = false;
   /** The seat at the end of the walk: how high it is and which way it faces. */
-  private seatGoal: { height: number; facing: number; depth?: number } | null = null;
+  private seatGoal: { height: number; facing: number; depth?: number; back?: readonly number[] } | null = null;
   /** Seconds to stand and let someone by before walking on. */
   waiting = 0;
   private onArrive: (() => void) | null = null;
@@ -284,6 +302,9 @@ export class Actor {
     // ---- legs (the pelvis is shaped to the torso below)
     const hipR = (fem ? 0.168 : 0.156) * bx;
     const hx = (fem ? 0.088 : 0.085) * bx;
+    this.hipX = hx;
+    this.thighR = 0.07 * bx;
+    this.backDepth = 0.125 * bz;
     for (const side of [1, -1]) {
       const hip = side > 0 ? this.lHip : this.rHip;
       const knee = side > 0 ? this.lKnee : this.rKnee;
@@ -1180,7 +1201,7 @@ export class Actor {
     return this.seatHeight !== null;
   }
 
-  place(pos: THREE.Vector3, facing: number, seatHeight: number | null, opts: { pose?: SitPose; prop?: THREE.Object3D; depth?: number } = {}) {
+  place(pos: THREE.Vector3, facing: number, seatHeight: number | null, opts: { pose?: SitPose; prop?: THREE.Object3D; depth?: number; back?: readonly number[] } = {}) {
     this.root.position.copy(pos);
     this.root.rotation.y = facing;
     this.facing = this.targetFacing = facing;
@@ -1188,6 +1209,7 @@ export class Actor {
     this.sitBlend = seatHeight !== null ? 1 : 0;
     this.sitPose = seatHeight !== null ? opts.pose ?? 'upright' : 'upright';
     this.seatDepth = seatHeight !== null ? opts.depth ?? null : null;
+    this.seatBack = seatHeight !== null ? opts.back ?? null : null;
     this.setLapProp(opts.prop ?? null);
     this.path = [];
     this.scooting = false;
@@ -1211,13 +1233,13 @@ export class Actor {
   }
 
   /** Walk along waypoints; resolves when arrived. With `scoot`, slide along them sitting down (there's no standing up in a car). */
-  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean; pose?: SitPose; prop?: THREE.Object3D; depth?: number }) {
+  walk(points: THREE.Vector3[], final: { facing: number; seat: number | null; scoot?: boolean; pose?: SitPose; prop?: THREE.Object3D; depth?: number; back?: readonly number[] }) {
     return new Promise<void>((resolve) => {
       if (this.onArrive) this.onArrive();
       this.path = points.map((p) => p.clone());
       this.scooting = !!final.scoot;
       this.toSeat = final.seat !== null;
-      this.seatGoal = final.seat !== null && !final.scoot ? { height: final.seat, facing: final.facing, depth: final.depth } : null;
+      this.seatGoal = final.seat !== null && !final.scoot ? { height: final.seat, facing: final.facing, depth: final.depth, back: final.back } : null;
       this.waiting = 0;
       this.seatHeight = final.scoot ? final.seat ?? this.seatHeight ?? 0.42 : null; // stand up first
       this.sitPose = 'upright';
@@ -1229,7 +1251,10 @@ export class Actor {
         this.targetFacing = final.facing;
         this.seatHeight = final.seat;
         this.sitPose = final.pose ?? 'upright';
-        if (final.seat !== null) this.seatDepth = final.depth ?? null;
+        if (final.seat !== null) {
+          this.seatDepth = final.depth ?? null;
+          this.seatBack = final.back ?? null;
+        }
         this.setLapProp(final.prop ?? null);
         resolve();
       };
@@ -1374,7 +1399,10 @@ export class Actor {
     const settling = !!seatAt && Math.hypot(seatAt.x - pos.x, seatAt.z - pos.z) <= SIT_STEP + 0.01;
     const turned = settling && Math.abs(angleDiff(this.facing, this.seatGoal!.facing)) < 0.35;
     const sitting = this.seatHeight !== null || turned;
-    if (turned) this.seatDepth = this.seatGoal!.depth ?? null;
+    if (turned) {
+      this.seatDepth = this.seatGoal!.depth ?? null;
+      this.seatBack = this.seatGoal!.back ?? null;
+    }
     this.sitBlend += ((sitting ? 1 : 0) - this.sitBlend) * damp(7, dt);
     let moving = false;
     if (settling) {
@@ -1435,16 +1463,21 @@ export class Actor {
     const sb = this.sitBlend;
     const s = this.seed;
     const ws = w * this.stride;
+    const seat = this.seatHeight ?? this.seatGoal?.height ?? 0.45;
+    // Sitting, the thighs lie along the seat and the shins go down to the floor, the feet a little out in front
+    // (further on a low seat, rather than through the floor) and one a bit ahead of the other; men's knees apart.
+    const reach = Math.max(0.12, Math.acos(clamp((seat + 0.02) / this.thigh, 0, 1)));
+    const ahead = 0.08 * Math.sin(s * 3.7);
+    const splay = this.def.look.female ? 0.03 : 0.1;
     target.lHip = lerp(-Math.sin(ph) * 0.55 * ws, -Math.PI / 2, sb);
     target.rHip = lerp(Math.sin(ph) * 0.55 * ws, -Math.PI / 2, sb);
-    target.lKnee = lerp(Math.max(0, Math.cos(ph)) * 0.9 * ws, Math.PI / 2, sb);
-    target.rKnee = lerp(Math.max(0, -Math.cos(ph)) * 0.9 * ws, Math.PI / 2, sb);
-    const seat = this.seatHeight ?? this.seatGoal?.height ?? 0.45;
+    target.lKnee = lerp(Math.max(0, Math.cos(ph)) * 0.9 * ws, Math.PI / 2 - reach - Math.max(0, ahead), sb);
+    target.rKnee = lerp(Math.max(0, -Math.cos(ph)) * 0.9 * ws, Math.PI / 2 - reach - Math.max(0, -ahead), sb);
+    target.lHipZ = splay * sb;
+    target.rHipZ = -splay * sb;
     this.hips.position.y = lerp(this.legLen + Math.abs(Math.cos(ph)) * 0.035 * w, seat + 0.06, sb) + this.bounce;
-    // shift hips back onto the seat when sitting, but on a deep seat only as far as keeps the knees over its
-    // front edge: shorter legs perch further forward, rather than hanging down inside the couch
-    const perch = this.seatDepth === null || this.sitPose === 'cross_legged' ? -0.12 : this.seatDepth + SHIN_ROOM - this.thigh;
-    this.hips.position.z = Math.max(-0.12, perch) * sb;
+    const fit = this.seatFit();
+    this.hips.position.z = fit.z * sb;
 
     // arms: rest pose / walk swing / sitting
     target.lSh = [Math.sin(ph) * 0.45 * w - 0.35 * sb, 0, 0.09];
@@ -1453,8 +1486,15 @@ export class Actor {
     target.rEl = -0.15 - 0.25 * w - 0.75 * sb;
 
     // idle life
-    target.spine = [0.02 + noise1(t * 0.3 + s) * 0.02, noise1(t * 0.2 + s * 2) * 0.04, noise1(t * 0.25 + s) * 0.025];
+    target.spine = [0.02 + noise1(t * 0.3 + s) * 0.02 - fit.recline * sb, noise1(t * 0.2 + s * 2) * 0.04, noise1(t * 0.25 + s) * 0.025];
     this.spine.scale.y = 1 + Math.sin(t * 1.6 + s) * 0.008;
+    // sitting up, the hands rest on the thighs
+    this.lap = null;
+    if (this.sitPose === 'upright' && sb > 0.01) {
+      this.lap = [this.lapArm(1, target.spine, splay), this.lapArm(-1, target.spine, splay)];
+      this.arm(target, 1, this.lap[0].pose, sb);
+      this.arm(target, -1, this.lap[1].pose, sb);
+    }
 
     if (this.sitPose === 'driving') {
       target.lSh = [-1.15 * sb, 0, 0.05];
@@ -1533,6 +1573,8 @@ export class Actor {
     for (const key of Object.keys(fTarget) as (keyof Face)[]) this.face[key] += (fTarget[key] - this.face[key]) * k;
     const f = this.face;
     target.head = [f.headDown, 0, f.headTilt];
+    // leaning back, the chin comes forward to keep looking ahead
+    target.head[0] += 0.8 * fit.recline * sb;
     // a slouch tips the head back; chin comes forward again to keep looking ahead
     if (this.sitPose === 'sprawl') {
       target.head[0] += 0.34 * sb;
@@ -1868,13 +1910,13 @@ export class Actor {
       return new THREE.Quaternion().setFromAxisAngle(v(0, 1, 0), side * (limited - a));
     };
     const headPoint = (x: number, y: number, z: number) => this.spine.worldToLocal(this.head.localToWorld(v(x * this.headH, y * this.headH * (this.def.look.face?.long ?? 1), z * this.headH)));
-    const palm = (side: number, position: THREE.Vector3, fingers: THREE.Vector3, normal: THREE.Vector3, weight = e, kind: HandShape = 'open', onHead = false) => {
+    const palm = (side: number, position: THREE.Vector3, fingers: THREE.Vector3, normal: THREE.Vector3, weight = e, kind: HandShape = 'open', onHead = false, pole = v(side * 0.75, -1, 0.12)) => {
       const hand = side > 0 ? this.lHand : this.rHand;
       const sh = side > 0 ? this.lSh : this.rSh, el = side > 0 ? this.lEl : this.rEl;
       const q = handOrientation(side, fingers, normal);
       if (onHead) q.premultiply(headQ);
       const target = position.clone().sub(v(0, -0.03 * scale, 0).applyQuaternion(q));
-      reachArm(sh, el, hand.wrist, target, v(side * 0.75, -1, 0.12), weight);
+      reachArm(sh, el, hand.wrist, target, pole, weight);
       const local = sh.quaternion.clone().multiply(el.quaternion).invert().multiply(q);
       hand.wrist.quaternion.slerp(local, weight);
       if (weight > 0.08) shape(side, kind);
@@ -1899,6 +1941,19 @@ export class Actor {
       for (const side of [1, -1]) if (!(busy && side < 0))
         bodyPalm(side, side * 0.025, 0.18, 0.22 + side * 0.016, [0, 0.25, 1], [-side, 0, 0], weight, 'grip');
     };
+
+    // Sitting, a hand with nothing to do lies on its thigh, palm down, for as long as the arm stays (near enough)
+    // in its lap pose: it lifts off as a gesture or a talking hand takes the arm away.
+    if (this.lap) {
+      const hipsQ = spineQ.clone().invert().multiply(this.hips.getWorldQuaternion(new THREE.Quaternion()));
+      const p = this.pose;
+      this.lap.forEach(({ at, pose }, i) => {
+        const side = i ? -1 : 1, sh = side > 0 ? p.lSh : p.rSh;
+        const off = Math.max(Math.abs(sh[0] - pose[0]), Math.abs(sh[1] - side * pose[1]), Math.abs(sh[2] - side * pose[2]), Math.abs((side > 0 ? p.lEl : p.rEl) - pose[3]));
+        const weight = this.sitBlend * (1 - smoothstep(0.06, 0.4, off));
+        if (weight > 0.01) palm(side, this.spine.worldToLocal(this.hips.localToWorld(at.clone())), v(-side * 0.2, -0.15, 1).applyQuaternion(hipsQ), v(0, -1, 0).applyQuaternion(hipsQ), weight, 'relaxed', false, LAP_ELBOW.clone().setX(side * LAP_ELBOW.x).applyQuaternion(hipsQ));
+      });
+    }
 
     // Resting emotion, habitual movements and spoken accents use the same contacts.
     if (!g && grip !== 'arms') {
@@ -2193,6 +2248,53 @@ export class Actor {
       tear.mesh.position.set(tear.x, y, tear.z(tear.x, y));
       tear.mesh.scale.setScalar(1 - 0.45 * c);
     }
+  }
+
+  /**
+   * Where the hips go on the seat, and how far back the body leans. On a deep seat the knees stay over its front
+   * edge, so shorter legs perch further forward rather than hanging down inside the couch; the seat of the pants
+   * stays out of the backrest; then, sitting up, they lean back into the backrest as far as is comfortable. With
+   * nothing to lean on (a stool, a bench), they sit a touch forward instead.
+   */
+  private seatFit() {
+    const back = this.seatBack;
+    const perch = this.seatDepth === null || this.sitPose === 'cross_legged' ? -0.12 : this.seatDepth + SHIN_ROOM - this.thigh;
+    const z = Math.max(-0.12, perch, back ? this.backDepth - Math.min(...back) : -Infinity);
+    if (this.sitPose !== 'upright') return { z, recline: 0 };
+    if (!back || back.slice(1).every((d) => d === Infinity)) return { z, recline: -0.05 };
+    let recline = RECLINE;
+    // (the hips are 6cm up off the seat)
+    BACK_HEIGHTS.forEach((h, i) => {
+      if (i > 0 && back[i] < Infinity) recline = Math.min(recline, Math.asin(clamp((back[i] + z - this.backDepth) / (h - 0.06), -1, 1)));
+    });
+    return { z, recline: Math.max(0, recline) };
+  }
+
+  /**
+   * The arm pose (as in `ARM`) that rests a hand on its thigh, and where on the thigh (in hips space): solved for
+   * this body, how far apart the knees are and how far back it leans, so the hand lies on the leg.
+   */
+  private lapArm(side: number, spine: V3, splay: number) {
+    const s = this.height / 1.8;
+    const fingers = new THREE.Vector3(-side * 0.2, -0.15, 1).normalize();
+    const lean = new THREE.Quaternion().setFromEuler(new THREE.Euler(...spine)), into = lean.clone().invert();
+    const { sh, el, wrist } = this.lapRig;
+    sh.position.copy((side > 0 ? this.lSh : this.rSh).position);
+    el.position.y = (side > 0 ? this.lEl : this.rEl).position.y;
+    wrist.position.y = (side > 0 ? this.lHand : this.rHand).wrist.position.y;
+    const shoulder = sh.position.clone().applyQuaternion(lean), comfy = 0.88 * -(el.position.y + wrist.position.y);
+    const at = new THREE.Vector3();
+    for (let f = LAP[0]; f >= LAP[1]; f -= 0.05) {
+      const along = f * this.thigh;
+      // (up by the hip the hand goes round the outside of the thigh, not into the crotch)
+      at.set(side * (this.hipX + Math.sin(splay) * along + 0.012 + 0.1 * (LAP[0] - f)), -0.04 + this.thighR + 0.018 * s, Math.cos(splay) * along);
+      if (at.distanceTo(shoulder) <= comfy) break;
+    }
+    sh.quaternion.identity();
+    el.rotation.x = 0;
+    reachArm(sh, el, wrist, at.clone().addScaledVector(fingers, -0.03 * s).applyQuaternion(into), LAP_ELBOW.clone().setX(side * LAP_ELBOW.x).applyQuaternion(into), 1);
+    const e = new THREE.Euler().setFromQuaternion(sh.quaternion);
+    return { at, pose: [e.x, side * e.y, side * e.z, el.rotation.x] as ArmPose };
   }
 
   /** Pull an arm toward a pose (given for the left arm; the right one mirrors it). */
