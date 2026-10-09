@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Actor } from '../world/actor';
+import { Actor, BACK_HEIGHTS } from '../world/actor';
 import { CHARACTERS, dressed, outfitAt, setGuests, type CharacterDef } from '../world/characters';
 import type { StageSet, Mark, Door } from '../world/sets/common';
 import { buildSets } from '../world/sets';
@@ -27,6 +27,24 @@ const DOORWAY = {
   push: 0.75,
 };
 
+/** How far behind each seat its backrest is, at each of `BACK_HEIGHTS`, so whoever sits there can lean back into it. */
+function measureBacks(set: StageSet, meshes: THREE.Mesh[]) {
+  set.group.updateMatrixWorld(true);
+  const marks = Object.values(set.marks);
+  const props = marks.flatMap((m) => m.prop ?? []);
+  const solid = meshes.filter((o) => !o.userData.cameraBackdrop && !props.some((p) => p === o || p.getObjectById(o.id)));
+  const ray = new THREE.Raycaster();
+  ray.far = 0.9;
+  for (const m of marks) {
+    if (m.seat === null) continue;
+    const behind = new THREE.Vector3(-Math.sin(m.facing), 0, -Math.cos(m.facing));
+    m.back = BACK_HEIGHTS.map((h) => {
+      ray.set(new THREE.Vector3(m.pos.x, m.pos.y + m.seat! + h, m.pos.z), behind);
+      return ray.intersectObjects(solid, false)[0]?.distance ?? Infinity;
+    });
+  }
+}
+
 export interface FrozenScene {
   set: StageSet;
   time: TimeOfDay;
@@ -36,7 +54,7 @@ export interface FrozenScene {
   background: Set<CharacterId>;
   outfits: Map<CharacterId, Outfit>;
   actors: {
-    id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D; depth?: number;
+    id: CharacterId; pos: THREE.Vector3; facing: number; seat: number | null; pose?: Mark['pose']; prop?: THREE.Object3D; depth?: number; back?: readonly number[];
     emotion: Actor['emotion']; holdingGlass: boolean; held: Prop | null;
   }[];
 }
@@ -92,6 +110,7 @@ export class Stage {
       const meshes: THREE.Mesh[] = [];
       s.group.traverse((o) => { if (o instanceof THREE.Mesh) meshes.push(o); });
       this.scenery.set(s, meshes);
+      measureBacks(s, meshes);
     }
     for (const id of CHARACTER_IDS) {
       const a = new Actor(CHARACTERS[id]);
@@ -222,7 +241,7 @@ export class Stage {
         const pos = a.isWalking ? (a.remainingPath.at(-1) ?? a.position.clone()) : a.position.clone();
         return {
           id, pos, facing: mark && (a.isWalking || mark.seat !== null) ? mark.facing : a.targetFacing,
-          seat: mark?.seat ?? null, pose: mark?.pose, prop: mark?.prop, depth: mark?.depth, emotion: a.emotion, holdingGlass: a.holdingGlass,
+          seat: mark?.seat ?? null, pose: mark?.pose, prop: mark?.prop, depth: mark?.depth, back: mark?.back, emotion: a.emotion, holdingGlass: a.holdingGlass,
           held: a.prop,
         };
       }),
@@ -239,7 +258,7 @@ export class Stage {
     for (const id of f.background) this.backgroundIds.add(id);
     for (const s of f.actors) {
       const a = this.actors[s.id];
-      a.place(s.pos, s.facing, s.seat, { pose: s.pose, prop: s.prop, depth: s.depth });
+      a.place(s.pos, s.facing, s.seat, { pose: s.pose, prop: s.prop, depth: s.depth, back: s.back });
       a.setEmotion(s.emotion);
       a.holdingGlass = s.holdingGlass;
       a.hold(s.held);
@@ -447,7 +466,7 @@ export class Stage {
     pos.y = this.floorY(pos.x, pos.z);
     this.crowd.forget(a);
     this.leaveDoor(id);
-    a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop, depth: m.depth });
+    a.place(pos, m.facing, m.seat, { pose: m.pose, prop: m.prop, depth: m.depth, back: m.back });
     a.root.visible = true;
     this.occupy(id, name);
   }
@@ -469,7 +488,7 @@ export class Stage {
     for (const id of KIDS) {
       const m = this.sets.future.marks[KID_MARKS[id]];
       const a = this.actors[id];
-      a.place(m.pos.clone(), m.facing, m.seat, { pose: m.pose, prop: m.prop, depth: m.depth });
+      a.place(m.pos.clone(), m.facing, m.seat, { pose: m.pose, prop: m.prop, depth: m.depth, back: m.back });
       a.setEmotion('bored');
       a.root.visible = true;
     }
@@ -582,7 +601,7 @@ export class Stage {
     const path = (!this.current.seated && (walkRoute(this.current, leaving, fromNode, arriving, node, people) || walkRoute(this.current, leaving, fromNode, arriving, node)))
       || [...leaving, ...route, ...arriving];
     const m = this.current.marks[name];
-    return a.walk(joinRoute(path).slice(1), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop, depth: m?.depth });
+    return a.walk(joinRoute(path).slice(1), { facing, seat, scoot: this.current.seated, pose: m?.pose, prop: m?.prop, depth: m?.depth, back: m?.back });
   }
 
   /** The free seat closest to someone (for sliding over to them in a car). */
@@ -830,7 +849,7 @@ export class Stage {
     const id = this.onStageIds().find((id) => this.actors[id] === a);
     const m = this.current.marks[(id && this.actorMark.get(id)) ?? ''];
     if (!m || m.seat === null) return null;
-    return { pos: m.pos.clone(), approach: m.approach?.clone(), facing: m.facing, height: m.seat, pose: m.pose, prop: m.prop, depth: m.depth };
+    return { pos: m.pos.clone(), approach: m.approach?.clone(), facing: m.facing, height: m.seat, pose: m.pose, prop: m.prop, depth: m.depth, back: m.back };
   }
 
   /** Where everyone else on the set is standing or sitting, or will be once they've got where they're going. */
